@@ -1,0 +1,617 @@
+// | This module defines functions for working with folds.
+import * as Control_Applicative from "../Control.Applicative/index.js";
+import * as Control_Apply from "../Control.Apply/index.js";
+import * as Control_Category from "../Control.Category/index.js";
+import * as Data_Array from "../Data.Array/index.js";
+import * as Data_Either from "../Data.Either/index.js";
+import * as Data_Eq from "../Data.Eq/index.js";
+import * as Data_Foldable from "../Data.Foldable/index.js";
+import * as Data_Function from "../Data.Function/index.js";
+import * as Data_Functor from "../Data.Functor/index.js";
+import * as Data_HeytingAlgebra from "../Data.HeytingAlgebra/index.js";
+import * as Data_Lens_Internal_Forget from "../Data.Lens.Internal.Forget/index.js";
+import * as Data_Lens_Types from "../Data.Lens.Types/index.js";
+import * as Data_List_Types from "../Data.List.Types/index.js";
+import * as Data_Maybe from "../Data.Maybe/index.js";
+import * as Data_Maybe_First from "../Data.Maybe.First/index.js";
+import * as Data_Maybe_Last from "../Data.Maybe.Last/index.js";
+import * as Data_Monoid from "../Data.Monoid/index.js";
+import * as Data_Monoid_Additive from "../Data.Monoid.Additive/index.js";
+import * as Data_Monoid_Conj from "../Data.Monoid.Conj/index.js";
+import * as Data_Monoid_Disj from "../Data.Monoid.Disj/index.js";
+import * as Data_Monoid_Dual from "../Data.Monoid.Dual/index.js";
+import * as Data_Monoid_Endo from "../Data.Monoid.Endo/index.js";
+import * as Data_Monoid_Multiplicative from "../Data.Monoid.Multiplicative/index.js";
+import * as Data_Newtype from "../Data.Newtype/index.js";
+import * as Data_Ord from "../Data.Ord/index.js";
+import * as Data_Profunctor from "../Data.Profunctor/index.js";
+import * as Data_Profunctor_Choice from "../Data.Profunctor.Choice/index.js";
+import * as Data_Semigroup from "../Data.Semigroup/index.js";
+import * as Data_Tuple from "../Data.Tuple/index.js";
+import * as Data_Unit from "../Data.Unit/index.js";
+var $runtime_lazy = function (name, moduleName, init) {
+    var state = 0;
+    var val;
+    return function (lineNumber) {
+        if (state === 2) return val;
+        if (state === 1) throw new ReferenceError(name + " was needed before it finished initializing (module " + moduleName + ", line " + lineNumber + ")", moduleName, lineNumber);
+        state = 1;
+        val = init();
+        state = 2;
+        return val;
+    };
+};
+var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap2 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap3 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap4 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap5 = /* #__PURE__ */ Data_Newtype.unwrap();
+var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
+var fromFoldable = /* #__PURE__ */ Data_Array.fromFoldable(Data_List_Types.foldableList);
+var unwrap6 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap7 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap8 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap9 = /* #__PURE__ */ Data_Newtype.unwrap();
+
+// | Builds a `Fold` using an unfold.
+var unfolded = function (dictMonoid) {
+    var mempty = Data_Monoid.mempty(dictMonoid);
+    var append = Data_Semigroup.append(dictMonoid.Semigroup0());
+    return function (f) {
+        return function (p) {
+            var $lazy_go = $runtime_lazy("go", "Data.Lens.Fold", function () {
+                var $98 = Data_Maybe.maybe(mempty)(function (v) {
+                    return append(unwrap(p)(v.value0))($lazy_go(232)(v.value1));
+                });
+                return function ($99) {
+                    return $98(f($99));
+                };
+            });
+            var go = $lazy_go(232);
+            return go;
+        };
+    };
+};
+
+// | Replicates the elements of a fold.
+var replicated = function (dictMonoid) {
+    var mempty = Data_Monoid.mempty(Data_Monoid.monoidFn(dictMonoid));
+    var append = Data_Semigroup.append(Data_Semigroup.semigroupFn(dictMonoid.Semigroup0()));
+    return function (i) {
+        return function (v) {
+            var go = function (v1) {
+                return function (v2) {
+                    if (v1 === 0) {
+                        return mempty;
+                    };
+                    return append(v2)(go(v1 - 1 | 0)(v2));
+                };
+            };
+            return go(i)(v);
+        };
+    };
+};
+
+// | Fold map over an `IndexedFold`.
+var ifoldMapOf = function (p) {
+    return function (f) {
+        return unwrap1(p(Data_Tuple.uncurry(f)));
+    };
+};
+
+// | Left fold over an `IndexedFold`.
+var ifoldlOf = function (p) {
+    return function (f) {
+        return function (r) {
+            var $100 = Data_Function.flip(unwrap2)(r);
+            var $101 = ifoldMapOf(p)(function (i) {
+                var $103 = Data_Function.flip(f(i));
+                return function ($104) {
+                    return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($103($104)));
+                };
+            });
+            return function ($102) {
+                return $100(unwrap3($101($102)));
+            };
+        };
+    };
+};
+
+// | Right fold over an `IndexedFold`.
+var ifoldrOf = function (p) {
+    return function (f) {
+        return function (r) {
+            var $105 = Data_Function.flip(unwrap4)(r);
+            var $106 = ifoldMapOf(p)(function (i) {
+                var $108 = f(i);
+                return function ($109) {
+                    return Data_Monoid_Endo.Endo($108($109));
+                };
+            });
+            return function ($107) {
+                return $105($106($107));
+            };
+        };
+    };
+};
+
+// | Collects the foci of an `IndexedFold` into a list.
+var itoListOf = function (p) {
+    return ifoldrOf(p)(function (i) {
+        return function (x) {
+            return function (xs) {
+                return new Data_List_Types.Cons(new Data_Tuple.Tuple(i, x), xs);
+            };
+        };
+    })(Data_List_Types.Nil.value);
+};
+
+// | Traverse the foci of an `IndexedFold`, discarding the results.
+var itraverseOf_ = function (dictApplicative) {
+    var Apply0 = dictApplicative.Apply0();
+    var applySecond = Control_Apply.applySecond(Apply0);
+    var $$void = Data_Functor["void"](Apply0.Functor0());
+    var pure = Control_Applicative.pure(dictApplicative);
+    return function (p) {
+        return function (f) {
+            return ifoldrOf(p)(function (i) {
+                return function (a) {
+                    return function (fu) {
+                        return applySecond($$void(f(i)(a)))(fu);
+                    };
+                };
+            })(pure(Data_Unit.unit));
+        };
+    };
+};
+
+// | Flipped version of `itraverseOf_`.
+var iforOf_ = function (dictApplicative) {
+    var $110 = itraverseOf_(dictApplicative);
+    return function ($111) {
+        return Data_Function.flip($110($111));
+    };
+};
+
+// | Find the first focus of an `IndexedFold` that satisfies a predicate, if
+// | there is any.
+var ifindOf = function (p) {
+    return function (f) {
+        return ifoldrOf(p)(function (i) {
+            return function (a) {
+                return Data_Maybe.maybe((function () {
+                    var $92 = f(i)(a);
+                    if ($92) {
+                        return new Data_Maybe.Just(a);
+                    };
+                    return Data_Maybe.Nothing.value;
+                })())(Data_Maybe.Just.create);
+            };
+        })(Data_Maybe.Nothing.value);
+    };
+};
+
+// | Whether any focus of an `IndexedFold` satisfies a predicate.
+var ianyOf = function (dictHeytingAlgebra) {
+    return function (p) {
+        return function (f) {
+            var $112 = ifoldMapOf(p)(function (i) {
+                var $114 = f(i);
+                return function ($115) {
+                    return Data_Monoid_Disj.Disj($114($115));
+                };
+            });
+            return function ($113) {
+                return unwrap5($112($113));
+            };
+        };
+    };
+};
+
+// | Whether all foci of an `IndexedFold` satisfy a predicate.
+var iallOf = function (dictHeytingAlgebra) {
+    return function (p) {
+        return function (f) {
+            var $116 = ifoldMapOf(p)(function (i) {
+                var $118 = f(i);
+                return function ($119) {
+                    return Data_Monoid_Conj.Conj($118($119));
+                };
+            });
+            return function ($117) {
+                return unwrap5($116($117));
+            };
+        };
+    };
+};
+
+// | Folds over a `Foldable` container.
+var folded = function (dictMonoid) {
+    return function (dictFoldable) {
+        var foldMap = Data_Foldable.foldMap(dictFoldable)(dictMonoid);
+        return function (v) {
+            return foldMap(v);
+        };
+    };
+};
+
+// | Maps and then folds all foci of a `Fold`.
+var foldMapOf = /* #__PURE__ */ Data_Newtype.under()()(Data_Lens_Internal_Forget.Forget);
+
+// | Folds all foci of a `Fold` to one. Note that this is the same as `view`.
+var foldOf = function (p) {
+    return foldMapOf(p)(identity);
+};
+
+// | Left fold over a `Fold`.
+var foldlOf = function (p) {
+    return function (f) {
+        return function (r) {
+            var $120 = Data_Function.flip(unwrap2)(r);
+            var $121 = foldMapOf(p)((function () {
+                var $123 = Data_Function.flip(f);
+                return function ($124) {
+                    return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($123($124)));
+                };
+            })());
+            return function ($122) {
+                return $120(unwrap3($121($122)));
+            };
+        };
+    };
+};
+
+// | Right fold over a `Fold`.
+var foldrOf = function (p) {
+    return function (f) {
+        return function (r) {
+            var $125 = Data_Function.flip(unwrap4)(r);
+            var $126 = foldMapOf(p)(function ($128) {
+                return Data_Monoid_Endo.Endo(f($128));
+            });
+            return function ($127) {
+                return $125($126($127));
+            };
+        };
+    };
+};
+
+// | The maximum of all foci of a `Fold`, if there is any.
+var maximumOf = function (dictOrd) {
+    var greaterThan = Data_Ord.greaterThan(dictOrd);
+    return function (p) {
+        var max = function (a) {
+            return function (b) {
+                var $94 = greaterThan(a)(b);
+                if ($94) {
+                    return a;
+                };
+                return b;
+            };
+        };
+        return foldrOf(p)(function (a) {
+            var $129 = Data_Maybe.maybe(a)(max(a));
+            return function ($130) {
+                return Data_Maybe.Just.create($129($130));
+            };
+        })(Data_Maybe.Nothing.value);
+    };
+};
+
+// | The minimum of all foci of a `Fold`, if there is any.
+var minimumOf = function (dictOrd) {
+    var lessThan = Data_Ord.lessThan(dictOrd);
+    return function (p) {
+        var min = function (a) {
+            return function (b) {
+                var $95 = lessThan(a)(b);
+                if ($95) {
+                    return a;
+                };
+                return b;
+            };
+        };
+        return foldrOf(p)(function (a) {
+            var $131 = Data_Maybe.maybe(a)(min(a));
+            return function ($132) {
+                return Data_Maybe.Just.create($131($132));
+            };
+        })(Data_Maybe.Nothing.value);
+    };
+};
+
+// | Collects the foci of a `Fold` into a list.
+var toListOf = function (p) {
+    return foldrOf(p)(Data_List_Types.Cons.create)(Data_List_Types.Nil.value);
+};
+
+// | Collects the foci of a `Fold` into an array.
+var toArrayOf = function (p) {
+    var $133 = toListOf(p);
+    return function ($134) {
+        return fromFoldable($133($134));
+    };
+};
+
+// | Synonym for `toArrayOf`, reversed.
+var toArrayOfOn = function (s) {
+    return function (p) {
+        return toArrayOf(p)(s);
+    };
+};
+
+// | Synonym for `toListOf`, reversed.
+var toListOfOn = function (s) {
+    return function (p) {
+        return toListOf(p)(s);
+    };
+};
+
+// | Traverse the foci of a `Fold`, discarding the results.
+var traverseOf_ = function (dictApplicative) {
+    var Apply0 = dictApplicative.Apply0();
+    var applySecond = Control_Apply.applySecond(Apply0);
+    var $$void = Data_Functor["void"](Apply0.Functor0());
+    var pure = Control_Applicative.pure(dictApplicative);
+    return function (p) {
+        return function (f) {
+            return foldrOf(p)(function (a) {
+                return function (fu) {
+                    return applySecond($$void(f(a)))(fu);
+                };
+            })(pure(Data_Unit.unit));
+        };
+    };
+};
+
+// | Determines whether a `Fold` has at least one focus.
+var has = function (dictHeytingAlgebra) {
+    var tt = Data_HeytingAlgebra.tt(dictHeytingAlgebra);
+    return function (p) {
+        var $135 = foldMapOf(p)(Data_Function["const"](tt));
+        return function ($136) {
+            return unwrap5($135($136));
+        };
+    };
+};
+
+// | Determines whether a `Fold` does not have a focus.
+var hasn$primet = function (dictHeytingAlgebra) {
+    var ff = Data_HeytingAlgebra.ff(dictHeytingAlgebra);
+    return function (p) {
+        var $137 = foldMapOf(p)(Data_Function["const"](ff));
+        return function ($138) {
+            return unwrap5($137($138));
+        };
+    };
+};
+
+// | The last focus of a `Fold`, if there is any.
+var lastOf = function (p) {
+    var $139 = foldMapOf(p)(function ($141) {
+        return Data_Maybe_Last.Last(Data_Maybe.Just.create($141));
+    });
+    return function ($140) {
+        return unwrap6($139($140));
+    };
+};
+
+// | The number of foci of a `Fold`.
+var lengthOf = function (p) {
+    var $142 = foldMapOf(p)(Data_Function["const"](1));
+    return function ($143) {
+        return unwrap7($142($143));
+    };
+};
+
+// | Previews the first value of a fold, if there is any.
+var preview = function (p) {
+    var $144 = foldMapOf(p)(function ($146) {
+        return Data_Maybe_First.First(Data_Maybe.Just.create($146));
+    });
+    return function ($145) {
+        return unwrap6($144($145));
+    };
+};
+
+// | Synonym for `preview`, flipped.
+var previewOn = function (s) {
+    return function (p) {
+        return preview(p)(s);
+    };
+};
+
+// | The product of all foci of a `Fold`.
+var productOf = function (dictSemiring) {
+    return function (p) {
+        var $147 = foldMapOf(p)(Data_Monoid_Multiplicative.Multiplicative);
+        return function ($148) {
+            return unwrap8($147($148));
+        };
+    };
+};
+
+// | Sequence the foci of a `Fold`, pulling out an `Applicative`, and ignore
+// | the result. If you need the result, see `sequenceOf` for `Traversal`s.
+var sequenceOf_ = function (dictApplicative) {
+    var pure = Control_Applicative.pure(dictApplicative);
+    var applySecond = Control_Apply.applySecond(dictApplicative.Apply0());
+    return function (p) {
+        var $149 = Data_Function.flip(unwrap9)(pure(Data_Unit.unit));
+        var $150 = foldMapOf(p)(function (f) {
+            return function (v) {
+                return applySecond(f)(v);
+            };
+        });
+        return function ($151) {
+            return $149($150($151));
+        };
+    };
+};
+
+// | The sum of all foci of a `Fold`.
+var sumOf = function (dictSemiring) {
+    return function (p) {
+        var $152 = foldMapOf(p)(Data_Monoid_Additive.Additive);
+        return function ($153) {
+            return unwrap8($152($153));
+        };
+    };
+};
+
+// | The first focus of a `Fold`, if there is any. Synonym for `preview`.
+var firstOf = function (p) {
+    var $154 = foldMapOf(p)(function ($156) {
+        return Data_Maybe_First.First(Data_Maybe.Just.create($156));
+    });
+    return function ($155) {
+        return unwrap6($154($155));
+    };
+};
+
+// | Find the first focus of a `Fold` that satisfies a predicate, if there is any.
+var findOf = function (p) {
+    return function (f) {
+        return foldrOf(p)(function (a) {
+            return Data_Maybe.maybe((function () {
+                var $96 = f(a);
+                if ($96) {
+                    return new Data_Maybe.Just(a);
+                };
+                return Data_Maybe.Nothing.value;
+            })())(Data_Maybe.Just.create);
+        })(Data_Maybe.Nothing.value);
+    };
+};
+
+// | Filters on a predicate.
+var filtered = function (dictChoice) {
+    var right = Data_Profunctor_Choice.right(dictChoice);
+    var dimap = Data_Profunctor.dimap(dictChoice.Profunctor0());
+    return function (f) {
+        var $157 = dimap(function (x) {
+            var $97 = f(x);
+            if ($97) {
+                return new Data_Either.Right(x);
+            };
+            return new Data_Either.Left(x);
+        })(Data_Either.either(identity)(identity));
+        return function ($158) {
+            return $157(right($158));
+        };
+    };
+};
+
+// | Whether any focus of a `Fold` satisfies a predicate.
+var anyOf = function (dictHeytingAlgebra) {
+    return function (p) {
+        return function (f) {
+            var $159 = foldMapOf(p)(function ($161) {
+                return Data_Monoid_Disj.Disj(f($161));
+            });
+            return function ($160) {
+                return unwrap5($159($160));
+            };
+        };
+    };
+};
+var anyOf1 = /* #__PURE__ */ anyOf(Data_HeytingAlgebra.heytingAlgebraBoolean);
+
+// | Whether a `Fold` contains a given element.
+var elemOf = function (dictEq) {
+    var eq = Data_Eq.eq(dictEq);
+    return function (p) {
+        return function (a) {
+            return anyOf1(p)(function (v) {
+                return eq(v)(a);
+            });
+        };
+    };
+};
+
+// | The disjunction of all foci of a `Fold`.
+var orOf = function (dictHeytingAlgebra) {
+    var anyOf2 = anyOf(dictHeytingAlgebra);
+    return function (p) {
+        return anyOf2(p)(identity);
+    };
+};
+
+// | Whether all foci of a `Fold` satisfy a predicate.
+var allOf = function (dictHeytingAlgebra) {
+    return function (p) {
+        return function (f) {
+            var $162 = foldMapOf(p)(function ($164) {
+                return Data_Monoid_Conj.Conj(f($164));
+            });
+            return function ($163) {
+                return unwrap5($162($163));
+            };
+        };
+    };
+};
+var allOf1 = /* #__PURE__ */ allOf(Data_HeytingAlgebra.heytingAlgebraBoolean);
+
+// | The conjunction of all foci of a `Fold`.
+var andOf = function (dictHeytingAlgebra) {
+    var allOf2 = allOf(dictHeytingAlgebra);
+    return function (p) {
+        return allOf2(p)(identity);
+    };
+};
+
+// | Whether a `Fold` not contains a given element.
+var notElemOf = function (dictEq) {
+    var notEq = Data_Eq.notEq(dictEq);
+    return function (p) {
+        return function (a) {
+            return allOf1(p)(function (v) {
+                return notEq(v)(a);
+            });
+        };
+    };
+};
+export {
+    previewOn,
+    toListOfOn,
+    preview,
+    foldOf,
+    foldMapOf,
+    foldrOf,
+    foldlOf,
+    toListOf,
+    firstOf,
+    lastOf,
+    maximumOf,
+    minimumOf,
+    allOf,
+    anyOf,
+    andOf,
+    orOf,
+    elemOf,
+    notElemOf,
+    sumOf,
+    productOf,
+    lengthOf,
+    findOf,
+    sequenceOf_,
+    traverseOf_,
+    has,
+    hasn$primet,
+    replicated,
+    filtered,
+    folded,
+    unfolded,
+    toArrayOf,
+    toArrayOfOn,
+    ifoldMapOf,
+    ifoldrOf,
+    ifoldlOf,
+    iallOf,
+    ianyOf,
+    ifindOf,
+    itoListOf,
+    itraverseOf_,
+    iforOf_
+};

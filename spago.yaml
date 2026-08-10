@@ -1,0 +1,20 @@
+package:
+  name: javapurs
+  dependencies:
+    - console
+    - effect
+    - prelude
+    - backend-optimizer
+    - node-fs
+    - node-buffer
+    - exceptions
+    - argonaut-core
+    - arrays
+    - strings
+
+workspace:
+  packageSet:
+    registry: 77.10.1
+  extraPackages:
+    backend-optimizer:
+      path: "../purescript-backend-optimizer"

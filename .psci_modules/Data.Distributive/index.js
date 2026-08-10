@@ -1,0 +1,129 @@
+import * as Control_Category from "../Control.Category/index.js";
+import * as Data_Functor from "../Data.Functor/index.js";
+import * as Data_Identity from "../Data.Identity/index.js";
+import * as Data_Newtype from "../Data.Newtype/index.js";
+import * as Data_Tuple from "../Data.Tuple/index.js";
+import * as Data_Unit from "../Data.Unit/index.js";
+import * as Type_Equality from "../Type.Equality/index.js";
+var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
+var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
+var distributiveIdentity = {
+    distribute: function (dictFunctor) {
+        var $35 = Data_Functor.map(dictFunctor)(unwrap);
+        return function ($36) {
+            return Data_Identity.Identity($35($36));
+        };
+    },
+    collect: function (dictFunctor) {
+        var map = Data_Functor.map(dictFunctor);
+        return function (f) {
+            var $37 = map(function ($39) {
+                return unwrap1(f($39));
+            });
+            return function ($38) {
+                return Data_Identity.Identity($37($38));
+            };
+        };
+    },
+    Functor0: function () {
+        return Data_Identity.functorIdentity;
+    }
+};
+var distribute = function (dict) {
+    return dict.distribute;
+};
+var distributiveFunction = {
+    distribute: function (dictFunctor) {
+        var map = Data_Functor.map(dictFunctor);
+        return function (a) {
+            return function (e) {
+                return map(function (v) {
+                    return v(e);
+                })(a);
+            };
+        };
+    },
+    collect: function (dictFunctor) {
+        var map = Data_Functor.map(dictFunctor);
+        return function (f) {
+            var $40 = distribute(distributiveFunction)(dictFunctor);
+            var $41 = map(f);
+            return function ($42) {
+                return $40($41($42));
+            };
+        };
+    },
+    Functor0: function () {
+        return Data_Functor.functorFn;
+    }
+};
+
+// | Zip an arbitrary collection of containers and summarize the results
+var cotraverse = function (dictDistributive) {
+    var map = Data_Functor.map(dictDistributive.Functor0());
+    var distribute1 = distribute(dictDistributive);
+    return function (dictFunctor) {
+        var distribute2 = distribute1(dictFunctor);
+        return function (f) {
+            var $43 = map(f);
+            return function ($44) {
+                return $43(distribute2($44));
+            };
+        };
+    };
+};
+
+// | A default implementation of `collect`, based on `distribute`.
+var collectDefault = function (dictDistributive) {
+    var distribute1 = distribute(dictDistributive);
+    return function (dictFunctor) {
+        var distribute2 = distribute1(dictFunctor);
+        var map = Data_Functor.map(dictFunctor);
+        return function (f) {
+            var $45 = map(f);
+            return function ($46) {
+                return distribute2($45($46));
+            };
+        };
+    };
+};
+var distributiveTuple = function (dictTypeEquals) {
+    var from = Type_Equality.from(dictTypeEquals);
+    return {
+        collect: function (dictFunctor) {
+            return collectDefault(distributiveTuple(dictTypeEquals))(dictFunctor);
+        },
+        distribute: function (dictFunctor) {
+            var $47 = Data_Tuple.Tuple.create(from(Data_Unit.unit));
+            var $48 = Data_Functor.map(dictFunctor)(Data_Tuple.snd);
+            return function ($49) {
+                return $47($48($49));
+            };
+        },
+        Functor0: function () {
+            return Data_Tuple.functorTuple;
+        }
+    };
+};
+var collect = function (dict) {
+    return dict.collect;
+};
+
+// | A default implementation of `distribute`, based on `collect`.
+var distributeDefault = function (dictDistributive) {
+    var collect1 = collect(dictDistributive);
+    return function (dictFunctor) {
+        return collect1(dictFunctor)(identity);
+    };
+};
+export {
+    collect,
+    distribute,
+    distributeDefault,
+    collectDefault,
+    cotraverse,
+    distributiveIdentity,
+    distributiveFunction,
+    distributiveTuple
+};

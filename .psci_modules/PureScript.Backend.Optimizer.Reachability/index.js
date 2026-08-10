@@ -1,0 +1,84 @@
+import * as Data_Array from "../Data.Array/index.js";
+import * as Data_Foldable from "../Data.Foldable/index.js";
+import * as Data_Map_Internal from "../Data.Map.Internal/index.js";
+import * as Data_Maybe from "../Data.Maybe/index.js";
+import * as Data_Set from "../Data.Set/index.js";
+import * as Data_Unfoldable from "../Data.Unfoldable/index.js";
+import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
+var lookup = /* #__PURE__ */ Data_Map_Internal.lookup(PureScript_Backend_Optimizer_CoreFn.ordModuleName);
+var toUnfoldable = /* #__PURE__ */ Data_Map_Internal.toUnfoldable(Data_Unfoldable.unfoldableArray);
+var foldl = /* #__PURE__ */ Data_Foldable.foldl(Data_Foldable.foldableArray);
+var foldl1 = /* #__PURE__ */ Data_Foldable.foldl(Data_Set.foldableSet);
+var insert = /* #__PURE__ */ Data_Set.insert(PureScript_Backend_Optimizer_CoreFn.ordModuleName);
+var union = /* #__PURE__ */ Data_Set.union(PureScript_Backend_Optimizer_CoreFn.ordModuleName);
+var fromFoldable = /* #__PURE__ */ Data_Set.fromFoldable(Data_Foldable.foldableArray)(PureScript_Backend_Optimizer_CoreFn.ordModuleName);
+var difference = /* #__PURE__ */ Data_Set.difference(PureScript_Backend_Optimizer_CoreFn.ordModuleName);
+var fromFoldable1 = /* #__PURE__ */ Data_Array.fromFoldable(Data_Set.foldableSet);
+
+// | Computes the set of reachable modules starting from a list of entry modules.
+var moduleReachability = function (entryMods) {
+    return function (modulesMap) {
+        var getModuleDeps = function (modName) {
+            var v = lookup(modName)(modulesMap);
+            if (v instanceof Data_Maybe.Just) {
+                var impls = toUnfoldable(v.value0.implementations);
+                
+                // Accumulate module names directly into a Set to avoid massive intermediate arrays
+var allMods = foldl(function (acc) {
+                    return function (v1) {
+                        return foldl1(function (acc2) {
+                            return function (v2) {
+                                if (v2.value0 instanceof Data_Maybe.Just) {
+                                    return insert(v2.value0.value0)(acc2);
+                                };
+                                if (v2.value0 instanceof Data_Maybe.Nothing) {
+                                    return acc2;
+                                };
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Reachability (line 50, column 27 - line 52, column 44): " + [ v2.value0.constructor.name ]);
+                            };
+                        })(acc)(v1.value1.value0.deps);
+                    };
+                })(Data_Set.empty)(impls);
+                return union(v.value0.imports)(allMods);
+            };
+            if (v instanceof Data_Maybe.Nothing) {
+                return Data_Set.empty;
+            };
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Reachability (line 42, column 7 - line 60, column 20): " + [ v.constructor.name ]);
+        };
+        var go = function ($copy_seen) {
+            return function ($copy_unvisited) {
+                var $tco_var_seen = $copy_seen;
+                var $tco_done = false;
+                var $tco_result;
+                function $tco_loop(seen, unvisited) {
+                    var $25 = Data_Array["null"](unvisited);
+                    if ($25) {
+                        $tco_done = true;
+                        return seen;
+                    };
+                    var newSeen = union(seen)(fromFoldable(unvisited));
+                    
+                    // Use a Set to accumulate new dependencies to avoid huge arrays
+var newDepsSet = foldl(function (acc) {
+                        return function (modName) {
+                            return union(acc)(getModuleDeps(modName));
+                        };
+                    })(Data_Set.empty)(unvisited);
+                    var nextUnvisitedSet = difference(newDepsSet)(newSeen);
+                    $tco_var_seen = newSeen;
+                    $copy_unvisited = fromFoldable1(nextUnvisitedSet);
+                    return;
+                };
+                while (!$tco_done) {
+                    $tco_result = $tco_loop($tco_var_seen, $copy_unvisited);
+                };
+                return $tco_result;
+            };
+        };
+        return go(Data_Set.empty)(entryMods);
+    };
+};
+export {
+    moduleReachability
+};

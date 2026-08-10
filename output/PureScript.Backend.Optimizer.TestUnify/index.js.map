@@ -1,0 +1,1 @@
+{"file":"index.js","mappings":";;;;;;AAQA;IAEM,+DAAmB,8CAAK,EAAC,oBAAkB,yDAAa;IACxD,4DAAgB,8CAAK,EAAC,oBAAkB,qDAAS,EAAC,6BAA2B;IAC7E,0DAAc,aAAY;8BAChB,qFAAwC","names":[],"sources":["../../../purescript-backend-optimizer/src/PureScript/Backend/Optimizer/TestUnify.purs"],"version":3}

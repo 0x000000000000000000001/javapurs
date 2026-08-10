@@ -1,0 +1,152 @@
+import * as Data_Array_NonEmpty from "../Data.Array.NonEmpty/index.js";
+import * as Data_Maybe from "../Data.Maybe/index.js";
+import * as Data_Semigroup_Foldable from "../Data.Semigroup.Foldable/index.js";
+import * as Data_String_CodePoints from "../Data.String.CodePoints/index.js";
+import * as Data_String_NonEmpty_Internal from "../Data.String.NonEmpty.Internal/index.js";
+var fromJust = /* #__PURE__ */ Data_Maybe.fromJust();
+var fromJust1 = /* #__PURE__ */ Data_Maybe.fromJust();
+var fromJust2 = /* #__PURE__ */ Data_Maybe.fromJust();
+
+// For internal use only. Do not export.
+var toNonEmptyString = Data_String_NonEmpty_Internal.NonEmptyString;
+var snoc = function (c) {
+    return function (s) {
+        return toNonEmptyString(s + Data_String_CodePoints.singleton(c));
+    };
+};
+var singleton = function ($23) {
+    return toNonEmptyString(Data_String_CodePoints.singleton($23));
+};
+
+// For internal use only. Do not export.
+var liftS = function (f) {
+    return function (v) {
+        return f(v);
+    };
+};
+var takeWhile = function (f) {
+    var $24 = liftS(Data_String_CodePoints.takeWhile(f));
+    return function ($25) {
+        return Data_String_NonEmpty_Internal.fromString($24($25));
+    };
+};
+var lastIndexOf$prime = function (pat) {
+    var $26 = Data_String_CodePoints["lastIndexOf$prime"](pat);
+    return function ($27) {
+        return liftS($26($27));
+    };
+};
+var lastIndexOf = function ($28) {
+    return liftS(Data_String_CodePoints.lastIndexOf($28));
+};
+var indexOf$prime = function (pat) {
+    var $29 = Data_String_CodePoints["indexOf$prime"](pat);
+    return function ($30) {
+        return liftS($29($30));
+    };
+};
+var indexOf = function ($31) {
+    return liftS(Data_String_CodePoints.indexOf($31));
+};
+
+// For internal use only. Do not export.
+var fromNonEmptyString = function (v) {
+    return v;
+};
+var length = function ($32) {
+    return Data_String_CodePoints.length(fromNonEmptyString($32));
+};
+var splitAt = function (i) {
+    return function (nes) {
+        var v = Data_String_CodePoints.splitAt(i)(fromNonEmptyString(nes));
+        return {
+            before: Data_String_NonEmpty_Internal.fromString(v.before),
+            after: Data_String_NonEmpty_Internal.fromString(v.after)
+        };
+    };
+};
+var take = function (i) {
+    return function (nes) {
+        var s = fromNonEmptyString(nes);
+        var $20 = i < 1;
+        if ($20) {
+            return Data_Maybe.Nothing.value;
+        };
+        return new Data_Maybe.Just(toNonEmptyString(Data_String_CodePoints.take(i)(s)));
+    };
+};
+var toCodePointArray = function ($33) {
+    return Data_String_CodePoints.toCodePointArray(fromNonEmptyString($33));
+};
+var toNonEmptyCodePointArray = function ($35) {
+    return fromJust(Data_Array_NonEmpty.fromArray(toCodePointArray($35)));
+};
+var uncons = function (nes) {
+    var s = fromNonEmptyString(nes);
+    return {
+        head: fromJust1(Data_String_CodePoints.codePointAt(0)(s)),
+        tail: Data_String_NonEmpty_Internal.fromString(Data_String_CodePoints.drop(1)(s))
+    };
+};
+var fromFoldable1 = function (dictFoldable1) {
+    return Data_Semigroup_Foldable.foldMap1(dictFoldable1)(Data_String_NonEmpty_Internal.semigroupNonEmptyString)(singleton);
+};
+var fromCodePointArray = function (v) {
+    if (v.length === 0) {
+        return Data_Maybe.Nothing.value;
+    };
+    return new Data_Maybe.Just(toNonEmptyString(Data_String_CodePoints.fromCodePointArray(v)));
+};
+var fromNonEmptyCodePointArray = function ($37) {
+    return fromJust2(fromCodePointArray(Data_Array_NonEmpty.toArray($37)));
+};
+var dropWhile = function (f) {
+    var $38 = liftS(Data_String_CodePoints.dropWhile(f));
+    return function ($39) {
+        return Data_String_NonEmpty_Internal.fromString($38($39));
+    };
+};
+var drop = function (i) {
+    return function (nes) {
+        var s = fromNonEmptyString(nes);
+        var $22 = i >= Data_String_CodePoints.length(s);
+        if ($22) {
+            return Data_Maybe.Nothing.value;
+        };
+        return new Data_Maybe.Just(toNonEmptyString(Data_String_CodePoints.drop(i)(s)));
+    };
+};
+var countPrefix = function ($40) {
+    return liftS(Data_String_CodePoints.countPrefix($40));
+};
+var cons = function (c) {
+    return function (s) {
+        return toNonEmptyString(Data_String_CodePoints.singleton(c) + s);
+    };
+};
+var codePointAt = function ($41) {
+    return liftS(Data_String_CodePoints.codePointAt($41));
+};
+export {
+    fromCodePointArray,
+    fromNonEmptyCodePointArray,
+    singleton,
+    cons,
+    snoc,
+    fromFoldable1,
+    toCodePointArray,
+    toNonEmptyCodePointArray,
+    codePointAt,
+    indexOf,
+    indexOf$prime,
+    lastIndexOf,
+    lastIndexOf$prime,
+    uncons,
+    length,
+    take,
+    takeWhile,
+    drop,
+    dropWhile,
+    countPrefix,
+    splitAt
+};
