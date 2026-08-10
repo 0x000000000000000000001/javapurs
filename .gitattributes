@@ -1,0 +1,4 @@
+*.js linguist-generated
+*.js linguist-vendored
+bin/javapurs.js linguist-generated
+bin/javapurs.js linguist-vendored
