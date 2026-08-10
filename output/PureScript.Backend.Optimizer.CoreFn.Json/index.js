@@ -32,19 +32,19 @@ var discard = /* #__PURE__ */ Control_Bind.discard(Control_Bind.discardUnit);
 var unsafeIndex = /* #__PURE__ */ Data_Array.unsafeIndex();
 var pure1 = /* #__PURE__ */ Control_Applicative.pure(Data_Either.applicativeEither);
 var throwError = /* #__PURE__ */ Control_Monad_Error_Class.throwError(Control_Monad_Error_Class.monadThrowEither);
+var throwError1 = /* #__PURE__ */ Control_Monad_Error_Class.throwError(Control_Monad_Error_Class.monadThrowEither);
 var pure2 = /* #__PURE__ */ Control_Applicative.pure(Data_Either.applicativeEither);
 var bottom = /* #__PURE__ */ Data_Bounded.bottom(Data_Bounded.boundedInt);
 var pure3 = /* #__PURE__ */ Control_Applicative.pure(Data_Either.applicativeEither);
-var throwError1 = /* #__PURE__ */ Control_Monad_Error_Class.throwError(Control_Monad_Error_Class.monadThrowEither);
+var throwError2 = /* #__PURE__ */ Control_Monad_Error_Class.throwError(Control_Monad_Error_Class.monadThrowEither);
 var pure4 = /* #__PURE__ */ Control_Applicative.pure(Data_Either.applicativeEither);
+var pure5 = /* #__PURE__ */ Control_Applicative.pure(Data_Either.applicativeEither);
 var traverse = /* #__PURE__ */ Data_Traversable.traverse(Data_Traversable.traversableArray)(Data_Either.applicativeEither);
 var traverse1 = /* #__PURE__ */ Data_Traversable.traverse(Data_Traversable.traversableTuple)(Data_Either.applicativeEither);
-var pure5 = /* #__PURE__ */ Control_Applicative.pure(Data_Either.applicativeEither);
+var pure6 = /* #__PURE__ */ Control_Applicative.pure(Data_Either.applicativeEither);
 var bind2 = /* #__PURE__ */ Control_Bind.bind(Control_Bind.bindArray);
 var map1 = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorArray);
 var decodeJson = /* #__PURE__ */ Data_Argonaut_Decode_Class.decodeJson(/* #__PURE__ */ Data_Argonaut_Decode_Class.decodeJsonTuple(Data_Argonaut_Decode_Class.decodeJsonInt)(Data_Argonaut_Decode_Class.decodeJsonInt));
-var throwError2 = /* #__PURE__ */ Control_Monad_Error_Class.throwError(Control_Monad_Error_Class.monadThrowEither);
-var pure6 = /* #__PURE__ */ Control_Applicative.pure(Data_Either.applicativeEither);
 var throwError3 = /* #__PURE__ */ Control_Monad_Error_Class.throwError(Control_Monad_Error_Class.monadThrowEither);
 var pure7 = /* #__PURE__ */ Control_Applicative.pure(Data_Either.applicativeEither);
 var discard2 = /* #__PURE__ */ discard(Data_Maybe.bindMaybe);
@@ -60,6 +60,7 @@ var pure12 = /* #__PURE__ */ Control_Applicative.pure(Data_Either.applicativeEit
 var composeKleisli = /* #__PURE__ */ Control_Bind.composeKleisli(Data_Either.bindEither);
 var throwError7 = /* #__PURE__ */ Control_Monad_Error_Class.throwError(Control_Monad_Error_Class.monadThrowEither);
 var fromFoldable = /* #__PURE__ */ Data_Map_Internal.fromFoldable(PureScript_Backend_Optimizer_CoreFn.ordIdent)(Data_Foldable.foldableArray);
+var pure13 = /* #__PURE__ */ Control_Applicative.pure(Data_Either.applicativeEither);
 var getFieldOptional$prime = function (decode) {
     return function (obj) {
         return function (prop) {
@@ -75,7 +76,7 @@ var getFieldOptional$prime = function (decode) {
                     return map(Data_Maybe.Just.create)(decode(v.value0));
                 };
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 416, column 3 - line 423, column 31): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 425, column 3 - line 432, column 31): " + [ v.constructor.name ]);
         };
     };
 };
@@ -89,7 +90,7 @@ var getField = function (decode) {
             if (v instanceof Data_Maybe.Just) {
                 return decode(v.value0);
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 408, column 3 - line 412, column 18): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 417, column 3 - line 421, column 18): " + [ v.constructor.name ]);
         };
     };
 };
@@ -142,8 +143,8 @@ var decodeArray = function (decoder) {
                     while (con) {
                         (function __do() {
                             var ix$prime = ix;
-                            var $81 = ix$prime === len;
-                            if ($81) {
+                            var $75 = ix$prime === len;
+                            if ($75) {
                                 var out$prime = Data_Array_ST.unsafeFreeze(out)();
                                 con = false;
                                 res = new Data_Either.Right(out$prime);
@@ -160,7 +161,7 @@ var decodeArray = function (decoder) {
                                 ix = ix$prime + 1 | 0;
                                 return Data_Unit.unit;
                             };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 395, column 9 - line 403, column 22): " + [ v1.constructor.name ]);
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 404, column 9 - line 412, column 22): " + [ v1.constructor.name ]);
                         })();
                     };
                     return {};
@@ -168,19 +169,19 @@ var decodeArray = function (decoder) {
                 return res;
             })();
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 378, column 28 - line 404, column 19): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 387, column 28 - line 413, column 19): " + [ v.constructor.name ]);
     };
 };
 var decodeModuleName = /* #__PURE__ */ (function () {
-    var $130 = map((function () {
-        var $133 = Data_Foldable.intercalate(Data_Foldable.foldableArray)(Data_Monoid.monoidString)(".");
-        return function ($134) {
-            return PureScript_Backend_Optimizer_CoreFn.ModuleName($133($134));
+    var $111 = map((function () {
+        var $114 = Data_Foldable.intercalate(Data_Foldable.foldableArray)(Data_Monoid.monoidString)(".");
+        return function ($115) {
+            return PureScript_Backend_Optimizer_CoreFn.ModuleName($114($115));
         };
     })());
-    var $131 = decodeArray(decodeString);
-    return function ($132) {
-        return $130($131($132));
+    var $112 = decodeArray(decodeString);
+    return function ($113) {
+        return $111($112($113));
     };
 })();
 var bind = function (a) {
@@ -205,6 +206,134 @@ var decodeConstructorType = function (json) {
         return throwError(new Data_Argonaut_Decode_Error.TypeMismatch("ConstructorType"));
     });
 };
+var decodeExprType = function (json) {
+    var decodeField = function (j) {
+        return bind(decodeJObject(j))(function (o) {
+            return bind(getField(decodeString)(o)("label"))(function (l) {
+                return bind(getField(decodeExprType)(o)("type"))(function (t) {
+                    return pure1(new Data_Tuple.Tuple(l, t));
+                });
+            });
+        });
+    };
+    var decodeConstraint = function (j) {
+        return bind(decodeJObject(j))(function (o) {
+            return bind(getField(decodeArray(decodeString))(o)("fqn"))(function (fqn) {
+                return bind(getField(decodeArray(decodeExprType))(o)("args"))(function (args) {
+                    return pure1(new Data_Tuple.Tuple(fqn, args));
+                });
+            });
+        });
+    };
+    return bind(decodeJObject(json))(function (obj) {
+        return bind(getField(decodeString)(obj)("type"))(function (typ) {
+            if (typ === "Int") {
+                return pure1(PureScript_Backend_Optimizer_CoreFn.Int.value);
+            };
+            if (typ === "Number") {
+                return pure1(PureScript_Backend_Optimizer_CoreFn["Number"].value);
+            };
+            if (typ === "String") {
+                return pure1(PureScript_Backend_Optimizer_CoreFn["String"].value);
+            };
+            if (typ === "Char") {
+                return pure1(PureScript_Backend_Optimizer_CoreFn.Char.value);
+            };
+            if (typ === "Boolean") {
+                return pure1(PureScript_Backend_Optimizer_CoreFn["Boolean"].value);
+            };
+            if (typ === "Unit") {
+                return pure1(PureScript_Backend_Optimizer_CoreFn.Unit.value);
+            };
+            if (typ === "Any") {
+                return pure1(PureScript_Backend_Optimizer_CoreFn.Any.value);
+            };
+            if (typ === "TypeLevelString") {
+                return map(PureScript_Backend_Optimizer_CoreFn.TypeLevelString.create)(getField(decodeString)(obj)("value"));
+            };
+            if (typ === "Array") {
+                return map(PureScript_Backend_Optimizer_CoreFn["Array"].create)(getField(decodeExprType)(obj)("element"));
+            };
+            if (typ === "TypeVar") {
+                return map(PureScript_Backend_Optimizer_CoreFn.TypeVar.create)(getField(decodeString)(obj)("name"));
+            };
+            if (typ === "Adt") {
+                return bind(getField(decodeArray(decodeString))(obj)("fqn"))(function (fqn) {
+                    return bind(getField(decodeArray(decodeExprType))(obj)("args"))(function (args) {
+                        return pure1(new PureScript_Backend_Optimizer_CoreFn.ADT(fqn, args));
+                    });
+                });
+            };
+            if (typ === "TypeApp") {
+                return bind(getField(decodeExprType)(obj)("constructor"))(function (constructor) {
+                    return bind(getField(decodeArray(decodeExprType))(obj)("args"))(function (args) {
+                        return pure1(new PureScript_Backend_Optimizer_CoreFn.TypeApp(constructor, args));
+                    });
+                });
+            };
+            if (typ === "Func") {
+                return bind(getField(decodeArray(decodeExprType))(obj)("args"))(function (args) {
+                    return bind(getField(decodeExprType)(obj)("ret"))(function (ret) {
+                        return pure1(new PureScript_Backend_Optimizer_CoreFn.Func(args, ret));
+                    });
+                });
+            };
+            if (typ === "Row") {
+                return bind(getField(decodeArray(decodeField))(obj)("fields"))(function (fields) {
+                    return bind(getFieldOptional$prime(decodeExprType)(obj)("tail"))(function (tail) {
+                        return pure1(new PureScript_Backend_Optimizer_CoreFn.Row(fields, tail));
+                    });
+                });
+            };
+            if (typ === "Record") {
+                return map(PureScript_Backend_Optimizer_CoreFn.Record.create)(getField(decodeExprType)(obj)("row"));
+            };
+            if (typ === "ForAll") {
+                return bind(getField(decodeArray(decodeString))(obj)("vars"))(function (vars) {
+                    return bind(getField(decodeExprType)(obj)("body"))(function (body) {
+                        return pure1(new PureScript_Backend_Optimizer_CoreFn.ForAll(vars, body));
+                    });
+                });
+            };
+            if (typ === "ConstrainedType") {
+                return bind(getField(decodeArray(decodeConstraint))(obj)("constraints"))(function (constraints) {
+                    return bind(getField(decodeExprType)(obj)("body"))(function (body) {
+                        return pure1(new PureScript_Backend_Optimizer_CoreFn.ConstrainedType(constraints, body));
+                    });
+                });
+            };
+            return throwError1(new Data_Argonaut_Decode_Error.TypeMismatch("ExprType"));
+        });
+    });
+};
+var decodeDataConstructor = function (json) {
+    return bind(decodeJObject(json))(function (obj) {
+        return bind(getField(decodeString)(obj)("constructorName"))(function (constructorName) {
+            return bind(getField(decodeArray(decodeExprType))(obj)("fieldTypes"))(function (fieldTypes) {
+                return pure1({
+                    constructorName: constructorName,
+                    fieldTypes: fieldTypes
+                });
+            });
+        });
+    });
+};
+var decodeDataDecl = function (json) {
+    return bind(decodeJObject(json))(function (obj) {
+        return bind(getField(decodeString)(obj)("typeName"))(function (typeName) {
+            return bind(getFieldOptional$prime(decodeArray(decodeString))(obj)("typeVars"))(function (mbTypeVars) {
+                var typeVars = Data_Maybe.fromMaybe([  ])(mbTypeVars);
+                return bind(getField(decodeArray(decodeDataConstructor))(obj)("constructors"))(function (constructors) {
+                    return pure1({
+                        typeName: typeName,
+                        typeVars: typeVars,
+                        constructors: constructors
+                    });
+                });
+            });
+        });
+    });
+};
 var decodeImport = function (decodeAnn$prime) {
     return function (json) {
         return bind(decodeJObject(json))(function (obj) {
@@ -220,8 +349,8 @@ var decodeInt = function (json) {
     return bind(decodeNumber(json))(function (num) {
         var v = Data_Int.fromNumber(num);
         if (v instanceof Data_Maybe.Nothing) {
-            var $91 = num === 2.147483648e9;
-            if ($91) {
+            var $86 = num === 2.147483648e9;
+            if ($86) {
                 return new Data_Either.Right(bottom);
             };
             return new Data_Either.Left(new Data_Argonaut_Decode_Error.TypeMismatch("Int"));
@@ -229,14 +358,14 @@ var decodeInt = function (json) {
         if (v instanceof Data_Maybe.Just) {
             return new Data_Either.Right(v.value0);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 468, column 3 - line 475, column 16): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 477, column 3 - line 484, column 16): " + [ v.constructor.name ]);
     });
 };
 var decodeCodePoint = /* #__PURE__ */ Control_Bind.composeKleisliFlipped(Data_Either.bindEither)(/* #__PURE__ */ (function () {
-    var $135 = Data_Either.note(new Data_Argonaut_Decode_Error.TypeMismatch("CodePoint"));
-    var $136 = Data_Enum.toEnum(Data_String_CodePoints.boundedEnumCodePoint);
-    return function ($137) {
-        return $135($136($137));
+    var $116 = Data_Either.note(new Data_Argonaut_Decode_Error.TypeMismatch("CodePoint"));
+    var $117 = Data_Enum.toEnum(Data_String_CodePoints.boundedEnumCodePoint);
+    return function ($118) {
+        return $116($117($118));
     };
 })())(decodeInt);
 var decodeCodePointArray = /* #__PURE__ */ decodeArray(decodeCodePoint);
@@ -265,16 +394,31 @@ var decodeMeta = function (json) {
             if (typ === "IsSyntheticApp") {
                 return pure1(PureScript_Backend_Optimizer_CoreFn.IsSyntheticApp.value);
             };
-            return throwError1(new Data_Argonaut_Decode_Error.TypeMismatch("Meta"));
+            return throwError2(new Data_Argonaut_Decode_Error.TypeMismatch("Meta"));
         });
     });
+};
+var decodeAnn = function (_path) {
+    return function (json) {
+        return bind(decodeJObject(json))(function (obj) {
+            return bind(getFieldOptional$prime(decodeMeta)(obj)("meta"))(function (meta) {
+                return bind(getFieldOptional$prime(decodeExprType)(obj)("type"))(function (type_) {
+                    return pure4({
+                        span: PureScript_Backend_Optimizer_CoreFn.emptySpan,
+                        meta: meta,
+                        type: type_
+                    });
+                });
+            });
+        });
+    };
 };
 var decodeQualified = function (k) {
     return function (json) {
         return bind(decodeJObject(json))(function (obj) {
             return bind(getFieldOptional$prime(decodeModuleName)(obj)("moduleName"))(function (moduleName) {
                 return bind(getField(k)(obj)("identifier"))(function (identifier) {
-                    return pure4(new PureScript_Backend_Optimizer_CoreFn.Qualified(moduleName, identifier));
+                    return pure5(new PureScript_Backend_Optimizer_CoreFn.Qualified(moduleName, identifier));
                 });
             });
         });
@@ -283,7 +427,7 @@ var decodeQualified = function (k) {
 var decodeReExports = function (json) {
     return bind(decodeJObject(json))(function (obj) {
         return bind(traverse(traverse1(decodeArray(decodeIdent)))(Foreign_Object.toArrayWithKey(Data_Tuple.Tuple.create)(obj)))(function (all) {
-            return pure5(bind2(all)(function (v) {
+            return pure6(bind2(all)(function (v) {
                 return map1(PureScript_Backend_Optimizer_CoreFn.ReExport.create(v.value0))(v.value1);
             }));
         });
@@ -330,136 +474,6 @@ var decodeComment = function (json) {
         });
     });
 };
-var decodeExprType = function (json) {
-    var decodeStr = bind(decodeString(json))(function (str) {
-        if (str === "Int") {
-            return pure1(PureScript_Backend_Optimizer_CoreFn.Int.value);
-        };
-        if (str === "Number") {
-            return pure1(PureScript_Backend_Optimizer_CoreFn["Number"].value);
-        };
-        if (str === "String") {
-            return pure1(PureScript_Backend_Optimizer_CoreFn["String"].value);
-        };
-        if (str === "Char") {
-            return pure1(PureScript_Backend_Optimizer_CoreFn.Char.value);
-        };
-        if (str === "Boolean") {
-            return pure1(PureScript_Backend_Optimizer_CoreFn["Boolean"].value);
-        };
-        if (str === "Any") {
-            return pure1(PureScript_Backend_Optimizer_CoreFn.Any.value);
-        };
-        return throwError2(new Data_Argonaut_Decode_Error.TypeMismatch("ExprType"));
-    });
-    var decodeObj = function (v) {
-        return bind(decodeJObject(json))(function (obj) {
-            var v1 = Foreign_Object.lookup("Func")(obj);
-            if (v1 instanceof Data_Maybe.Just) {
-                return bind(decodeJObject(v1.value0))(function (funcObj) {
-                    return bind(getField(decodeArray(decodeExprType))(funcObj)("args"))(function (args) {
-                        return bind(getField(decodeExprType)(funcObj)("ret"))(function (ret) {
-                            return pure1(new PureScript_Backend_Optimizer_CoreFn.Func(args, ret));
-                        });
-                    });
-                });
-            };
-            if (v1 instanceof Data_Maybe.Nothing) {
-                var v2 = Foreign_Object.lookup("Record")(obj);
-                if (v2 instanceof Data_Maybe.Just) {
-                    return bind(decodeJObject(v2.value0))(function (recordObj) {
-                        var entries = Foreign_Object.toArrayWithKey(Data_Tuple.Tuple.create)(recordObj);
-                        return bind(traverse(function (v3) {
-                            return map(Data_Tuple.Tuple.create(v3.value0))(decodeExprType(v3.value1));
-                        })(entries))(function (parsedEntries) {
-                            return pure1(new PureScript_Backend_Optimizer_CoreFn.Record(parsedEntries));
-                        });
-                    });
-                };
-                if (v2 instanceof Data_Maybe.Nothing) {
-                    var v3 = Foreign_Object.lookup("Array")(obj);
-                    if (v3 instanceof Data_Maybe.Just) {
-                        return bind(decodeExprType(v3.value0))(function (innerType) {
-                            return pure1(new PureScript_Backend_Optimizer_CoreFn["Array"](innerType));
-                        });
-                    };
-                    if (v3 instanceof Data_Maybe.Nothing) {
-                        var v4 = Foreign_Object.lookup("ADT")(obj);
-                        if (v4 instanceof Data_Maybe.Just) {
-                            return bind(decodeJObject(v4.value0))(function (adtObj) {
-                                return bind(getField(decodeArray(decodeString))(adtObj)("path"))(function (adtPath) {
-                                    return bind(getField(decodeArray(decodeExprType))(adtObj)("args"))(function (adtArgs) {
-                                        return pure1(new PureScript_Backend_Optimizer_CoreFn.ADT(adtPath, adtArgs));
-                                    });
-                                });
-                            });
-                        };
-                        if (v4 instanceof Data_Maybe.Nothing) {
-                            var v5 = Foreign_Object.lookup("TypeVar")(obj);
-                            if (v5 instanceof Data_Maybe.Just) {
-                                return bind(decodeString(v5.value0))(function (tv) {
-                                    return pure1(new PureScript_Backend_Optimizer_CoreFn.TypeVar(tv));
-                                });
-                            };
-                            if (v5 instanceof Data_Maybe.Nothing) {
-                                return throwError2(new Data_Argonaut_Decode_Error.TypeMismatch("ExprType"));
-                            };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 149, column 24 - line 153, column 62): " + [ v5.constructor.name ]);
-                        };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 143, column 22 - line 153, column 62): " + [ v4.constructor.name ]);
-                    };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 139, column 20 - line 153, column 62): " + [ v3.constructor.name ]);
-                };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 133, column 18 - line 153, column 62): " + [ v2.constructor.name ]);
-            };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 127, column 5 - line 153, column 62): " + [ v1.constructor.name ]);
-        });
-    };
-    return alt(decodeStr)(decodeObj);
-};
-var decodeAnn = function (_path) {
-    return function (json) {
-        return bind(decodeJObject(json))(function (obj) {
-            return bind(getFieldOptional$prime(decodeMeta)(obj)("meta"))(function (meta) {
-                return bind(getFieldOptional$prime(decodeExprType)(obj)("type"))(function (type_) {
-                    return pure6({
-                        span: PureScript_Backend_Optimizer_CoreFn.emptySpan,
-                        meta: meta,
-                        type: type_
-                    });
-                });
-            });
-        });
-    };
-};
-var decodeDataConstructor = function (json) {
-    return bind(decodeJObject(json))(function (obj) {
-        return bind(getField(decodeString)(obj)("constructorName"))(function (constructorName) {
-            return bind(getField(decodeArray(decodeExprType))(obj)("fieldTypes"))(function (fieldTypes) {
-                return pure1({
-                    constructorName: constructorName,
-                    fieldTypes: fieldTypes
-                });
-            });
-        });
-    });
-};
-var decodeDataDecl = function (json) {
-    return bind(decodeJObject(json))(function (obj) {
-        return bind(getField(decodeString)(obj)("typeName"))(function (typeName) {
-            return bind(getFieldOptional$prime(decodeArray(decodeString))(obj)("typeVars"))(function (mbTypeVars) {
-                var typeVars = Data_Maybe.fromMaybe([  ])(mbTypeVars);
-                return bind(getField(decodeArray(decodeDataConstructor))(obj)("constructors"))(function (constructors) {
-                    return pure1({
-                        typeName: typeName,
-                        typeVars: typeVars,
-                        constructors: constructors
-                    });
-                });
-            });
-        });
-    });
-};
 var decodeStringLiteral = function (json) {
     return alt(decodeString(json))(function (v) {
         return alt(map(Data_String_CodePoints.fromCodePointArray)(decodeCodePointArray(json)))(function (v1) {
@@ -482,8 +496,8 @@ var decodeRecord = /* #__PURE__ */ (function () {
             });
         };
     };
-    return function ($138) {
-        return decodeArray(decodeProp($138));
+    return function ($119) {
+        return decodeArray(decodeProp($119));
     };
 })();
 var decodeLiteral = function (dec) {
@@ -702,11 +716,11 @@ var decodeModule$prime = function (decodeAnn$prime) {
                                                         if (v1 instanceof Data_Maybe.Nothing) {
                                                             return pure1(new Data_Tuple.Tuple(v, Data_Maybe.Nothing.value));
                                                         };
-                                                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 204, column 5 - line 209, column 35): " + [ v1.constructor.name ]);
+                                                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 213, column 5 - line 218, column 35): " + [ v1.constructor.name ]);
                                                     })(foreign_arr))(function (foreign_list) {
                                                         var foreign_ = fromFoldable(foreign_list);
                                                         return bind(getField(decodeArray(decodeComment))(obj)("comments"))(function (comments) {
-                                                            return pure6({
+                                                            return pure13({
                                                                 name: name,
                                                                 path: path,
                                                                 span: span,

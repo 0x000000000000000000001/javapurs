@@ -126,8 +126,10 @@ var insert2 = /* #__PURE__ */ Data_Set.insert(PureScript_Backend_Optimizer_CoreF
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var zipWithA = /* #__PURE__ */ Data_Array.zipWithA(Control_Applicative.applicativeFn);
 var sort = /* #__PURE__ */ Data_Array.sort(PureScript_Backend_Optimizer_CoreFn.ordIdent);
+var ask1 = /* #__PURE__ */ Control_Monad_Reader_Class.ask(Control_Monad_Reader_Class.monadAskFun);
 var eq9 = /* #__PURE__ */ Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqModuleName);
 var traverse = /* #__PURE__ */ Data_Traversable.traverse(PureScript_Backend_Optimizer_CoreFn.traversableLiteral)(Control_Applicative.applicativeFn);
+var ask2 = /* #__PURE__ */ Control_Monad_Reader_Class.ask(Control_Monad_Reader_Class.monadAskFun);
 var join = /* #__PURE__ */ Control_Bind.join(Control_Bind.bindFn);
 var apply = /* #__PURE__ */ Control_Apply.apply(Control_Apply.applyFn);
 var traverse1 = /* #__PURE__ */ Data_Traversable.traverse(Data_Traversable.traversableArray)(Control_Applicative.applicativeFn);
@@ -483,9 +485,9 @@ var toExternImpl = function (env) {
 };
 var toCaseRowVars = function (v) {
     return foldMap((function () {
-        var $852 = Data_Function.flip(Data_Map_Internal.singleton)(v.column);
-        return function ($853) {
-            return Data_Map.SemigroupMap($852($853));
+        var $854 = Data_Function.flip(Data_Map_Internal.singleton)(v.column);
+        return function ($855) {
+            return Data_Map.SemigroupMap($854($855));
         };
     })())(v.pattern.vars);
 };
@@ -670,8 +672,8 @@ var inferTransitiveDirective = function (directives) {
                                     };
                                 };
                             })(Data_Map_Internal.empty)(v.value0);
-                            var $475 = Data_Map_Internal.isEmpty(newDirs);
-                            if ($475) {
+                            var $477 = Data_Map_Internal.isEmpty(newDirs);
+                            if ($477) {
                                 return Data_Maybe.Nothing.value;
                             };
                             return new Data_Maybe.Just(newDirs);
@@ -695,9 +697,9 @@ var inferTransitiveDirective = function (directives) {
                         };
                         if (v instanceof Data_Maybe.Just && v.value0 instanceof PureScript_Backend_Optimizer_Semantics.InlineArity) {
                             if (cfn instanceof PureScript_Backend_Optimizer_CoreFn.ExprApp && (cfn.value0.meta instanceof Data_Maybe.Just && cfn.value0.meta.value0 instanceof PureScript_Backend_Optimizer_CoreFn.IsSyntheticApp)) {
-                                var $496 = Data_Array_NonEmpty.length(backendExpr.value1.value1);
-                                var $497 = $496 >= v.value0.value0;
-                                if ($497) {
+                                var $498 = Data_Array_NonEmpty.length(backendExpr.value1.value1);
+                                var $499 = $498 >= v.value0.value0;
+                                if ($499) {
                                     return new Data_Maybe.Just(Data_Map_Internal.singleton(PureScript_Backend_Optimizer_Semantics.InlineRef.value)(PureScript_Backend_Optimizer_Semantics.InlineAlways.value));
                                 };
                                 return v1(true);
@@ -817,10 +819,10 @@ var decompose = function (chosenColumn) {
             };
             throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 926, column 1 - line 926, column 119): " + [ p.constructor.name ]);
         };
-        var $551 = eq8(p.column)(chosenColumn.column);
-        if ($551) {
-            var $552 = eq10(patternPatCase(p))(PatWild.value) || Data_Function.on(eq11)(patternPatCase)(chosenColumn)(p);
-            if ($552) {
+        var $553 = eq8(p.column)(chosenColumn.column);
+        if ($553) {
+            var $554 = eq10(patternPatCase(p))(PatWild.value) || Data_Function.on(eq11)(patternPatCase)(chosenColumn)(p);
+            if ($554) {
                 return {
                     nonMatchesBefore: [  ],
                     match: new Data_Maybe.Just({
@@ -840,9 +842,9 @@ var decompose = function (chosenColumn) {
         };
         if (v instanceof Data_Maybe.Just) {
             var v1 = PureScript_Backend_Optimizer_Utils.foldl1Array(function (l) {
-                var $854 = mergeResults(l);
-                return function ($855) {
-                    return $854(checkMatch($855));
+                var $856 = mergeResults(l);
+                return function ($857) {
+                    return $856(checkMatch($857));
                 };
             })(checkMatch)(v.value0);
             if (v1.match instanceof Data_Maybe.Just) {
@@ -855,8 +857,8 @@ var decompose = function (chosenColumn) {
                         nonMatchesAfter: v1.match.value0.nonMatchesAfter
                     } ],
                     rowsNoMatch: (function () {
-                        var $556 = eq10(patternPatCase(v1.match.value0.match))(PatWild.value);
-                        if ($556) {
+                        var $558 = eq10(patternPatCase(v1.match.value0.match))(PatWild.value);
+                        if ($558) {
                             return [ row ];
                         };
                         return [  ];
@@ -933,9 +935,9 @@ var chooseNextPattern = function (row0Patterns) {
                                 tailRowIndices: guard(Data_Function.on(eq11)(patternPatCase)(v.value1)(v1.value0))([ rowIdx + 1 | 0 ]),
                                 ctors: guard2(notEq1(patternPatCase(v1.value0))(PatWild.value))(Data_Set.singleton(patternPatCase(v1.value0))),
                                 aScore: -Data_Array.length(Data_Array.filter((function () {
-                                    var $856 = notEq1(PatWild.value);
-                                    return function ($857) {
-                                        return $856(patternPatCase($857));
+                                    var $858 = notEq1(PatWild.value);
+                                    return function ($859) {
+                                        return $858(patternPatCase($859));
                                     };
                                 })())(patternSubterms(v1.value0))) | 0
                             };
@@ -947,8 +949,8 @@ var chooseNextPattern = function (row0Patterns) {
                     pattern: v.value1,
                     pScore: foldl1(function (l) {
                         return function (r) {
-                            var $577 = (l + 1 | 0) === r;
-                            if ($577) {
+                            var $579 = (l + 1 | 0) === r;
+                            if ($579) {
                                 return r;
                             };
                             return l;
@@ -963,16 +965,16 @@ var chooseNextPattern = function (row0Patterns) {
             })))(composeKleisli(maximumByAll1(comparing1(function (v) {
                 return v.bScore;
             })))((function () {
-                var $858 = map2(function ($861) {
+                var $860 = map2(function ($863) {
                     return (function (v) {
                         return v.pattern;
-                    })(Data_Array_NonEmpty.head($861));
+                    })(Data_Array_NonEmpty.head($863));
                 });
-                var $859 = maximumByAll1(comparing1(function (v) {
+                var $861 = maximumByAll1(comparing1(function (v) {
                     return v.aScore;
                 }));
-                return function ($860) {
-                    return $858($859($860));
+                return function ($862) {
+                    return $860($861($862));
                 };
             })()));
             var v = heuristic(matchingPatternGroups);
@@ -1283,7 +1285,7 @@ var toBackendExpr = function (expr) {
         };
         return function (v) {
             if (v instanceof PureScript_Backend_Optimizer_CoreFn.ExprVar) {
-                return bind1(ask)(function (v1) {
+                return bind1(ask1)(function (v1) {
                     var v2 = function (v3) {
                         var v4 = function (v5) {
                             if (v.value1.value0 instanceof Data_Maybe.Just && (v.value1.value0.value0 === "Prim" && v.value1.value1 === "undefined")) {
@@ -1295,11 +1297,11 @@ var toBackendExpr = function (expr) {
                             return buildM(new PureScript_Backend_Optimizer_Syntax.Var(v.value1));
                         };
                         if (v.value1.value0 instanceof Data_Maybe.Just) {
-                            var $662 = eq9(v.value1.value0.value0)(v1.currentModule);
-                            if ($662) {
-                                var $663 = lookup4(v.value1.value1)(v1.toLevel);
-                                if ($663 instanceof Data_Maybe.Just) {
-                                    return buildM(new PureScript_Backend_Optimizer_Syntax.Local(new Data_Maybe.Just(v.value1.value1), $663.value0));
+                            var $664 = eq9(v.value1.value0.value0)(v1.currentModule);
+                            if ($664) {
+                                var $665 = lookup4(v.value1.value1)(v1.toLevel);
+                                if ($665 instanceof Data_Maybe.Just) {
+                                    return buildM(new PureScript_Backend_Optimizer_Syntax.Local(new Data_Maybe.Just(v.value1.value1), $665.value0));
                                 };
                                 return v4(true);
                             };
@@ -1308,9 +1310,9 @@ var toBackendExpr = function (expr) {
                         return v4(true);
                     };
                     if (v.value1.value0 instanceof Data_Maybe.Nothing) {
-                        var $669 = lookup4(v.value1.value1)(v1.toLevel);
-                        if ($669 instanceof Data_Maybe.Just) {
-                            return buildM(new PureScript_Backend_Optimizer_Syntax.Local(new Data_Maybe.Just(v.value1.value1), $669.value0));
+                        var $671 = lookup4(v.value1.value1)(v1.toLevel);
+                        if ($671 instanceof Data_Maybe.Just) {
+                            return buildM(new PureScript_Backend_Optimizer_Syntax.Local(new Data_Maybe.Just(v.value1.value1), $671.value0));
                         };
                         return v2(true);
                     };
@@ -1318,12 +1320,12 @@ var toBackendExpr = function (expr) {
                 });
             };
             if (v instanceof PureScript_Backend_Optimizer_CoreFn.ExprLit) {
-                return bindFlipped(function ($862) {
-                    return buildM(PureScript_Backend_Optimizer_Syntax.Lit.create($862));
+                return bindFlipped(function ($864) {
+                    return buildM(PureScript_Backend_Optimizer_Syntax.Lit.create($864));
                 })(traverse(toBackendExpr)(v.value1));
             };
             if (v instanceof PureScript_Backend_Optimizer_CoreFn.ExprConstructor) {
-                return bind1(ask)(function (v1) {
+                return bind1(ask2)(function (v1) {
                     var ct = (function () {
                         var v2 = lookup(v.value1)(v1.dataTypes);
                         if (v2 instanceof Data_Maybe.Just && Data_Map_Internal.size(v2.value0.constructors) === 1) {
@@ -1336,9 +1338,9 @@ var toBackendExpr = function (expr) {
             };
             if (v instanceof PureScript_Backend_Optimizer_CoreFn.ExprAccessor) {
                 return bindFlipped((function () {
-                    var $863 = Data_Function.flip(PureScript_Backend_Optimizer_Syntax.Accessor.create)(new PureScript_Backend_Optimizer_Syntax.GetProp(v.value2));
-                    return function ($864) {
-                        return buildM($863($864));
+                    var $865 = Data_Function.flip(PureScript_Backend_Optimizer_Syntax.Accessor.create)(new PureScript_Backend_Optimizer_Syntax.GetProp(v.value2));
+                    return function ($866) {
+                        return buildM($865($866));
                     };
                 })())(toBackendExpr(v.value1));
             };
@@ -1373,17 +1375,17 @@ var toBackendExpr = function (expr) {
                                 throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 421, column 1 - line 421, column 50): " + [ bind$prime.constructor.name ]);
                             };
                             if (bind$prime instanceof PureScript_Backend_Optimizer_CoreFn.Rec) {
-                                var $709 = Data_Array_NonEmpty.fromArray(bind$prime.value0);
-                                if ($709 instanceof Data_Maybe.Just) {
+                                var $711 = Data_Array_NonEmpty.fromArray(bind$prime.value0);
+                                if ($711 instanceof Data_Maybe.Just) {
                                     return bind1(currentLevel)(function (lvl) {
                                         var idents = map4(function (v4) {
                                             return v4.value1;
-                                        })($709.value0);
+                                        })($711.value0);
                                         return join(apply(map3(function (x) {
                                             return function (y) {
                                                 return buildM(new PureScript_Backend_Optimizer_Syntax.LetRec(lvl, x, y));
                                             };
-                                        })(intro2(idents)(lvl)(traverse3(toBackendBinding)($709.value0))))(intro2(idents)(lvl)(next)));
+                                        })(intro2(idents)(lvl)(traverse3(toBackendBinding)($711.value0))))(intro2(idents)(lvl)(next)));
                                     });
                                 };
                                 return v3(true);
@@ -1445,8 +1447,8 @@ var buildCaseTreeFromRows = function (denormalizedRows) {
         var row0NonPatWildPatterns = Data_Array_NonEmpty.fromArray(foldlWithIndex(function (idx) {
             return function (acc) {
                 return function (p) {
-                    var $740 = notEq1(patternPatCase(p))(PatWild.value);
-                    if ($740) {
+                    var $742 = notEq1(patternPatCase(p))(PatWild.value);
+                    if ($742) {
                         return Data_Array.snoc(acc)(new Data_Tuple.Tuple(idx, p));
                     };
                     return acc;
@@ -1635,10 +1637,10 @@ var toTopLevelBackendBinding = function (group) {
                     implementations: insert3(qualifiedIdent)(v2.value0)(env.implementations),
                     moduleImplementations: insert3(qualifiedIdent)(v2.value0)(env.moduleImplementations),
                     optimizationSteps: Data_Maybe.maybe(env.optimizationSteps)((function () {
-                        var $865 = Data_Array.snoc(env.optimizationSteps);
-                        var $866 = Data_Tuple.Tuple.create(qualifiedIdent);
-                        return function ($867) {
-                            return $865($866($867));
+                        var $867 = Data_Array.snoc(env.optimizationSteps);
+                        var $868 = Data_Tuple.Tuple.create(qualifiedIdent);
+                        return function ($869) {
+                            return $867($868($869));
                         };
                     })())(Data_Array_NonEmpty.fromArray(v1.value0)),
                     directives: (function () {
@@ -1709,10 +1711,10 @@ var toBackendTopLevelBindingGroups = function (binds) {
                         return v1.bindings;
                     })(Data_Array_NonEmpty.toArray(as))
                 };
-            })(Data_Array.groupBy(Data_Function.on(conj1)(function ($868) {
+            })(Data_Array.groupBy(Data_Function.on(conj1)(function ($870) {
                 return !(function (v1) {
                     return v1.recursive;
-                })($868);
+                })($870);
             }))(result.value))
         };
     };
@@ -1750,8 +1752,8 @@ var toBackendModule = function (v) {
                     });
                 };
             })(group));
-            var sizes = map4(function ($869) {
-                return Data_Array.length(Data_Tuple.snd(Data_Tuple.snd($869)));
+            var sizes = map4(function ($871) {
+                return Data_Array.length(Data_Tuple.snd(Data_Tuple.snd($871)));
             })(group);
             return new Data_Tuple.Tuple(proper, {
                 constructors: constructors,
@@ -1782,16 +1784,16 @@ var toBackendModule = function (v) {
             return function (group) {
                 var v1 = (function () {
                     if (group.recursive) {
-                        var $842 = Data_Array.any(isBindingUsed(deps))(group.bindings);
-                        if ($842) {
+                        var $844 = Data_Array.any(isBindingUsed(deps))(group.bindings);
+                        if ($844) {
                             return {
-                                accum: append3(foldMap5(function ($870) {
-                                    return Data_Tuple.fst(Data_Tuple.snd($870));
+                                accum: append3(foldMap5(function ($872) {
+                                    return Data_Tuple.fst(Data_Tuple.snd($872));
                                 })(group.bindings))(deps),
                                 value: map((function () {
-                                    var $871 = map5(Data_Tuple.snd);
-                                    return function ($872) {
-                                        return Data_Maybe.Just.create($871($872));
+                                    var $873 = map5(Data_Tuple.snd);
+                                    return function ($874) {
+                                        return Data_Maybe.Just.create($873($874));
                                     };
                                 })())(group.bindings)
                             };
@@ -1803,8 +1805,8 @@ var toBackendModule = function (v) {
                     };
                     return mapAccumR(function (deps$prime) {
                         return function (v2) {
-                            var $844 = isBindingUsed(deps$prime)(v2);
-                            if ($844) {
+                            var $846 = isBindingUsed(deps$prime)(v2);
+                            if ($846) {
                                 return {
                                     accum: append3(v2.value1.value0)(deps$prime),
                                     value: new Data_Maybe.Just(new Data_Tuple.Tuple(v2.value0, v2.value1.value1))
@@ -1837,11 +1839,11 @@ var toBackendModule = function (v) {
             dataDecls: v.dataDecls,
             imports: usedImports,
             dataTypes: filter((function () {
-                var $873 = Data_Array.any(isBindingUsed(usedBindings.accum));
-                return function ($874) {
-                    return $873(toUnfoldable2((function (v1) {
+                var $875 = Data_Array.any(isBindingUsed(usedBindings.accum));
+                return function ($876) {
+                    return $875(toUnfoldable2((function (v1) {
                         return v1.constructors;
-                    })($874)));
+                    })($876)));
                 };
             })())(dataTypes),
             bindings: usedBindings.value,

@@ -15,11 +15,15 @@ import * as Data_Tuple from "../Data.Tuple/index.js";
 var map = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorArray);
 var foldMap = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableArray);
 var traverse = /* #__PURE__ */ Data_Traversable.traverse(Data_Traversable.traversableArray);
+var eqArray = /* #__PURE__ */ Data_Eq.eqArray(Data_Eq.eqString);
+var eq5 = /* #__PURE__ */ Data_Eq.eq(eqArray);
 var eqTuple = /* #__PURE__ */ Data_Tuple.eqTuple(Data_Eq.eqString);
-var eq5 = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Eq.eqArray(Data_Eq.eqString));
+var eqTuple1 = /* #__PURE__ */ Data_Tuple.eqTuple(eqArray);
+var compare = /* #__PURE__ */ Data_Ord.compare(Data_Ord.ordString);
+var ordArray = /* #__PURE__ */ Data_Ord.ordArray(Data_Ord.ordString);
+var compare1 = /* #__PURE__ */ Data_Ord.compare(ordArray);
 var ordTuple = /* #__PURE__ */ Data_Tuple.ordTuple(Data_Ord.ordString);
-var compare = /* #__PURE__ */ Data_Ord.compare(/* #__PURE__ */ Data_Ord.ordArray(Data_Ord.ordString));
-var compare1 = /* #__PURE__ */ Data_Ord.compare(Data_Ord.ordString);
+var ordTuple1 = /* #__PURE__ */ Data_Tuple.ordTuple(ordArray);
 var zero = /* #__PURE__ */ Data_Semiring.zero(/* #__PURE__ */ Data_Semiring.semiringRecord()(/* #__PURE__ */ Data_Semiring.semiringRecordCons({
     reflectSymbol: function () {
         return "column";
@@ -184,6 +188,29 @@ var $$Boolean = /* #__PURE__ */ (function () {
     $$Boolean.value = new $$Boolean();
     return $$Boolean;
 })();
+var Unit = /* #__PURE__ */ (function () {
+    function Unit() {
+
+    };
+    Unit.value = new Unit();
+    return Unit;
+})();
+var Any = /* #__PURE__ */ (function () {
+    function Any() {
+
+    };
+    Any.value = new Any();
+    return Any;
+})();
+var TypeLevelString = /* #__PURE__ */ (function () {
+    function TypeLevelString(value0) {
+        this.value0 = value0;
+    };
+    TypeLevelString.create = function (value0) {
+        return new TypeLevelString(value0);
+    };
+    return TypeLevelString;
+})();
 var $$Array = /* #__PURE__ */ (function () {
     function $$Array(value0) {
         this.value0 = value0;
@@ -193,26 +220,14 @@ var $$Array = /* #__PURE__ */ (function () {
     };
     return $$Array;
 })();
-var Func = /* #__PURE__ */ (function () {
-    function Func(value0, value1) {
-        this.value0 = value0;
-        this.value1 = value1;
-    };
-    Func.create = function (value0) {
-        return function (value1) {
-            return new Func(value0, value1);
-        };
-    };
-    return Func;
-})();
-var Record = /* #__PURE__ */ (function () {
-    function Record(value0) {
+var TypeVar = /* #__PURE__ */ (function () {
+    function TypeVar(value0) {
         this.value0 = value0;
     };
-    Record.create = function (value0) {
-        return new Record(value0);
+    TypeVar.create = function (value0) {
+        return new TypeVar(value0);
     };
-    return Record;
+    return TypeVar;
 })();
 var ADT = /* #__PURE__ */ (function () {
     function ADT(value0, value1) {
@@ -226,21 +241,74 @@ var ADT = /* #__PURE__ */ (function () {
     };
     return ADT;
 })();
-var TypeVar = /* #__PURE__ */ (function () {
-    function TypeVar(value0) {
+var TypeApp = /* #__PURE__ */ (function () {
+    function TypeApp(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    TypeApp.create = function (value0) {
+        return function (value1) {
+            return new TypeApp(value0, value1);
+        };
+    };
+    return TypeApp;
+})();
+var Func = /* #__PURE__ */ (function () {
+    function Func(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    Func.create = function (value0) {
+        return function (value1) {
+            return new Func(value0, value1);
+        };
+    };
+    return Func;
+})();
+var Row = /* #__PURE__ */ (function () {
+    function Row(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    Row.create = function (value0) {
+        return function (value1) {
+            return new Row(value0, value1);
+        };
+    };
+    return Row;
+})();
+var Record = /* #__PURE__ */ (function () {
+    function Record(value0) {
         this.value0 = value0;
     };
-    TypeVar.create = function (value0) {
-        return new TypeVar(value0);
+    Record.create = function (value0) {
+        return new Record(value0);
     };
-    return TypeVar;
+    return Record;
 })();
-var Any = /* #__PURE__ */ (function () {
-    function Any() {
-
+var ForAll = /* #__PURE__ */ (function () {
+    function ForAll(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
     };
-    Any.value = new Any();
-    return Any;
+    ForAll.create = function (value0) {
+        return function (value1) {
+            return new ForAll(value0, value1);
+        };
+    };
+    return ForAll;
+})();
+var ConstrainedType = /* #__PURE__ */ (function () {
+    function ConstrainedType(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    ConstrainedType.create = function (value0) {
+        return function (value1) {
+            return new ConstrainedType(value0, value1);
+        };
+    };
+    return ConstrainedType;
 })();
 var ProductType = /* #__PURE__ */ (function () {
     function ProductType() {
@@ -944,7 +1012,7 @@ var traversableLiteral = {
                 if (v instanceof LitBoolean) {
                     return pure(new LitBoolean(v.value0));
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 218, column 16 - line 225, column 40): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 224, column 16 - line 231, column 40): " + [ v.constructor.name ]);
             };
         };
     },
@@ -962,8 +1030,8 @@ var traversableLiteral = {
 };
 var findProp = function (prop) {
     return Data_Array.findMap(function (v) {
-        var $438 = prop === v.value0;
-        if ($438) {
+        var $480 = prop === v.value0;
+        if ($480) {
             return new Data_Maybe.Just(v.value1);
         };
         return Data_Maybe.Nothing.value;
@@ -997,7 +1065,7 @@ var exprAnn = function (v) {
     if (v instanceof ExprLet) {
         return v.value0;
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 248, column 11 - line 257, column 21): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 254, column 11 - line 263, column 21): " + [ v.constructor.name ]);
 };
 var eqProperName = Data_Eq.eqString;
 var eqModuleName = Data_Eq.eqString;
@@ -1079,23 +1147,41 @@ var eqExprType = {
             if (x instanceof $$Boolean && y instanceof $$Boolean) {
                 return true;
             };
+            if (x instanceof Unit && y instanceof Unit) {
+                return true;
+            };
+            if (x instanceof Any && y instanceof Any) {
+                return true;
+            };
+            if (x instanceof TypeLevelString && y instanceof TypeLevelString) {
+                return x.value0 === y.value0;
+            };
             if (x instanceof $$Array && y instanceof $$Array) {
                 return Data_Eq.eq(eqExprType)(x.value0)(y.value0);
-            };
-            if (x instanceof Func && y instanceof Func) {
-                return Data_Eq.eq(Data_Eq.eqArray(eqExprType))(x.value0)(y.value0) && Data_Eq.eq(eqExprType)(x.value1)(y.value1);
-            };
-            if (x instanceof Record && y instanceof Record) {
-                return Data_Eq.eq(Data_Eq.eqArray(eqTuple(eqExprType)))(x.value0)(y.value0);
-            };
-            if (x instanceof ADT && y instanceof ADT) {
-                return eq5(x.value0)(y.value0) && Data_Eq.eq(Data_Eq.eqArray(eqExprType))(x.value1)(y.value1);
             };
             if (x instanceof TypeVar && y instanceof TypeVar) {
                 return x.value0 === y.value0;
             };
-            if (x instanceof Any && y instanceof Any) {
-                return true;
+            if (x instanceof ADT && y instanceof ADT) {
+                return eq5(x.value0)(y.value0) && Data_Eq.eq(Data_Eq.eqArray(eqExprType))(x.value1)(y.value1);
+            };
+            if (x instanceof TypeApp && y instanceof TypeApp) {
+                return Data_Eq.eq(eqExprType)(x.value0)(y.value0) && Data_Eq.eq(Data_Eq.eqArray(eqExprType))(x.value1)(y.value1);
+            };
+            if (x instanceof Func && y instanceof Func) {
+                return Data_Eq.eq(Data_Eq.eqArray(eqExprType))(x.value0)(y.value0) && Data_Eq.eq(eqExprType)(x.value1)(y.value1);
+            };
+            if (x instanceof Row && y instanceof Row) {
+                return Data_Eq.eq(Data_Eq.eqArray(eqTuple(eqExprType)))(x.value0)(y.value0) && Data_Eq.eq(Data_Maybe.eqMaybe(eqExprType))(x.value1)(y.value1);
+            };
+            if (x instanceof Record && y instanceof Record) {
+                return Data_Eq.eq(eqExprType)(x.value0)(y.value0);
+            };
+            if (x instanceof ForAll && y instanceof ForAll) {
+                return eq5(x.value0)(y.value0) && Data_Eq.eq(eqExprType)(x.value1)(y.value1);
+            };
+            if (x instanceof ConstrainedType && y instanceof ConstrainedType) {
+                return Data_Eq.eq(Data_Eq.eqArray(eqTuple1(Data_Eq.eqArray(eqExprType))))(x.value0)(y.value0) && Data_Eq.eq(eqExprType)(x.value1)(y.value1);
             };
             return false;
         };
@@ -1149,6 +1235,33 @@ var ordExprType = {
             if (y instanceof $$Boolean) {
                 return Data_Ordering.GT.value;
             };
+            if (x instanceof Unit && y instanceof Unit) {
+                return Data_Ordering.EQ.value;
+            };
+            if (x instanceof Unit) {
+                return Data_Ordering.LT.value;
+            };
+            if (y instanceof Unit) {
+                return Data_Ordering.GT.value;
+            };
+            if (x instanceof Any && y instanceof Any) {
+                return Data_Ordering.EQ.value;
+            };
+            if (x instanceof Any) {
+                return Data_Ordering.LT.value;
+            };
+            if (y instanceof Any) {
+                return Data_Ordering.GT.value;
+            };
+            if (x instanceof TypeLevelString && y instanceof TypeLevelString) {
+                return compare(x.value0)(y.value0);
+            };
+            if (x instanceof TypeLevelString) {
+                return Data_Ordering.LT.value;
+            };
+            if (y instanceof TypeLevelString) {
+                return Data_Ordering.GT.value;
+            };
             if (x instanceof $$Array && y instanceof $$Array) {
                 return Data_Ord.compare(ordExprType)(x.value0)(y.value0);
             };
@@ -1156,6 +1269,47 @@ var ordExprType = {
                 return Data_Ordering.LT.value;
             };
             if (y instanceof $$Array) {
+                return Data_Ordering.GT.value;
+            };
+            if (x instanceof TypeVar && y instanceof TypeVar) {
+                return compare(x.value0)(y.value0);
+            };
+            if (x instanceof TypeVar) {
+                return Data_Ordering.LT.value;
+            };
+            if (y instanceof TypeVar) {
+                return Data_Ordering.GT.value;
+            };
+            if (x instanceof ADT && y instanceof ADT) {
+                var v = compare1(x.value0)(y.value0);
+                if (v instanceof Data_Ordering.LT) {
+                    return Data_Ordering.LT.value;
+                };
+                if (v instanceof Data_Ordering.GT) {
+                    return Data_Ordering.GT.value;
+                };
+                return Data_Ord.compare(Data_Ord.ordArray(ordExprType))(x.value1)(y.value1);
+            };
+            if (x instanceof ADT) {
+                return Data_Ordering.LT.value;
+            };
+            if (y instanceof ADT) {
+                return Data_Ordering.GT.value;
+            };
+            if (x instanceof TypeApp && y instanceof TypeApp) {
+                var v = Data_Ord.compare(ordExprType)(x.value0)(y.value0);
+                if (v instanceof Data_Ordering.LT) {
+                    return Data_Ordering.LT.value;
+                };
+                if (v instanceof Data_Ordering.GT) {
+                    return Data_Ordering.GT.value;
+                };
+                return Data_Ord.compare(Data_Ord.ordArray(ordExprType))(x.value1)(y.value1);
+            };
+            if (x instanceof TypeApp) {
+                return Data_Ordering.LT.value;
+            };
+            if (y instanceof TypeApp) {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof Func && y instanceof Func) {
@@ -1174,8 +1328,24 @@ var ordExprType = {
             if (y instanceof Func) {
                 return Data_Ordering.GT.value;
             };
+            if (x instanceof Row && y instanceof Row) {
+                var v = Data_Ord.compare(Data_Ord.ordArray(ordTuple(ordExprType)))(x.value0)(y.value0);
+                if (v instanceof Data_Ordering.LT) {
+                    return Data_Ordering.LT.value;
+                };
+                if (v instanceof Data_Ordering.GT) {
+                    return Data_Ordering.GT.value;
+                };
+                return Data_Ord.compare(Data_Maybe.ordMaybe(ordExprType))(x.value1)(y.value1);
+            };
+            if (x instanceof Row) {
+                return Data_Ordering.LT.value;
+            };
+            if (y instanceof Row) {
+                return Data_Ordering.GT.value;
+            };
             if (x instanceof Record && y instanceof Record) {
-                return Data_Ord.compare(Data_Ord.ordArray(ordTuple(ordExprType)))(x.value0)(y.value0);
+                return Data_Ord.compare(ordExprType)(x.value0)(y.value0);
             };
             if (x instanceof Record) {
                 return Data_Ordering.LT.value;
@@ -1183,33 +1353,31 @@ var ordExprType = {
             if (y instanceof Record) {
                 return Data_Ordering.GT.value;
             };
-            if (x instanceof ADT && y instanceof ADT) {
-                var v = compare(x.value0)(y.value0);
+            if (x instanceof ForAll && y instanceof ForAll) {
+                var v = compare1(x.value0)(y.value0);
                 if (v instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
                 if (v instanceof Data_Ordering.GT) {
                     return Data_Ordering.GT.value;
                 };
-                return Data_Ord.compare(Data_Ord.ordArray(ordExprType))(x.value1)(y.value1);
+                return Data_Ord.compare(ordExprType)(x.value1)(y.value1);
             };
-            if (x instanceof ADT) {
+            if (x instanceof ForAll) {
                 return Data_Ordering.LT.value;
             };
-            if (y instanceof ADT) {
+            if (y instanceof ForAll) {
                 return Data_Ordering.GT.value;
             };
-            if (x instanceof TypeVar && y instanceof TypeVar) {
-                return compare1(x.value0)(y.value0);
-            };
-            if (x instanceof TypeVar) {
-                return Data_Ordering.LT.value;
-            };
-            if (y instanceof TypeVar) {
-                return Data_Ordering.GT.value;
-            };
-            if (x instanceof Any && y instanceof Any) {
-                return Data_Ordering.EQ.value;
+            if (x instanceof ConstrainedType && y instanceof ConstrainedType) {
+                var v = Data_Ord.compare(Data_Ord.ordArray(ordTuple1(Data_Ord.ordArray(ordExprType))))(x.value0)(y.value0);
+                if (v instanceof Data_Ordering.LT) {
+                    return Data_Ordering.LT.value;
+                };
+                if (v instanceof Data_Ordering.GT) {
+                    return Data_Ordering.GT.value;
+                };
+                return Data_Ord.compare(ordExprType)(x.value1)(y.value1);
             };
             throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 0, column 0 - line 0, column 0): " + [ x.constructor.name, y.constructor.name ]);
         };
@@ -1370,12 +1538,18 @@ export {
     $$String as String,
     Char,
     $$Boolean as Boolean,
-    $$Array as Array,
-    Func,
-    Record,
-    ADT,
-    TypeVar,
+    Unit,
     Any,
+    TypeLevelString,
+    $$Array as Array,
+    TypeVar,
+    ADT,
+    TypeApp,
+    Func,
+    Row,
+    Record,
+    ForAll,
+    ConstrainedType,
     IsConstructor,
     IsNewtype,
     IsTypeClassConstructor,

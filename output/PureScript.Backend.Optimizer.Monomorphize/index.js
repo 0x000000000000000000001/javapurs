@@ -13,6 +13,7 @@ import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
 import * as PureScript_Backend_Optimizer_Substitute from "../PureScript.Backend.Optimizer.Substitute/index.js";
 var map = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorArray);
+var map1 = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
 var insert = /* #__PURE__ */ Data_Set.insert(PureScript_Backend_Optimizer_CoreFn.ordExprType);
 var foldl = /* #__PURE__ */ Data_Foldable.foldl(PureScript_Backend_Optimizer_CoreFn.foldableLiteral);
 var foldl1 = /* #__PURE__ */ Data_Foldable.foldl(Data_Foldable.foldableArray);
@@ -35,6 +36,15 @@ var mangleType = function (v) {
     if (v instanceof PureScript_Backend_Optimizer_CoreFn["Boolean"]) {
         return "Boolean";
     };
+    if (v instanceof PureScript_Backend_Optimizer_CoreFn.Unit) {
+        return "Unit";
+    };
+    if (v instanceof PureScript_Backend_Optimizer_CoreFn.Any) {
+        return "Any";
+    };
+    if (v instanceof PureScript_Backend_Optimizer_CoreFn.TypeLevelString) {
+        return "TypeLevelString_" + v.value0;
+    };
     if (v instanceof PureScript_Backend_Optimizer_CoreFn["Array"]) {
         return "Array_" + mangleType(v.value0);
     };
@@ -42,14 +52,28 @@ var mangleType = function (v) {
         return "Func_" + (Data_String_Common.joinWith("_")(map(mangleType)(v.value0)) + ("_" + mangleType(v.value1)));
     };
     if (v instanceof PureScript_Backend_Optimizer_CoreFn.Record) {
-        return "Record_" + Data_String_Common.joinWith("_")(map(function (v1) {
+        return "Record_" + mangleType(v.value0);
+    };
+    if (v instanceof PureScript_Backend_Optimizer_CoreFn.Row) {
+        return "Row_" + (Data_String_Common.joinWith("_")(map(function (v1) {
             return v1.value0 + ("_" + mangleType(v1.value1));
-        })(v.value0));
+        })(v.value0)) + ("_" + Data_Maybe.maybe("Empty")(mangleType)(v.value1)));
+    };
+    if (v instanceof PureScript_Backend_Optimizer_CoreFn.TypeApp) {
+        return "TypeApp_" + (mangleType(v.value0) + ("_" + Data_String_Common.joinWith("_")(map(mangleType)(v.value1))));
+    };
+    if (v instanceof PureScript_Backend_Optimizer_CoreFn.ForAll) {
+        return "ForAll_" + (Data_String_Common.joinWith("_")(v.value0) + ("_" + mangleType(v.value1)));
+    };
+    if (v instanceof PureScript_Backend_Optimizer_CoreFn.ConstrainedType) {
+        return "ConstrainedType_" + (Data_String_Common.joinWith("_")(map(function (v1) {
+            return Data_String_Common.joinWith("_")(v1.value0) + ("_" + Data_String_Common.joinWith("_")(map(mangleType)(v1.value1)));
+        })(v.value0)) + ("_" + mangleType(v.value1)));
     };
     if (v instanceof PureScript_Backend_Optimizer_CoreFn.ADT) {
         return "ADT_" + (Data_String_Common.joinWith("_")(v.value0) + (function () {
-            var $46 = Data_Array.length(v.value1) === 0;
-            if ($46) {
+            var $61 = Data_Array.length(v.value1) === 0;
+            if ($61) {
                 return "";
             };
             return "_" + Data_String_Common.joinWith("_")(map(mangleType)(v.value1));
@@ -61,7 +85,7 @@ var mangleType = function (v) {
     if (v instanceof PureScript_Backend_Optimizer_CoreFn.Any) {
         return "Any";
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 30, column 1 - line 30, column 33): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 34, column 1 - line 34, column 33): " + [ v.constructor.name ]);
 };
 var getExprAnn = function (v) {
     if (v instanceof PureScript_Backend_Optimizer_CoreFn.ExprVar) {
@@ -91,14 +115,14 @@ var getExprAnn = function (v) {
     if (v instanceof PureScript_Backend_Optimizer_CoreFn.ExprUpdate) {
         return v.value0;
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 56, column 14 - line 65, column 28): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 67, column 14 - line 76, column 28): " + [ v.constructor.name ]);
 };
 var inferExprType = function (expr) {
     if (expr instanceof PureScript_Backend_Optimizer_CoreFn.ExprApp) {
         var fTy = inferExprType(expr.value1);
         if (fTy instanceof Data_Maybe.Just && fTy.value0 instanceof PureScript_Backend_Optimizer_CoreFn.Func) {
-            var $79 = Data_Array.length(fTy.value0.value0) > 1;
-            if ($79) {
+            var $94 = Data_Array.length(fTy.value0.value0) > 1;
+            if ($94) {
                 return new Data_Maybe.Just(new PureScript_Backend_Optimizer_CoreFn.Func(Data_Maybe.fromMaybe([  ])(Data_Array.tail(fTy.value0.value0)), fTy.value0.value1));
             };
             return new Data_Maybe.Just(fTy.value0.value1);
@@ -119,9 +143,23 @@ var defaultToAny = function (v) {
         return new PureScript_Backend_Optimizer_CoreFn.Func(map(defaultToAny)(v.value0), defaultToAny(v.value1));
     };
     if (v instanceof PureScript_Backend_Optimizer_CoreFn.Record) {
-        return new PureScript_Backend_Optimizer_CoreFn.Record(map(function (v1) {
+        return new PureScript_Backend_Optimizer_CoreFn.Record(defaultToAny(v.value0));
+    };
+    if (v instanceof PureScript_Backend_Optimizer_CoreFn.Row) {
+        return new PureScript_Backend_Optimizer_CoreFn.Row(map(function (v1) {
             return new Data_Tuple.Tuple(v1.value0, defaultToAny(v1.value1));
-        })(v.value0));
+        })(v.value0), map1(defaultToAny)(v.value1));
+    };
+    if (v instanceof PureScript_Backend_Optimizer_CoreFn.TypeApp) {
+        return new PureScript_Backend_Optimizer_CoreFn.TypeApp(defaultToAny(v.value0), map(defaultToAny)(v.value1));
+    };
+    if (v instanceof PureScript_Backend_Optimizer_CoreFn.ForAll) {
+        return new PureScript_Backend_Optimizer_CoreFn.ForAll(v.value0, defaultToAny(v.value1));
+    };
+    if (v instanceof PureScript_Backend_Optimizer_CoreFn.ConstrainedType) {
+        return new PureScript_Backend_Optimizer_CoreFn.ConstrainedType(map(function (v1) {
+            return new Data_Tuple.Tuple(v1.value0, map(defaultToAny)(v1.value1));
+        })(v.value0), defaultToAny(v.value1));
     };
     if (v instanceof PureScript_Backend_Optimizer_CoreFn.ADT) {
         return new PureScript_Backend_Optimizer_CoreFn.ADT(v.value0, map(defaultToAny)(v.value1));
@@ -191,7 +229,7 @@ var collectTypesFromExpr = function (expr) {
                 return insert(t)(acc);
             })(expr.value0.type)))(expr.value2);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 149, column 33 - line 158, column 161): " + [ expr.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 160, column 33 - line 169, column 161): " + [ expr.constructor.name ]);
     };
 };
 var collectTypesFromBind = function (v) {
@@ -206,7 +244,7 @@ var collectTypesFromBind = function (v) {
                 };
             })(v1)(v.value0);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 160, column 1 - line 160, column 65): " + [ v.constructor.name, v1.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 171, column 1 - line 171, column 65): " + [ v.constructor.name, v1.constructor.name ]);
     };
 };
 var collectTypesFromAlt = function (v) {
@@ -221,7 +259,7 @@ var collectTypesFromAlt = function (v) {
                 };
             })(v1)(v.value1.value0);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 164, column 1 - line 164, column 75): " + [ v.constructor.name, v1.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 175, column 1 - line 175, column 75): " + [ v.constructor.name, v1.constructor.name ]);
     };
 };
 var collectAppSpine = /* #__PURE__ */ (function () {
@@ -276,14 +314,14 @@ var collectExpr = function (modName) {
                         if (expr.value1.value0 instanceof Data_Maybe.Nothing) {
                             return modName + ("." + expr.value1.value1);
                         };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 92, column 24 - line 94, column 48): " + [ expr.value1.value0.constructor.name ]);
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 103, column 24 - line 105, column 48): " + [ expr.value1.value0.constructor.name ]);
                     })();
                     return insertWith(union)(qualName)(Data_Set.singleton(defaultToAny(expr.value0.type.value0)))(acc);
                 };
                 if (expr.value0.type instanceof Data_Maybe.Nothing) {
                     return acc;
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 90, column 5 - line 96, column 21): " + [ expr.value0.type.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 101, column 5 - line 107, column 21): " + [ expr.value0.type.constructor.name ]);
             };
             if (expr instanceof PureScript_Backend_Optimizer_CoreFn.ExprApp) {
                 var v = collectAppSpine(expr);
@@ -298,7 +336,7 @@ var collectExpr = function (modName) {
                             if (v.f.value1.value0 instanceof Data_Maybe.Nothing) {
                                 return modName + ("." + v.f.value1.value1);
                             };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 120, column 26 - line 122, column 50): " + [ v.f.value1.value0.constructor.name ]);
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 131, column 26 - line 133, column 50): " + [ v.f.value1.value0.constructor.name ]);
                         })();
                         var argTypes = Data_Array.mapMaybe(inferExprType)(v.args);
                         var substArgs = Data_Array.foldl(function (substAcc) {
@@ -313,8 +351,8 @@ var collectExpr = function (modName) {
                         var subst = (function () {
                             if (appType instanceof Data_Maybe.Just) {
                                 var remainingType = (function () {
-                                    var $184 = Data_Array.length(v.args) < Data_Array.length(v.f.value0.type.value0.value0);
-                                    if ($184) {
+                                    var $210 = Data_Array.length(v.args) < Data_Array.length(v.f.value0.type.value0.value0);
+                                    if ($210) {
                                         return new PureScript_Backend_Optimizer_CoreFn.Func(Data_Array.drop(Data_Array.length(v.args))(v.f.value0.type.value0.value0), v.f.value0.type.value0.value1);
                                     };
                                     return v.f.value0.type.value0.value1;
@@ -324,11 +362,11 @@ var collectExpr = function (modName) {
                             if (appType instanceof Data_Maybe.Nothing) {
                                 return substArgs;
                             };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 111, column 23 - line 117, column 37): " + [ appType.constructor.name ]);
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 122, column 23 - line 128, column 37): " + [ appType.constructor.name ]);
                         })();
                         var instType = PureScript_Backend_Optimizer_Substitute.substituteExprType(subst)(v.f.value0.type.value0);
-                        var $186 = Data_Map_Internal.isEmpty(subst);
-                        if ($186) {
+                        var $212 = Data_Map_Internal.isEmpty(subst);
+                        if ($212) {
                             return acc2;
                         };
                         return insertWith(union)(qualName)(Data_Set.singleton(defaultToAny(instType)))(acc2);
@@ -358,7 +396,7 @@ var collectExpr = function (modName) {
             if (expr instanceof PureScript_Backend_Optimizer_CoreFn.ExprLet) {
                 return foldl1(collectBind(modName))(collectExpr(modName)(acc)(expr.value2))(expr.value1);
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 88, column 32 - line 135, column 85): " + [ expr.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 99, column 32 - line 146, column 85): " + [ expr.constructor.name ]);
         };
     };
 };
@@ -378,7 +416,7 @@ var collectBind = function (v) {
             if (v2 instanceof PureScript_Backend_Optimizer_CoreFn.Rec) {
                 return foldl1(collectBinding(v))(v1)(v2.value0);
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 48, column 1 - line 48, column 74): " + [ v.constructor.name, v1.constructor.name, v2.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 59, column 1 - line 59, column 74): " + [ v.constructor.name, v1.constructor.name, v2.constructor.name ]);
         };
     };
 };
@@ -391,7 +429,7 @@ var collectAlt = function (modName) {
             if (v.value1 instanceof PureScript_Backend_Optimizer_CoreFn.Guarded) {
                 return foldl1(collectGuard(modName))(acc)(v.value1.value0);
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 141, column 49 - line 143, column 60): " + [ v.value1.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 152, column 49 - line 154, column 60): " + [ v.value1.constructor.name ]);
         };
     };
 };
