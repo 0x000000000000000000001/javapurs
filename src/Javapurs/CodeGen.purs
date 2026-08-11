@@ -331,7 +331,7 @@ translateOperator2 _ op e1 e2 = case op of
 sanitizeName :: String -> String
 sanitizeName n =
   let
-    n' = String.replaceAll (String.Pattern "$") (String.Replacement "") (String.replaceAll (String.Pattern "'") (String.Replacement "_") n)
+    n' = String.replaceAll (String.Pattern "$") (String.Replacement "") (String.replaceAll (String.Pattern "'") (String.Replacement "$prime") n)
     isKeyword x = x == "void" || x == "class" || x == "return" || x == "const" || x == "new" || x == "throw" || x == "catch" || x == "try" || x == "if" || x == "else" || x == "while" || x == "for" || x == "do" || x == "switch" || x == "case" || x == "default" || x == "break" || x == "continue" || x == "boolean" || x == "byte" || x == "char" || x == "short" || x == "int" || x == "long" || x == "float" || x == "double" || x == "true" || x == "false" || x == "null" || x == "this" || x == "super" || x == "instanceof" || x == "public" || x == "protected" || x == "private" || x == "static" || x == "final" || x == "abstract" || x == "interface" || x == "implements" || x == "extends" || x == "package" || x == "import" || x == "throws" || x == "enum" || x == "assert" || x == "strictfp" || x == "native" || x == "synchronized" || x == "transient" || x == "volatile"
   in
-    if isKeyword n' then "_" <> n' else n'
+    if isKeyword n' then "$" <> n' else n'

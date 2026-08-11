@@ -10,6 +10,7 @@ package:
     - exceptions
     - argonaut-core
     - arrays
+    - node-process
     - strings
 
 workspace:

@@ -144,8 +144,8 @@ var decodeArray = function (decoder) {
                     while (con) {
                         (function __do() {
                             var ix$prime = ix;
-                            var $86 = ix$prime === len;
-                            if ($86) {
+                            var $89 = ix$prime === len;
+                            if ($89) {
                                 var out$prime = Data_Array_ST.unsafeFreeze(out)();
                                 con = false;
                                 res = new Data_Either.Right(out$prime);
@@ -174,15 +174,15 @@ var decodeArray = function (decoder) {
     };
 };
 var decodeModuleName = /* #__PURE__ */ (function () {
-    var $136 = map((function () {
-        var $139 = intercalate(".");
-        return function ($140) {
-            return PureScript_Backend_Optimizer_CoreFn.ModuleName($139($140));
+    var $139 = map((function () {
+        var $142 = intercalate(".");
+        return function ($143) {
+            return PureScript_Backend_Optimizer_CoreFn.ModuleName($142($143));
         };
     })());
-    var $137 = decodeArray(decodeString);
-    return function ($138) {
-        return $136($137($138));
+    var $140 = decodeArray(decodeString);
+    return function ($141) {
+        return $139($140($141));
     };
 })();
 var bind = function (a) {
@@ -222,8 +222,8 @@ var decodeInt = function (json) {
     return bind(decodeNumber(json))(function (num) {
         var v = Data_Int.fromNumber(num);
         if (v instanceof Data_Maybe.Nothing) {
-            var $96 = num === 2.147483648e9;
-            if ($96) {
+            var $99 = num === 2.147483648e9;
+            if ($99) {
                 return new Data_Either.Right(bottom);
             };
             return new Data_Either.Left(new Data_Argonaut_Decode_Error.TypeMismatch("Int"));
@@ -235,10 +235,10 @@ var decodeInt = function (json) {
     });
 };
 var decodeCodePoint = /* #__PURE__ */ Control_Bind.composeKleisliFlipped(Data_Either.bindEither)(/* #__PURE__ */ (function () {
-    var $141 = Data_Either.note(new Data_Argonaut_Decode_Error.TypeMismatch("CodePoint"));
-    var $142 = Data_Enum.toEnum(Data_String_CodePoints.boundedEnumCodePoint);
-    return function ($143) {
-        return $141($142($143));
+    var $144 = Data_Either.note(new Data_Argonaut_Decode_Error.TypeMismatch("CodePoint"));
+    var $145 = Data_Enum.toEnum(Data_String_CodePoints.boundedEnumCodePoint);
+    return function ($146) {
+        return $144($145($146));
     };
 })())(decodeInt);
 var decodeCodePointArray = /* #__PURE__ */ decodeArray(decodeCodePoint);
@@ -618,8 +618,8 @@ var decodeRecord = /* #__PURE__ */ (function () {
             });
         };
     };
-    return function ($144) {
-        return decodeArray(decodeProp($144));
+    return function ($147) {
+        return decodeArray(decodeProp($147));
     };
 })();
 var decodeLiteral = function (dec) {
@@ -672,7 +672,9 @@ var decodeBinder = function (decAnn) {
                     };
                     if (typ === "ConstructorBinder") {
                         return bind(getField(decodeQualified(decodeProperName))(obj)("typeName"))(function (tyn) {
-                            return bind(getField(decodeQualified(decodeIdent))(obj)("constructorName"))(function (ctn) {
+                            return bind(alt(getField(decodeQualified(decodeIdent))(obj)("name"))(function (v) {
+                                return getField(decodeQualified(decodeIdent))(obj)("constructorName");
+                            }))(function (ctn) {
                                 return bind(getField(decodeArray(decodeBinder(decAnn)))(obj)("binders"))(function (binders) {
                                     return pure8(new PureScript_Backend_Optimizer_CoreFn.BinderConstructor(ann, tyn, ctn, binders));
                                 });
@@ -716,8 +718,12 @@ var decodeExpr = function (decAnn) {
                     };
                     if (typ === "Constructor") {
                         return bind(getField(decodeProperName)(obj)("typeName"))(function (tyn) {
-                            return bind(getField(decodeIdent)(obj)("constructorName"))(function (con) {
-                                return bind(getField(decodeArray(decodeStringLiteral))(obj)("fieldNames"))(function (is) {
+                            return bind(alt(getField(decodeIdent)(obj)("name"))(function (v) {
+                                return getField(decodeIdent)(obj)("constructorName");
+                            }))(function (con) {
+                                return bind(alt(getField(decodeArray(decodeStringLiteral))(obj)("fields"))(function (v) {
+                                    return getField(decodeArray(decodeStringLiteral))(obj)("fieldNames");
+                                }))(function (is) {
                                     return pure10(new PureScript_Backend_Optimizer_CoreFn.ExprConstructor(ann, tyn, con, is));
                                 });
                             });

@@ -3,13 +3,35 @@ import * as Data_Array from "../Data.Array/index.js";
 import * as Data_Functor from "../Data.Functor/index.js";
 import * as Data_Maybe from "../Data.Maybe/index.js";
 import * as Data_Show from "../Data.Show/index.js";
+import * as Data_String_CodeUnits from "../Data.String.CodeUnits/index.js";
 import * as Data_String_Common from "../Data.String.Common/index.js";
 import * as Javapurs_JavaAst from "../Javapurs.JavaAst/index.js";
 var map = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorArray);
 var show = /* #__PURE__ */ Data_Show.show(Data_Show.showInt);
+var escapeJavaString = function (s) {
+    var escapeChar = function (v) {
+        if (v === "\\") {
+            return "\\\\";
+        };
+        if (v === "\"") {
+            return "\\\"";
+        };
+        if (v === "\x0a") {
+            return "\\n";
+        };
+        if (v === "\x0d") {
+            return "\\r";
+        };
+        if (v === "\x09") {
+            return "\\t";
+        };
+        return Data_String_CodeUnits.singleton(v);
+    };
+    return Data_String_Common.joinWith("")(map(escapeChar)(Data_String_CodeUnits.toCharArray(s)));
+};
 var printExpr = function (v) {
     if (v instanceof Javapurs_JavaAst.JavaString) {
-        return "\"" + (v.value0 + "\"");
+        return "\"" + (escapeJavaString(v.value0) + "\"");
     };
     if (v instanceof Javapurs_JavaAst.JavaCall) {
         var fnStr = printExpr(v.value0);
@@ -24,11 +46,34 @@ var printExpr = function (v) {
     };
     if (v instanceof Javapurs_JavaAst.JavaGlobalVar) {
         if (v.value0 instanceof Data_Maybe.Just && v.value0.value0 === "Effect_Console") {
-            var $19 = v.value1 === "log";
-            if ($19) {
-                return "(java.util.function.Function<Object, Object>) (arg) -> { System.out.println(arg); return arg; }";
+            var $21 = v.value1 === "log";
+            if ($21) {
+                return "(java.util.function.Function<Object, Object>) (arg) -> (java.util.function.Supplier<Object>) () -> { System.out.println(arg); return null; }";
             };
-            return "(java.util.function.Function<Object, Object>) (arg) -> { System.out.print(arg); return arg; }";
+            return "Effect_Console." + v.value1;
+        };
+        if (v.value0 instanceof Data_Maybe.Just && v.value0.value0 === "Test_Assert") {
+            var $23 = v.value1 === "assertImpl";
+            if ($23) {
+                return "(java.util.function.Function<Object, Object>) (msg) -> (java.util.function.Function<Object, Object>) (b) -> (java.util.function.Supplier<Object>) () -> { if (!((Boolean) b)) { throw new RuntimeException((String) msg); } return null; }";
+            };
+            return "Test_Assert." + v.value1;
+        };
+        if (v.value0 instanceof Data_Maybe.Just && v.value0.value0 === "Effect") {
+            if (v.value1 === "bindE") {
+                return "(java.util.function.Function<Object, Object>) (a) -> (java.util.function.Function<Object, Object>) (f) -> (java.util.function.Supplier<Object>) () -> { return ((java.util.function.Supplier<Object>) ((java.util.function.Function<Object, Object>) f).apply(((java.util.function.Supplier<Object>) a).get())).get(); }";
+            };
+            if (v.value1 === "pureE") {
+                return "(java.util.function.Function<Object, Object>) (a) -> (java.util.function.Supplier<Object>) () -> a";
+            };
+            return "Effect." + v.value1;
+        };
+        if (v.value0 instanceof Data_Maybe.Just && v.value0.value0 === "Data_Semigroup") {
+            var $27 = v.value1 === "concatString";
+            if ($27) {
+                return "(java.util.function.Function<Object, Object>) (a) -> (java.util.function.Function<Object, Object>) (b) -> a.toString() + b.toString()";
+            };
+            return "Data_Semigroup." + v.value1;
         };
         if (v.value0 instanceof Data_Maybe.Just) {
             return v.value0.value0 + ("." + v.value1);
@@ -36,14 +81,14 @@ var printExpr = function (v) {
         if (v.value0 instanceof Data_Maybe.Nothing) {
             return v.value1;
         };
-        throw new Error("Failed pattern match at Javapurs.Printer (line 25, column 5 - line 28, column 22): " + [ v.value0.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.Printer (line 39, column 5 - line 48, column 22): " + [ v.value0.constructor.name ]);
     };
     if (v instanceof Javapurs_JavaAst.JavaLocal) {
         return v.value0;
     };
     if (v instanceof Javapurs_JavaAst.JavaAbs) {
-        var $25 = Data_Array.length(v.value0) === 0;
-        if ($25) {
+        var $33 = Data_Array.length(v.value0) === 0;
+        if ($33) {
             return "(java.util.function.Supplier<Object>) () -> " + printExpr(v.value1);
         };
         return Data_Array.foldr(function (arg) {
@@ -97,16 +142,16 @@ var printExpr = function (v) {
         return "(((" + (v.value1 + (") " + (printExpr(v.value0) + (")." + (v.value2 + ")")))));
     };
     if (v instanceof Javapurs_JavaAst.JavaLetRec) {
-        return "((java.util.function.Supplier<Object>) () -> { " + ("class LetRecScope { " + (Data_String_Common.joinWith("")(map(function (v1) {
+        return "((new java.util.function.Supplier<Object>() { " + ("class LetRecScope { " + (Data_String_Common.joinWith("")(map(function (v1) {
             return "Object " + (v1.value0 + "; ");
         })(v.value0)) + ("LetRecScope() { " + (Data_String_Common.joinWith("")(map(function (v1) {
             return v1.value0 + (" = " + (printExpr(v1.value1) + "; "));
         })(v.value0)) + ("} " + ("} " + ("LetRecScope _scope = new LetRecScope(); " + (Data_String_Common.joinWith("")(map(function (v1) {
             return "Object " + (v1.value0 + (" = _scope." + (v1.value0 + "; ")));
-        })(v.value0)) + ("return " + (printExpr(v.value1) + ("; " + "}).get()")))))))))));
+        })(v.value0)) + ("public Object get() { return " + (printExpr(v.value1) + ("; } " + "})).get()")))))))))));
     };
     if (v instanceof Javapurs_JavaAst.JavaLet) {
-        return "((java.util.function.Supplier<Object>) () -> { Object " + (v.value0 + (" = " + (printExpr(v.value1) + ("; return " + (printExpr(v.value2) + "; }).get()")))));
+        return "((new java.util.function.Supplier<Object>() { Object " + (v.value0 + (" = " + (printExpr(v.value1) + ("; public Object get() { return " + (printExpr(v.value2) + "; } })).get()")))));
     };
     if (v instanceof Javapurs_JavaAst.JavaClassDecl) {
         var fields = map(function (arg) {
@@ -131,13 +176,13 @@ var printExpr = function (v) {
         return "((" + (v.value0 + (") (" + (printExpr(v.value1) + "))")));
     };
     if (v instanceof Javapurs_JavaAst.JavaAssign) {
-        var $76 = v.value0 === "main";
-        if ($76) {
-            return "public static final java.util.function.Supplier<Void> main = () -> {\x0a            " + (printExpr(v.value1) + ";\x0a            return null;\x0a        };");
+        var $84 = v.value0 === "main";
+        if ($84) {
+            return "public static final java.util.function.Supplier<Void> main = () -> {\x0a            ((java.util.function.Supplier<Object>)(" + (printExpr(v.value1) + ")).get();\x0a            return null;\x0a        };");
         };
         return "public static final Object " + (v.value0 + (" = " + (printExpr(v.value1) + ";")));
     };
-    throw new Error("Failed pattern match at Javapurs.Printer (line 12, column 13 - line 108, column 78): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Printer (line 26, column 13 - line 128, column 78): " + [ v.constructor.name ]);
 };
 var printFile = function (className) {
     return function (file) {
@@ -145,6 +190,7 @@ var printFile = function (className) {
     };
 };
 export {
+    escapeJavaString,
     printExpr,
     printFile
 };

@@ -19,10 +19,19 @@ import Data.Array as Array
 import Data.Newtype (unwrap)
 import Data.String as String
 import Javapurs.CodeGen (translate)
+import Node.Process (argv)
 import Javapurs.Printer (printFile, printExpr)
+import Javapurs.CodeGen (sanitizeName)
 
 main :: Effect Unit
 main = launchAff_ do
+  args <- liftEffect argv
+  let mainModule = case Array.findIndex (_ == "--main") args of
+        Just i -> case Array.index args (i + 1) of
+          Just m -> m
+          Nothing -> "Main"
+        Nothing -> "Main"
+
   liftEffect $ log "Loading corefn.json files..."
   modules <- coreFnModulesFromOutput "output"
   let count = List.length modules
@@ -44,7 +53,7 @@ main = launchAff_ do
         
         let javaAst = translate backendMod
         let foreignIdents = Map.keys backendMod.foreign
-        let ffiStubs = String.joinWith "\n" (map (\(Ident name) -> "    public static Object " <> String.replaceAll (String.Pattern "'") (String.Replacement "_") name <> " = FFI_STUB;") (Array.fromFoldable foreignIdents))
+        let ffiStubs = String.joinWith "\n" (map (\(Ident name) -> "    public static Object " <> sanitizeName name <> " = FFI_STUB;") (Array.fromFoldable foreignIdents))
         
         let
           classContent =
@@ -72,18 +81,12 @@ main = launchAff_ do
             "}\n"
         FS.writeTextFile UTF8 "java_output/TcoLoop.java" tcoLoopCode
         
-        if modNameStr == "Main" then
+        if modNameStr == mainModule then
           let
             mainRunCode =
               "public class MainRun {\n" <>
               "    public static void main(String[] args) {\n" <>
-              "        Effect_Console.log = (java.util.function.Function<Object, Object>) (s) -> (java.util.function.Supplier<Object>) () -> { System.out.println(s); return null; };\n" <>
-              "        Effect.bindE = (java.util.function.Function<Object, Object>) (a) -> (java.util.function.Function<Object, Object>) (f) -> (java.util.function.Supplier<Object>) () -> {\n" <>
-              "            return ((java.util.function.Supplier<Object>) ((java.util.function.Function<Object, Object>) f).apply(((java.util.function.Supplier<Object>) a).get())).get();\n" <>
-              "        };\n" <>
-              "        Effect.pureE = (java.util.function.Function<Object, Object>) (a) -> (java.util.function.Supplier<Object>) () -> a;\n" <>
-              "        Data_Semigroup.concatString = (java.util.function.Function<Object, Object>) (a) -> (java.util.function.Function<Object, Object>) (b) -> a.toString() + b.toString();\n" <>
-              "        ((java.util.function.Supplier<Void>) Main.main).get();\n" <>
+              "        ((java.util.function.Supplier<Void>) " <> safeModName <> ".main).get();\n" <>
               "    }\n" <>
               "}\n"
           in

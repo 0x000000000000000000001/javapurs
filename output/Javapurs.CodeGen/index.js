@@ -166,13 +166,13 @@ var syntaxTag = function (v) {
     throw new Error("Failed pattern match at Javapurs.CodeGen (line 221, column 13 - line 245, column 23): " + [ v.constructor.name ]);
 };
 var sanitizeName = function (n) {
-    var n$prime = Data_String_Common.replaceAll("$")("")(Data_String_Common.replaceAll("'")("_")(n));
+    var n$prime = Data_String_Common.replaceAll("$")("")(Data_String_Common.replaceAll("'")("$prime")(n));
     var isKeyword = function (x) {
         return x === "void" || (x === "class" || (x === "return" || (x === "const" || (x === "new" || (x === "throw" || (x === "catch" || (x === "try" || (x === "if" || (x === "else" || (x === "while" || (x === "for" || (x === "do" || (x === "switch" || (x === "case" || (x === "default" || (x === "break" || (x === "continue" || (x === "boolean" || (x === "byte" || (x === "char" || (x === "short" || (x === "int" || (x === "long" || (x === "float" || (x === "double" || (x === "true" || (x === "false" || (x === "null" || (x === "this" || (x === "super" || (x === "instanceof" || (x === "public" || (x === "protected" || (x === "private" || (x === "static" || (x === "final" || (x === "abstract" || (x === "interface" || (x === "implements" || (x === "extends" || (x === "package" || (x === "import" || (x === "throws" || (x === "enum" || (x === "assert" || (x === "strictfp" || (x === "native" || (x === "synchronized" || (x === "transient" || x === "volatile")))))))))))))))))))))))))))))))))))))))))))))))));
     };
     var $113 = isKeyword(n$prime);
     if ($113) {
-        return "_" + n$prime;
+        return "$" + n$prime;
     };
     return n$prime;
 };

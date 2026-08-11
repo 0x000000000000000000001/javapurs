@@ -3,14 +3,28 @@ module Javapurs.Printer where
 import Data.Tuple (Tuple)
 import Prelude
 import Data.String as String
+import Data.String.CodeUnits as StringCodeUnits
 import Data.Maybe (Maybe(..))
 import Data.Array as Array
 import Data.Tuple (Tuple(..))
 import Javapurs.JavaAst (JavaExpr(..), JavaFile)
 
+
+escapeJavaString :: String -> String
+escapeJavaString s =
+  let
+    escapeChar '\\' = "\\\\"
+    escapeChar '\"' = "\\\""
+    escapeChar '\n' = "\\n"
+    escapeChar '\r' = "\\r"
+    escapeChar '\t' = "\\t"
+    escapeChar c = StringCodeUnits.singleton c
+  in
+    String.joinWith "" (map escapeChar (StringCodeUnits.toCharArray s))
+
 printExpr :: JavaExpr -> String
 printExpr = case _ of
-  JavaString s -> "\"" <> s <> "\""
+  JavaString s -> "\"" <> escapeJavaString s <> "\""
   JavaCall fn args ->
     let
       fnStr = printExpr fn
@@ -23,7 +37,13 @@ printExpr = case _ of
     "(java.util.function.Supplier<Object>) () -> " <> printExpr expr
   JavaGlobalVar mbMod name ->
     case mbMod of
-      Just "Effect_Console" -> if name == "log" then "(java.util.function.Function<Object, Object>) (arg) -> { System.out.println(arg); return arg; }" else "(java.util.function.Function<Object, Object>) (arg) -> { System.out.print(arg); return arg; }"
+      Just "Effect_Console" -> if name == "log" then "(java.util.function.Function<Object, Object>) (arg) -> (java.util.function.Supplier<Object>) () -> { System.out.println(arg); return null; }" else "Effect_Console." <> name
+      Just "Test_Assert" -> if name == "assertImpl" then "(java.util.function.Function<Object, Object>) (msg) -> (java.util.function.Function<Object, Object>) (b) -> (java.util.function.Supplier<Object>) () -> { if (!((Boolean) b)) { throw new RuntimeException((String) msg); } return null; }" else "Test_Assert." <> name
+      Just "Effect" -> case name of
+        "bindE" -> "(java.util.function.Function<Object, Object>) (a) -> (java.util.function.Function<Object, Object>) (f) -> (java.util.function.Supplier<Object>) () -> { return ((java.util.function.Supplier<Object>) ((java.util.function.Function<Object, Object>) f).apply(((java.util.function.Supplier<Object>) a).get())).get(); }"
+        "pureE" -> "(java.util.function.Function<Object, Object>) (a) -> (java.util.function.Supplier<Object>) () -> a"
+        _ -> "Effect." <> name
+      Just "Data_Semigroup" -> if name == "concatString" then "(java.util.function.Function<Object, Object>) (a) -> (java.util.function.Function<Object, Object>) (b) -> a.toString() + b.toString()" else "Data_Semigroup." <> name
       Just m -> m <> "." <> name
       Nothing -> name
   JavaLocal name -> name
@@ -69,7 +89,7 @@ printExpr = case _ of
   JavaPropertyAccess expr className prop ->
     "(((" <> className <> ") " <> printExpr expr <> ")." <> prop <> ")"
   JavaLetRec binds body ->
-    "((java.util.function.Supplier<Object>) () -> { " <>
+    "((new java.util.function.Supplier<Object>() { " <>
       "class LetRecScope { " <>
         String.joinWith "" (map (\(Tuple name val) -> "Object " <> name <> "; ") binds) <>
         "LetRecScope() { " <>
@@ -78,10 +98,10 @@ printExpr = case _ of
       "} " <>
       "LetRecScope _scope = new LetRecScope(); " <>
       String.joinWith "" (map (\(Tuple name val) -> "Object " <> name <> " = _scope." <> name <> "; ") binds) <>
-      "return " <> printExpr body <> "; " <>
-    "}).get()"
+      "public Object get() { return " <> printExpr body <> "; } " <>
+    "})).get()"
   JavaLet name val body ->
-    "((java.util.function.Supplier<Object>) () -> { Object " <> name <> " = " <> printExpr val <> "; return " <> printExpr body <> "; }).get()"
+    "((new java.util.function.Supplier<Object>() { Object " <> name <> " = " <> printExpr val <> "; public Object get() { return " <> printExpr body <> "; } })).get()"
   JavaClassDecl className args ->
     let
       fields = map (\arg -> "public final Object " <> arg <> ";") args
@@ -103,7 +123,7 @@ printExpr = case _ of
     "((" <> t <> ") (" <> printExpr e <> "))"
   JavaAssign name expr ->
     if name == "main" then
-      "public static final java.util.function.Supplier<Void> main = () -> {\n            " <> printExpr expr <> ";\n            return null;\n        };"
+      "public static final java.util.function.Supplier<Void> main = () -> {\n            ((java.util.function.Supplier<Object>)(" <> printExpr expr <> ")).get();\n            return null;\n        };"
     else
       "public static final Object " <> name <> " = " <> printExpr expr <> ";"
 

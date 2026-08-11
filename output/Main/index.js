@@ -19,12 +19,13 @@ import * as Javapurs_CodeGen from "../Javapurs.CodeGen/index.js";
 import * as Javapurs_Printer from "../Javapurs.Printer/index.js";
 import * as Node_Encoding from "../Node.Encoding/index.js";
 import * as Node_FS_Aff from "../Node.FS.Aff/index.js";
+import * as Node_Process from "../Node.Process/index.js";
 import * as PureScript_Backend_Optimizer_App from "../PureScript.Backend.Optimizer.App/index.js";
 import * as PureScript_Backend_Optimizer_Builder from "../PureScript.Backend.Optimizer.Builder/index.js";
 import * as PureScript_Backend_Optimizer_Semantics_Foreign from "../PureScript.Backend.Optimizer.Semantics.Foreign/index.js";
+var bind = /* #__PURE__ */ Control_Bind.bind(Effect_Aff.bindAff);
 var discard = /* #__PURE__ */ Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff);
 var liftEffect = /* #__PURE__ */ Effect_Class.liftEffect(Effect_Aff.monadEffectAff);
-var bind = /* #__PURE__ */ Control_Bind.bind(Effect_Aff.bindAff);
 var show = /* #__PURE__ */ Data_Show.show(Data_Show.showInt);
 var buildModules = /* #__PURE__ */ PureScript_Backend_Optimizer_Builder.buildModules(Effect_Aff.monadAff);
 var pure = /* #__PURE__ */ Control_Applicative.pure(Effect_Aff.applicativeAff);
@@ -32,60 +33,81 @@ var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
 var map = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorArray);
 var fromFoldable = /* #__PURE__ */ Data_Array.fromFoldable(Data_Set.foldableSet);
 var toUnfoldable = /* #__PURE__ */ Data_List.toUnfoldable(Data_List_Types.unfoldableList);
-var main = /* #__PURE__ */ Effect_Aff.launchAff_(/* #__PURE__ */ discard(/* #__PURE__ */ liftEffect(/* #__PURE__ */ Effect_Console.log("Loading corefn.json files...")))(function () {
-    return bind(PureScript_Backend_Optimizer_App.coreFnModulesFromOutput("output"))(function (modules) {
-        var count = Data_List.length(modules);
-        return discard(liftEffect(Effect_Console.log("Successfully loaded " + (show(count) + " modules."))))(function () {
-            return bind(PureScript_Backend_Optimizer_App.loadDirectives)(function (directives) {
-                return buildModules({
-                    directives: directives,
-                    analyzeCustom: function (v) {
-                        return function (v1) {
-                            return Data_Maybe.Nothing.value;
-                        };
-                    },
-                    foreignSemantics: PureScript_Backend_Optimizer_Semantics_Foreign.coreForeignSemantics,
-                    traceIdents: Data_Set.empty,
-                    onPrepareModule: function (v) {
-                        return function (m) {
-                            return pure(m);
-                        };
-                    },
-                    onSkipModule: function (v) {
-                        return function (v1) {
-                            return pure(Data_Maybe.Nothing.value);
-                        };
-                    },
-                    onCodegenModule: function (v) {
-                        return function (v1) {
-                            return function (backendMod) {
-                                return function (v2) {
-                                    var modNameStr = unwrap(v1.name);
-                                    var safeModName = Data_String_Common.replaceAll(".")("_")(modNameStr);
-                                    return discard(liftEffect(Effect_Console.log("Building module " + modNameStr)))(function () {
-                                        var javaAst = Javapurs_CodeGen.translate(backendMod);
-                                        var foreignIdents = Data_Map.keys(backendMod.foreign);
-                                        var ffiStubs = Data_String_Common.joinWith("\x0a")(map(function (v3) {
-                                            return "    public static Object " + (Data_String_Common.replaceAll("'")("_")(v3) + " = FFI_STUB;");
-                                        })(fromFoldable(foreignIdents)));
-                                        var classContent = "public class " + (safeModName + (" {\x0a" + ("    public static final Object FFI_STUB = new java.util.function.Function<Object, Object>() {\x0a" + ("        public Object apply(Object arg) { return this; }\x0a" + ("    };\x0a" + (ffiStubs + ("\x0a\x0a" + (Data_String_Common.joinWith("\x0a")(map(Javapurs_Printer.printExpr)(javaAst.decls)) + "\x0a}\x0a"))))))));
-                                        return discard(Node_FS_Aff.writeTextFile(Node_Encoding.UTF8.value)("java_output/" + (safeModName + ".java"))(classContent))(function () {
-                                            var tcoLoopCode = "public class TcoLoop extends RuntimeException {\x0a" + ("    public String loopId;\x0a" + ("    public Object[] args;\x0a" + ("    public TcoLoop(String loopId, Object[] args) {\x0a" + ("        this.loopId = loopId;\x0a" + ("        this.args = args;\x0a" + ("    }\x0a" + ("    @Override\x0a" + ("    public synchronized Throwable fillInStackTrace() { return this; }\x0a" + "}\x0a"))))))));
-                                            return discard(Node_FS_Aff.writeTextFile(Node_Encoding.UTF8.value)("java_output/TcoLoop.java")(tcoLoopCode))(function () {
-                                                var $24 = modNameStr === "Main";
-                                                if ($24) {
-                                                    var mainRunCode = "public class MainRun {\x0a" + ("    public static void main(String[] args) {\x0a" + ("        Effect_Console.log = (java.util.function.Function<Object, Object>) (s) -> (java.util.function.Supplier<Object>) () -> { System.out.println(s); return null; };\x0a" + ("        Effect.bindE = (java.util.function.Function<Object, Object>) (a) -> (java.util.function.Function<Object, Object>) (f) -> (java.util.function.Supplier<Object>) () -> {\x0a" + ("            return ((java.util.function.Supplier<Object>) ((java.util.function.Function<Object, Object>) f).apply(((java.util.function.Supplier<Object>) a).get())).get();\x0a" + ("        };\x0a" + ("        Effect.pureE = (java.util.function.Function<Object, Object>) (a) -> (java.util.function.Supplier<Object>) () -> a;\x0a" + ("        Data_Semigroup.concatString = (java.util.function.Function<Object, Object>) (a) -> (java.util.function.Function<Object, Object>) (b) -> a.toString() + b.toString();\x0a" + ("        ((java.util.function.Supplier<Void>) Main.main).get();\x0a" + ("    }\x0a" + "}\x0a")))))))));
-                                                    return Node_FS_Aff.writeTextFile(Node_Encoding.UTF8.value)("java_output/MainRun.java")(mainRunCode);
-                                                };
-                                                return pure(Data_Unit.unit);
+var main = /* #__PURE__ */ Effect_Aff.launchAff_(/* #__PURE__ */ bind(/* #__PURE__ */ Effect_Class.liftEffect(Effect_Aff.monadEffectAff)(Node_Process.argv))(function (args) {
+    var mainModule = (function () {
+        var v = Data_Array.findIndex(function (v1) {
+            return v1 === "--main";
+        })(args);
+        if (v instanceof Data_Maybe.Just) {
+            var v1 = Data_Array.index(args)(v.value0 + 1 | 0);
+            if (v1 instanceof Data_Maybe.Just) {
+                return v1.value0;
+            };
+            if (v1 instanceof Data_Maybe.Nothing) {
+                return "Main";
+            };
+            throw new Error("Failed pattern match at Main (line 30, column 19 - line 32, column 28): " + [ v1.constructor.name ]);
+        };
+        if (v instanceof Data_Maybe.Nothing) {
+            return "Main";
+        };
+        throw new Error("Failed pattern match at Main (line 29, column 20 - line 33, column 26): " + [ v.constructor.name ]);
+    })();
+    return discard(liftEffect(Effect_Console.log("Loading corefn.json files...")))(function () {
+        return bind(PureScript_Backend_Optimizer_App.coreFnModulesFromOutput("output"))(function (modules) {
+            var count = Data_List.length(modules);
+            return discard(liftEffect(Effect_Console.log("Successfully loaded " + (show(count) + " modules."))))(function () {
+                return bind(PureScript_Backend_Optimizer_App.loadDirectives)(function (directives) {
+                    return buildModules({
+                        directives: directives,
+                        analyzeCustom: function (v) {
+                            return function (v1) {
+                                return Data_Maybe.Nothing.value;
+                            };
+                        },
+                        foreignSemantics: PureScript_Backend_Optimizer_Semantics_Foreign.coreForeignSemantics,
+                        traceIdents: Data_Set.empty,
+                        onPrepareModule: function (v) {
+                            return function (m) {
+                                return pure(m);
+                            };
+                        },
+                        onSkipModule: function (v) {
+                            return function (v1) {
+                                return pure(Data_Maybe.Nothing.value);
+                            };
+                        },
+                        onCodegenModule: function (v) {
+                            return function (v1) {
+                                return function (backendMod) {
+                                    return function (v2) {
+                                        var modNameStr = unwrap(v1.name);
+                                        var safeModName = Data_String_Common.replaceAll(".")("_")(modNameStr);
+                                        return discard(liftEffect(Effect_Console.log("Building module " + modNameStr)))(function () {
+                                            var javaAst = Javapurs_CodeGen.translate(backendMod);
+                                            var foreignIdents = Data_Map.keys(backendMod.foreign);
+                                            var ffiStubs = Data_String_Common.joinWith("\x0a")(map(function (v3) {
+                                                return "    public static Object " + (Javapurs_CodeGen.sanitizeName(v3) + " = FFI_STUB;");
+                                            })(fromFoldable(foreignIdents)));
+                                            var classContent = "public class " + (safeModName + (" {\x0a" + ("    public static final Object FFI_STUB = new java.util.function.Function<Object, Object>() {\x0a" + ("        public Object apply(Object arg) { return this; }\x0a" + ("    };\x0a" + (ffiStubs + ("\x0a\x0a" + (Data_String_Common.joinWith("\x0a")(map(Javapurs_Printer.printExpr)(javaAst.decls)) + "\x0a}\x0a"))))))));
+                                            return discard(Node_FS_Aff.writeTextFile(Node_Encoding.UTF8.value)("java_output/" + (safeModName + ".java"))(classContent))(function () {
+                                                var tcoLoopCode = "public class TcoLoop extends RuntimeException {\x0a" + ("    public String loopId;\x0a" + ("    public Object[] args;\x0a" + ("    public TcoLoop(String loopId, Object[] args) {\x0a" + ("        this.loopId = loopId;\x0a" + ("        this.args = args;\x0a" + ("    }\x0a" + ("    @Override\x0a" + ("    public synchronized Throwable fillInStackTrace() { return this; }\x0a" + "}\x0a"))))))));
+                                                return discard(Node_FS_Aff.writeTextFile(Node_Encoding.UTF8.value)("java_output/TcoLoop.java")(tcoLoopCode))(function () {
+                                                    var $33 = modNameStr === mainModule;
+                                                    if ($33) {
+                                                        var mainRunCode = "public class MainRun {\x0a" + ("    public static void main(String[] args) {\x0a" + ("        ((java.util.function.Supplier<Void>) " + (safeModName + (".main).get();\x0a" + ("    }\x0a" + "}\x0a")))));
+                                                        return Node_FS_Aff.writeTextFile(Node_Encoding.UTF8.value)("java_output/MainRun.java")(mainRunCode);
+                                                    };
+                                                    return pure(Data_Unit.unit);
+                                                });
                                             });
                                         });
-                                    });
+                                    };
                                 };
                             };
-                        };
-                    }
-                })(toUnfoldable(modules));
+                        }
+                    })(toUnfoldable(modules));
+                });
             });
         });
     });
