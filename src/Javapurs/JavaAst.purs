@@ -14,6 +14,7 @@ data JavaExpr
   | JavaTernary JavaExpr JavaExpr JavaExpr
   | JavaThrow String
   | JavaRecord (Array (Tuple String JavaExpr))
+  | JavaArray (Array JavaExpr)
   | JavaWhileTrue (Array String) JavaExpr
   | JavaContinue String (Array JavaExpr)
   | JavaMapGet JavaExpr String

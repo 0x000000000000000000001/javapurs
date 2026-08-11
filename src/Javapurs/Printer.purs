@@ -77,6 +77,8 @@ printExpr = case _ of
       puts = map (\(Tuple k v) -> "put(\"" <> k <> "\", " <> printExpr v <> "); ") fields
     in
       "new java.util.LinkedHashMap<String, Object>() {{ " <> String.joinWith "" puts <> "}}"
+  JavaArray items ->
+    "new Object[]{" <> String.joinWith ", " (map printExpr items) <> "}"
   JavaMapGet expr prop ->
     "((java.util.LinkedHashMap<String, Object>) " <> printExpr expr <> ").get(\"" <> prop <> "\")"
   JavaMapUpdate expr updates ->

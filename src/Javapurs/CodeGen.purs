@@ -43,6 +43,8 @@ translateExpr modName loopCtx isTail (TcoExpr tcoAnalysis syntax) = case syntax 
     LitChar c -> JavaString (CodeUnits.singleton c)
     LitRecord fields ->
       JavaRecord (map (\(Prop k v) -> Tuple k (translateExpr modName loopCtx false v)) fields)
+    LitArray elements ->
+      JavaArray (map (translateExpr modName loopCtx false) elements)
     _ -> JavaRaw "null /* TODO: other literals */"
   App fn args ->
     let
@@ -101,11 +103,11 @@ translateExpr modName loopCtx isTail (TcoExpr tcoAnalysis syntax) = case syntax 
           Just ctx ->
             JavaContinue ctx.ident (map (\arg -> translateExpr modName loopCtx false arg) args)
           Nothing ->
-            JavaCall (translateExpr modName loopCtx false fn) (Array.fromFoldable (map (translateExpr modName loopCtx false) args))
+            foldl (\acc arg -> JavaApply acc (translateExpr modName loopCtx false arg)) (translateExpr modName loopCtx false fn) (Array.fromFoldable args)
       else
-        JavaRaw "null /* TODO: UncurriedApp */"
+        foldl (\acc arg -> JavaApply acc (translateExpr modName loopCtx false arg)) (translateExpr modName loopCtx false fn) (Array.fromFoldable args)
   UncurriedEffectApp fn args ->
-    JavaRaw "null /* TODO: UncurriedEffectApp */"
+    foldl (\acc arg -> JavaApply acc (translateExpr modName loopCtx false arg)) (translateExpr modName loopCtx false fn) (Array.fromFoldable args)
   UncurriedEffectAbs args expr ->
     let
       argsArray = map (\(Tuple mbI lvl) -> localId mbI lvl) (Array.fromFoldable args)

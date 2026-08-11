@@ -126,6 +126,9 @@ var printExpr = function (v) {
         })(v.value0);
         return "new java.util.LinkedHashMap<String, Object>() {{ " + (Data_String_Common.joinWith("")(puts) + "}}");
     };
+    if (v instanceof Javapurs_JavaAst.JavaArray) {
+        return "new Object[]{" + (Data_String_Common.joinWith(", ")(map(printExpr)(v.value0)) + "}");
+    };
     if (v instanceof Javapurs_JavaAst.JavaMapGet) {
         return "((java.util.LinkedHashMap<String, Object>) " + (printExpr(v.value0) + (").get(\"" + (v.value1 + "\")")));
     };
@@ -176,13 +179,13 @@ var printExpr = function (v) {
         return "((" + (v.value0 + (") (" + (printExpr(v.value1) + "))")));
     };
     if (v instanceof Javapurs_JavaAst.JavaAssign) {
-        var $84 = v.value0 === "main";
-        if ($84) {
+        var $85 = v.value0 === "main";
+        if ($85) {
             return "public static final java.util.function.Supplier<Void> main = () -> {\x0a            ((java.util.function.Supplier<Object>)(" + (printExpr(v.value1) + ")).get();\x0a            return null;\x0a        };");
         };
         return "public static final Object " + (v.value0 + (" = " + (printExpr(v.value1) + ";")));
     };
-    throw new Error("Failed pattern match at Javapurs.Printer (line 26, column 13 - line 128, column 78): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Printer (line 26, column 13 - line 130, column 78): " + [ v.constructor.name ]);
 };
 var printFile = function (className) {
     return function (file) {

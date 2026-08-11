@@ -11,9 +11,10 @@ import PureScript.Backend.Optimizer.App (coreFnModulesFromOutput, loadDirectives
 import PureScript.Backend.Optimizer.Builder (buildModules)
 import PureScript.Backend.Optimizer.CoreFn (Ident(..), Module(..), ModuleName(..))
 import PureScript.Backend.Optimizer.Semantics.Foreign (coreForeignSemantics)
+import PureScript.Backend.Optimizer.FfiSupport (findFfiFile)
 import Data.Map as Map
 import Data.Set as Set
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.List as List
 import Data.Array as Array
 import Data.Newtype (unwrap)
@@ -51,9 +52,18 @@ main = launchAff_ do
         let safeModName = String.replaceAll (String.Pattern ".") (String.Replacement "_") modNameStr
         liftEffect $ log $ "Building module " <> modNameStr
         
+        ffiPathMb <- liftEffect $ findFfiFile ".java" [] Nothing modNameStr (Just coreFnMod.path)
+        ffiContent <- case ffiPathMb of
+          Nothing -> pure ""
+          Just p -> FS.readTextFile UTF8 p
+        
         let javaAst = translate backendMod
         let foreignIdents = Map.keys backendMod.foreign
-        let ffiStubs = String.joinWith "\n" (map (\(Ident name) -> "    public static Object " <> sanitizeName name <> " = FFI_STUB;") (Array.fromFoldable foreignIdents))
+        let ffiStubs =
+              if String.length ffiContent > 0 then
+                "    // FFI provided by " <> fromMaybe "" ffiPathMb <> "\n" <> ffiContent
+              else
+                String.joinWith "\n" (map (\(Ident name) -> "    public static Object " <> sanitizeName name <> " = FFI_STUB;\n    public static Object " <> sanitizeName name <> "(Object... args) { return null; }") (Array.fromFoldable foreignIdents))
         
         let
           classContent =

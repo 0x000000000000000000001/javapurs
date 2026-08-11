@@ -570,7 +570,7 @@ var normalizeCaseRows = /* #__PURE__ */ (function () {
                         $copy_columnsAcc = Data_Array.snoc(columnsAcc)(nextColumnFields.value0);
                         return;
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 712, column 7 - line 714, column 63): " + [ nextColumnFields.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 714, column 7 - line 716, column 63): " + [ nextColumnFields.constructor.name ]);
                 };
                 while (!$tco_done) {
                     $tco_result = $tco_loop($tco_var_columnIdx, $copy_columnsAcc);
@@ -737,12 +737,12 @@ var getCtx = function (env) {
                     if (acc instanceof Data_Maybe.Nothing) {
                         return new Data_Maybe.Just(v.value0);
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 393, column 9 - line 397, column 19): " + [ acc.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 395, column 9 - line 399, column 19): " + [ acc.constructor.name ]);
                 };
                 if (v.value1 instanceof PureScript_Backend_Optimizer_Semantics.ExternCtor) {
                     return Data_Maybe.Nothing.value;
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 387, column 5 - line 399, column 16): " + [ v.value1.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 389, column 5 - line 401, column 16): " + [ v.value1.constructor.name ]);
             });
         };
     };
@@ -761,7 +761,7 @@ var getCtx = function (env) {
                     };
                     return analyze(lookupExtern)(expr);
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 375, column 7 - line 381, column 38): " + [ v1.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 377, column 7 - line 383, column 38): " + [ v1.constructor.name ]);
             };
         },
         effect: false
@@ -777,7 +777,7 @@ var fromExternImpl = function (v) {
     if (v instanceof PureScript_Backend_Optimizer_Semantics.ExternCtor) {
         return Data_Maybe.Nothing.value;
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 402, column 18 - line 405, column 34): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 404, column 18 - line 407, column 34): " + [ v.constructor.name ]);
 };
 var decompose = function (chosenColumn) {
     var mergeResults = function (l) {
@@ -806,7 +806,7 @@ var decompose = function (chosenColumn) {
                     })
                 };
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 960, column 22 - line 964, column 123): " + [ l.match.constructor.name, r.match.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 962, column 22 - line 966, column 123): " + [ l.match.constructor.name, r.match.constructor.name ]);
         };
     };
     var checkMatch = function (p) {
@@ -817,7 +817,7 @@ var decompose = function (chosenColumn) {
                     match: Data_Maybe.Nothing.value
                 };
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 926, column 1 - line 926, column 119): " + [ p.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 928, column 1 - line 928, column 119): " + [ p.constructor.name ]);
         };
         var $553 = eq8(p.column)(chosenColumn.column);
         if ($553) {
@@ -871,9 +871,9 @@ var decompose = function (chosenColumn) {
                     rowsNoMatch: [ row ]
                 };
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 932, column 7 - line 940, column 12): " + [ v1.match.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 934, column 7 - line 942, column 12): " + [ v1.match.constructor.name ]);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 928, column 3 - line 940, column 12): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 930, column 3 - line 942, column 12): " + [ v.constructor.name ]);
     });
 };
 var currentLevel = function (env) {
@@ -900,9 +900,9 @@ var chooseNextPattern = function (row0Patterns) {
                             if (v instanceof Data_Ordering.LT) {
                                 return new Data_Maybe.Just(Data_Array_NonEmpty.singleton(next));
                             };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 816, column 19 - line 819, column 52): " + [ v.constructor.name ]);
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 818, column 19 - line 821, column 52): " + [ v.constructor.name ]);
                         };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 814, column 7 - line 819, column 52): " + [ acc.constructor.name ]);
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 816, column 7 - line 821, column 52): " + [ acc.constructor.name ]);
                     };
                 };
                 return foldl2(keepAllMax)(Data_Maybe.Nothing.value);
@@ -942,7 +942,7 @@ var chooseNextPattern = function (row0Patterns) {
                                 })())(patternSubterms(v1.value0))) | 0
                             };
                         };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 788, column 15 - line 795, column 20): " + [ v1.constructor.name ]);
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 790, column 15 - line 797, column 20): " + [ v1.constructor.name ]);
                     };
                 })(tailRows);
                 return {
@@ -984,9 +984,9 @@ var chooseNextPattern = function (row0Patterns) {
             if (v instanceof Data_Maybe.Nothing) {
                 return Data_Tuple.snd(Data_Array_NonEmpty.head(row0Patterns));
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 806, column 7 - line 808, column 57): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 808, column 7 - line 810, column 57): " + [ v.constructor.name ]);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 779, column 3 - line 808, column 57): " + [ expandIfPossible.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 781, column 3 - line 810, column 57): " + [ expandIfPossible.constructor.name ]);
     };
 };
 var buildM = function (a) {
@@ -1046,7 +1046,7 @@ var makeLet = function (id) {
                 if (id instanceof Data_Maybe.Just) {
                     return make(new PureScript_Backend_Optimizer_Syntax.Let(id, lvl, a, intro1([ id.value0 ])(lvl)(k(lvl))));
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 972, column 3 - line 976, column 56): " + [ id.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 974, column 3 - line 978, column 56): " + [ id.constructor.name ]);
             });
         };
     };
@@ -1101,7 +1101,7 @@ var $lazy_binderToPattern = /* #__PURE__ */ $runtime_lazy("binderToPattern", "Pu
                 if (v1 instanceof Data_Maybe.Nothing) {
                     return Partial_Unsafe.unsafeCrashWith("Invariant broken: could not determine pattern matched constructor's fields during conversion.");
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 660, column 5 - line 662, column 129): " + [ v1.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 662, column 5 - line 664, column 129): " + [ v1.constructor.name ]);
             });
         };
     };
@@ -1122,7 +1122,7 @@ var $lazy_binderToPattern = /* #__PURE__ */ $runtime_lazy("binderToPattern", "Pu
                                     accessor: buildAccessor(idx)(nextArg),
                                     pattern: v
                                 };
-                            })($lazy_binderToPattern(645)(toBinder(nextArg)));
+                            })($lazy_binderToPattern(647)(toBinder(nextArg)));
                         };
                     }));
                 };
@@ -1147,7 +1147,7 @@ var $lazy_binderToPattern = /* #__PURE__ */ $runtime_lazy("binderToPattern", "Pu
                     subterms: r.subterms,
                     vars: insert2(v.value1)(r.vars)
                 };
-            }))($lazy_binderToPattern(582)(v.value2));
+            }))($lazy_binderToPattern(584)(v.value2));
         };
         if (v instanceof PureScript_Backend_Optimizer_CoreFn.BinderLit) {
             if (v.value1 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
@@ -1179,7 +1179,7 @@ var $lazy_binderToPattern = /* #__PURE__ */ $runtime_lazy("binderToPattern", "Pu
                     };
                 })(PureScript_Backend_Optimizer_CoreFn.propValue);
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 583, column 22 - line 603, column 18): " + [ v.value1.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 585, column 22 - line 605, column 18): " + [ v.value1.constructor.name ]);
         };
         if (v instanceof PureScript_Backend_Optimizer_CoreFn.BinderConstructor) {
             var v1 = function (v2) {
@@ -1210,16 +1210,16 @@ var $lazy_binderToPattern = /* #__PURE__ */ $runtime_lazy("binderToPattern", "Pu
             };
             if (v.value0.meta instanceof Data_Maybe.Just && v.value0.meta.value0 instanceof PureScript_Backend_Optimizer_CoreFn.IsNewtype) {
                 if (v.value3.length === 1) {
-                    return $lazy_binderToPattern(609)(v["value3"][0]);
+                    return $lazy_binderToPattern(611)(v["value3"][0]);
                 };
                 return v1(true);
             };
             return v1(true);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 577, column 19 - line 631, column 55): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 579, column 19 - line 633, column 55): " + [ v.constructor.name ]);
     };
 });
-var binderToPattern = /* #__PURE__ */ $lazy_binderToPattern(576);
+var binderToPattern = /* #__PURE__ */ $lazy_binderToPattern(578);
 var toBackendExpr = function (expr) {
     var go = (function () {
         var toInitialCaseRows = function (idents) {
@@ -1272,10 +1272,10 @@ var toBackendExpr = function (expr) {
                                             if (v1 instanceof Data_Maybe.Just) {
                                                 return mainCb(Data_Array.snoc(caseRows)(buildCaseRow(new GuardedFn(v1.value0))));
                                             };
-                                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 513, column 23 - line 516, column 86): " + [ v1.constructor.name ]);
+                                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 515, column 23 - line 518, column 86): " + [ v1.constructor.name ]);
                                         })(v.value1.value0)([  ]);
                                     };
-                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 502, column 13 - line 519, column 19): " + [ v.value1.constructor.name ]);
+                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 504, column 13 - line 521, column 19): " + [ v.value1.constructor.name ]);
                                 });
                             };
                         };
@@ -1372,7 +1372,7 @@ var toBackendExpr = function (expr) {
                                 if (bind$prime instanceof PureScript_Backend_Optimizer_CoreFn.Rec) {
                                     return Partial_Unsafe.unsafeCrashWith("CoreFn empty Rec binding group");
                                 };
-                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 421, column 1 - line 421, column 50): " + [ bind$prime.constructor.name ]);
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 423, column 1 - line 423, column 50): " + [ bind$prime.constructor.name ]);
                             };
                             if (bind$prime instanceof PureScript_Backend_Optimizer_CoreFn.Rec) {
                                 var $711 = Data_Array_NonEmpty.fromArray(bind$prime.value0);
@@ -1410,7 +1410,7 @@ var toBackendExpr = function (expr) {
                         });
                     })(v.value1)([  ]);
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 421, column 1 - line 421, column 50): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 423, column 1 - line 423, column 50): " + [ v.constructor.name ]);
             };
             if (v instanceof PureScript_Backend_Optimizer_CoreFn.ExprApp) {
                 if (v.value1 instanceof PureScript_Backend_Optimizer_CoreFn.ExprVar && (v.value1.value0.meta instanceof Data_Maybe.Just && v.value1.value0.meta.value0 instanceof PureScript_Backend_Optimizer_CoreFn.IsNewtype)) {
@@ -1430,7 +1430,7 @@ var toBackendExpr = function (expr) {
             if (v.type instanceof Data_Maybe.Nothing) {
                 return backendExpr;
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 425, column 8 - line 427, column 27): " + [ v.type.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 427, column 8 - line 429, column 27): " + [ v.type.constructor.name ]);
         })());
     });
 };
@@ -1461,9 +1461,9 @@ var buildCaseTreeFromRows = function (denormalizedRows) {
         if (row0NonPatWildPatterns instanceof Data_Maybe.Just) {
             return buildCasePattern(chooseNextPattern(row0NonPatWildPatterns.value0)(v1.tail))(Data_Array_NonEmpty.toArray(v.value0));
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 698, column 5 - line 702, column 95): " + [ row0NonPatWildPatterns.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 700, column 5 - line 704, column 95): " + [ row0NonPatWildPatterns.constructor.name ]);
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 687, column 42 - line 702, column 95): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 689, column 42 - line 704, column 95): " + [ v.constructor.name ]);
 };
 var buildCasePattern = function (chosenColumn) {
     return function (rows) {
@@ -1556,7 +1556,7 @@ var buildCasePattern = function (chosenColumn) {
         if (v instanceof PatBoolean) {
             return buildCaseBranch(guardBoolean(v.value0));
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 828, column 38 - line 848, column 37): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 830, column 38 - line 850, column 37): " + [ v.constructor.name ]);
     };
 };
 var buildCaseLeaf = function (row0) {
@@ -1591,7 +1591,7 @@ var buildCaseLeaf = function (row0) {
                 });
             })(orderedArgs)([  ]);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 753, column 3 - line 775, column 11): " + [ row0.guardFn.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 755, column 3 - line 777, column 11): " + [ row0.guardFn.constructor.name ]);
     };
 };
 var toTopLevelBackendBinding = function (group) {
@@ -1621,7 +1621,7 @@ var toTopLevelBackendBinding = function (group) {
                 if (mbType instanceof Data_Maybe.Nothing) {
                     return v1.value1;
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 259, column 27 - line 261, column 31): " + [ mbType.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 261, column 27 - line 263, column 31): " + [ mbType.constructor.name ]);
             })();
             var v2 = toExternImpl(env)(group)(optimizedExprWithTy);
             return {
@@ -1653,13 +1653,13 @@ var toTopLevelBackendBinding = function (group) {
                                 if (v5 instanceof Data_Maybe.Nothing) {
                                     return new Data_Maybe.Just(v4.value0);
                                 };
-                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 271, column 17 - line 275, column 30): " + [ v5.constructor.name ]);
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 273, column 17 - line 277, column 30): " + [ v5.constructor.name ]);
                             })(new PureScript_Backend_Optimizer_Semantics.EvalExtern(new PureScript_Backend_Optimizer_CoreFn.Qualified(new Data_Maybe.Just(env.currentModule), v.value1)))(env.directives);
                         };
                         if (v4 instanceof Data_Maybe.Nothing) {
                             return env.directives;
                         };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 268, column 11 - line 279, column 29): " + [ v4.constructor.name ]);
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 270, column 11 - line 281, column 29): " + [ v4.constructor.name ]);
                     })()
                 },
                 value: new Data_Tuple.Tuple(v.value1, new Data_Tuple.Tuple((unwrap(Data_Tuple.fst(v2.value0))).deps, v2.value1))
@@ -1696,7 +1696,7 @@ var toBackendTopLevelBindingGroup = function (env) {
                 };
             })(mapAccumL(toTopLevelBackendBinding([  ]))(env)([ v.value0 ]));
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 229, column 37 - line 236, column 52): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 231, column 37 - line 238, column 52): " + [ v.constructor.name ]);
     };
 };
 var toBackendTopLevelBindingGroups = function (binds) {
@@ -1735,7 +1735,7 @@ var toBackendModule = function (v) {
             if (v1 instanceof PureScript_Backend_Optimizer_CoreFn.NonRec) {
                 return pure3(v1.value0);
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 128, column 42 - line 130, column 39): " + [ v1.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 129, column 42 - line 131, column 39): " + [ v1.constructor.name ]);
         }))(function (v1) {
             if (v1.value2 instanceof PureScript_Backend_Optimizer_CoreFn.ExprConstructor) {
                 return pure4(new Data_Tuple.Tuple(v1.value2.value1, new Data_Tuple.Tuple(v1.value2.value2, v1.value2.value3)));
@@ -1837,6 +1837,7 @@ var toBackendModule = function (v) {
             name: v.name,
             comments: v.comments,
             dataDecls: v.dataDecls,
+            classDecls: v.classDecls,
             imports: usedImports,
             dataTypes: filter((function () {
                 var $875 = Data_Array.any(isBindingUsed(usedBindings.accum));

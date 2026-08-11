@@ -95,6 +95,15 @@ var JavaRecord = /* #__PURE__ */ (function () {
     };
     return JavaRecord;
 })();
+var JavaArray = /* #__PURE__ */ (function () {
+    function JavaArray(value0) {
+        this.value0 = value0;
+    };
+    JavaArray.create = function (value0) {
+        return new JavaArray(value0);
+    };
+    return JavaArray;
+})();
 var JavaWhileTrue = /* #__PURE__ */ (function () {
     function JavaWhileTrue(value0, value1) {
         this.value0 = value0;
@@ -291,6 +300,7 @@ export {
     JavaTernary,
     JavaThrow,
     JavaRecord,
+    JavaArray,
     JavaWhileTrue,
     JavaContinue,
     JavaMapGet,
