@@ -17,4 +17,4 @@ workspace:
     registry: 77.10.1
   extraPackages:
     backend-optimizer:
-      path: "../purescript-backend-optimizer"
+      path: "../../purescript-backend-optimizer"

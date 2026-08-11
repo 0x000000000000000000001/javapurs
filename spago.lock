@@ -672,7 +672,7 @@
     },
     "extra_packages": {
       "backend-optimizer": {
-        "path": "../purescript-backend-optimizer"
+        "path": "../../purescript-backend-optimizer"
       }
     }
   },
@@ -812,7 +812,7 @@
     },
     "backend-optimizer": {
       "type": "local",
-      "path": "../purescript-backend-optimizer",
+      "path": "../../purescript-backend-optimizer",
       "dependencies": [
         "argonaut",
         "arrays",
