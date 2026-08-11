@@ -566,12 +566,12 @@ var translate = function (mod) {
     })(v.value1);
     var dataClasses = Data_Array.concatMap(function (decl) {
         return map(function (ctor) {
-            var safeCtorName = Data_String_Common.replaceAll("'")("_prime_")(ctor.constructorName);
+            var safeCtorName = Data_String_Common.replaceAll("'")("_prime_")(ctor.name);
             var args = Data_Array.mapWithIndex(function (i) {
                 return function (v1) {
                     return "value" + show(i);
                 };
-            })(ctor.fieldTypes);
+            })(ctor.fields);
             return new Javapurs_JavaAst.JavaClassDecl(safeCtorName, args);
         })(decl.constructors);
     })(mod.dataDecls);

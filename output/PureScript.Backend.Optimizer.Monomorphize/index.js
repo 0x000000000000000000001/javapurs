@@ -71,12 +71,12 @@ var mangleType = function (v) {
         })(v.value0)) + ("_" + mangleType(v.value1)));
     };
     if (v instanceof PureScript_Backend_Optimizer_CoreFn.ADT) {
-        return "ADT_" + (Data_String_Common.joinWith("_")(v.value0) + (function () {
-            var $61 = Data_Array.length(v.value1) === 0;
+        return "ADT_" + (Data_String_Common.joinWith("_")(v.value1) + (function () {
+            var $61 = Data_Array.length(v.value2) === 0;
             if ($61) {
                 return "";
             };
-            return "_" + Data_String_Common.joinWith("_")(map(mangleType)(v.value1));
+            return "_" + Data_String_Common.joinWith("_")(map(mangleType)(v.value2));
         })());
     };
     if (v instanceof PureScript_Backend_Optimizer_CoreFn.TypeVar) {
@@ -121,8 +121,8 @@ var inferExprType = function (expr) {
     if (expr instanceof PureScript_Backend_Optimizer_CoreFn.ExprApp) {
         var fTy = inferExprType(expr.value1);
         if (fTy instanceof Data_Maybe.Just && fTy.value0 instanceof PureScript_Backend_Optimizer_CoreFn.Func) {
-            var $94 = Data_Array.length(fTy.value0.value0) > 1;
-            if ($94) {
+            var $95 = Data_Array.length(fTy.value0.value0) > 1;
+            if ($95) {
                 return new Data_Maybe.Just(new PureScript_Backend_Optimizer_CoreFn.Func(Data_Maybe.fromMaybe([  ])(Data_Array.tail(fTy.value0.value0)), fTy.value0.value1));
             };
             return new Data_Maybe.Just(fTy.value0.value1);
@@ -162,7 +162,7 @@ var defaultToAny = function (v) {
         })(v.value0), defaultToAny(v.value1));
     };
     if (v instanceof PureScript_Backend_Optimizer_CoreFn.ADT) {
-        return new PureScript_Backend_Optimizer_CoreFn.ADT(v.value0, map(defaultToAny)(v.value1));
+        return new PureScript_Backend_Optimizer_CoreFn.ADT(v.value0, v.value1, map(defaultToAny)(v.value2));
     };
     return v;
 };
@@ -351,8 +351,8 @@ var collectExpr = function (modName) {
                         var subst = (function () {
                             if (appType instanceof Data_Maybe.Just) {
                                 var remainingType = (function () {
-                                    var $210 = Data_Array.length(v.args) < Data_Array.length(v.f.value0.type.value0.value0);
-                                    if ($210) {
+                                    var $212 = Data_Array.length(v.args) < Data_Array.length(v.f.value0.type.value0.value0);
+                                    if ($212) {
                                         return new PureScript_Backend_Optimizer_CoreFn.Func(Data_Array.drop(Data_Array.length(v.args))(v.f.value0.type.value0.value0), v.f.value0.type.value0.value1);
                                     };
                                     return v.f.value0.type.value0.value1;
@@ -365,8 +365,8 @@ var collectExpr = function (modName) {
                             throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 122, column 23 - line 128, column 37): " + [ appType.constructor.name ]);
                         })();
                         var instType = PureScript_Backend_Optimizer_Substitute.substituteExprType(subst)(v.f.value0.type.value0);
-                        var $212 = Data_Map_Internal.isEmpty(subst);
-                        if ($212) {
+                        var $214 = Data_Map_Internal.isEmpty(subst);
+                        if ($214) {
                             return acc2;
                         };
                         return insertWith(union)(qualName)(Data_Set.singleton(defaultToAny(instType)))(acc2);

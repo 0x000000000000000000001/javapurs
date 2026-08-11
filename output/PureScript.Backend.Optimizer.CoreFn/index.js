@@ -230,13 +230,16 @@ var TypeVar = /* #__PURE__ */ (function () {
     return TypeVar;
 })();
 var ADT = /* #__PURE__ */ (function () {
-    function ADT(value0, value1) {
+    function ADT(value0, value1, value2) {
         this.value0 = value0;
         this.value1 = value1;
+        this.value2 = value2;
     };
     ADT.create = function (value0) {
         return function (value1) {
-            return new ADT(value0, value1);
+            return function (value2) {
+                return new ADT(value0, value1, value2);
+            };
         };
     };
     return ADT;
@@ -1012,7 +1015,7 @@ var traversableLiteral = {
                 if (v instanceof LitBoolean) {
                     return pure(new LitBoolean(v.value0));
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 224, column 16 - line 231, column 40): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 232, column 16 - line 239, column 40): " + [ v.constructor.name ]);
             };
         };
     },
@@ -1030,8 +1033,8 @@ var traversableLiteral = {
 };
 var findProp = function (prop) {
     return Data_Array.findMap(function (v) {
-        var $480 = prop === v.value0;
-        if ($480) {
+        var $485 = prop === v.value0;
+        if ($485) {
             return new Data_Maybe.Just(v.value1);
         };
         return Data_Maybe.Nothing.value;
@@ -1065,7 +1068,7 @@ var exprAnn = function (v) {
     if (v instanceof ExprLet) {
         return v.value0;
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 254, column 11 - line 263, column 21): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 262, column 11 - line 271, column 21): " + [ v.constructor.name ]);
 };
 var eqProperName = Data_Eq.eqString;
 var eqModuleName = Data_Eq.eqString;
@@ -1163,7 +1166,7 @@ var eqExprType = {
                 return x.value0 === y.value0;
             };
             if (x instanceof ADT && y instanceof ADT) {
-                return eq5(x.value0)(y.value0) && Data_Eq.eq(Data_Eq.eqArray(eqExprType))(x.value1)(y.value1);
+                return x.value0 === y.value0 && eq5(x.value1)(y.value1) && Data_Eq.eq(Data_Eq.eqArray(eqExprType))(x.value2)(y.value2);
             };
             if (x instanceof TypeApp && y instanceof TypeApp) {
                 return Data_Eq.eq(eqExprType)(x.value0)(y.value0) && Data_Eq.eq(Data_Eq.eqArray(eqExprType))(x.value1)(y.value1);
@@ -1281,14 +1284,21 @@ var ordExprType = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof ADT && y instanceof ADT) {
-                var v = compare1(x.value0)(y.value0);
+                var v = compare(x.value0)(y.value0);
                 if (v instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
                 if (v instanceof Data_Ordering.GT) {
                     return Data_Ordering.GT.value;
                 };
-                return Data_Ord.compare(Data_Ord.ordArray(ordExprType))(x.value1)(y.value1);
+                var v1 = compare1(x.value1)(y.value1);
+                if (v1 instanceof Data_Ordering.LT) {
+                    return Data_Ordering.LT.value;
+                };
+                if (v1 instanceof Data_Ordering.GT) {
+                    return Data_Ordering.GT.value;
+                };
+                return Data_Ord.compare(Data_Ord.ordArray(ordExprType))(x.value2)(y.value2);
             };
             if (x instanceof ADT) {
                 return Data_Ordering.LT.value;

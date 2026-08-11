@@ -290,8 +290,8 @@ translate mod =
     dataClasses = Array.concatMap (\decl ->
         map (\ctor ->
             let
-              safeCtorName = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") ctor.constructorName
-              args = Array.mapWithIndex (\i _ -> "value" <> show i) ctor.fieldTypes
+              safeCtorName = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") ctor.name
+              args = Array.mapWithIndex (\i _ -> "value" <> show i) ctor.fields
             in
               JavaClassDecl safeCtorName args
         ) decl.constructors
