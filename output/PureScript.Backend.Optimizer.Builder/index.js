@@ -9,17 +9,12 @@ import * as Data_Maybe from "../Data.Maybe/index.js";
 import * as PureScript_Backend_Optimizer_Convert from "../PureScript.Backend.Optimizer.Convert/index.js";
 import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
 import * as PureScript_Backend_Optimizer_Semantics from "../PureScript.Backend.Optimizer.Semantics/index.js";
-var foldrWithIndex = /* #__PURE__ */ Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap);
 var insert = /* #__PURE__ */ Data_Map_Internal.insert(/* #__PURE__ */ PureScript_Backend_Optimizer_CoreFn.ordQualified(PureScript_Backend_Optimizer_CoreFn.ordIdent));
 var insert1 = /* #__PURE__ */ Data_Map_Internal.insert(PureScript_Backend_Optimizer_Semantics.ordEvalRef);
-var discard = /* #__PURE__ */ Control_Bind.discard(Control_Bind.discardUnit);
 var buildModules = function (dictMonad) {
     var Bind1 = dictMonad.Bind1();
-    var bind = Control_Bind.bind(Bind1);
-    var pure = Control_Applicative.pure(dictMonad.Applicative0());
-    var discard1 = discard(Bind1);
-    var $$void = Data_Functor["void"]((Bind1.Apply0()).Functor0());
-    var foldM = Data_List.foldM(dictMonad);
+    var Applicative0 = dictMonad.Applicative0();
+    var $$void = Data_Functor["void"](((dictMonad.Bind1()).Apply0()).Functor0());
     return function (options) {
         return function (coreFnModules) {
             var moduleCount = Data_List.length(coreFnModules);
@@ -30,12 +25,12 @@ var buildModules = function (dictMonad) {
                         moduleCount: moduleCount,
                         moduleIndex: v.moduleIndex
                     };
-                    return bind(options.onPrepareModule(buildEnv)(coreFnModule))(function (v1) {
-                        return bind(options.onSkipModule(buildEnv)(v1))(function (mbCachedMod) {
+                    return Control_Bind.bind(Bind1)(options.onPrepareModule(buildEnv)(coreFnModule))(function (v1) {
+                        return Control_Bind.bind(Bind1)(options.onSkipModule(buildEnv)(v1))(function (mbCachedMod) {
                             if (mbCachedMod instanceof Data_Maybe.Just) {
-                                var newImplementations = foldrWithIndex(insert)(v.implementations)(mbCachedMod.value0.implementations);
-                                return pure({
-                                    directives: foldrWithIndex(insert1)(v.directives)(mbCachedMod.value0.directives),
+                                var newImplementations = Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(insert)(v.implementations)(mbCachedMod.value0.implementations);
+                                return Control_Applicative.pure(Applicative0)({
+                                    directives: Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(insert1)(v.directives)(mbCachedMod.value0.directives),
                                     implementations: newImplementations,
                                     moduleIndex: v.moduleIndex + 1 | 0
                                 });
@@ -55,25 +50,25 @@ var buildModules = function (dictMonad) {
                                     traceIdents: options.traceIdents,
                                     optimizationSteps: [  ]
                                 });
-                                var newImplementations = foldrWithIndex(insert)(v.implementations)(v2.value1.implementations);
-                                return discard1(options.onCodegenModule({
+                                var newImplementations = Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(insert)(v.implementations)(v2.value1.implementations);
+                                return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(options.onCodegenModule({
                                     moduleCount: buildEnv.moduleCount,
                                     moduleIndex: buildEnv.moduleIndex,
                                     implementations: newImplementations
                                 })(v1)(v2.value1)(v2.value0))(function () {
-                                    return pure({
-                                        directives: foldrWithIndex(insert1)(v.directives)(v2.value1.directives),
+                                    return Control_Applicative.pure(Applicative0)({
+                                        directives: Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(insert1)(v.directives)(v2.value1.directives),
                                         implementations: newImplementations,
                                         moduleIndex: v.moduleIndex + 1 | 0
                                     });
                                 });
                             };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 51, column 5 - line 83, column 12): " + [ mbCachedMod.constructor.name ]);
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 55, column 5 - line 87, column 12): " + [ mbCachedMod.constructor.name ]);
                         });
                     });
                 };
             };
-            return $$void(foldM(go)({
+            return $$void(Data_List.foldM(dictMonad)(go)({
                 directives: options.directives,
                 implementations: Data_Map_Internal.empty,
                 moduleIndex: 0

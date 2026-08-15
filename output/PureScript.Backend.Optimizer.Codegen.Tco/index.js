@@ -27,38 +27,15 @@ import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Unfoldable from "../Data.Unfoldable/index.js";
 import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
 import * as PureScript_Backend_Optimizer_Syntax from "../PureScript.Backend.Optimizer.Syntax/index.js";
-var union = /* #__PURE__ */ Data_Set.union(Data_Ord.ordInt);
-var eq = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ PureScript_Backend_Optimizer_CoreFn.eqQualified(PureScript_Backend_Optimizer_CoreFn.eqIdent));
-var eq1 = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Maybe.eqMaybe(PureScript_Backend_Optimizer_CoreFn.eqIdent));
-var eq2 = /* #__PURE__ */ Data_Eq.eq(PureScript_Backend_Optimizer_Syntax.eqLevel);
+var eqQualified = /* #__PURE__ */ PureScript_Backend_Optimizer_CoreFn.eqQualified(PureScript_Backend_Optimizer_CoreFn.eqIdent);
+var eqMaybe = /* #__PURE__ */ Data_Maybe.eqMaybe(PureScript_Backend_Optimizer_CoreFn.eqIdent);
 var ordQualified = /* #__PURE__ */ PureScript_Backend_Optimizer_CoreFn.ordQualified(PureScript_Backend_Optimizer_CoreFn.ordIdent);
-var compare = /* #__PURE__ */ Data_Ord.compare(ordQualified);
-var compare1 = /* #__PURE__ */ Data_Ord.compare(/* #__PURE__ */ Data_Maybe.ordMaybe(PureScript_Backend_Optimizer_CoreFn.ordIdent));
-var compare2 = /* #__PURE__ */ Data_Ord.compare(PureScript_Backend_Optimizer_Syntax.ordLevel);
-var mapMaybe = /* #__PURE__ */ Data_Set.mapMaybe(ordQualified);
-var traverse = /* #__PURE__ */ Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(Data_Maybe.applicativeMaybe);
-var map = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
+var ordMaybe = /* #__PURE__ */ Data_Maybe.ordMaybe(PureScript_Backend_Optimizer_CoreFn.ordIdent);
 var fold = /* #__PURE__ */ Data_Foldable.fold(Data_Foldable.foldableMaybe)(Data_Monoid.monoidArray);
-var traverse1 = /* #__PURE__ */ Data_Traversable.traverse(Data_Traversable.traversableArray)(Data_Maybe.applicativeMaybe);
-var add1 = /* #__PURE__ */ Data_Semiring.add(Data_Semiring.semiringInt);
-var bind = /* #__PURE__ */ Control_Bind.bind(Data_Maybe.bindMaybe);
-var toUnfoldable = /* #__PURE__ */ Data_Set.toUnfoldable(Data_Unfoldable.unfoldableArray);
+var add = /* #__PURE__ */ Data_Semiring.add(Data_Semiring.semiringInt);
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var discard = /* #__PURE__ */ Control_Bind.discard(Control_Bind.discardUnit)(Control_Bind.bindArray);
-var guard = /* #__PURE__ */ Control_Alternative.guard(Control_Alternative.alternativeArray);
-var foldMap = /* #__PURE__ */ Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray);
-var foldMap1 = /* #__PURE__ */ foldMap(Data_Monoid.monoidArray);
-var voidRight = /* #__PURE__ */ Data_Functor.voidRight(Data_Maybe.functorMaybe);
-var bindFlipped = /* #__PURE__ */ Control_Bind.bindFlipped(Data_Maybe.bindMaybe);
-var guard1 = /* #__PURE__ */ Control_Alternative.guard(Data_Maybe.alternativeMaybe);
-var map1 = /* #__PURE__ */ Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray);
-var foldMap2 = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableMaybe);
-var foldMap3 = /* #__PURE__ */ foldMap2(Data_Monoid.monoidArray);
+var guard = /* #__PURE__ */ Control_Alternative.guard(Data_Maybe.alternativeMaybe);
 var pure = /* #__PURE__ */ Control_Applicative.pure(Data_Array_NonEmpty_Internal.applicativeNonEmptyArray);
-var append = /* #__PURE__ */ Data_Semigroup.append(Data_Semigroup.semigroupArray);
-var map2 = /* #__PURE__ */ Data_Functor.map(Data_Tuple.functorTuple);
-var map3 = /* #__PURE__ */ Data_Functor.map(PureScript_Backend_Optimizer_Syntax.functorBackendSyntax);
-var map4 = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorArray);
 var TcoUsage = function (x) {
     return x;
 };
@@ -103,14 +80,14 @@ var semigroupTcoUsage = {
         return function (v1) {
             return {
                 total: v.total + v1.total | 0,
-                arities: union(v.arities)(v1.arities),
+                arities: Data_Set.union(Data_Ord.ordInt)(v.arities)(v1.arities),
                 call: v.call + v1.call | 0,
                 readWrite: v.readWrite + v1.readWrite | 0
             };
         };
     }
 };
-var append1 = /* #__PURE__ */ Data_Semigroup.append(semigroupTcoUsage);
+var append = /* #__PURE__ */ Data_Semigroup.append(semigroupTcoUsage);
 var newtypeTcoAnalysis_ = {
     Coercible0: function () {
         return undefined;
@@ -131,22 +108,20 @@ var eqTcoRef = {
     eq: function (x) {
         return function (y) {
             if (x instanceof TcoTopLevel && y instanceof TcoTopLevel) {
-                return eq(x.value0)(y.value0);
+                return Data_Eq.eq(eqQualified)(x.value0)(y.value0);
             };
             if (x instanceof TcoLocal && y instanceof TcoLocal) {
-                return eq1(x.value0)(y.value0) && eq2(x.value1)(y.value1);
+                return Data_Eq.eq(eqMaybe)(x.value0)(y.value0) && Data_Eq.eq(PureScript_Backend_Optimizer_Syntax.eqLevel)(x.value1)(y.value1);
             };
             return false;
         };
     }
 };
-var eq4 = /* #__PURE__ */ Data_Eq.eq(eqTcoRef);
-var elem = /* #__PURE__ */ Data_Array_NonEmpty.elem(eqTcoRef);
 var ordTcoRef = {
     compare: function (x) {
         return function (y) {
             if (x instanceof TcoTopLevel && y instanceof TcoTopLevel) {
-                return compare(x.value0)(y.value0);
+                return Data_Ord.compare(ordQualified)(x.value0)(y.value0);
             };
             if (x instanceof TcoTopLevel) {
                 return Data_Ordering.LT.value;
@@ -155,14 +130,14 @@ var ordTcoRef = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof TcoLocal && y instanceof TcoLocal) {
-                var v = compare1(x.value0)(y.value0);
+                var v = Data_Ord.compare(ordMaybe)(x.value0)(y.value0);
                 if (v instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
                 if (v instanceof Data_Ordering.GT) {
                     return Data_Ordering.GT.value;
                 };
-                return compare2(x.value1)(y.value1);
+                return Data_Ord.compare(PureScript_Backend_Optimizer_Syntax.ordLevel)(x.value1)(y.value1);
             };
             throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Codegen.Tco (line 0, column 0 - line 0, column 0): " + [ x.constructor.name, y.constructor.name ]);
         };
@@ -171,10 +146,6 @@ var ordTcoRef = {
         return eqTcoRef;
     }
 };
-var insertWith = /* #__PURE__ */ Data_Map_Internal.insertWith(ordTcoRef);
-var insert = /* #__PURE__ */ Data_Map_Internal.insert(ordTcoRef);
-var unionWith = /* #__PURE__ */ Data_Map_Internal.unionWith(ordTcoRef);
-var lookup = /* #__PURE__ */ Data_Map_Internal.lookup(ordTcoRef);
 var nub = /* #__PURE__ */ Data_Array.nub(ordTcoRef);
 var withTcoRole = function (role) {
     return function (v) {
@@ -186,14 +157,14 @@ var withTcoRole = function (role) {
     };
 };
 var usedTopLevel = function (v) {
-    return mapMaybe(function (v1) {
+    return Data_Set.mapMaybe(ordQualified)(function (v1) {
         if (v1 instanceof TcoTopLevel) {
             return new Data_Maybe.Just(v1.value0);
         };
         if (v1 instanceof TcoLocal) {
             return Data_Maybe.Nothing.value;
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Codegen.Tco (line 133, column 18 - line 135, column 30): " + [ v1.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Codegen.Tco (line 137, column 18 - line 139, column 30): " + [ v1.constructor.name ]);
     })(Data_Map.keys(v.usages));
 };
 var unwrapRefHead = function ($copy_v) {
@@ -281,7 +252,7 @@ var unwindTcoScope = /* #__PURE__ */ (function () {
                     $tco_done = true;
                     return Data_Maybe.Nothing.value;
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Codegen.Tco (line 69, column 12 - line 76, column 14): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Codegen.Tco (line 73, column 12 - line 80, column 14): " + [ v.constructor.name ]);
             };
             while (!$tco_done) {
                 $tco_result = $tco_loop($tco_var_pop, $copy_v);
@@ -299,7 +270,7 @@ var tcoRefEffect = function (ident) {
         return {
             tailCalls: v.tailCalls,
             role: v.role,
-            usages: insertWith(append1)(ident)({
+            usages: Data_Map_Internal.insertWith(ordTcoRef)(append)(ident)({
                 total: 1,
                 call: 0,
                 arities: Data_Set.empty,
@@ -323,13 +294,13 @@ var tcoCall = function (ident) {
         return function (v) {
             return {
                 role: v.role,
-                usages: insertWith(append1)(ident)({
+                usages: Data_Map_Internal.insertWith(ordTcoRef)(append)(ident)({
                     total: 1,
                     call: 1,
                     arities: Data_Set.singleton(arity),
                     readWrite: 0
                 })(v.usages),
-                tailCalls: insert(ident)(1)(v.tailCalls)
+                tailCalls: Data_Map_Internal.insert(ordTcoRef)(ident)(1)(v.tailCalls)
             };
         };
     };
@@ -355,7 +326,7 @@ var tcoRefBinding = function (ref) {
                     arity: Data_Array_NonEmpty.length(v.value1.value0)
                 });
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Codegen.Tco (line 193, column 5 - line 195, column 95): " + [ v1.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Codegen.Tco (line 197, column 5 - line 199, column 95): " + [ v1.constructor.name ]);
         };
         if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.UncurriedAbs) {
             var v1 = tcoRefBinding(ref)(v.value1.value1);
@@ -373,7 +344,7 @@ var tcoRefBinding = function (ref) {
                     arity: Data_Array.length(v.value1.value0)
                 });
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Codegen.Tco (line 197, column 5 - line 199, column 87): " + [ v1.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Codegen.Tco (line 201, column 5 - line 203, column 87): " + [ v1.constructor.name ]);
         };
         if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Typed) {
             return tcoRefBinding(ref)(v.value1.value1);
@@ -382,15 +353,15 @@ var tcoRefBinding = function (ref) {
     };
 };
 var tcoRefBindings = function (toTcoRef) {
-    return traverse(function (v) {
+    return Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(Data_Maybe.applicativeMaybe)(function (v) {
         return tcoRefBinding(toTcoRef(v.value0))(v.value1);
     });
 };
 var topLevelTcoRefBindings = function (mod) {
     return tcoRefBindings((function () {
-        var $322 = PureScript_Backend_Optimizer_CoreFn.Qualified.create(new Data_Maybe.Just(mod));
-        return function ($323) {
-            return TcoTopLevel.create($322($323));
+        var $270 = PureScript_Backend_Optimizer_CoreFn.Qualified.create(new Data_Maybe.Just(mod));
+        return function ($271) {
+            return TcoTopLevel.create($270($271));
         };
     })());
 };
@@ -403,7 +374,7 @@ var syntacticArity = function (v) {
         if (v1 instanceof Data_Maybe.Nothing) {
             return new Data_Maybe.Just(Data_Array_NonEmpty.length(v.value0));
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Codegen.Tco (line 241, column 5 - line 243, column 50): " + [ v1.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Codegen.Tco (line 245, column 5 - line 247, column 50): " + [ v1.constructor.name ]);
     };
     if (v instanceof PureScript_Backend_Optimizer_Syntax.UncurriedAbs) {
         var v1 = syntacticArity(v.value1);
@@ -413,7 +384,7 @@ var syntacticArity = function (v) {
         if (v1 instanceof Data_Maybe.Nothing) {
             return new Data_Maybe.Just(Data_Array.length(v.value0));
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Codegen.Tco (line 245, column 5 - line 247, column 42): " + [ v1.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Codegen.Tco (line 249, column 5 - line 251, column 42): " + [ v1.constructor.name ]);
     };
     if (v instanceof PureScript_Backend_Optimizer_Syntax.Typed) {
         return syntacticArity(v.value1);
@@ -422,18 +393,18 @@ var syntacticArity = function (v) {
 };
 var tcoEnvGroup = function (toTcoRef) {
     var go = function (v) {
-        return map(Data_Tuple.Tuple.create(toTcoRef(v.value0)))(syntacticArity(v.value1));
+        return Data_Functor.map(Data_Maybe.functorMaybe)(Data_Tuple.Tuple.create(toTcoRef(v.value0)))(syntacticArity(v.value1));
     };
-    var $324 = traverse1(go);
-    return function ($325) {
-        return fold($324(Data_Array_NonEmpty.toArray($325)));
+    var $272 = Data_Traversable.traverse(Data_Traversable.traversableArray)(Data_Maybe.applicativeMaybe)(go);
+    return function ($273) {
+        return fold($272(Data_Array_NonEmpty.toArray($273)));
     };
 };
 var topLevelTcoEnvGroup = function (mod) {
     return tcoEnvGroup((function () {
-        var $326 = PureScript_Backend_Optimizer_CoreFn.Qualified.create(new Data_Maybe.Just(mod));
-        return function ($327) {
-            return TcoTopLevel.create($326($327));
+        var $274 = PureScript_Backend_Optimizer_CoreFn.Qualified.create(new Data_Maybe.Just(mod));
+        return function ($275) {
+            return TcoTopLevel.create($274($275));
         };
     })());
 };
@@ -454,13 +425,13 @@ var popTcoScope = function (ref) {
                     return Data_Maybe.Nothing.value;
                 };
                 if (v instanceof Data_List_Types.Cons) {
-                    var $244 = Data_Array_NonEmpty.findIndex(eq4(ref))(v.value0.value1);
-                    if ($244 instanceof Data_Maybe.Just) {
+                    var $192 = Data_Array_NonEmpty.findIndex(Data_Eq.eq(eqTcoRef)(ref))(v.value0.value1);
+                    if ($192 instanceof Data_Maybe.Just) {
                         $tco_done = true;
                         return new Data_Maybe.Just({
                             ident: v.value0.value0,
                             group: v.value0.value1,
-                            index: $244.value0,
+                            index: $192.value0,
                             stack: stack
                         });
                     };
@@ -489,14 +460,13 @@ var semigroupTcoAnalysis = {
     append: function (v) {
         return function (v1) {
             return {
-                usages: unionWith(append1)(v.usages)(v1.usages),
-                tailCalls: unionWith(add1)(v.tailCalls)(v1.tailCalls),
+                usages: Data_Map_Internal.unionWith(ordTcoRef)(append)(v.usages)(v1.usages),
+                tailCalls: Data_Map_Internal.unionWith(ordTcoRef)(add)(v.tailCalls)(v1.tailCalls),
                 role: noTcoRole
             };
         };
     }
 };
-var append2 = /* #__PURE__ */ Data_Semigroup.append(semigroupTcoAnalysis);
 var monoidTcoAnalysis = {
     mempty: {
         usages: Data_Map_Internal.empty,
@@ -508,12 +478,6 @@ var monoidTcoAnalysis = {
     }
 };
 var mempty = /* #__PURE__ */ Data_Monoid.mempty(monoidTcoAnalysis);
-var foldMap4 = /* #__PURE__ */ foldMap(monoidTcoAnalysis);
-var foldMap5 = /* #__PURE__ */ Data_Foldable.foldMap(PureScript_Backend_Optimizer_Syntax.foldablePair)(monoidTcoAnalysis);
-var foldMap6 = /* #__PURE__ */ foldMap2(monoidTcoAnalysis);
-var foldMap7 = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableTuple)(monoidTcoAnalysis);
-var foldMap8 = /* #__PURE__ */ Data_Foldable.foldMap(PureScript_Backend_Optimizer_Syntax.foldableBackendSyntax)(monoidTcoAnalysis);
-var foldMap9 = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableArray)(monoidTcoAnalysis);
 var localTcoRefBindings = function (level) {
     return tcoRefBindings(function (ident) {
         return new TcoLocal(new Data_Maybe.Just(ident), level);
@@ -527,9 +491,9 @@ var localTcoEnvGroup = function (level) {
 var isUniformTailCall = function (v) {
     return function (ref) {
         return function (arity) {
-            return bind(lookup(ref)(v.tailCalls))(function (numTailCalls) {
-                return bind(lookup(ref)(v.usages))(function (v1) {
-                    var v2 = toUnfoldable(v1.arities);
+            return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordTcoRef)(ref)(v.tailCalls))(function (numTailCalls) {
+                return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordTcoRef)(ref)(v.usages))(function (v1) {
+                    var v2 = Data_Set.toUnfoldable(Data_Unfoldable.unfoldableArray)(v1.arities);
                     if (v2.length === 1) {
                         return new Data_Maybe.Just(v2[0] === arity && v1.total === numTailCalls);
                     };
@@ -549,21 +513,21 @@ var isTailCalledIn = function (analysis) {
 };
 var tcoRoleIsLoop = function (group) {
     return Data_Array_NonEmpty.all((function () {
-        var $328 = Data_Function.flip(isTailCalledIn)(group);
-        return function ($329) {
-            return $328((function (v) {
+        var $276 = Data_Function.flip(isTailCalledIn)(group);
+        return function ($277) {
+            return $276((function (v) {
                 return v.analysis;
-            })($329));
+            })($277));
         };
     })())(group);
 };
 var tcoRoleJoins = function (env) {
     return function (analysis) {
         return function (group) {
-            return discard(guard(isTailCalledIn(analysis)(group)))(function () {
-                return nub(foldMap1(function (b) {
+            return Control_Bind.discard(Control_Bind.discardUnit)(Control_Bind.bindArray)(Control_Alternative.guard(Control_Alternative.alternativeArray)(isTailCalledIn(analysis)(group)))(function () {
+                return nub(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(Data_Monoid.monoidArray)(function (b) {
                     return Data_Array.mapMaybe(function (v) {
-                        return voidRight(v.value0)(bindFlipped(guard1)(isUniformTailCall(b.analysis)(v.value0)(v.value1)));
+                        return Data_Functor.voidRight(Data_Maybe.functorMaybe)(v.value0)(Control_Bind.bindFlipped(Data_Maybe.bindMaybe)(guard)(isUniformTailCall(b.analysis)(v.value0)(v.value1)));
                     })(env);
                 })(group));
             });
@@ -576,7 +540,7 @@ var inTcoScope = function (ref) {
         var $tco_result;
         function $tco_loop(v) {
             if (v instanceof Data_List_Types.Cons) {
-                if (elem(ref)(v.value0.value1)) {
+                if (Data_Array_NonEmpty.elem(eqTcoRef)(ref)(v.value0.value1)) {
                     $tco_done = true;
                     return true;
                 };
@@ -615,11 +579,11 @@ var analyze = function (env) {
                             return new TcoExpr(tcoAnalysisOf(inner$prime), new PureScript_Backend_Optimizer_Syntax.Typed(v.value0, inner$prime));
                         };
                         if (v instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
-                            var branches$prime = map1(function (v9) {
+                            var branches$prime = Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(function (v9) {
                                 return new PureScript_Backend_Optimizer_Syntax.Pair(overTcoAnalysis(tcoNoTailCalls)(analyze(env)(v9.value0)), analyze(env)(v9.value1));
                             })(v.value0);
                             var def$prime = analyze(env)(v.value1);
-                            var analysis = append2(foldMap4(foldMap5(tcoAnalysisOf))(branches$prime))(tcoAnalysisOf(def$prime));
+                            var analysis = Data_Semigroup.append(semigroupTcoAnalysis)(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(monoidTcoAnalysis)(Data_Foldable.foldMap(PureScript_Backend_Optimizer_Syntax.foldablePair)(monoidTcoAnalysis)(tcoAnalysisOf))(branches$prime))(tcoAnalysisOf(def$prime));
                             return new TcoExpr(analysis, new PureScript_Backend_Optimizer_Syntax.Branch(branches$prime, def$prime));
                         };
                         if (v instanceof PureScript_Backend_Optimizer_Syntax.Let) {
@@ -629,51 +593,51 @@ var analyze = function (env) {
                             var refBinding = tcoRefBinding(new TcoLocal(v.value0, v.value1))(binding$prime);
                             var role = {
                                 isLoop: false,
-                                joins: foldMap3((function () {
-                                    var $330 = tcoRoleJoins(env)(tcoAnalysisOf(body$prime));
-                                    return function ($331) {
-                                        return $330(pure($331));
+                                joins: Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(Data_Monoid.monoidArray)((function () {
+                                    var $278 = tcoRoleJoins(env)(tcoAnalysisOf(body$prime));
+                                    return function ($279) {
+                                        return $278(pure($279));
                                     };
                                 })())(refBinding)
                             };
                             if (refBinding instanceof Data_Maybe.Just && hasTcoRole(role)) {
-                                var analysis = append2(refBinding.value0.analysis)(tcoAnalysisOf(body$prime));
+                                var analysis = Data_Semigroup.append(semigroupTcoAnalysis)(refBinding.value0.analysis)(tcoAnalysisOf(body$prime));
                                 return new TcoExpr(withTcoRole(role)(analysis), expr$prime);
                             };
-                            var analysis = append2(tcoNoTailCalls(tcoAnalysisOf(binding$prime)))(tcoAnalysisOf(body$prime));
+                            var analysis = Data_Semigroup.append(semigroupTcoAnalysis)(tcoNoTailCalls(tcoAnalysisOf(binding$prime)))(tcoAnalysisOf(body$prime));
                             return new TcoExpr(analysis, expr$prime);
                         };
                         if (v instanceof PureScript_Backend_Optimizer_Syntax.LetRec) {
                             var group = localTcoEnvGroup(v.value0)(v.value1);
-                            var env$prime = append(group)(env);
-                            var bindings$prime = map1(map2(analyze(env$prime)))(v.value1);
+                            var env$prime = Data_Semigroup.append(Data_Semigroup.semigroupArray)(group)(env);
+                            var bindings$prime = Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(Data_Functor.map(Data_Tuple.functorTuple)(analyze(env$prime)))(v.value1);
                             var body$prime = analyze(env$prime)(v.value2);
                             var expr$prime = new PureScript_Backend_Optimizer_Syntax.LetRec(v.value0, bindings$prime, body$prime);
                             var refBindings = localTcoRefBindings(v.value0)(bindings$prime);
                             var isLoop = Data_Maybe.maybe(false)(tcoRoleIsLoop)(refBindings);
                             var role = {
                                 isLoop: isLoop,
-                                joins: foldMap3(tcoRoleJoins(env)(tcoAnalysisOf(body$prime)))(refBindings)
+                                joins: Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(Data_Monoid.monoidArray)(tcoRoleJoins(env)(tcoAnalysisOf(body$prime)))(refBindings)
                             };
-                            var $293 = hasTcoRole(role);
-                            if ($293) {
-                                var analysis = append2(foldMap6(foldMap4(function (v9) {
+                            var $241 = hasTcoRole(role);
+                            if ($241) {
+                                var analysis = Data_Semigroup.append(semigroupTcoAnalysis)(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(monoidTcoAnalysis)(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(monoidTcoAnalysis)(function (v9) {
                                     return v9.analysis;
                                 }))(refBindings))(tcoAnalysisOf(body$prime));
                                 return new TcoExpr(withTcoRole(role)(analysis), expr$prime);
                             };
-                            var analysis = append2(tcoNoTailCalls(foldMap4(foldMap7(tcoAnalysisOf))(bindings$prime)))(tcoAnalysisOf(body$prime));
+                            var analysis = Data_Semigroup.append(semigroupTcoAnalysis)(tcoNoTailCalls(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(monoidTcoAnalysis)(Data_Foldable.foldMap(Data_Foldable.foldableTuple)(monoidTcoAnalysis)(tcoAnalysisOf))(bindings$prime)))(tcoAnalysisOf(body$prime));
                             return new TcoExpr(analysis, expr$prime);
                         };
-                        var expr$prime = map3(analyze(env))(v);
-                        return new TcoExpr(tcoNoTailCalls(foldMap8(tcoAnalysisOf)(expr$prime)), expr$prime);
+                        var expr$prime = Data_Functor.map(PureScript_Backend_Optimizer_Syntax.functorBackendSyntax)(analyze(env))(v);
+                        return new TcoExpr(tcoNoTailCalls(Data_Foldable.foldMap(PureScript_Backend_Optimizer_Syntax.foldableBackendSyntax)(monoidTcoAnalysis)(tcoAnalysisOf)(expr$prime)), expr$prime);
                     };
                     if (v instanceof PureScript_Backend_Optimizer_Syntax.PrimEffect && v.value0 instanceof PureScript_Backend_Optimizer_Syntax.EffectRefWrite) {
-                        var $298 = unwrapRefHead(v.value0.value0);
-                        if ($298 instanceof Data_Maybe.Just) {
+                        var $246 = unwrapRefHead(v.value0.value0);
+                        if ($246 instanceof Data_Maybe.Just) {
                             var ref$prime = analyze(env)(v.value0.value0);
                             var val$prime = analyze(env)(v.value0.value1);
-                            var analysis = tcoRefEffect($298.value0)(tcoAnalysisOf(val$prime));
+                            var analysis = tcoRefEffect($246.value0)(tcoAnalysisOf(val$prime));
                             return new TcoExpr(analysis, new PureScript_Backend_Optimizer_Syntax.PrimEffect(new PureScript_Backend_Optimizer_Syntax.EffectRefWrite(ref$prime, val$prime)));
                         };
                         return v7(true);
@@ -681,10 +645,10 @@ var analyze = function (env) {
                     return v7(true);
                 };
                 if (v instanceof PureScript_Backend_Optimizer_Syntax.PrimEffect && v.value0 instanceof PureScript_Backend_Optimizer_Syntax.EffectRefRead) {
-                    var $304 = unwrapRefHead(v.value0.value0);
-                    if ($304 instanceof Data_Maybe.Just) {
+                    var $252 = unwrapRefHead(v.value0.value0);
+                    if ($252 instanceof Data_Maybe.Just) {
                         var ref$prime = analyze(env)(v.value0.value0);
-                        var analysis = tcoRefEffect($304.value0)(mempty);
+                        var analysis = tcoRefEffect($252.value0)(mempty);
                         return new TcoExpr(analysis, new PureScript_Backend_Optimizer_Syntax.PrimEffect(new PureScript_Backend_Optimizer_Syntax.EffectRefRead(ref$prime)));
                     };
                     return v5(true);
@@ -692,17 +656,17 @@ var analyze = function (env) {
                 return v5(true);
             };
             if (v instanceof PureScript_Backend_Optimizer_Syntax.UncurriedApp) {
-                var $309 = unwrapAppHead(v.value0)(Data_Array.length(v.value1));
-                if ($309 instanceof Data_Maybe.Just) {
+                var $257 = unwrapAppHead(v.value0)(Data_Array.length(v.value1));
+                if ($257 instanceof Data_Maybe.Just) {
                     var hd$prime = analyze(env)(v.value0);
-                    var tl$prime = map4((function () {
-                        var $332 = overTcoAnalysis(tcoNoTailCalls);
-                        var $333 = analyze(env);
-                        return function ($334) {
-                            return $332($333($334));
+                    var tl$prime = Data_Functor.map(Data_Functor.functorArray)((function () {
+                        var $280 = overTcoAnalysis(tcoNoTailCalls);
+                        var $281 = analyze(env);
+                        return function ($282) {
+                            return $280($281($282));
                         };
                     })())(v.value1);
-                    var analysis2 = tcoCall($309.value0.value0)($309.value0.value1)(foldMap9(tcoAnalysisOf)(tl$prime));
+                    var analysis2 = tcoCall($257.value0.value0)($257.value0.value1)(Data_Foldable.foldMap(Data_Foldable.foldableArray)(monoidTcoAnalysis)(tcoAnalysisOf)(tl$prime));
                     return new TcoExpr(analysis2, new PureScript_Backend_Optimizer_Syntax.UncurriedApp(hd$prime, tl$prime));
                 };
                 return v3(true);
@@ -710,17 +674,17 @@ var analyze = function (env) {
             return v3(true);
         };
         if (v instanceof PureScript_Backend_Optimizer_Syntax.App) {
-            var $316 = unwrapAppHead(v.value0)(Data_Array_NonEmpty.length(v.value1));
-            if ($316 instanceof Data_Maybe.Just) {
+            var $264 = unwrapAppHead(v.value0)(Data_Array_NonEmpty.length(v.value1));
+            if ($264 instanceof Data_Maybe.Just) {
                 var hd$prime = analyze(env)(v.value0);
-                var tl$prime = map1((function () {
-                    var $335 = overTcoAnalysis(tcoNoTailCalls);
-                    var $336 = analyze(env);
-                    return function ($337) {
-                        return $335($336($337));
+                var tl$prime = Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)((function () {
+                    var $283 = overTcoAnalysis(tcoNoTailCalls);
+                    var $284 = analyze(env);
+                    return function ($285) {
+                        return $283($284($285));
                     };
                 })())(v.value1);
-                var analysis2 = tcoCall($316.value0.value0)($316.value0.value1)(foldMap4(tcoAnalysisOf)(tl$prime));
+                var analysis2 = tcoCall($264.value0.value0)($264.value0.value1)(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(monoidTcoAnalysis)(tcoAnalysisOf)(tl$prime));
                 return new TcoExpr(analysis2, new PureScript_Backend_Optimizer_Syntax.App(hd$prime, tl$prime));
             };
             return v1(true);

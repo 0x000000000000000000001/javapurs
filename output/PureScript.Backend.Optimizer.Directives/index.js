@@ -19,14 +19,6 @@ import * as PureScript_CST_Errors from "../PureScript.CST.Errors/index.js";
 import * as PureScript_CST_Lexer from "../PureScript.CST.Lexer/index.js";
 import * as PureScript_CST_Parser_Monad from "../PureScript.CST.Parser.Monad/index.js";
 import * as PureScript_CST_Types from "../PureScript.CST.Types/index.js";
-var alt = /* #__PURE__ */ Control_Alt.alt(PureScript_CST_Parser_Monad.altParser);
-var voidRight = /* #__PURE__ */ Data_Functor.voidRight(PureScript_CST_Parser_Monad.functorParser);
-var map = /* #__PURE__ */ Data_Functor.map(PureScript_CST_Parser_Monad.functorParser);
-var applySecond = /* #__PURE__ */ Control_Apply.applySecond(PureScript_CST_Parser_Monad.applyParser);
-var applyFirst = /* #__PURE__ */ Control_Apply.applyFirst(PureScript_CST_Parser_Monad.applyParser);
-var apply = /* #__PURE__ */ Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser);
-var map1 = /* #__PURE__ */ Data_Functor.map(Data_Either.functorEither);
-var foldl = /* #__PURE__ */ Data_Foldable.foldl(Data_Foldable.foldableArray);
 var expectMap = function (k) {
     return PureScript_CST_Parser_Monad.take(function (tok) {
         var v = k(tok);
@@ -36,7 +28,7 @@ var expectMap = function (k) {
         if (v instanceof Data_Maybe.Nothing) {
             return new Data_Either.Left(new PureScript_CST_Errors.UnexpectedToken(tok.value));
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Directives (line 172, column 3 - line 176, column 39): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Directives (line 175, column 3 - line 179, column 39): " + [ v.constructor.name ]);
     });
 };
 var keyword = function (word1) {
@@ -84,7 +76,7 @@ var equals = /* #__PURE__ */ expectMap(function (v) {
     return Data_Maybe.Nothing.value;
 });
 var parseInlineDirective = /* #__PURE__ */ (function () {
-    return alt(voidRight(PureScript_Backend_Optimizer_Semantics.InlineDefault.value)(keyword("default")))(alt(voidRight(PureScript_Backend_Optimizer_Semantics.InlineNever.value)(keyword("never")))(alt(voidRight(PureScript_Backend_Optimizer_Semantics.InlineAlways.value)(keyword("always")))(map(PureScript_Backend_Optimizer_Semantics.InlineArity.create)(applySecond(applySecond(keyword("arity"))(equals))(natural)))));
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.voidRight(PureScript_CST_Parser_Monad.functorParser)(PureScript_Backend_Optimizer_Semantics.InlineDefault.value)(keyword("default")))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.voidRight(PureScript_CST_Parser_Monad.functorParser)(PureScript_Backend_Optimizer_Semantics.InlineNever.value)(keyword("never")))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.voidRight(PureScript_CST_Parser_Monad.functorParser)(PureScript_Backend_Optimizer_Semantics.InlineAlways.value)(keyword("always")))(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_Backend_Optimizer_Semantics.InlineArity.create)(Control_Apply.applySecond(PureScript_CST_Parser_Monad.applyParser)(Control_Apply.applySecond(PureScript_CST_Parser_Monad.applyParser)(keyword("arity"))(equals))(natural)))));
 })();
 var dotDot = /* #__PURE__ */ expectMap(function (v) {
     if (v.value instanceof PureScript_CST_Types.TokSymbolName && (v.value.value0 instanceof Data_Maybe.Nothing && v.value.value1 === "..")) {
@@ -99,9 +91,9 @@ var dot = /* #__PURE__ */ expectMap(function (v) {
     return Data_Maybe.Nothing.value;
 });
 var parseInlineAccessor = /* #__PURE__ */ (function () {
-    return alt(map(PureScript_Backend_Optimizer_Semantics.InlineProp.create)(applySecond(dot)(label)))(alt(map(PureScript_Backend_Optimizer_Semantics.InlineSpineProp.create)(applySecond(applySecond(dotDot)(dot))(label)))(Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)(PureScript_Backend_Optimizer_Semantics.InlineRef.value)));
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_Backend_Optimizer_Semantics.InlineProp.create)(Control_Apply.applySecond(PureScript_CST_Parser_Monad.applyParser)(dot)(label)))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_Backend_Optimizer_Semantics.InlineSpineProp.create)(Control_Apply.applySecond(PureScript_CST_Parser_Monad.applyParser)(Control_Apply.applySecond(PureScript_CST_Parser_Monad.applyParser)(dotDot)(dot))(label)))(Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)(PureScript_Backend_Optimizer_Semantics.InlineRef.value)));
 })();
-var parseDirective = /* #__PURE__ */ applyFirst(/* #__PURE__ */ apply(/* #__PURE__ */ apply(/* #__PURE__ */ map(function (v) {
+var parseDirective = /* #__PURE__ */ Control_Apply.applyFirst(PureScript_CST_Parser_Monad.applyParser)(/* #__PURE__ */ Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(/* #__PURE__ */ Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(/* #__PURE__ */ Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(function (v) {
     return function (v1) {
         return function (v2) {
             return new Data_Tuple.Tuple(new PureScript_Backend_Optimizer_Semantics.EvalExtern(v), new Data_Tuple.Tuple(v1, v2));
@@ -109,10 +101,10 @@ var parseDirective = /* #__PURE__ */ applyFirst(/* #__PURE__ */ apply(/* #__PURE
     };
 })(qualified))(parseInlineAccessor))(parseInlineDirective))(PureScript_CST_Parser_Monad.eof);
 var parseDirectiveMaybe = /* #__PURE__ */ (function () {
-    return alt(map(Data_Maybe.Just.create)(parseDirective))(voidRight(Data_Maybe.Nothing.value)(PureScript_CST_Parser_Monad.eof));
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Maybe.Just.create)(parseDirective))(Data_Functor.voidRight(PureScript_CST_Parser_Monad.functorParser)(Data_Maybe.Nothing.value)(PureScript_CST_Parser_Monad.eof));
 })();
 var parseDirectiveLine = function (line) {
-    return map1(Data_Tuple.fst)(PureScript_CST_Parser_Monad.runParser(PureScript_CST_Lexer.lex(line))(parseDirectiveMaybe));
+    return Data_Functor.map(Data_Either.functorEither)(Data_Tuple.fst)(PureScript_CST_Parser_Monad.runParser(PureScript_CST_Lexer.lex(line))(parseDirectiveMaybe));
 };
 var parseDirectiveFile = /* #__PURE__ */ (function () {
     var go = function (line) {
@@ -143,21 +135,21 @@ var parseDirectiveFile = /* #__PURE__ */ (function () {
                         directives: PureScript_Backend_Optimizer_Semantics.insertDirective(v1.value0.value0.value0)(v1.value0.value0.value1.value0)(v1.value0.value0.value1.value1)(v.directives)
                     };
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Directives (line 38, column 40 - line 44, column 69): " + [ v1.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Directives (line 41, column 40 - line 47, column 69): " + [ v1.constructor.name ]);
             };
         };
     };
-    var $120 = Data_FoldableWithIndex.foldlWithIndex(Data_FoldableWithIndex.foldableWithIndexArray)(go)({
+    var $107 = Data_FoldableWithIndex.foldlWithIndex(Data_FoldableWithIndex.foldableWithIndexArray)(go)({
         errors: [  ],
         directives: Data_Map_Internal.empty
     });
-    var $121 = Data_String_Common.split("\x0a");
-    return function ($122) {
-        return $120($121($122));
+    var $108 = Data_String_Common.split("\x0a");
+    return function ($109) {
+        return $107($108($109));
     };
 })();
 var parseDirectiveExport = function (moduleName) {
-    return applyFirst(apply(apply(apply(map(function (v) {
+    return Control_Apply.applyFirst(PureScript_CST_Parser_Monad.applyParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(function (v) {
         return function (v1) {
             return function (v2) {
                 return function (v3) {
@@ -168,7 +160,7 @@ var parseDirectiveExport = function (moduleName) {
     })(keyword("export")))(unqualified))(parseInlineAccessor))(parseInlineDirective))(PureScript_CST_Parser_Monad.eof);
 };
 var parseDirectiveHeader = function (moduleName) {
-    var parser = alt(map(Data_Either.Left.create)(parseDirectiveExport(moduleName)))(map(Data_Either.Right.create)(parseDirective));
+    var parser = Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Either.Left.create)(parseDirectiveExport(moduleName)))(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Either.Right.create)(parseDirective));
     var go = function (v) {
         return function (v1) {
             var v2 = function (v3) {
@@ -179,9 +171,9 @@ var parseDirectiveHeader = function (moduleName) {
                 };
             };
             if (v1 instanceof PureScript_Backend_Optimizer_CoreFn.LineComment) {
-                var $96 = Data_String_CodeUnits.stripPrefix("@inline")(Data_String_Common.trim(v1.value0));
-                if ($96 instanceof Data_Maybe.Just) {
-                    var line$prime = Data_String_Common.trim($96.value0);
+                var $83 = Data_String_CodeUnits.stripPrefix("@inline")(Data_String_Common.trim(v1.value0));
+                if ($83 instanceof Data_Maybe.Just) {
+                    var line$prime = Data_String_Common.trim($83.value0);
                     var v3 = PureScript_CST_Parser_Monad.runParser(PureScript_CST_Lexer.lex(line$prime))(parser);
                     if (v3 instanceof Data_Either.Left) {
                         return {
@@ -204,14 +196,14 @@ var parseDirectiveHeader = function (moduleName) {
                             exports: v.exports
                         };
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Directives (line 59, column 11 - line 65, column 78): " + [ v3.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Directives (line 62, column 11 - line 68, column 78): " + [ v3.constructor.name ]);
                 };
                 return v2(true);
             };
             return v2(true);
         };
     };
-    return foldl(go)({
+    return Data_Foldable.foldl(Data_Foldable.foldableArray)(go)({
         errors: [  ],
         locals: Data_Map_Internal.empty,
         exports: Data_Map_Internal.empty

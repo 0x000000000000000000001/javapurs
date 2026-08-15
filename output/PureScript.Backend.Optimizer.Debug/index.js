@@ -14,14 +14,13 @@ var traceWhen = function () {
         };
     };
 };
-var traceWhen1 = /* #__PURE__ */ traceWhen();
 var time = function () {
     return $foreign.time_;
 };
 var spyWhen = function () {
     return function (bool) {
         return function (a) {
-            return traceWhen1(bool)(a)(a);
+            return traceWhen()(bool)(a)(a);
         };
     };
 };

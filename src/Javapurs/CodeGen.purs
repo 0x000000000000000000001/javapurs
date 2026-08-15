@@ -13,6 +13,7 @@ import Data.String.CodeUnits as CodeUnits
 import Data.Newtype (unwrap)
 import PureScript.Backend.Optimizer.Codegen.Tco as Tco
 import Javapurs.JavaAst (JavaExpr(..), JavaFile)
+import Javapurs.Printer (printExpr)
 import PureScript.Backend.Optimizer.Convert (BackendModule)
 import PureScript.Backend.Optimizer.CoreFn (Ident(..), Prop(..), Literal(..), Qualified(..), ModuleName(..))
 import Data.String as String
@@ -146,7 +147,7 @@ translateExpr modName loopCtx isTail (TcoExpr tcoAnalysis syntax) = case syntax 
                   loopBody = translateExpr modName newLoopCtx true abs.body
                   funcBody = JavaWhileTrue abs.args loopBody
                 in
-                  JavaLet javaName (JavaAbs abs.args funcBody) (translateExpr modName loopCtx isTail body)
+                  JavaLetRec [Tuple javaName (JavaAbs abs.args funcBody)] (translateExpr modName loopCtx isTail body)
               Nothing ->
                 JavaRaw "null /* TODO: LetRec isLoop but not Abs */"
           Nothing -> JavaRaw "null /* LetRec empty */"
@@ -305,6 +306,11 @@ translate mod =
 
 translateOperator1 :: String -> BackendOperator1 -> JavaExpr -> JavaExpr
 translateOperator1 modName op e = case op of
+  OpBooleanNot -> JavaRaw ("!(" <> printExpr (JavaCast "Boolean" e) <> ")")
+  OpIntBitNot -> JavaRaw ("~(" <> printExpr (JavaCast "Integer" e) <> ")")
+  OpIntNegate -> JavaRaw ("-(" <> printExpr (JavaCast "Integer" e) <> ")")
+  OpNumberNegate -> JavaRaw ("-(" <> printExpr (JavaCast "Double" e) <> ")")
+  OpArrayLength -> JavaRaw ("((Object[]) " <> printExpr e <> ").length")
   OpIsTag (Qualified mbMod (Ident tag)) ->
     let
       safeTag = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") tag
@@ -317,7 +323,26 @@ translateOperator1 modName op e = case op of
   _ -> JavaRaw ("null /* TODO: Op1 */")
 
 translateOperator2 _ op e1 e2 = case op of
+  OpBooleanAnd -> JavaBinaryOp "&&" (JavaCast "Boolean" e1) (JavaCast "Boolean" e2)
+  OpBooleanOr -> JavaBinaryOp "||" (JavaCast "Boolean" e1) (JavaCast "Boolean" e2)
   OpBooleanOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
+  OpBooleanOrd OpNotEq -> JavaRaw ("!(" <> printExpr (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]) <> ")")
+  OpBooleanOrd OpGt -> JavaBinaryOp "&&" (JavaCast "Boolean" e1) (JavaRaw ("!(" <> printExpr (JavaCast "Boolean" e2) <> ")"))
+  OpBooleanOrd OpGte -> JavaBinaryOp "||" (JavaCast "Boolean" e1) (JavaRaw ("!(" <> printExpr (JavaCast "Boolean" e2) <> ")"))
+  OpBooleanOrd OpLt -> JavaBinaryOp "&&" (JavaRaw ("!(" <> printExpr (JavaCast "Boolean" e1) <> ")")) (JavaCast "Boolean" e2)
+  OpBooleanOrd OpLte -> JavaBinaryOp "||" (JavaRaw ("!(" <> printExpr (JavaCast "Boolean" e1) <> ")")) (JavaCast "Boolean" e2)
+  OpCharOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
+  OpCharOrd OpNotEq -> JavaRaw ("!(" <> printExpr (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]) <> ")")
+  OpCharOrd OpGt -> JavaBinaryOp ">" (JavaCast "Character" e1) (JavaCast "Character" e2)
+  OpCharOrd OpGte -> JavaBinaryOp ">=" (JavaCast "Character" e1) (JavaCast "Character" e2)
+  OpCharOrd OpLt -> JavaBinaryOp "<" (JavaCast "Character" e1) (JavaCast "Character" e2)
+  OpCharOrd OpLte -> JavaBinaryOp "<=" (JavaCast "Character" e1) (JavaCast "Character" e2)
+  OpIntBitAnd -> JavaBinaryOp "&" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
+  OpIntBitOr -> JavaBinaryOp "|" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
+  OpIntBitShiftLeft -> JavaBinaryOp "<<" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
+  OpIntBitShiftRight -> JavaBinaryOp ">>" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
+  OpIntBitXor -> JavaBinaryOp "^" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
+  OpIntBitZeroFillShiftRight -> JavaBinaryOp ">>>" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
   OpIntNum OpAdd -> JavaBinaryOp "+" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
   OpIntNum OpSubtract -> JavaBinaryOp "-" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
   OpIntNum OpMultiply -> JavaBinaryOp "*" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
@@ -328,6 +353,24 @@ translateOperator2 _ op e1 e2 = case op of
   OpIntOrd OpGte -> JavaBinaryOp ">=" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
   OpIntOrd OpLt -> JavaBinaryOp "<" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
   OpIntOrd OpLte -> JavaBinaryOp "<=" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
+  OpNumberNum OpAdd -> JavaBinaryOp "+" (JavaCast "Double" e1) (JavaCast "Double" e2)
+  OpNumberNum OpSubtract -> JavaBinaryOp "-" (JavaCast "Double" e1) (JavaCast "Double" e2)
+  OpNumberNum OpMultiply -> JavaBinaryOp "*" (JavaCast "Double" e1) (JavaCast "Double" e2)
+  OpNumberNum OpDivide -> JavaBinaryOp "/" (JavaCast "Double" e1) (JavaCast "Double" e2)
+  OpNumberOrd OpEq -> JavaBinaryOp "==" (JavaCast "Double" e1) (JavaCast "Double" e2)
+  OpNumberOrd OpNotEq -> JavaBinaryOp "!=" (JavaCast "Double" e1) (JavaCast "Double" e2)
+  OpNumberOrd OpGt -> JavaBinaryOp ">" (JavaCast "Double" e1) (JavaCast "Double" e2)
+  OpNumberOrd OpGte -> JavaBinaryOp ">=" (JavaCast "Double" e1) (JavaCast "Double" e2)
+  OpNumberOrd OpLt -> JavaBinaryOp "<" (JavaCast "Double" e1) (JavaCast "Double" e2)
+  OpNumberOrd OpLte -> JavaBinaryOp "<=" (JavaCast "Double" e1) (JavaCast "Double" e2)
+  OpStringAppend -> JavaBinaryOp "+" (JavaCast "String" e1) (JavaCast "String" e2)
+  OpStringOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
+  OpStringOrd OpNotEq -> JavaRaw ("!(" <> printExpr (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]) <> ")")
+  OpStringOrd OpGt -> JavaBinaryOp ">" (JavaRaw ("((String) " <> printExpr e1 <> ").compareTo((String) " <> printExpr e2 <> ")")) (JavaRaw "0")
+  OpStringOrd OpGte -> JavaBinaryOp ">=" (JavaRaw ("((String) " <> printExpr e1 <> ").compareTo((String) " <> printExpr e2 <> ")")) (JavaRaw "0")
+  OpStringOrd OpLt -> JavaBinaryOp "<" (JavaRaw ("((String) " <> printExpr e1 <> ").compareTo((String) " <> printExpr e2 <> ")")) (JavaRaw "0")
+  OpStringOrd OpLte -> JavaBinaryOp "<=" (JavaRaw ("((String) " <> printExpr e1 <> ").compareTo((String) " <> printExpr e2 <> ")")) (JavaRaw "0")
+  OpArrayIndex -> JavaRaw ("((Object[]) " <> printExpr e1 <> ")[" <> printExpr (JavaCast "Integer" e2) <> "]")
   _ -> JavaRaw ("null /* TODO: Op2 */")
 
 sanitizeName :: String -> String

@@ -12,18 +12,12 @@ import * as Data_Semiring from "../Data.Semiring/index.js";
 import * as Data_String_CodeUnits from "../Data.String.CodeUnits/index.js";
 import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorArray);
-var foldMap = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableArray);
-var traverse = /* #__PURE__ */ Data_Traversable.traverse(Data_Traversable.traversableArray);
 var eqArray = /* #__PURE__ */ Data_Eq.eqArray(Data_Eq.eqString);
-var eq5 = /* #__PURE__ */ Data_Eq.eq(eqArray);
 var eqTuple = /* #__PURE__ */ Data_Tuple.eqTuple(Data_Eq.eqString);
-var eqTuple1 = /* #__PURE__ */ Data_Tuple.eqTuple(eqArray);
-var compare = /* #__PURE__ */ Data_Ord.compare(Data_Ord.ordString);
+var eqTuple1 = /* #__PURE__ */ Data_Tuple.eqTuple(/* #__PURE__ */ Data_Eq.eqArray(Data_Eq.eqString));
 var ordArray = /* #__PURE__ */ Data_Ord.ordArray(Data_Ord.ordString);
-var compare1 = /* #__PURE__ */ Data_Ord.compare(ordArray);
 var ordTuple = /* #__PURE__ */ Data_Tuple.ordTuple(Data_Ord.ordString);
-var ordTuple1 = /* #__PURE__ */ Data_Tuple.ordTuple(ordArray);
+var ordTuple1 = /* #__PURE__ */ Data_Tuple.ordTuple(/* #__PURE__ */ Data_Ord.ordArray(Data_Ord.ordString));
 var zero = /* #__PURE__ */ Data_Semiring.zero(/* #__PURE__ */ Data_Semiring.semiringRecord()(/* #__PURE__ */ Data_Semiring.semiringRecordCons({
     reflectSymbol: function () {
         return "column";
@@ -689,18 +683,17 @@ var functorQualified = {
     }
 };
 var eqProp = function (dictEq) {
-    var eq11 = Data_Eq.eq(dictEq);
     return {
         eq: function (x) {
             return function (y) {
-                return x.value0 === y.value0 && eq11(x.value1)(y.value1);
+                return x.value0 === y.value0 && Data_Eq.eq(dictEq)(x.value1)(y.value1);
             };
         }
     };
 };
 var eqLiteral = function (dictEq) {
-    var eq11 = Data_Eq.eq(Data_Eq.eqArray(dictEq));
-    var eq12 = Data_Eq.eq(Data_Eq.eqArray(eqProp(dictEq)));
+    var eqArray2 = Data_Eq.eqArray(dictEq);
+    var eqArray3 = Data_Eq.eqArray(eqProp(dictEq));
     return {
         eq: function (x) {
             return function (y) {
@@ -720,10 +713,10 @@ var eqLiteral = function (dictEq) {
                     return x.value0 === y.value0;
                 };
                 if (x instanceof LitArray && y instanceof LitArray) {
-                    return eq11(x.value0)(y.value0);
+                    return Data_Eq.eq(eqArray2)(x.value0)(y.value0);
                 };
                 if (x instanceof LitRecord && y instanceof LitRecord) {
-                    return eq12(x.value0)(y.value0);
+                    return Data_Eq.eq(eqArray3)(x.value0)(y.value0);
                 };
                 return false;
             };
@@ -744,11 +737,9 @@ var propKey = function (v) {
 };
 var ordProperName = Data_Ord.ordString;
 var ordModuleName = Data_Ord.ordString;
-var compare2 = /* #__PURE__ */ Data_Ord.compare(/* #__PURE__ */ Data_Maybe.ordMaybe(ordModuleName));
-var compare3 = /* #__PURE__ */ Data_Ord.compare(ordModuleName);
+var ordMaybe = /* #__PURE__ */ Data_Maybe.ordMaybe(ordModuleName);
 var ordIdent = Data_Ord.ordString;
-var compare4 = /* #__PURE__ */ Data_Ord.compare(ordIdent);
-var compare5 = /* #__PURE__ */ Data_Ord.compare(/* #__PURE__ */ Data_Ord.ordArray(ordIdent));
+var ordArray1 = /* #__PURE__ */ Data_Ord.ordArray(ordIdent);
 var moduleName = function (v) {
     return v.name;
 };
@@ -757,7 +748,7 @@ var litChildren = function (v) {
         return v.value0;
     };
     if (v instanceof LitRecord) {
-        return map(propValue)(v.value0);
+        return Data_Functor.map(Data_Functor.functorArray)(propValue)(v.value0);
     };
     return [  ];
 };
@@ -774,7 +765,6 @@ var functorProp = {
         };
     }
 };
-var map1 = /* #__PURE__ */ Data_Functor.map(functorProp);
 var functorLiteral = {
     map: function (f) {
         return function (m) {
@@ -794,16 +784,15 @@ var functorLiteral = {
                 return new LitBoolean(m.value0);
             };
             if (m instanceof LitArray) {
-                return new LitArray(map(f)(m.value0));
+                return new LitArray(Data_Functor.map(Data_Functor.functorArray)(f)(m.value0));
             };
             if (m instanceof LitRecord) {
-                return new LitRecord(map(map1(f))(m.value0));
+                return new LitRecord(Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(functorProp)(f))(m.value0));
             };
             throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 0, column 0 - line 0, column 0): " + [ m.constructor.name ]);
         };
     }
 };
-var map2 = /* #__PURE__ */ Data_Functor.map(functorLiteral);
 var functorImport = {
     map: function (f) {
         return function (m) {
@@ -824,16 +813,15 @@ var functorBinder = {
                 return new BinderNamed(f(m.value0), m.value1, Data_Functor.map(functorBinder)(f)(m.value2));
             };
             if (m instanceof BinderLit) {
-                return new BinderLit(f(m.value0), map2(Data_Functor.map(functorBinder)(f))(m.value1));
+                return new BinderLit(f(m.value0), Data_Functor.map(functorLiteral)(Data_Functor.map(functorBinder)(f))(m.value1));
             };
             if (m instanceof BinderConstructor) {
-                return new BinderConstructor(f(m.value0), m.value1, m.value2, map(Data_Functor.map(functorBinder)(f))(m.value3));
+                return new BinderConstructor(f(m.value0), m.value1, m.value2, Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(functorBinder)(f))(m.value3));
             };
             throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 0, column 0 - line 0, column 0): " + [ m.constructor.name ]);
         };
     }
 };
-var map3 = /* #__PURE__ */ Data_Functor.map(functorBinder);
 var functorGuard = {
     map: function (f) {
         return function (m) {
@@ -848,7 +836,7 @@ var functorExpr = {
                 return new ExprVar(f(m.value0), m.value1);
             };
             if (m instanceof ExprLit) {
-                return new ExprLit(f(m.value0), map2(Data_Functor.map(functorExpr)(f))(m.value1));
+                return new ExprLit(f(m.value0), Data_Functor.map(functorLiteral)(Data_Functor.map(functorExpr)(f))(m.value1));
             };
             if (m instanceof ExprConstructor) {
                 return new ExprConstructor(f(m.value0), m.value1, m.value2, m.value3);
@@ -857,7 +845,7 @@ var functorExpr = {
                 return new ExprAccessor(f(m.value0), Data_Functor.map(functorExpr)(f)(m.value1), m.value2);
             };
             if (m instanceof ExprUpdate) {
-                return new ExprUpdate(f(m.value0), Data_Functor.map(functorExpr)(f)(m.value1), map(map1(Data_Functor.map(functorExpr)(f)))(m.value2));
+                return new ExprUpdate(f(m.value0), Data_Functor.map(functorExpr)(f)(m.value1), Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(functorProp)(Data_Functor.map(functorExpr)(f)))(m.value2));
             };
             if (m instanceof ExprAbs) {
                 return new ExprAbs(f(m.value0), m.value1, Data_Functor.map(functorExpr)(f)(m.value2));
@@ -866,10 +854,10 @@ var functorExpr = {
                 return new ExprApp(f(m.value0), Data_Functor.map(functorExpr)(f)(m.value1), Data_Functor.map(functorExpr)(f)(m.value2));
             };
             if (m instanceof ExprCase) {
-                return new ExprCase(f(m.value0), map(Data_Functor.map(functorExpr)(f))(m.value1), map(Data_Functor.map(functorCaseAlternative)(f))(m.value2));
+                return new ExprCase(f(m.value0), Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(functorExpr)(f))(m.value1), Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(functorCaseAlternative)(f))(m.value2));
             };
             if (m instanceof ExprLet) {
-                return new ExprLet(f(m.value0), map(Data_Functor.map(functorBind)(f))(m.value1), Data_Functor.map(functorExpr)(f)(m.value2));
+                return new ExprLet(f(m.value0), Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(functorBind)(f))(m.value1), Data_Functor.map(functorExpr)(f)(m.value2));
             };
             throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 0, column 0 - line 0, column 0): " + [ m.constructor.name ]);
         };
@@ -882,7 +870,7 @@ var functorCaseGuard = {
                 return new Unconditional(Data_Functor.map(functorExpr)(f)(m.value0));
             };
             if (m instanceof Guarded) {
-                return new Guarded(map(Data_Functor.map(functorGuard)(f))(m.value0));
+                return new Guarded(Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(functorGuard)(f))(m.value0));
             };
             throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 0, column 0 - line 0, column 0): " + [ m.constructor.name ]);
         };
@@ -891,7 +879,7 @@ var functorCaseGuard = {
 var functorCaseAlternative = {
     map: function (f) {
         return function (m) {
-            return new CaseAlternative(map(map3(f))(m.value0), Data_Functor.map(functorCaseGuard)(f)(m.value1));
+            return new CaseAlternative(Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(functorBinder)(f))(m.value0), Data_Functor.map(functorCaseGuard)(f)(m.value1));
         };
     }
 };
@@ -909,7 +897,7 @@ var functorBind = {
                 return new NonRec(Data_Functor.map(functorBinding)(f)(m.value0));
             };
             if (m instanceof Rec) {
-                return new Rec(map(Data_Functor.map(functorBinding)(f))(m.value0));
+                return new Rec(Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(functorBinding)(f))(m.value0));
             };
             throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 0, column 0 - line 0, column 0): " + [ m.constructor.name ]);
         };
@@ -938,20 +926,19 @@ var foldableProp = {
         };
     }
 };
-var foldMap1 = /* #__PURE__ */ Data_Foldable.foldMap(foldableProp);
 var traversableProp = {
     traverse: function (dictApplicative) {
-        var map4 = Data_Functor.map((dictApplicative.Apply0()).Functor0());
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         return function (k) {
             return function (v) {
-                return map4(Prop.create(v.value0))(k(v.value1));
+                return Data_Functor.map(Functor0)(Prop.create(v.value0))(k(v.value1));
             };
         };
     },
     sequence: function (dictApplicative) {
-        var map4 = Data_Functor.map((dictApplicative.Apply0()).Functor0());
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         return function (v) {
-            return map4(Prop.create(v.value0))(v.value1);
+            return Data_Functor.map(Functor0)(Prop.create(v.value0))(v.value1);
         };
     },
     Functor0: function () {
@@ -961,7 +948,6 @@ var traversableProp = {
         return foldableProp;
     }
 };
-var traverse1 = /* #__PURE__ */ Data_Traversable.traverse(traversableProp);
 var foldableLiteral = {
     foldl: function (k) {
         return Data_Foldable.foldlDefault(foldableLiteral)(k);
@@ -970,16 +956,14 @@ var foldableLiteral = {
         return Data_Foldable.foldrDefault(foldableLiteral)(k);
     },
     foldMap: function (dictMonoid) {
-        var foldMap2 = foldMap(dictMonoid);
-        var foldMap3 = foldMap1(dictMonoid);
         var mempty = Data_Monoid.mempty(dictMonoid);
         return function (k) {
             return function (v) {
                 if (v instanceof LitArray) {
-                    return foldMap2(k)(v.value0);
+                    return Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(k)(v.value0);
                 };
                 if (v instanceof LitRecord) {
-                    return foldMap2(foldMap3(k))(v.value0);
+                    return Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(Data_Foldable.foldMap(foldableProp)(dictMonoid)(k))(v.value0);
                 };
                 return mempty;
             };
@@ -988,34 +972,31 @@ var foldableLiteral = {
 };
 var traversableLiteral = {
     traverse: function (dictApplicative) {
-        var map4 = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-        var traverse2 = traverse(dictApplicative);
-        var traverse3 = traverse1(dictApplicative);
-        var pure = Control_Applicative.pure(dictApplicative);
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         return function (k) {
             return function (v) {
                 if (v instanceof LitArray) {
-                    return map4(LitArray.create)(traverse2(k)(v.value0));
+                    return Data_Functor.map(Functor0)(LitArray.create)(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(k)(v.value0));
                 };
                 if (v instanceof LitRecord) {
-                    return map4(LitRecord.create)(traverse2(traverse3(k))(v.value0));
+                    return Data_Functor.map(Functor0)(LitRecord.create)(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(Data_Traversable.traverse(traversableProp)(dictApplicative)(k))(v.value0));
                 };
                 if (v instanceof LitInt) {
-                    return pure(new LitInt(v.value0));
+                    return Control_Applicative.pure(dictApplicative)(new LitInt(v.value0));
                 };
                 if (v instanceof LitNumber) {
-                    return pure(new LitNumber(v.value0));
+                    return Control_Applicative.pure(dictApplicative)(new LitNumber(v.value0));
                 };
                 if (v instanceof LitString) {
-                    return pure(new LitString(v.value0));
+                    return Control_Applicative.pure(dictApplicative)(new LitString(v.value0));
                 };
                 if (v instanceof LitChar) {
-                    return pure(new LitChar(v.value0));
+                    return Control_Applicative.pure(dictApplicative)(new LitChar(v.value0));
                 };
                 if (v instanceof LitBoolean) {
-                    return pure(new LitBoolean(v.value0));
+                    return Control_Applicative.pure(dictApplicative)(new LitBoolean(v.value0));
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 232, column 16 - line 239, column 40): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 427, column 16 - line 434, column 40): " + [ v.constructor.name ]);
             };
         };
     },
@@ -1033,8 +1014,8 @@ var traversableLiteral = {
 };
 var findProp = function (prop) {
     return Data_Array.findMap(function (v) {
-        var $485 = prop === v.value0;
-        if ($485) {
+        var $447 = prop === v.value0;
+        if ($447) {
             return new Data_Maybe.Just(v.value1);
         };
         return Data_Maybe.Nothing.value;
@@ -1068,36 +1049,33 @@ var exprAnn = function (v) {
     if (v instanceof ExprLet) {
         return v.value0;
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 262, column 11 - line 271, column 21): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 486, column 11 - line 495, column 21): " + [ v.constructor.name ]);
 };
 var eqProperName = Data_Eq.eqString;
 var eqModuleName = Data_Eq.eqString;
-var eq6 = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Maybe.eqMaybe(eqModuleName));
-var eq7 = /* #__PURE__ */ Data_Eq.eq(eqModuleName);
+var eqMaybe = /* #__PURE__ */ Data_Maybe.eqMaybe(eqModuleName);
 var eqQualified = function (dictEq) {
-    var eq11 = Data_Eq.eq(dictEq);
     return {
         eq: function (x) {
             return function (y) {
-                return eq6(x.value0)(y.value0) && eq11(x.value1)(y.value1);
+                return Data_Eq.eq(eqMaybe)(x.value0)(y.value0) && Data_Eq.eq(dictEq)(x.value1)(y.value1);
             };
         }
     };
 };
 var ordQualified = function (dictOrd) {
-    var compare7 = Data_Ord.compare(dictOrd);
     var eqQualified1 = eqQualified(dictOrd.Eq0());
     return {
         compare: function (x) {
             return function (y) {
-                var v = compare2(x.value0)(y.value0);
+                var v = Data_Ord.compare(ordMaybe)(x.value0)(y.value0);
                 if (v instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
                 if (v instanceof Data_Ordering.GT) {
                     return Data_Ordering.GT.value;
                 };
-                return compare7(x.value1)(y.value1);
+                return Data_Ord.compare(dictOrd)(x.value1)(y.value1);
             };
         },
         Eq0: function () {
@@ -1106,26 +1084,25 @@ var ordQualified = function (dictOrd) {
     };
 };
 var eqIdent = Data_Eq.eqString;
-var eq8 = /* #__PURE__ */ Data_Eq.eq(eqIdent);
-var eq9 = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Eq.eqArray(eqIdent));
+var eqArray1 = /* #__PURE__ */ Data_Eq.eqArray(eqIdent);
 var eqReExport = {
     eq: function (x) {
         return function (y) {
-            return eq7(x.value0)(y.value0) && eq8(x.value1)(y.value1);
+            return Data_Eq.eq(eqModuleName)(x.value0)(y.value0) && Data_Eq.eq(eqIdent)(x.value1)(y.value1);
         };
     }
 };
 var ordReExport = {
     compare: function (x) {
         return function (y) {
-            var v = compare3(x.value0)(y.value0);
+            var v = Data_Ord.compare(ordModuleName)(x.value0)(y.value0);
             if (v instanceof Data_Ordering.LT) {
                 return Data_Ordering.LT.value;
             };
             if (v instanceof Data_Ordering.GT) {
                 return Data_Ordering.GT.value;
             };
-            return compare4(x.value1)(y.value1);
+            return Data_Ord.compare(ordIdent)(x.value1)(y.value1);
         };
     },
     Eq0: function () {
@@ -1166,7 +1143,7 @@ var eqExprType = {
                 return x.value0 === y.value0;
             };
             if (x instanceof ADT && y instanceof ADT) {
-                return x.value0 === y.value0 && eq5(x.value1)(y.value1) && Data_Eq.eq(Data_Eq.eqArray(eqExprType))(x.value2)(y.value2);
+                return x.value0 === y.value0 && Data_Eq.eq(eqArray)(x.value1)(y.value1) && Data_Eq.eq(Data_Eq.eqArray(eqExprType))(x.value2)(y.value2);
             };
             if (x instanceof TypeApp && y instanceof TypeApp) {
                 return Data_Eq.eq(eqExprType)(x.value0)(y.value0) && Data_Eq.eq(Data_Eq.eqArray(eqExprType))(x.value1)(y.value1);
@@ -1181,7 +1158,7 @@ var eqExprType = {
                 return Data_Eq.eq(eqExprType)(x.value0)(y.value0);
             };
             if (x instanceof ForAll && y instanceof ForAll) {
-                return eq5(x.value0)(y.value0) && Data_Eq.eq(eqExprType)(x.value1)(y.value1);
+                return Data_Eq.eq(eqArray)(x.value0)(y.value0) && Data_Eq.eq(eqExprType)(x.value1)(y.value1);
             };
             if (x instanceof ConstrainedType && y instanceof ConstrainedType) {
                 return Data_Eq.eq(Data_Eq.eqArray(eqTuple1(Data_Eq.eqArray(eqExprType))))(x.value0)(y.value0) && Data_Eq.eq(eqExprType)(x.value1)(y.value1);
@@ -1257,7 +1234,7 @@ var ordExprType = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof TypeLevelString && y instanceof TypeLevelString) {
-                return compare(x.value0)(y.value0);
+                return Data_Ord.compare(Data_Ord.ordString)(x.value0)(y.value0);
             };
             if (x instanceof TypeLevelString) {
                 return Data_Ordering.LT.value;
@@ -1275,7 +1252,7 @@ var ordExprType = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof TypeVar && y instanceof TypeVar) {
-                return compare(x.value0)(y.value0);
+                return Data_Ord.compare(Data_Ord.ordString)(x.value0)(y.value0);
             };
             if (x instanceof TypeVar) {
                 return Data_Ordering.LT.value;
@@ -1284,14 +1261,14 @@ var ordExprType = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof ADT && y instanceof ADT) {
-                var v = compare(x.value0)(y.value0);
+                var v = Data_Ord.compare(Data_Ord.ordString)(x.value0)(y.value0);
                 if (v instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
                 if (v instanceof Data_Ordering.GT) {
                     return Data_Ordering.GT.value;
                 };
-                var v1 = compare1(x.value1)(y.value1);
+                var v1 = Data_Ord.compare(ordArray)(x.value1)(y.value1);
                 if (v1 instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
@@ -1364,7 +1341,7 @@ var ordExprType = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof ForAll && y instanceof ForAll) {
-                var v = compare1(x.value0)(y.value0);
+                var v = Data_Ord.compare(ordArray)(x.value0)(y.value0);
                 if (v instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
@@ -1409,12 +1386,11 @@ var eqConstructorType = {
         };
     }
 };
-var eq10 = /* #__PURE__ */ Data_Eq.eq(eqConstructorType);
 var eqMeta = {
     eq: function (x) {
         return function (y) {
             if (x instanceof IsConstructor && y instanceof IsConstructor) {
-                return eq10(x.value0)(y.value0) && eq9(x.value1)(y.value1);
+                return Data_Eq.eq(eqConstructorType)(x.value0)(y.value0) && Data_Eq.eq(eqArray1)(x.value1)(y.value1);
             };
             if (x instanceof IsNewtype && y instanceof IsNewtype) {
                 return true;
@@ -1457,19 +1433,18 @@ var ordConstructorType = {
         return eqConstructorType;
     }
 };
-var compare6 = /* #__PURE__ */ Data_Ord.compare(ordConstructorType);
 var ordMeta = {
     compare: function (x) {
         return function (y) {
             if (x instanceof IsConstructor && y instanceof IsConstructor) {
-                var v = compare6(x.value0)(y.value0);
+                var v = Data_Ord.compare(ordConstructorType)(x.value0)(y.value0);
                 if (v instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
                 if (v instanceof Data_Ordering.GT) {
                     return Data_Ordering.GT.value;
                 };
-                return compare5(x.value1)(y.value1);
+                return Data_Ord.compare(ordArray1)(x.value1)(y.value1);
             };
             if (x instanceof IsConstructor) {
                 return Data_Ordering.LT.value;
@@ -1535,6 +1510,24 @@ var emptyAnn = /* #__PURE__ */ (function () {
         type: Data_Maybe.Nothing.value
     };
 })();
+var binderAnn = function (v) {
+    if (v instanceof BinderNull) {
+        return v.value0;
+    };
+    if (v instanceof BinderVar) {
+        return v.value0;
+    };
+    if (v instanceof BinderNamed) {
+        return v.value0;
+    };
+    if (v instanceof BinderLit) {
+        return v.value0;
+    };
+    if (v instanceof BinderConstructor) {
+        return v.value0;
+    };
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 507, column 13 - line 512, column 33): " + [ v.constructor.name ]);
+};
 export {
     Ident,
     ModuleName,
@@ -1612,6 +1605,7 @@ export {
     exprAnn,
     litChildren,
     isPrimModule,
+    binderAnn,
     eqIdent,
     ordIdent,
     newtypeIdent_,

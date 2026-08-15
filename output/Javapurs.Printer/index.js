@@ -6,8 +6,6 @@ import * as Data_Show from "../Data.Show/index.js";
 import * as Data_String_CodeUnits from "../Data.String.CodeUnits/index.js";
 import * as Data_String_Common from "../Data.String.Common/index.js";
 import * as Javapurs_JavaAst from "../Javapurs.JavaAst/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorArray);
-var show = /* #__PURE__ */ Data_Show.show(Data_Show.showInt);
 var escapeJavaString = function (s) {
     var escapeChar = function (v) {
         if (v === "\\") {
@@ -27,7 +25,7 @@ var escapeJavaString = function (s) {
         };
         return Data_String_CodeUnits.singleton(v);
     };
-    return Data_String_Common.joinWith("")(map(escapeChar)(Data_String_CodeUnits.toCharArray(s)));
+    return Data_String_Common.joinWith("")(Data_Functor.map(Data_Functor.functorArray)(escapeChar)(Data_String_CodeUnits.toCharArray(s)));
 };
 var printExpr = function (v) {
     if (v instanceof Javapurs_JavaAst.JavaString) {
@@ -35,7 +33,7 @@ var printExpr = function (v) {
     };
     if (v instanceof Javapurs_JavaAst.JavaCall) {
         var fnStr = printExpr(v.value0);
-        var argsStr = Data_String_Common.joinWith(", ")(map(printExpr)(v.value1));
+        var argsStr = Data_String_Common.joinWith(", ")(Data_Functor.map(Data_Functor.functorArray)(printExpr)(v.value1));
         return fnStr + ("(" + (argsStr + ")"));
     };
     if (v instanceof Javapurs_JavaAst.JavaApply) {
@@ -46,15 +44,15 @@ var printExpr = function (v) {
     };
     if (v instanceof Javapurs_JavaAst.JavaGlobalVar) {
         if (v.value0 instanceof Data_Maybe.Just && v.value0.value0 === "Effect_Console") {
-            var $21 = v.value1 === "log";
-            if ($21) {
+            var $16 = v.value1 === "log";
+            if ($16) {
                 return "(java.util.function.Function<Object, Object>) (arg) -> (java.util.function.Supplier<Object>) () -> { System.out.println(arg); return null; }";
             };
             return "Effect_Console." + v.value1;
         };
         if (v.value0 instanceof Data_Maybe.Just && v.value0.value0 === "Test_Assert") {
-            var $23 = v.value1 === "assertImpl";
-            if ($23) {
+            var $18 = v.value1 === "assertImpl";
+            if ($18) {
                 return "(java.util.function.Function<Object, Object>) (msg) -> (java.util.function.Function<Object, Object>) (b) -> (java.util.function.Supplier<Object>) () -> { if (!((Boolean) b)) { throw new RuntimeException((String) msg); } return null; }";
             };
             return "Test_Assert." + v.value1;
@@ -69,8 +67,8 @@ var printExpr = function (v) {
             return "Effect." + v.value1;
         };
         if (v.value0 instanceof Data_Maybe.Just && v.value0.value0 === "Data_Semigroup") {
-            var $27 = v.value1 === "concatString";
-            if ($27) {
+            var $22 = v.value1 === "concatString";
+            if ($22) {
                 return "(java.util.function.Function<Object, Object>) (a) -> (java.util.function.Function<Object, Object>) (b) -> a.toString() + b.toString()";
             };
             return "Data_Semigroup." + v.value1;
@@ -87,8 +85,8 @@ var printExpr = function (v) {
         return v.value0;
     };
     if (v instanceof Javapurs_JavaAst.JavaAbs) {
-        var $33 = Data_Array.length(v.value0) === 0;
-        if ($33) {
+        var $28 = Data_Array.length(v.value0) === 0;
+        if ($28) {
             return "(java.util.function.Supplier<Object>) () -> " + printExpr(v.value1);
         };
         return Data_Array.foldr(function (arg) {
@@ -98,7 +96,7 @@ var printExpr = function (v) {
         })(printExpr(v.value1))(v.value0);
     };
     if (v instanceof Javapurs_JavaAst.JavaNew) {
-        return "new " + (v.value0 + ("(" + (Data_String_Common.joinWith(", ")(map(printExpr)(v.value1)) + ")")));
+        return "new " + (v.value0 + ("(" + (Data_String_Common.joinWith(", ")(Data_Functor.map(Data_Functor.functorArray)(printExpr)(v.value1)) + ")")));
     };
     if (v instanceof Javapurs_JavaAst.JavaTernary) {
         return "( ((Boolean) (" + (printExpr(v.value0) + (")) ? " + (printExpr(v.value1) + (" : " + (printExpr(v.value2) + ")")))));
@@ -107,33 +105,33 @@ var printExpr = function (v) {
         return "((java.util.function.Supplier<Object>) () -> { throw new RuntimeException(\"" + (v.value0 + "\"); }).get()");
     };
     if (v instanceof Javapurs_JavaAst.JavaWhileTrue) {
-        return "((java.util.function.Supplier<Object>) () -> { " + (Data_String_Common.joinWith("")(map(function (arg) {
+        return "((java.util.function.Supplier<Object>) () -> { " + (Data_String_Common.joinWith("")(Data_Functor.map(Data_Functor.functorArray)(function (arg) {
             return "Object __tco_" + (arg + (" = " + (arg + "; ")));
-        })(v.value0)) + ("while(true) { " + (Data_String_Common.joinWith("")(map(function (arg) {
+        })(v.value0)) + ("while(true) { " + (Data_String_Common.joinWith("")(Data_Functor.map(Data_Functor.functorArray)(function (arg) {
             return "final Object __final_" + (arg + (" = __tco_" + (arg + "; ")));
         })(v.value0)) + ("try { " + ("return " + (printExpr(v.value1) + ("; " + ("} catch (TcoLoop __tco_ex) { " + (Data_String_Common.joinWith("")(Data_Array.mapWithIndex(function (i) {
             return function (arg) {
-                return "__tco_" + (arg + (" = __tco_ex.args[" + (show(i) + "]; ")));
+                return "__tco_" + (arg + (" = __tco_ex.args[" + (Data_Show.show(Data_Show.showInt)(i) + "]; ")));
             };
         })(v.value0)) + ("} " + ("} " + "}).get()")))))))))));
     };
     if (v instanceof Javapurs_JavaAst.JavaContinue) {
-        return "((java.util.function.Supplier<Object>) () -> { throw new TcoLoop(\"" + (v.value0 + ("\", new Object[]{" + (Data_String_Common.joinWith(", ")(map(printExpr)(v.value1)) + "}); }).get()")));
+        return "((java.util.function.Supplier<Object>) () -> { throw new TcoLoop(\"" + (v.value0 + ("\", new Object[]{" + (Data_String_Common.joinWith(", ")(Data_Functor.map(Data_Functor.functorArray)(printExpr)(v.value1)) + "}); }).get()")));
     };
     if (v instanceof Javapurs_JavaAst.JavaRecord) {
-        var puts = map(function (v1) {
+        var puts = Data_Functor.map(Data_Functor.functorArray)(function (v1) {
             return "put(\"" + (v1.value0 + ("\", " + (printExpr(v1.value1) + "); ")));
         })(v.value0);
         return "new java.util.LinkedHashMap<String, Object>() {{ " + (Data_String_Common.joinWith("")(puts) + "}}");
     };
     if (v instanceof Javapurs_JavaAst.JavaArray) {
-        return "new Object[]{" + (Data_String_Common.joinWith(", ")(map(printExpr)(v.value0)) + "}");
+        return "new Object[]{" + (Data_String_Common.joinWith(", ")(Data_Functor.map(Data_Functor.functorArray)(printExpr)(v.value0)) + "}");
     };
     if (v instanceof Javapurs_JavaAst.JavaMapGet) {
         return "((java.util.LinkedHashMap<String, Object>) " + (printExpr(v.value0) + (").get(\"" + (v.value1 + "\")")));
     };
     if (v instanceof Javapurs_JavaAst.JavaMapUpdate) {
-        var upds = map(function (v1) {
+        var upds = Data_Functor.map(Data_Functor.functorArray)(function (v1) {
             return "put(\"" + (v1.value0 + ("\", " + (printExpr(v1.value1) + "); ")));
         })(v.value1);
         return "new java.util.LinkedHashMap<String, Object>((java.util.LinkedHashMap<String, Object>) " + (printExpr(v.value0) + (") {{ " + (Data_String_Common.joinWith("")(upds) + "}}")));
@@ -145,11 +143,11 @@ var printExpr = function (v) {
         return "(((" + (v.value1 + (") " + (printExpr(v.value0) + (")." + (v.value2 + ")")))));
     };
     if (v instanceof Javapurs_JavaAst.JavaLetRec) {
-        return "((new java.util.function.Supplier<Object>() { " + ("class LetRecScope { " + (Data_String_Common.joinWith("")(map(function (v1) {
+        return "((new java.util.function.Supplier<Object>() { " + ("class LetRecScope { " + (Data_String_Common.joinWith("")(Data_Functor.map(Data_Functor.functorArray)(function (v1) {
             return "Object " + (v1.value0 + "; ");
-        })(v.value0)) + ("LetRecScope() { " + (Data_String_Common.joinWith("")(map(function (v1) {
+        })(v.value0)) + ("LetRecScope() { " + (Data_String_Common.joinWith("")(Data_Functor.map(Data_Functor.functorArray)(function (v1) {
             return v1.value0 + (" = " + (printExpr(v1.value1) + "; "));
-        })(v.value0)) + ("} " + ("} " + ("LetRecScope _scope = new LetRecScope(); " + (Data_String_Common.joinWith("")(map(function (v1) {
+        })(v.value0)) + ("} " + ("} " + ("LetRecScope _scope = new LetRecScope(); " + (Data_String_Common.joinWith("")(Data_Functor.map(Data_Functor.functorArray)(function (v1) {
             return "Object " + (v1.value0 + (" = _scope." + (v1.value0 + "; ")));
         })(v.value0)) + ("public Object get() { return " + (printExpr(v.value1) + ("; } " + "})).get()")))))))))));
     };
@@ -157,13 +155,13 @@ var printExpr = function (v) {
         return "((new java.util.function.Supplier<Object>() { Object " + (v.value0 + (" = " + (printExpr(v.value1) + ("; public Object get() { return " + (printExpr(v.value2) + "; } })).get()")))));
     };
     if (v instanceof Javapurs_JavaAst.JavaClassDecl) {
-        var fields = map(function (arg) {
+        var fields = Data_Functor.map(Data_Functor.functorArray)(function (arg) {
             return "public final Object " + (arg + ";");
         })(v.value1);
-        var constructorArgs = map(function (arg) {
+        var constructorArgs = Data_Functor.map(Data_Functor.functorArray)(function (arg) {
             return "Object " + arg;
         })(v.value1);
-        var assigns = map(function (arg) {
+        var assigns = Data_Functor.map(Data_Functor.functorArray)(function (arg) {
             return "this." + (arg + (" = " + (arg + ";")));
         })(v.value1);
         var constructor = "public " + (v.value0 + ("(" + (Data_String_Common.joinWith(", ")(constructorArgs) + (") {\x0a" + ("                " + (Data_String_Common.joinWith("\x0a                ")(assigns) + ("\x0a" + "            }")))))));
@@ -179,8 +177,8 @@ var printExpr = function (v) {
         return "((" + (v.value0 + (") (" + (printExpr(v.value1) + "))")));
     };
     if (v instanceof Javapurs_JavaAst.JavaAssign) {
-        var $85 = v.value0 === "main";
-        if ($85) {
+        var $80 = v.value0 === "main";
+        if ($80) {
             return "public static final java.util.function.Supplier<Void> main = () -> {\x0a            ((java.util.function.Supplier<Object>)(" + (printExpr(v.value1) + ")).get();\x0a            return null;\x0a        };");
         };
         return "public static final Object " + (v.value0 + (" = " + (printExpr(v.value1) + ";")));
@@ -189,7 +187,7 @@ var printExpr = function (v) {
 };
 var printFile = function (className) {
     return function (file) {
-        return "public class " + (className + (" {\x0a" + ("    " + (Data_String_Common.joinWith("\x0a    ")(map(printExpr)(file.decls)) + ("\x0a" + "}\x0a")))));
+        return "public class " + (className + (" {\x0a" + ("    " + (Data_String_Common.joinWith("\x0a    ")(Data_Functor.map(Data_Functor.functorArray)(printExpr)(file.decls)) + ("\x0a" + "}\x0a")))));
     };
 };
 export {

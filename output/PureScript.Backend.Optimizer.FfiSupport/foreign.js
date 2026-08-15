@@ -1,3 +1,9 @@
+/**
+ * FFI Support JS (FfiSupport.js)
+ * Utilitaires JavaScript nécessaires pour relier et lier le code externe (Foreign Function Interface) au code PureScript. S'occupe notamment de résoudre les imports externes ou de vérifier la présence des fichiers cibles (ex: foreign import ...).
+ */
+
+// Ours
 import fs from 'fs';
 import path from 'path';
 
@@ -51,10 +57,10 @@ function getScanDirs(mbFfiDir, extraSpagoDirs) {
     
     if (mbFfiDir) {
         scanDirs.push(path.join(rootDir, mbFfiDir));
-    } else {
-        // Fallback to searching the local src/ dir if mbFfiDir is not provided
-        scanDirs.push(rootDir);
     }
+    
+    // Always search local dir
+    scanDirs.push(rootDir);
     
     cachedScanDirs = scanDirs;
     return scanDirs;
@@ -98,6 +104,7 @@ export const findFfiFileImpl = function(extension) {
                         if (mbModulePath) {
                             const ffiPath = mbModulePath.replace(/\.purs$/, extension);
                             if (fs.existsSync(ffiPath)) {
+                                // console.log("findFfiFile [" + modNameStr + "] -> " + ffiPath);
                                 return ffiPath;
                             }
                         }
@@ -115,10 +122,12 @@ export const findFfiFileImpl = function(extension) {
                             ];
                             for (const p of searchPaths) {
                                 if (index.has(p)) {
+                                    // console.log("findFfiFile [" + modNameStr + "] -> " + p);
                                     return p;
                                 }
                             }
                         }
+                        // console.log("findFfiFile [" + modNameStr + "] -> null");
                         return null;
                     };
                 };

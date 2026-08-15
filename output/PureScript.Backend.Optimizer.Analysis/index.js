@@ -17,21 +17,8 @@ import * as Data_String_CodeUnits from "../Data.String.CodeUnits/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
 import * as PureScript_Backend_Optimizer_Syntax from "../PureScript.Backend.Optimizer.Syntax/index.js";
-var union = /* #__PURE__ */ Data_Set.union(Data_Ord.ordInt);
-var unionWith = /* #__PURE__ */ Data_Map_Internal.unionWith(PureScript_Backend_Optimizer_Syntax.ordLevel);
 var ordQualified = /* #__PURE__ */ PureScript_Backend_Optimizer_CoreFn.ordQualified(PureScript_Backend_Optimizer_CoreFn.ordIdent);
-var union1 = /* #__PURE__ */ Data_Set.union(ordQualified);
-var insert = /* #__PURE__ */ Data_Set.insert(ordQualified);
-var update = /* #__PURE__ */ Data_Map_Internal.update(PureScript_Backend_Optimizer_Syntax.ordLevel);
-var over = /* #__PURE__ */ Data_Newtype.over()();
-var map = /* #__PURE__ */ Data_Functor.map(Data_Map_Internal.functorMap);
-var insert1 = /* #__PURE__ */ Data_Set.insert(Data_Ord.ordInt);
-var pop = /* #__PURE__ */ Data_Map_Internal.pop(PureScript_Backend_Optimizer_Syntax.ordLevel);
-var $$delete = /* #__PURE__ */ Data_Map_Internal["delete"](PureScript_Backend_Optimizer_Syntax.ordLevel);
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
-var foldMap = /* #__PURE__ */ Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray);
-var foldr = /* #__PURE__ */ Data_Foldable.foldr(Data_Array_NonEmpty_Internal.foldableNonEmptyArray);
-var foldr1 = /* #__PURE__ */ Data_Foldable.foldr(Data_Foldable.foldableArray);
 var KnownNeutral = /* #__PURE__ */ (function () {
     function KnownNeutral() {
 
@@ -114,7 +101,6 @@ var semigroupResultTerm = {
         };
     }
 };
-var append = /* #__PURE__ */ Data_Semigroup.append(semigroupResultTerm);
 var newtypeUsage_ = {
     Coercible0: function () {
         return undefined;
@@ -133,7 +119,6 @@ var monoidResultTerm = /* #__PURE__ */ (function () {
         }
     };
 })();
-var foldMap1 = /* #__PURE__ */ foldMap(monoidResultTerm);
 var eqResultTerm = {
     eq: function (x) {
         return function (y) {
@@ -209,7 +194,6 @@ var ordComplexity = {
 var semigroupComplexity = {
     append: /* #__PURE__ */ Data_Ord.max(ordComplexity)
 };
-var append1 = /* #__PURE__ */ Data_Semigroup.append(semigroupComplexity);
 var monoidComplexity = /* #__PURE__ */ (function () {
     return {
         mempty: Trivial.value,
@@ -268,7 +252,6 @@ var ordCapture = {
 var semigroupCapture = {
     append: /* #__PURE__ */ Data_Ord.max(ordCapture)
 };
-var append2 = /* #__PURE__ */ Data_Semigroup.append(semigroupCapture);
 var monoidCapture = /* #__PURE__ */ (function () {
     return {
         mempty: CaptureNone.value,
@@ -283,8 +266,8 @@ var semigroupUsage = {
         return function (v1) {
             return {
                 total: v.total + v1.total | 0,
-                captured: append2(v.captured)(v1.captured),
-                arities: union(v.arities)(v1.arities),
+                captured: Data_Semigroup.append(semigroupCapture)(v.captured)(v1.captured),
+                arities: Data_Set.union(Data_Ord.ordInt)(v.arities)(v1.arities),
                 call: v.call + v1.call | 0,
                 access: v.access + v1.access | 0,
                 "case": v["case"] + v1["case"] | 0,
@@ -293,7 +276,7 @@ var semigroupUsage = {
         };
     }
 };
-var append3 = /* #__PURE__ */ Data_Semigroup.append(semigroupUsage);
+var append = /* #__PURE__ */ Data_Semigroup.append(semigroupUsage);
 var monoidUsage = {
     mempty: {
         total: 0,
@@ -308,24 +291,22 @@ var monoidUsage = {
         return semigroupUsage;
     }
 };
-var mempty1 = /* #__PURE__ */ Data_Monoid.mempty(monoidUsage);
 var semigroupBackendAnalysis = {
     append: function (v) {
         return function (v1) {
             return {
-                usages: unionWith(append3)(v.usages)(v1.usages),
+                usages: Data_Map_Internal.unionWith(PureScript_Backend_Optimizer_Syntax.ordLevel)(append)(v.usages)(v1.usages),
                 size: v.size + v1.size | 0,
-                complexity: append1(v.complexity)(v1.complexity),
+                complexity: Data_Semigroup.append(semigroupComplexity)(v.complexity)(v1.complexity),
                 args: [  ],
                 rewrite: v.rewrite || v1.rewrite,
-                deps: union1(v.deps)(v1.deps),
-                result: append(v.result)(v1.result),
+                deps: Data_Set.union(ordQualified)(v.deps)(v1.deps),
+                result: Data_Semigroup.append(semigroupResultTerm)(v.result)(v1.result),
                 externs: v.externs || v1.externs
             };
         };
     }
 };
-var append4 = /* #__PURE__ */ Data_Semigroup.append(semigroupBackendAnalysis);
 var monoidBackendAnalysis = /* #__PURE__ */ (function () {
     return {
         mempty: {
@@ -343,13 +324,7 @@ var monoidBackendAnalysis = /* #__PURE__ */ (function () {
         }
     };
 })();
-var mempty2 = /* #__PURE__ */ Data_Monoid.mempty(monoidBackendAnalysis);
-var foldMap2 = /* #__PURE__ */ Data_Foldable.foldMap(PureScript_Backend_Optimizer_Syntax.foldableBackendSyntax)(monoidBackendAnalysis);
-var mempty3 = /* #__PURE__ */ Data_Monoid.mempty(monoidBackendAnalysis);
-var foldMap3 = /* #__PURE__ */ foldMap(monoidBackendAnalysis);
-var foldMap4 = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableArray)(monoidBackendAnalysis);
-var foldMap5 = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableTuple)(monoidBackendAnalysis);
-var foldMap6 = /* #__PURE__ */ Data_Foldable.foldMap(PureScript_Backend_Optimizer_Syntax.foldablePair)(monoidBackendAnalysis);
+var mempty1 = /* #__PURE__ */ Data_Monoid.mempty(monoidBackendAnalysis);
 var withRewrite = function (v) {
     return {
         usages: v.usages,
@@ -400,19 +375,20 @@ var usedDep = function (dep) {
             rewrite: v.rewrite,
             result: v.result,
             externs: v.externs,
-            deps: insert(dep)(v.deps)
+            deps: Data_Set.insert(ordQualified)(dep)(v.deps)
         };
     };
 };
 var used = function (level) {
+    var v = Data_Monoid.mempty(monoidBackendAnalysis);
     return {
-        size: mempty2.size,
-        complexity: mempty2.complexity,
-        args: mempty2.args,
-        rewrite: mempty2.rewrite,
-        deps: mempty2.deps,
-        result: mempty2.result,
-        externs: mempty2.externs,
+        size: v.size,
+        complexity: v.complexity,
+        args: v.args,
+        rewrite: v.rewrite,
+        deps: v.deps,
+        result: v.result,
+        externs: v.externs,
         usages: Data_Map_Internal.singleton(level)({
             total: 1,
             captured: mempty,
@@ -434,8 +410,8 @@ var updated = function (level) {
             deps: v.deps,
             result: v.result,
             externs: v.externs,
-            usages: update((function () {
-                var $332 = over(Usage)(function (us) {
+            usages: Data_Map_Internal.update(PureScript_Backend_Optimizer_Syntax.ordLevel)((function () {
+                var $287 = Data_Newtype.over()()(Usage)(function (us) {
                     return {
                         access: us.access,
                         arities: us.arities,
@@ -446,8 +422,8 @@ var updated = function (level) {
                         update: us.update + 1 | 0
                     };
                 });
-                return function ($333) {
-                    return Data_Maybe.Just.create($332($333));
+                return function ($288) {
+                    return Data_Maybe.Just.create($287($288));
                 };
             })())(level)(v.usages)
         };
@@ -475,7 +451,7 @@ var complex = function (complexity) {
             deps: v.deps,
             result: v.result,
             externs: v.externs,
-            complexity: append1(v.complexity)(complexity)
+            complexity: Data_Semigroup.append(semigroupComplexity)(v.complexity)(complexity)
         };
     };
 };
@@ -489,8 +465,8 @@ var cased = function (level) {
             deps: v.deps,
             result: v.result,
             externs: v.externs,
-            usages: update((function () {
-                var $334 = over(Usage)(function (us) {
+            usages: Data_Map_Internal.update(PureScript_Backend_Optimizer_Syntax.ordLevel)((function () {
+                var $289 = Data_Newtype.over()()(Usage)(function (us) {
                     return {
                         access: us.access,
                         arities: us.arities,
@@ -501,8 +477,8 @@ var cased = function (level) {
                         "case": us["case"] + 1 | 0
                     };
                 });
-                return function ($335) {
-                    return Data_Maybe.Just.create($334($335));
+                return function ($290) {
+                    return Data_Maybe.Just.create($289($290));
                 };
             })())(level)(v.usages)
         };
@@ -518,7 +494,7 @@ var capture = function (cap) {
             deps: v.deps,
             result: v.result,
             externs: v.externs,
-            usages: map(over(Usage)(function (v2) {
+            usages: Data_Functor.map(Data_Map_Internal.functorMap)(Data_Newtype.over()()(Usage)(function (v2) {
                 return {
                     access: v2.access,
                     arities: v2.arities,
@@ -543,20 +519,20 @@ var callArity = function (lvl) {
                 deps: v.deps,
                 result: v.result,
                 externs: v.externs,
-                usages: update((function () {
-                    var $336 = over(Usage)(function (us) {
+                usages: Data_Map_Internal.update(PureScript_Backend_Optimizer_Syntax.ordLevel)((function () {
+                    var $291 = Data_Newtype.over()()(Usage)(function (us) {
                         return {
                             access: us.access,
                             captured: us.captured,
                             "case": us["case"],
                             total: us.total,
                             update: us.update,
-                            arities: insert1(arity)(us.arities),
+                            arities: Data_Set.insert(Data_Ord.ordInt)(arity)(us.arities),
                             call: us.call + 1 | 0
                         };
                     });
-                    return function ($337) {
-                        return Data_Maybe.Just.create($336($337));
+                    return function ($292) {
+                        return Data_Maybe.Just.create($291($292));
                     };
                 })())(lvl)(v.usages)
             };
@@ -577,7 +553,7 @@ var bump = function (v) {
 };
 var boundArg = function (level) {
     return function (v) {
-        var v1 = pop(level)(v.usages);
+        var v1 = Data_Map_Internal.pop(PureScript_Backend_Optimizer_Syntax.ordLevel)(level)(v.usages);
         if (v1 instanceof Data_Maybe.Nothing) {
             return {
                 usages: v.usages,
@@ -587,7 +563,7 @@ var boundArg = function (level) {
                 deps: v.deps,
                 result: v.result,
                 externs: v.externs,
-                args: Data_Array.cons(mempty1)(v.args)
+                args: Data_Array.cons(Data_Monoid.mempty(monoidUsage))(v.args)
             };
         };
         if (v1 instanceof Data_Maybe.Just) {
@@ -602,7 +578,7 @@ var boundArg = function (level) {
                 args: Data_Array.cons(v1.value0.value0)(v.args)
             };
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Analysis (line 129, column 38 - line 133, column 66): " + [ v1.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Analysis (line 134, column 38 - line 138, column 66): " + [ v1.constructor.name ]);
     };
 };
 var bound = function (level) {
@@ -615,7 +591,7 @@ var bound = function (level) {
             deps: v.deps,
             result: v.result,
             externs: v.externs,
-            usages: $$delete(level)(v.usages)
+            usages: Data_Map_Internal["delete"](PureScript_Backend_Optimizer_Syntax.ordLevel)(level)(v.usages)
         };
     };
 };
@@ -623,17 +599,17 @@ var analysisOf = function (dict) {
     return dict.analysisOf;
 };
 var analyzeDefault = function (dictHasAnalysis) {
-    var $338 = foldMap2(analysisOf(dictHasAnalysis));
-    return function ($339) {
-        return bump($338($339));
+    var $293 = Data_Foldable.foldMap(PureScript_Backend_Optimizer_Syntax.foldableBackendSyntax)(monoidBackendAnalysis)(analysisOf(dictHasAnalysis));
+    return function ($294) {
+        return bump($293($294));
     };
 };
 var resultOf = function (dictHasAnalysis) {
-    var $340 = analysisOf(dictHasAnalysis);
-    return function ($341) {
+    var $295 = analysisOf(dictHasAnalysis);
+    return function ($296) {
         return (function (v) {
             return v.result;
-        })(unwrap($340($341)));
+        })(unwrap($295($296)));
     };
 };
 var accessed = function (level) {
@@ -646,8 +622,8 @@ var accessed = function (level) {
             deps: v.deps,
             result: v.result,
             externs: v.externs,
-            usages: update((function () {
-                var $342 = over(Usage)(function (us) {
+            usages: Data_Map_Internal.update(PureScript_Backend_Optimizer_Syntax.ordLevel)((function () {
+                var $297 = Data_Newtype.over()()(Usage)(function (us) {
                     return {
                         arities: us.arities,
                         call: us.call,
@@ -658,25 +634,21 @@ var accessed = function (level) {
                         access: us.access + 1 | 0
                     };
                 });
-                return function ($343) {
-                    return Data_Maybe.Just.create($342($343));
+                return function ($298) {
+                    return Data_Maybe.Just.create($297($298));
                 };
             })())(level)(v.usages)
         };
     };
 };
 var analyze = function (dictHasAnalysis) {
-    var resultOf1 = resultOf(dictHasAnalysis);
     var analysisOf1 = analysisOf(dictHasAnalysis);
-    var analysisOf2 = analysisOf(dictHasAnalysis);
-    var analyzeDefault1 = analyzeDefault(dictHasAnalysis);
-    var resultOf2 = resultOf(dictHasAnalysis);
+    var resultOf1 = resultOf(dictHasAnalysis);
     return function (dictHasSyntax) {
-        var syntaxOf = PureScript_Backend_Optimizer_Syntax.syntaxOf(dictHasSyntax);
         return function (externAnalysis) {
             return function (expr) {
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.Var) {
-                    var analysis = bump(externs(usedDep(expr.value0)(mempty3)));
+                    var analysis = bump(externs(usedDep(expr.value0)(mempty1)));
                     var v = externAnalysis(expr.value0)(Data_Maybe.Nothing.value);
                     if (v instanceof Data_Maybe.Just) {
                         return withArgs(v.value0.args)(analysis);
@@ -684,54 +656,54 @@ var analyze = function (dictHasAnalysis) {
                     if (v instanceof Data_Maybe.Nothing) {
                         return analysis;
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Analysis (line 206, column 5 - line 210, column 17): " + [ v.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Analysis (line 211, column 5 - line 215, column 17): " + [ v.constructor.name ]);
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.Local) {
                     return bump(used(expr.value1));
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.Let) {
-                    return withResult(resultOf1(expr.value3))(bump(complex(NonTrivial.value)(append4(analysisOf1(expr.value2))(bound(expr.value1)(analysisOf1(expr.value3))))));
+                    return withResult(resultOf(dictHasAnalysis)(expr.value3))(bump(complex(NonTrivial.value)(Data_Semigroup.append(semigroupBackendAnalysis)(analysisOf(dictHasAnalysis)(expr.value2))(bound(expr.value1)(analysisOf(dictHasAnalysis)(expr.value3))))));
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.LetRec) {
-                    return withResult(resultOf1(expr.value2))(complex(NonTrivial.value)(bound(expr.value0)(bump(append4(foldMap3(function ($344) {
-                        return analysisOf2(Data_Tuple.snd($344));
-                    })(expr.value1))(analysisOf1(expr.value2))))));
+                    return withResult(resultOf(dictHasAnalysis)(expr.value2))(complex(NonTrivial.value)(bound(expr.value0)(bump(Data_Semigroup.append(semigroupBackendAnalysis)(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(monoidBackendAnalysis)(function ($299) {
+                        return analysisOf1(Data_Tuple.snd($299));
+                    })(expr.value1))(analysisOf(dictHasAnalysis)(expr.value2))))));
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.EffectBind) {
-                    return withResult(Unknown.value)(complex(NonTrivial.value)(capture(CaptureClosure.value)(bump(append4(analysisOf1(expr.value2))(bound(expr.value1)(analysisOf1(expr.value3)))))));
+                    return withResult(Unknown.value)(complex(NonTrivial.value)(capture(CaptureClosure.value)(bump(Data_Semigroup.append(semigroupBackendAnalysis)(analysisOf(dictHasAnalysis)(expr.value2))(bound(expr.value1)(analysisOf(dictHasAnalysis)(expr.value3)))))));
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.EffectPure) {
-                    return withResult(Unknown.value)(capture(CaptureClosure.value)(bump(analysisOf1(expr.value0))));
+                    return withResult(Unknown.value)(capture(CaptureClosure.value)(bump(analysisOf(dictHasAnalysis)(expr.value0))));
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.EffectDefer) {
-                    return withResult(Unknown.value)(capture(CaptureClosure.value)(bump(analysisOf1(expr.value0))));
+                    return withResult(Unknown.value)(capture(CaptureClosure.value)(bump(analysisOf(dictHasAnalysis)(expr.value0))));
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.Abs) {
-                    return withResult(KnownNeutral.value)(complex(KnownSize.value)(capture(CaptureClosure.value)(foldr(function ($345) {
-                        return boundArg(Data_Tuple.snd($345));
-                    })(analyzeDefault1(expr))(expr.value0))));
+                    return withResult(KnownNeutral.value)(complex(KnownSize.value)(capture(CaptureClosure.value)(Data_Foldable.foldr(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(function ($300) {
+                        return boundArg(Data_Tuple.snd($300));
+                    })(analyzeDefault(dictHasAnalysis)(expr))(expr.value0))));
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.UncurriedAbs) {
-                    return withResult(KnownNeutral.value)(complex(KnownSize.value)(capture(CaptureClosure.value)(foldr1(function ($346) {
-                        return boundArg(Data_Tuple.snd($346));
-                    })(analyzeDefault1(expr))(expr.value0))));
+                    return withResult(KnownNeutral.value)(complex(KnownSize.value)(capture(CaptureClosure.value)(Data_Foldable.foldr(Data_Foldable.foldableArray)(function ($301) {
+                        return boundArg(Data_Tuple.snd($301));
+                    })(analyzeDefault(dictHasAnalysis)(expr))(expr.value0))));
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.UncurriedApp) {
-                    var analysis = withResult(Unknown.value)(complex(NonTrivial.value)(analyzeDefault1(expr)));
-                    var v = syntaxOf(expr.value0);
+                    var analysis = withResult(Unknown.value)(complex(NonTrivial.value)(analyzeDefault(dictHasAnalysis)(expr)));
+                    var v = PureScript_Backend_Optimizer_Syntax.syntaxOf(dictHasSyntax)(expr.value0);
                     if (v instanceof Data_Maybe.Just && v.value0 instanceof PureScript_Backend_Optimizer_Syntax.Local) {
                         return callArity(v.value0.value1)(Data_Array.length(expr.value1))(analysis);
                     };
                     return analysis;
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.UncurriedEffectAbs) {
-                    return withResult(KnownNeutral.value)(complex(KnownSize.value)(capture(CaptureClosure.value)(foldr1(function ($347) {
-                        return boundArg(Data_Tuple.snd($347));
-                    })(analyzeDefault1(expr))(expr.value0))));
+                    return withResult(KnownNeutral.value)(complex(KnownSize.value)(capture(CaptureClosure.value)(Data_Foldable.foldr(Data_Foldable.foldableArray)(function ($302) {
+                        return boundArg(Data_Tuple.snd($302));
+                    })(analyzeDefault(dictHasAnalysis)(expr))(expr.value0))));
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.UncurriedEffectApp) {
-                    var analysis = withResult(Unknown.value)(complex(NonTrivial.value)(capture(CaptureClosure.value)(analyzeDefault1(expr))));
-                    var v = syntaxOf(expr.value0);
+                    var analysis = withResult(Unknown.value)(complex(NonTrivial.value)(capture(CaptureClosure.value)(analyzeDefault(dictHasAnalysis)(expr))));
+                    var v = PureScript_Backend_Optimizer_Syntax.syntaxOf(dictHasSyntax)(expr.value0);
                     if (v instanceof Data_Maybe.Just && v.value0 instanceof PureScript_Backend_Optimizer_Syntax.Local) {
                         return callArity(v.value0.value1)(Data_Array.length(expr.value1))(analysis);
                     };
@@ -739,31 +711,31 @@ var analyze = function (dictHasAnalysis) {
                 };
                 var v = function (v1) {
                     if (expr instanceof PureScript_Backend_Optimizer_Syntax.Update) {
-                        var analysis = withResult(Unknown.value)(complex(NonTrivial.value)(analyzeDefault1(expr)));
-                        var v2 = syntaxOf(expr.value0);
+                        var analysis = withResult(Unknown.value)(complex(NonTrivial.value)(analyzeDefault(dictHasAnalysis)(expr)));
+                        var v2 = PureScript_Backend_Optimizer_Syntax.syntaxOf(dictHasSyntax)(expr.value0);
                         if (v2 instanceof Data_Maybe.Just && v2.value0 instanceof PureScript_Backend_Optimizer_Syntax.Local) {
                             return updated(v2.value0.value1)(analysis);
                         };
                         return analysis;
                     };
                     if (expr instanceof PureScript_Backend_Optimizer_Syntax.CtorSaturated) {
-                        return withResult(KnownNeutral.value)(bump(usedDep(expr.value0)(foldMap4(foldMap5(analysisOf2))(expr.value4))));
+                        return withResult(KnownNeutral.value)(bump(usedDep(expr.value0)(Data_Foldable.foldMap(Data_Foldable.foldableArray)(monoidBackendAnalysis)(Data_Foldable.foldMap(Data_Foldable.foldableTuple)(monoidBackendAnalysis)(analysisOf1))(expr.value4))));
                     };
                     if (expr instanceof PureScript_Backend_Optimizer_Syntax.CtorDef) {
-                        return complex(NonTrivial.value)(analyzeDefault1(expr));
+                        return complex(NonTrivial.value)(analyzeDefault(dictHasAnalysis)(expr));
                     };
                     if (expr instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
                         var v2 = Data_Array_NonEmpty.head(expr.value0);
-                        var result = foldMap1(function ($348) {
-                            return resultOf2(PureScript_Backend_Optimizer_Syntax.sndPair($348));
+                        var result = Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(monoidResultTerm)(function ($303) {
+                            return resultOf1(PureScript_Backend_Optimizer_Syntax.sndPair($303));
                         })(expr.value0);
-                        return withResult(result)(complex(NonTrivial.value)(append4(analysisOf1(v2.value0))(append4(capture(CaptureBranch.value)(analysisOf1(v2.value1)))(append4(capture(CaptureBranch.value)(foldMap4(foldMap6(analysisOf2))(Data_Array_NonEmpty.tail(expr.value0))))(capture(CaptureBranch.value)(analysisOf1(expr.value1)))))));
+                        return withResult(result)(complex(NonTrivial.value)(Data_Semigroup.append(semigroupBackendAnalysis)(analysisOf(dictHasAnalysis)(v2.value0))(Data_Semigroup.append(semigroupBackendAnalysis)(capture(CaptureBranch.value)(analysisOf(dictHasAnalysis)(v2.value1)))(Data_Semigroup.append(semigroupBackendAnalysis)(capture(CaptureBranch.value)(Data_Foldable.foldMap(Data_Foldable.foldableArray)(monoidBackendAnalysis)(Data_Foldable.foldMap(PureScript_Backend_Optimizer_Syntax.foldablePair)(monoidBackendAnalysis)(analysisOf1))(Data_Array_NonEmpty.tail(expr.value0))))(capture(CaptureBranch.value)(analysisOf(dictHasAnalysis)(expr.value1)))))));
                     };
                     if (expr instanceof PureScript_Backend_Optimizer_Syntax.Fail) {
-                        return complex(NonTrivial.value)(analyzeDefault1(expr));
+                        return complex(NonTrivial.value)(analyzeDefault(dictHasAnalysis)(expr));
                     };
                     if (expr instanceof PureScript_Backend_Optimizer_Syntax.PrimOp) {
-                        var analysis = withResult(Unknown.value)(complex(NonTrivial.value)(analyzeDefault1(expr)));
+                        var analysis = withResult(Unknown.value)(complex(NonTrivial.value)(analyzeDefault(dictHasAnalysis)(expr)));
                         var v2 = function (v3) {
                             if (expr.value0 instanceof PureScript_Backend_Optimizer_Syntax.Op1 && (expr.value0.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIsTag && Data_Boolean.otherwise)) {
                                 return usedDep(expr.value0.value0.value0)(analysis);
@@ -771,28 +743,28 @@ var analyze = function (dictHasAnalysis) {
                             return analysis;
                         };
                         if (expr.value0 instanceof PureScript_Backend_Optimizer_Syntax.Op1 && expr.value0.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIsTag) {
-                            var $261 = syntaxOf(expr.value0.value1);
-                            if ($261 instanceof Data_Maybe.Just && $261.value0 instanceof PureScript_Backend_Optimizer_Syntax.Local) {
-                                return cased($261.value0.value1)(usedDep(expr.value0.value0.value0)(analysis));
+                            var $216 = PureScript_Backend_Optimizer_Syntax.syntaxOf(dictHasSyntax)(expr.value0.value1);
+                            if ($216 instanceof Data_Maybe.Just && $216.value0 instanceof PureScript_Backend_Optimizer_Syntax.Local) {
+                                return cased($216.value0.value1)(usedDep(expr.value0.value0.value0)(analysis));
                             };
                             return v2(true);
                         };
                         return v2(true);
                     };
                     if (expr instanceof PureScript_Backend_Optimizer_Syntax.PrimEffect) {
-                        return withResult(Unknown.value)(complex(NonTrivial.value)(capture(CaptureClosure.value)(analyzeDefault1(expr))));
+                        return withResult(Unknown.value)(complex(NonTrivial.value)(capture(CaptureClosure.value)(analyzeDefault(dictHasAnalysis)(expr))));
                     };
                     if (expr instanceof PureScript_Backend_Optimizer_Syntax.PrimUndefined) {
-                        return analyzeDefault1(expr);
+                        return analyzeDefault(dictHasAnalysis)(expr);
                     };
                     if (expr instanceof PureScript_Backend_Optimizer_Syntax.Accessor) {
                         var analysis = (function () {
                             if (expr.value1 instanceof PureScript_Backend_Optimizer_Syntax.GetCtorField) {
-                                return withResult(Unknown.value)(usedDep(expr.value1.value0)(analyzeDefault1(expr)));
+                                return withResult(Unknown.value)(usedDep(expr.value1.value0)(analyzeDefault(dictHasAnalysis)(expr)));
                             };
-                            return withResult(Unknown.value)(analyzeDefault1(expr));
+                            return withResult(Unknown.value)(analyzeDefault(dictHasAnalysis)(expr));
                         })();
-                        var v2 = syntaxOf(expr.value0);
+                        var v2 = PureScript_Backend_Optimizer_Syntax.syntaxOf(dictHasSyntax)(expr.value0);
                         if (v2 instanceof Data_Maybe.Just && v2.value0 instanceof PureScript_Backend_Optimizer_Syntax.Accessor) {
                             return analysis;
                         };
@@ -804,9 +776,9 @@ var analyze = function (dictHasAnalysis) {
                                 return complex(Trivial.value)(analysis);
                             };
                             if (expr.value1 instanceof PureScript_Backend_Optimizer_Syntax.GetProp) {
-                                var $285 = externAnalysis(v2.value0.value0)(new Data_Maybe.Just(expr.value1.value0));
-                                if ($285 instanceof Data_Maybe.Just) {
-                                    return withArgs($285.value0.args)(complex(Trivial.value)(analysis));
+                                var $240 = externAnalysis(v2.value0.value0)(new Data_Maybe.Just(expr.value1.value0));
+                                if ($240 instanceof Data_Maybe.Just) {
+                                    return withArgs($240.value0.args)(complex(Trivial.value)(analysis));
                                 };
                                 return v3(true);
                             };
@@ -815,7 +787,7 @@ var analyze = function (dictHasAnalysis) {
                         return complex(Deref.value)(analysis);
                     };
                     if (expr instanceof PureScript_Backend_Optimizer_Syntax.Lit) {
-                        var analysis = withResult(KnownNeutral.value)(analyzeDefault1(expr));
+                        var analysis = withResult(KnownNeutral.value)(analyzeDefault(dictHasAnalysis)(expr));
                         if (expr.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitArray && Data_Array.length(expr.value0.value0) > 0) {
                             return complex(KnownSize.value)(analysis);
                         };
@@ -833,24 +805,24 @@ var analyze = function (dictHasAnalysis) {
                         return analysis;
                     };
                     if (expr instanceof PureScript_Backend_Optimizer_Syntax.Typed) {
-                        return analysisOf1(expr.value1);
+                        return analysisOf(dictHasAnalysis)(expr.value1);
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Analysis (line 203, column 1 - line 203, column 150): " + [ expr.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Analysis (line 208, column 1 - line 208, column 150): " + [ expr.constructor.name ]);
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.App) {
-                    var $301 = analysisOf1(expr.value0);
-                    var remainingArgs = Data_Array.drop(Data_Array_NonEmpty.length(expr.value1))($301.args);
+                    var $256 = analysisOf(dictHasAnalysis)(expr.value0);
+                    var remainingArgs = Data_Array.drop(Data_Array_NonEmpty.length(expr.value1))($256.args);
                     var analysis = (function () {
                         if (Data_Array["null"](remainingArgs)) {
-                            return complex(NonTrivial.value)(analyzeDefault1(expr));
+                            return complex(NonTrivial.value)(analyzeDefault(dictHasAnalysis)(expr));
                         };
                         if (Data_Boolean.otherwise) {
-                            return analyzeDefault1(expr);
+                            return analyzeDefault(dictHasAnalysis)(expr);
                         };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Analysis (line 298, column 5 - line 302, column 30): " + [  ]);
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Analysis (line 303, column 5 - line 307, column 30): " + [  ]);
                     })();
                     return withArgs(remainingArgs)((function () {
-                        var v1 = syntaxOf(expr.value0);
+                        var v1 = PureScript_Backend_Optimizer_Syntax.syntaxOf(dictHasSyntax)(expr.value0);
                         if (v1 instanceof Data_Maybe.Just && v1.value0 instanceof PureScript_Backend_Optimizer_Syntax.Local) {
                             return withResult(Unknown.value)(callArity(v1.value0.value1)(Data_Array_NonEmpty.length(expr.value1))(bump(analysis)));
                         };
@@ -863,48 +835,42 @@ var analyze = function (dictHasAnalysis) {
     };
 };
 var analyzeEffectBlock = function (dictHasAnalysis) {
-    var resultOf1 = resultOf(dictHasAnalysis);
     var analysisOf1 = analysisOf(dictHasAnalysis);
-    var analysisOf2 = analysisOf(dictHasAnalysis);
-    var analyzeDefault1 = analyzeDefault(dictHasAnalysis);
-    var analyze1 = analyze(dictHasAnalysis);
     return function (dictHasSyntax) {
-        var syntaxOf = PureScript_Backend_Optimizer_Syntax.syntaxOf(dictHasSyntax);
-        var analyze2 = analyze1(dictHasSyntax);
         return function (externAnalysis) {
             return function (expr) {
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.Let) {
-                    return withResult(resultOf1(expr.value3))(complex(NonTrivial.value)(bump(append4(analysisOf1(expr.value2))(bound(expr.value1)(analysisOf1(expr.value3))))));
+                    return withResult(resultOf(dictHasAnalysis)(expr.value3))(complex(NonTrivial.value)(bump(Data_Semigroup.append(semigroupBackendAnalysis)(analysisOf(dictHasAnalysis)(expr.value2))(bound(expr.value1)(analysisOf(dictHasAnalysis)(expr.value3))))));
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.LetRec) {
-                    return withResult(resultOf1(expr.value2))(complex(NonTrivial.value)(bound(expr.value0)(bump(append4(foldMap3(function ($349) {
-                        return analysisOf2(Data_Tuple.snd($349));
-                    })(expr.value1))(analysisOf1(expr.value2))))));
+                    return withResult(resultOf(dictHasAnalysis)(expr.value2))(complex(NonTrivial.value)(bound(expr.value0)(bump(Data_Semigroup.append(semigroupBackendAnalysis)(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(monoidBackendAnalysis)(function ($304) {
+                        return analysisOf1(Data_Tuple.snd($304));
+                    })(expr.value1))(analysisOf(dictHasAnalysis)(expr.value2))))));
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.EffectBind) {
-                    return withResult(Unknown.value)(complex(NonTrivial.value)(bump(append4(analysisOf1(expr.value2))(bound(expr.value1)(analysisOf1(expr.value3))))));
+                    return withResult(Unknown.value)(complex(NonTrivial.value)(bump(Data_Semigroup.append(semigroupBackendAnalysis)(analysisOf(dictHasAnalysis)(expr.value2))(bound(expr.value1)(analysisOf(dictHasAnalysis)(expr.value3))))));
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.EffectPure) {
-                    return withResult(Unknown.value)(bump(analysisOf1(expr.value0)));
+                    return withResult(Unknown.value)(bump(analysisOf(dictHasAnalysis)(expr.value0)));
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.EffectDefer) {
-                    return withResult(Unknown.value)(bump(analysisOf1(expr.value0)));
+                    return withResult(Unknown.value)(bump(analysisOf(dictHasAnalysis)(expr.value0)));
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.UncurriedEffectApp) {
-                    var analysis = withResult(Unknown.value)(complex(NonTrivial.value)(analyzeDefault1(expr)));
-                    var v = syntaxOf(expr.value0);
+                    var analysis = withResult(Unknown.value)(complex(NonTrivial.value)(analyzeDefault(dictHasAnalysis)(expr)));
+                    var v = PureScript_Backend_Optimizer_Syntax.syntaxOf(dictHasSyntax)(expr.value0);
                     if (v instanceof Data_Maybe.Just && v.value0 instanceof PureScript_Backend_Optimizer_Syntax.Local) {
                         return callArity(v.value0.value1)(Data_Array.length(expr.value1))(analysis);
                     };
                     return analysis;
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.PrimEffect) {
-                    return withResult(Unknown.value)(complex(NonTrivial.value)(analyzeDefault1(expr)));
+                    return withResult(Unknown.value)(complex(NonTrivial.value)(analyzeDefault(dictHasAnalysis)(expr)));
                 };
                 if (expr instanceof PureScript_Backend_Optimizer_Syntax.Typed) {
-                    return analysisOf1(expr.value1);
+                    return analysisOf(dictHasAnalysis)(expr.value1);
                 };
-                return analyze2(externAnalysis)(expr);
+                return analyze(dictHasAnalysis)(dictHasSyntax)(externAnalysis)(expr);
             };
         };
     };

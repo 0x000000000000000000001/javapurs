@@ -14,35 +14,12 @@ import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(PureScript_Backend_Optimizer_CoreFn.functorLiteral);
-var map1 = /* #__PURE__ */ Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray);
-var map2 = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorArray);
-var map3 = /* #__PURE__ */ Data_Functor.map(PureScript_Backend_Optimizer_CoreFn.functorProp);
-var map4 = /* #__PURE__ */ Data_Functor.map(Data_Tuple.functorTuple);
-var foldMap = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableArray);
-var foldMap1 = /* #__PURE__ */ Data_Foldable.foldMap(PureScript_Backend_Optimizer_CoreFn.foldableProp);
-var foldMap2 = /* #__PURE__ */ Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray);
-var foldMap3 = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableTuple);
-var traverse = /* #__PURE__ */ Data_Traversable.traverse(Data_Traversable.traversableArray);
-var traverse1 = /* #__PURE__ */ Data_Traversable.traverse(PureScript_Backend_Optimizer_CoreFn.traversableProp);
-var traverse2 = /* #__PURE__ */ Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray);
-var traverse3 = /* #__PURE__ */ Data_Traversable.traverse(Data_Traversable.traversableTuple);
-var eq = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ PureScript_Backend_Optimizer_CoreFn.eqQualified(PureScript_Backend_Optimizer_CoreFn.eqIdent));
-var compare = /* #__PURE__ */ Data_Ord.compare(/* #__PURE__ */ PureScript_Backend_Optimizer_CoreFn.ordQualified(PureScript_Backend_Optimizer_CoreFn.ordIdent));
-var eq3 = /* #__PURE__ */ Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqConstructorType);
-var eq4 = /* #__PURE__ */ Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqProperName);
-var eq5 = /* #__PURE__ */ Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqIdent);
+var eqQualified = /* #__PURE__ */ PureScript_Backend_Optimizer_CoreFn.eqQualified(PureScript_Backend_Optimizer_CoreFn.eqIdent);
+var ordQualified = /* #__PURE__ */ PureScript_Backend_Optimizer_CoreFn.ordQualified(PureScript_Backend_Optimizer_CoreFn.ordIdent);
 var eqMaybe = /* #__PURE__ */ Data_Maybe.eqMaybe(PureScript_Backend_Optimizer_CoreFn.eqIdent);
-var eq6 = /* #__PURE__ */ Data_Eq.eq(eqMaybe);
 var eqTuple = /* #__PURE__ */ Data_Tuple.eqTuple(Data_Eq.eqString);
-var eq7 = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Eq.eqArray(Data_Eq.eqString));
+var eqArray = /* #__PURE__ */ Data_Eq.eqArray(Data_Eq.eqString);
 var eqTuple1 = /* #__PURE__ */ Data_Tuple.eqTuple(PureScript_Backend_Optimizer_CoreFn.eqIdent);
-var eq8 = /* #__PURE__ */ Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqExprType);
-var compare1 = /* #__PURE__ */ Data_Ord.compare(Data_Ord.ordString);
-var compare2 = /* #__PURE__ */ Data_Ord.compare(Data_Ord.ordInt);
-var compare3 = /* #__PURE__ */ Data_Ord.compare(PureScript_Backend_Optimizer_CoreFn.ordConstructorType);
-var compare4 = /* #__PURE__ */ Data_Ord.compare(PureScript_Backend_Optimizer_CoreFn.ordProperName);
-var compare5 = /* #__PURE__ */ Data_Ord.compare(PureScript_Backend_Optimizer_CoreFn.ordIdent);
 var Pair = /* #__PURE__ */ (function () {
     function Pair(value0, value1) {
         this.value0 = value0;
@@ -709,7 +686,6 @@ var functorPair = {
         };
     }
 };
-var map5 = /* #__PURE__ */ Data_Functor.map(functorPair);
 var functorBackendOperator = {
     map: function (f) {
         return function (m) {
@@ -723,7 +699,6 @@ var functorBackendOperator = {
         };
     }
 };
-var map6 = /* #__PURE__ */ Data_Functor.map(functorBackendOperator);
 var functorBackendEffect = {
     map: function (f) {
         return function (m) {
@@ -740,7 +715,6 @@ var functorBackendEffect = {
         };
     }
 };
-var map7 = /* #__PURE__ */ Data_Functor.map(functorBackendEffect);
 var functorBackendSyntax = {
     map: function (f) {
         return function (m) {
@@ -751,22 +725,22 @@ var functorBackendSyntax = {
                 return new Local(m.value0, m.value1);
             };
             if (m instanceof Lit) {
-                return new Lit(map(f)(m.value0));
+                return new Lit(Data_Functor.map(PureScript_Backend_Optimizer_CoreFn.functorLiteral)(f)(m.value0));
             };
             if (m instanceof App) {
-                return new App(f(m.value0), map1(f)(m.value1));
+                return new App(f(m.value0), Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(f)(m.value1));
             };
             if (m instanceof Abs) {
                 return new Abs(m.value0, f(m.value1));
             };
             if (m instanceof UncurriedApp) {
-                return new UncurriedApp(f(m.value0), map2(f)(m.value1));
+                return new UncurriedApp(f(m.value0), Data_Functor.map(Data_Functor.functorArray)(f)(m.value1));
             };
             if (m instanceof UncurriedAbs) {
                 return new UncurriedAbs(m.value0, f(m.value1));
             };
             if (m instanceof UncurriedEffectApp) {
-                return new UncurriedEffectApp(f(m.value0), map2(f)(m.value1));
+                return new UncurriedEffectApp(f(m.value0), Data_Functor.map(Data_Functor.functorArray)(f)(m.value1));
             };
             if (m instanceof UncurriedEffectAbs) {
                 return new UncurriedEffectAbs(m.value0, f(m.value1));
@@ -775,16 +749,16 @@ var functorBackendSyntax = {
                 return new Accessor(f(m.value0), m.value1);
             };
             if (m instanceof Update) {
-                return new Update(f(m.value0), map2(map3(f))(m.value1));
+                return new Update(f(m.value0), Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(PureScript_Backend_Optimizer_CoreFn.functorProp)(f))(m.value1));
             };
             if (m instanceof CtorSaturated) {
-                return new CtorSaturated(m.value0, m.value1, m.value2, m.value3, map2(map4(f))(m.value4));
+                return new CtorSaturated(m.value0, m.value1, m.value2, m.value3, Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(Data_Tuple.functorTuple)(f))(m.value4));
             };
             if (m instanceof CtorDef) {
                 return new CtorDef(m.value0, m.value1, m.value2, m.value3);
             };
             if (m instanceof LetRec) {
-                return new LetRec(m.value0, map1(map4(f))(m.value1), f(m.value2));
+                return new LetRec(m.value0, Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(Data_Functor.map(Data_Tuple.functorTuple)(f))(m.value1), f(m.value2));
             };
             if (m instanceof Let) {
                 return new Let(m.value0, m.value1, f(m.value2), f(m.value3));
@@ -799,13 +773,13 @@ var functorBackendSyntax = {
                 return new EffectDefer(f(m.value0));
             };
             if (m instanceof Branch) {
-                return new Branch(map1(map5(f))(m.value0), f(m.value1));
+                return new Branch(Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(Data_Functor.map(functorPair)(f))(m.value0), f(m.value1));
             };
             if (m instanceof PrimOp) {
-                return new PrimOp(map6(f)(m.value0));
+                return new PrimOp(Data_Functor.map(functorBackendOperator)(f)(m.value0));
             };
             if (m instanceof PrimEffect) {
-                return new PrimEffect(map7(f)(m.value0));
+                return new PrimEffect(Data_Functor.map(functorBackendEffect)(f)(m.value0));
             };
             if (m instanceof PrimUndefined) {
                 return PrimUndefined.value;
@@ -836,15 +810,14 @@ var foldablePair = {
         };
     },
     foldMap: function (dictMonoid) {
-        var append = Data_Semigroup.append(dictMonoid.Semigroup0());
+        var Semigroup0 = dictMonoid.Semigroup0();
         return function (f) {
             return function (v) {
-                return append(f(v.value0))(f(v.value1));
+                return Data_Semigroup.append(Semigroup0)(f(v.value0))(f(v.value1));
             };
         };
     }
 };
-var foldMap4 = /* #__PURE__ */ Data_Foldable.foldMap(foldablePair);
 var traversablePair = {
     sequence: function (dictApplicative) {
         return function (a) {
@@ -853,11 +826,10 @@ var traversablePair = {
     },
     traverse: function (dictApplicative) {
         var Apply0 = dictApplicative.Apply0();
-        var apply = Control_Apply.apply(Apply0);
-        var map8 = Data_Functor.map(Apply0.Functor0());
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         return function (f) {
             return function (v) {
-                return apply(map8(Pair.create)(f(v.value0)))(f(v.value1));
+                return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(Pair.create)(f(v.value0)))(f(v.value1));
             };
         };
     },
@@ -868,7 +840,6 @@ var traversablePair = {
         return foldablePair;
     }
 };
-var traverse4 = /* #__PURE__ */ Data_Traversable.traverse(traversablePair);
 var foldableBackendOperator = {
     foldr: function (a) {
         return Data_Foldable.foldrDefault(foldableBackendOperator)(a);
@@ -877,21 +848,20 @@ var foldableBackendOperator = {
         return Data_Foldable.foldlDefault(foldableBackendOperator)(a);
     },
     foldMap: function (dictMonoid) {
-        var append = Data_Semigroup.append(dictMonoid.Semigroup0());
+        var Semigroup0 = dictMonoid.Semigroup0();
         return function (f) {
             return function (v) {
                 if (v instanceof Op1) {
                     return f(v.value1);
                 };
                 if (v instanceof Op2) {
-                    return append(f(v.value1))(f(v.value2));
+                    return Data_Semigroup.append(Semigroup0)(f(v.value1))(f(v.value2));
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 239, column 15 - line 241, column 28): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 420, column 15 - line 422, column 28): " + [ v.constructor.name ]);
             };
         };
     }
 };
-var foldMap5 = /* #__PURE__ */ Data_Foldable.foldMap(foldableBackendOperator);
 var traversableBackendOperato = {
     sequence: function (dictApplicative) {
         return function (a) {
@@ -899,18 +869,17 @@ var traversableBackendOperato = {
         };
     },
     traverse: function (dictApplicative) {
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         var Apply0 = dictApplicative.Apply0();
-        var map8 = Data_Functor.map(Apply0.Functor0());
-        var apply = Control_Apply.apply(Apply0);
         return function (f) {
             return function (v) {
                 if (v instanceof Op1) {
-                    return map8(Op1.create(v.value0))(f(v.value1));
+                    return Data_Functor.map(Functor0)(Op1.create(v.value0))(f(v.value1));
                 };
                 if (v instanceof Op2) {
-                    return apply(map8(Op2.create(v.value0))(f(v.value1)))(f(v.value2));
+                    return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(Op2.create(v.value0))(f(v.value1)))(f(v.value2));
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 245, column 16 - line 247, column 39): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 426, column 16 - line 428, column 39): " + [ v.constructor.name ]);
             };
         };
     },
@@ -921,7 +890,6 @@ var traversableBackendOperato = {
         return foldableBackendOperator;
     }
 };
-var traverse5 = /* #__PURE__ */ Data_Traversable.traverse(traversableBackendOperato);
 var foldableBackendEffect = {
     foldr: function (a) {
         return Data_Foldable.foldrDefault(foldableBackendEffect)(a);
@@ -930,7 +898,7 @@ var foldableBackendEffect = {
         return Data_Foldable.foldlDefault(foldableBackendEffect)(a);
     },
     foldMap: function (dictMonoid) {
-        var append = Data_Semigroup.append(dictMonoid.Semigroup0());
+        var Semigroup0 = dictMonoid.Semigroup0();
         return function (f) {
             return function (v) {
                 if (v instanceof EffectRefNew) {
@@ -940,14 +908,13 @@ var foldableBackendEffect = {
                     return f(v.value0);
                 };
                 if (v instanceof EffectRefWrite) {
-                    return append(f(v.value0))(f(v.value1));
+                    return Data_Semigroup.append(Semigroup0)(f(v.value0))(f(v.value1));
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 254, column 15 - line 257, column 37): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 435, column 15 - line 438, column 37): " + [ v.constructor.name ]);
             };
         };
     }
 };
-var foldMap6 = /* #__PURE__ */ Data_Foldable.foldMap(foldableBackendEffect);
 var foldableBackendSyntax = {
     foldr: function (a) {
         return Data_Foldable.foldrDefault(foldableBackendSyntax)(a);
@@ -957,14 +924,7 @@ var foldableBackendSyntax = {
     },
     foldMap: function (dictMonoid) {
         var mempty = Data_Monoid.mempty(dictMonoid);
-        var foldMap7 = foldMap(dictMonoid);
-        var foldMap8 = foldMap1(dictMonoid);
-        var append = Data_Semigroup.append(dictMonoid.Semigroup0());
-        var foldMap9 = foldMap2(dictMonoid);
-        var foldMap10 = foldMap3(dictMonoid);
-        var foldMap11 = foldMap4(dictMonoid);
-        var foldMap12 = foldMap5(dictMonoid);
-        var foldMap13 = foldMap6(dictMonoid);
+        var Semigroup0 = dictMonoid.Semigroup0();
         return function (f) {
             return function (v) {
                 if (v instanceof Var) {
@@ -975,27 +935,27 @@ var foldableBackendSyntax = {
                 };
                 if (v instanceof Lit) {
                     if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitArray) {
-                        return foldMap7(f)(v.value0.value0);
+                        return Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(f)(v.value0.value0);
                     };
                     if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitRecord) {
-                        return foldMap7(foldMap8(f))(v.value0.value0);
+                        return Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(Data_Foldable.foldMap(PureScript_Backend_Optimizer_CoreFn.foldableProp)(dictMonoid)(f))(v.value0.value0);
                     };
                     return mempty;
                 };
                 if (v instanceof App) {
-                    return append(f(v.value0))(foldMap9(f)(v.value1));
+                    return Data_Semigroup.append(Semigroup0)(f(v.value0))(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(dictMonoid)(f)(v.value1));
                 };
                 if (v instanceof Abs) {
                     return f(v.value1);
                 };
                 if (v instanceof UncurriedApp) {
-                    return append(f(v.value0))(foldMap7(f)(v.value1));
+                    return Data_Semigroup.append(Semigroup0)(f(v.value0))(Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(f)(v.value1));
                 };
                 if (v instanceof UncurriedAbs) {
                     return f(v.value1);
                 };
                 if (v instanceof UncurriedEffectApp) {
-                    return append(f(v.value0))(foldMap7(f)(v.value1));
+                    return Data_Semigroup.append(Semigroup0)(f(v.value0))(Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(f)(v.value1));
                 };
                 if (v instanceof UncurriedEffectAbs) {
                     return f(v.value1);
@@ -1004,16 +964,16 @@ var foldableBackendSyntax = {
                     return f(v.value0);
                 };
                 if (v instanceof Update) {
-                    return append(f(v.value0))(foldMap7(foldMap8(f))(v.value1));
+                    return Data_Semigroup.append(Semigroup0)(f(v.value0))(Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(Data_Foldable.foldMap(PureScript_Backend_Optimizer_CoreFn.foldableProp)(dictMonoid)(f))(v.value1));
                 };
                 if (v instanceof LetRec) {
-                    return append(foldMap9(foldMap10(f))(v.value1))(f(v.value2));
+                    return Data_Semigroup.append(Semigroup0)(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(dictMonoid)(Data_Foldable.foldMap(Data_Foldable.foldableTuple)(dictMonoid)(f))(v.value1))(f(v.value2));
                 };
                 if (v instanceof Let) {
-                    return append(f(v.value2))(f(v.value3));
+                    return Data_Semigroup.append(Semigroup0)(f(v.value2))(f(v.value3));
                 };
                 if (v instanceof EffectBind) {
-                    return append(f(v.value2))(f(v.value3));
+                    return Data_Semigroup.append(Semigroup0)(f(v.value2))(f(v.value3));
                 };
                 if (v instanceof EffectPure) {
                     return f(v.value0);
@@ -1022,19 +982,19 @@ var foldableBackendSyntax = {
                     return f(v.value0);
                 };
                 if (v instanceof Branch) {
-                    return append(foldMap9(foldMap11(f))(v.value0))(f(v.value1));
+                    return Data_Semigroup.append(Semigroup0)(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(dictMonoid)(Data_Foldable.foldMap(foldablePair)(dictMonoid)(f))(v.value0))(f(v.value1));
                 };
                 if (v instanceof PrimOp) {
-                    return foldMap12(f)(v.value0);
+                    return Data_Foldable.foldMap(foldableBackendOperator)(dictMonoid)(f)(v.value0);
                 };
                 if (v instanceof PrimEffect) {
-                    return foldMap13(f)(v.value0);
+                    return Data_Foldable.foldMap(foldableBackendEffect)(dictMonoid)(f)(v.value0);
                 };
                 if (v instanceof PrimUndefined) {
                     return mempty;
                 };
                 if (v instanceof CtorSaturated) {
-                    return foldMap7(foldMap10(f))(v.value4);
+                    return Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(Data_Foldable.foldMap(Data_Foldable.foldableTuple)(dictMonoid)(f))(v.value4);
                 };
                 if (v instanceof CtorDef) {
                     return mempty;
@@ -1045,7 +1005,7 @@ var foldableBackendSyntax = {
                 if (v instanceof Typed) {
                     return f(v.value1);
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 134, column 15 - line 162, column 21): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 315, column 15 - line 343, column 21): " + [ v.constructor.name ]);
             };
         };
     }
@@ -1057,21 +1017,20 @@ var traversableBackendEffect = {
         };
     },
     traverse: function (dictApplicative) {
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         var Apply0 = dictApplicative.Apply0();
-        var map8 = Data_Functor.map(Apply0.Functor0());
-        var apply = Control_Apply.apply(Apply0);
         return function (f) {
             return function (v) {
                 if (v instanceof EffectRefNew) {
-                    return map8(EffectRefNew.create)(f(v.value0));
+                    return Data_Functor.map(Functor0)(EffectRefNew.create)(f(v.value0));
                 };
                 if (v instanceof EffectRefRead) {
-                    return map8(EffectRefRead.create)(f(v.value0));
+                    return Data_Functor.map(Functor0)(EffectRefRead.create)(f(v.value0));
                 };
                 if (v instanceof EffectRefWrite) {
-                    return apply(map8(EffectRefWrite.create)(f(v.value0)))(f(v.value1));
+                    return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(EffectRefWrite.create)(f(v.value0)))(f(v.value1));
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 261, column 16 - line 264, column 57): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 442, column 16 - line 445, column 57): " + [ v.constructor.name ]);
             };
         };
     },
@@ -1082,7 +1041,6 @@ var traversableBackendEffect = {
         return foldableBackendEffect;
     }
 };
-var traverse6 = /* #__PURE__ */ Data_Traversable.traverse(traversableBackendEffect);
 var traversableBackendSyntax = {
     sequence: function (dictApplicative) {
         return function (a) {
@@ -1090,117 +1048,108 @@ var traversableBackendSyntax = {
         };
     },
     traverse: function (dictApplicative) {
-        var pure = Control_Applicative.pure(dictApplicative);
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         var Apply0 = dictApplicative.Apply0();
-        var map8 = Data_Functor.map(Apply0.Functor0());
-        var traverse7 = traverse(dictApplicative);
-        var traverse8 = traverse1(dictApplicative);
-        var apply = Control_Apply.apply(Apply0);
-        var traverse9 = traverse2(dictApplicative);
-        var traverse10 = traverse3(dictApplicative);
-        var traverse11 = traverse4(dictApplicative);
-        var traverse12 = traverse5(dictApplicative);
-        var traverse13 = traverse6(dictApplicative);
         return function (f) {
             return function (v) {
                 if (v instanceof Var) {
-                    return pure(new Var(v.value0));
+                    return Control_Applicative.pure(dictApplicative)(new Var(v.value0));
                 };
                 if (v instanceof Local) {
-                    return pure(new Local(v.value0, v.value1));
+                    return Control_Applicative.pure(dictApplicative)(new Local(v.value0, v.value1));
                 };
                 if (v instanceof Lit) {
                     if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                        return pure(new Lit(new PureScript_Backend_Optimizer_CoreFn.LitInt(v.value0.value0)));
+                        return Control_Applicative.pure(dictApplicative)(new Lit(new PureScript_Backend_Optimizer_CoreFn.LitInt(v.value0.value0)));
                     };
                     if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitNumber) {
-                        return pure(new Lit(new PureScript_Backend_Optimizer_CoreFn.LitNumber(v.value0.value0)));
+                        return Control_Applicative.pure(dictApplicative)(new Lit(new PureScript_Backend_Optimizer_CoreFn.LitNumber(v.value0.value0)));
                     };
                     if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitString) {
-                        return pure(new Lit(new PureScript_Backend_Optimizer_CoreFn.LitString(v.value0.value0)));
+                        return Control_Applicative.pure(dictApplicative)(new Lit(new PureScript_Backend_Optimizer_CoreFn.LitString(v.value0.value0)));
                     };
                     if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitChar) {
-                        return pure(new Lit(new PureScript_Backend_Optimizer_CoreFn.LitChar(v.value0.value0)));
+                        return Control_Applicative.pure(dictApplicative)(new Lit(new PureScript_Backend_Optimizer_CoreFn.LitChar(v.value0.value0)));
                     };
                     if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean) {
-                        return pure(new Lit(new PureScript_Backend_Optimizer_CoreFn.LitBoolean(v.value0.value0)));
+                        return Control_Applicative.pure(dictApplicative)(new Lit(new PureScript_Backend_Optimizer_CoreFn.LitBoolean(v.value0.value0)));
                     };
                     if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitArray) {
-                        return map8(function ($922) {
-                            return Lit.create(PureScript_Backend_Optimizer_CoreFn.LitArray.create($922));
-                        })(traverse7(f)(v.value0.value0));
+                        return Data_Functor.map(Functor0)(function ($838) {
+                            return Lit.create(PureScript_Backend_Optimizer_CoreFn.LitArray.create($838));
+                        })(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(f)(v.value0.value0));
                     };
                     if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitRecord) {
-                        return map8(function ($923) {
-                            return Lit.create(PureScript_Backend_Optimizer_CoreFn.LitRecord.create($923));
-                        })(traverse7(traverse8(f))(v.value0.value0));
+                        return Data_Functor.map(Functor0)(function ($839) {
+                            return Lit.create(PureScript_Backend_Optimizer_CoreFn.LitRecord.create($839));
+                        })(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(Data_Traversable.traverse(PureScript_Backend_Optimizer_CoreFn.traversableProp)(dictApplicative)(f))(v.value0.value0));
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 172, column 7 - line 179, column 71): " + [ v.value0.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 353, column 7 - line 360, column 71): " + [ v.value0.constructor.name ]);
                 };
                 if (v instanceof App) {
-                    return apply(map8(App.create)(f(v.value0)))(traverse9(f)(v.value1));
+                    return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(App.create)(f(v.value0)))(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(f)(v.value1));
                 };
                 if (v instanceof Abs) {
-                    return map8(Abs.create(v.value0))(f(v.value1));
+                    return Data_Functor.map(Functor0)(Abs.create(v.value0))(f(v.value1));
                 };
                 if (v instanceof UncurriedApp) {
-                    return apply(map8(UncurriedApp.create)(f(v.value0)))(traverse7(f)(v.value1));
+                    return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(UncurriedApp.create)(f(v.value0)))(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(f)(v.value1));
                 };
                 if (v instanceof UncurriedAbs) {
-                    return map8(UncurriedAbs.create(v.value0))(f(v.value1));
+                    return Data_Functor.map(Functor0)(UncurriedAbs.create(v.value0))(f(v.value1));
                 };
                 if (v instanceof UncurriedEffectApp) {
-                    return apply(map8(UncurriedEffectApp.create)(f(v.value0)))(traverse7(f)(v.value1));
+                    return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(UncurriedEffectApp.create)(f(v.value0)))(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(f)(v.value1));
                 };
                 if (v instanceof UncurriedEffectAbs) {
-                    return map8(UncurriedEffectAbs.create(v.value0))(f(v.value1));
+                    return Data_Functor.map(Functor0)(UncurriedEffectAbs.create(v.value0))(f(v.value1));
                 };
                 if (v instanceof Accessor) {
-                    return map8(Data_Function.flip(Accessor.create)(v.value1))(f(v.value0));
+                    return Data_Functor.map(Functor0)(Data_Function.flip(Accessor.create)(v.value1))(f(v.value0));
                 };
                 if (v instanceof Update) {
-                    return apply(map8(Update.create)(f(v.value0)))(traverse7(traverse8(f))(v.value1));
+                    return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(Update.create)(f(v.value0)))(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(Data_Traversable.traverse(PureScript_Backend_Optimizer_CoreFn.traversableProp)(dictApplicative)(f))(v.value1));
                 };
                 if (v instanceof CtorDef) {
-                    return pure(new CtorDef(v.value0, v.value1, v.value2, v.value3));
+                    return Control_Applicative.pure(dictApplicative)(new CtorDef(v.value0, v.value1, v.value2, v.value3));
                 };
                 if (v instanceof CtorSaturated) {
-                    return map8(CtorSaturated.create(v.value0)(v.value1)(v.value2)(v.value3))(traverse7(traverse10(f))(v.value4));
+                    return Data_Functor.map(Functor0)(CtorSaturated.create(v.value0)(v.value1)(v.value2)(v.value3))(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(Data_Traversable.traverse(Data_Traversable.traversableTuple)(dictApplicative)(f))(v.value4));
                 };
                 if (v instanceof LetRec) {
-                    return apply(map8(LetRec.create(v.value0))(traverse9(traverse10(f))(v.value1)))(f(v.value2));
+                    return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(LetRec.create(v.value0))(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(Data_Traversable.traverse(Data_Traversable.traversableTuple)(dictApplicative)(f))(v.value1)))(f(v.value2));
                 };
                 if (v instanceof Let) {
-                    return apply(map8(Let.create(v.value0)(v.value1))(f(v.value2)))(f(v.value3));
+                    return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(Let.create(v.value0)(v.value1))(f(v.value2)))(f(v.value3));
                 };
                 if (v instanceof EffectBind) {
-                    return apply(map8(EffectBind.create(v.value0)(v.value1))(f(v.value2)))(f(v.value3));
+                    return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(EffectBind.create(v.value0)(v.value1))(f(v.value2)))(f(v.value3));
                 };
                 if (v instanceof EffectPure) {
-                    return map8(EffectPure.create)(f(v.value0));
+                    return Data_Functor.map(Functor0)(EffectPure.create)(f(v.value0));
                 };
                 if (v instanceof EffectDefer) {
-                    return map8(EffectDefer.create)(f(v.value0));
+                    return Data_Functor.map(Functor0)(EffectDefer.create)(f(v.value0));
                 };
                 if (v instanceof Branch) {
-                    return apply(map8(Branch.create)(traverse9(traverse11(f))(v.value0)))(f(v.value1));
+                    return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(Branch.create)(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(Data_Traversable.traverse(traversablePair)(dictApplicative)(f))(v.value0)))(f(v.value1));
                 };
                 if (v instanceof PrimOp) {
-                    return map8(PrimOp.create)(traverse12(f)(v.value0));
+                    return Data_Functor.map(Functor0)(PrimOp.create)(Data_Traversable.traverse(traversableBackendOperato)(dictApplicative)(f)(v.value0));
                 };
                 if (v instanceof PrimEffect) {
-                    return map8(PrimEffect.create)(traverse13(f)(v.value0));
+                    return Data_Functor.map(Functor0)(PrimEffect.create)(Data_Traversable.traverse(traversableBackendEffect)(dictApplicative)(f)(v.value0));
                 };
                 if (v instanceof PrimUndefined) {
-                    return pure(PrimUndefined.value);
+                    return Control_Applicative.pure(dictApplicative)(PrimUndefined.value);
                 };
                 if (v instanceof Fail) {
-                    return pure(new Fail(v.value0));
+                    return Control_Applicative.pure(dictApplicative)(new Fail(v.value0));
                 };
                 if (v instanceof Typed) {
-                    return map8(Typed.create(v.value0))(f(v.value1));
+                    return Data_Functor.map(Functor0)(Typed.create(v.value0))(f(v.value1));
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 166, column 16 - line 221, column 22): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 347, column 16 - line 402, column 22): " + [ v.constructor.name ]);
             };
         };
     },
@@ -1212,20 +1161,18 @@ var traversableBackendSyntax = {
     }
 };
 var eqPair = function (dictEq) {
-    var eq17 = Data_Eq.eq(dictEq);
     return {
         eq: function (x) {
             return function (y) {
-                return eq17(x.value0)(y.value0) && eq17(x.value1)(y.value1);
+                return Data_Eq.eq(dictEq)(x.value0)(y.value0) && Data_Eq.eq(dictEq)(x.value1)(y.value1);
             };
         }
     };
 };
 var eqLevel = Data_Eq.eqInt;
-var eq9 = /* #__PURE__ */ Data_Eq.eq(eqLevel);
-var eqTuple2 = /* #__PURE__ */ Data_Tuple.eqTuple(eqMaybe)(eqLevel);
-var eq10 = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Array_NonEmpty_Internal.eqNonEmptyArray(eqTuple2));
-var eq11 = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Eq.eqArray(eqTuple2));
+var eqTuple2 = /* #__PURE__ */ Data_Tuple.eqTuple(/* #__PURE__ */ Data_Maybe.eqMaybe(PureScript_Backend_Optimizer_CoreFn.eqIdent))(eqLevel);
+var eqNonEmptyArray = /* #__PURE__ */ Data_Array_NonEmpty_Internal.eqNonEmptyArray(eqTuple2);
+var eqArray1 = /* #__PURE__ */ Data_Eq.eqArray(eqTuple2);
 var eqBackendOperatorOrd = {
     eq: function (x) {
         return function (y) {
@@ -1251,7 +1198,6 @@ var eqBackendOperatorOrd = {
         };
     }
 };
-var eq12 = /* #__PURE__ */ Data_Eq.eq(eqBackendOperatorOrd);
 var ordBackendOperatorOrd = {
     compare: function (x) {
         return function (y) {
@@ -1310,7 +1256,6 @@ var ordBackendOperatorOrd = {
         return eqBackendOperatorOrd;
     }
 };
-var compare6 = /* #__PURE__ */ Data_Ord.compare(ordBackendOperatorOrd);
 var eqBackendOperatorNum = {
     eq: function (x) {
         return function (y) {
@@ -1330,7 +1275,6 @@ var eqBackendOperatorNum = {
         };
     }
 };
-var eq13 = /* #__PURE__ */ Data_Eq.eq(eqBackendOperatorNum);
 var ordBackendOperatorNum = {
     compare: function (x) {
         return function (y) {
@@ -1371,7 +1315,6 @@ var ordBackendOperatorNum = {
         return eqBackendOperatorNum;
     }
 };
-var compare7 = /* #__PURE__ */ Data_Ord.compare(ordBackendOperatorNum);
 var eqBackendOperator2 = {
     eq: function (x) {
         return function (y) {
@@ -1385,10 +1328,10 @@ var eqBackendOperator2 = {
                 return true;
             };
             if (x instanceof OpBooleanOrd && y instanceof OpBooleanOrd) {
-                return eq12(x.value0)(y.value0);
+                return Data_Eq.eq(eqBackendOperatorOrd)(x.value0)(y.value0);
             };
             if (x instanceof OpCharOrd && y instanceof OpCharOrd) {
-                return eq12(x.value0)(y.value0);
+                return Data_Eq.eq(eqBackendOperatorOrd)(x.value0)(y.value0);
             };
             if (x instanceof OpIntBitAnd && y instanceof OpIntBitAnd) {
                 return true;
@@ -1409,28 +1352,27 @@ var eqBackendOperator2 = {
                 return true;
             };
             if (x instanceof OpIntNum && y instanceof OpIntNum) {
-                return eq13(x.value0)(y.value0);
+                return Data_Eq.eq(eqBackendOperatorNum)(x.value0)(y.value0);
             };
             if (x instanceof OpIntOrd && y instanceof OpIntOrd) {
-                return eq12(x.value0)(y.value0);
+                return Data_Eq.eq(eqBackendOperatorOrd)(x.value0)(y.value0);
             };
             if (x instanceof OpNumberNum && y instanceof OpNumberNum) {
-                return eq13(x.value0)(y.value0);
+                return Data_Eq.eq(eqBackendOperatorNum)(x.value0)(y.value0);
             };
             if (x instanceof OpNumberOrd && y instanceof OpNumberOrd) {
-                return eq12(x.value0)(y.value0);
+                return Data_Eq.eq(eqBackendOperatorOrd)(x.value0)(y.value0);
             };
             if (x instanceof OpStringAppend && y instanceof OpStringAppend) {
                 return true;
             };
             if (x instanceof OpStringOrd && y instanceof OpStringOrd) {
-                return eq12(x.value0)(y.value0);
+                return Data_Eq.eq(eqBackendOperatorOrd)(x.value0)(y.value0);
             };
             return false;
         };
     }
 };
-var eq14 = /* #__PURE__ */ Data_Eq.eq(eqBackendOperator2);
 var ordBackendOperator2 = {
     compare: function (x) {
         return function (y) {
@@ -1462,7 +1404,7 @@ var ordBackendOperator2 = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof OpBooleanOrd && y instanceof OpBooleanOrd) {
-                return compare6(x.value0)(y.value0);
+                return Data_Ord.compare(ordBackendOperatorOrd)(x.value0)(y.value0);
             };
             if (x instanceof OpBooleanOrd) {
                 return Data_Ordering.LT.value;
@@ -1471,7 +1413,7 @@ var ordBackendOperator2 = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof OpCharOrd && y instanceof OpCharOrd) {
-                return compare6(x.value0)(y.value0);
+                return Data_Ord.compare(ordBackendOperatorOrd)(x.value0)(y.value0);
             };
             if (x instanceof OpCharOrd) {
                 return Data_Ordering.LT.value;
@@ -1534,7 +1476,7 @@ var ordBackendOperator2 = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof OpIntNum && y instanceof OpIntNum) {
-                return compare7(x.value0)(y.value0);
+                return Data_Ord.compare(ordBackendOperatorNum)(x.value0)(y.value0);
             };
             if (x instanceof OpIntNum) {
                 return Data_Ordering.LT.value;
@@ -1543,7 +1485,7 @@ var ordBackendOperator2 = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof OpIntOrd && y instanceof OpIntOrd) {
-                return compare6(x.value0)(y.value0);
+                return Data_Ord.compare(ordBackendOperatorOrd)(x.value0)(y.value0);
             };
             if (x instanceof OpIntOrd) {
                 return Data_Ordering.LT.value;
@@ -1552,7 +1494,7 @@ var ordBackendOperator2 = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof OpNumberNum && y instanceof OpNumberNum) {
-                return compare7(x.value0)(y.value0);
+                return Data_Ord.compare(ordBackendOperatorNum)(x.value0)(y.value0);
             };
             if (x instanceof OpNumberNum) {
                 return Data_Ordering.LT.value;
@@ -1561,7 +1503,7 @@ var ordBackendOperator2 = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof OpNumberOrd && y instanceof OpNumberOrd) {
-                return compare6(x.value0)(y.value0);
+                return Data_Ord.compare(ordBackendOperatorOrd)(x.value0)(y.value0);
             };
             if (x instanceof OpNumberOrd) {
                 return Data_Ordering.LT.value;
@@ -1579,7 +1521,7 @@ var ordBackendOperator2 = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof OpStringOrd && y instanceof OpStringOrd) {
-                return compare6(x.value0)(y.value0);
+                return Data_Ord.compare(ordBackendOperatorOrd)(x.value0)(y.value0);
             };
             throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 0, column 0 - line 0, column 0): " + [ x.constructor.name, y.constructor.name ]);
         };
@@ -1607,13 +1549,12 @@ var eqBackendOperator1 = {
                 return true;
             };
             if (x instanceof OpIsTag && y instanceof OpIsTag) {
-                return eq(x.value0)(y.value0);
+                return Data_Eq.eq(eqQualified)(x.value0)(y.value0);
             };
             return false;
         };
     }
 };
-var eq15 = /* #__PURE__ */ Data_Eq.eq(eqBackendOperator1);
 var ordBackendOperator1 = {
     compare: function (x) {
         return function (y) {
@@ -1663,7 +1604,7 @@ var ordBackendOperator1 = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof OpIsTag && y instanceof OpIsTag) {
-                return compare(x.value0)(y.value0);
+                return Data_Ord.compare(ordQualified)(x.value0)(y.value0);
             };
             throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 0, column 0 - line 0, column 0): " + [ x.constructor.name, y.constructor.name ]);
         };
@@ -1673,15 +1614,14 @@ var ordBackendOperator1 = {
     }
 };
 var eqBackendOperator = function (dictEq) {
-    var eq17 = Data_Eq.eq(dictEq);
     return {
         eq: function (x) {
             return function (y) {
                 if (x instanceof Op1 && y instanceof Op1) {
-                    return eq15(x.value0)(y.value0) && eq17(x.value1)(y.value1);
+                    return Data_Eq.eq(eqBackendOperator1)(x.value0)(y.value0) && Data_Eq.eq(dictEq)(x.value1)(y.value1);
                 };
                 if (x instanceof Op2 && y instanceof Op2) {
-                    return eq14(x.value0)(y.value0) && eq17(x.value1)(y.value1) && eq17(x.value2)(y.value2);
+                    return Data_Eq.eq(eqBackendOperator2)(x.value0)(y.value0) && Data_Eq.eq(dictEq)(x.value1)(y.value1) && Data_Eq.eq(dictEq)(x.value2)(y.value2);
                 };
                 return false;
             };
@@ -1689,18 +1629,17 @@ var eqBackendOperator = function (dictEq) {
     };
 };
 var eqBackendEffect = function (dictEq) {
-    var eq17 = Data_Eq.eq(dictEq);
     return {
         eq: function (x) {
             return function (y) {
                 if (x instanceof EffectRefNew && y instanceof EffectRefNew) {
-                    return eq17(x.value0)(y.value0);
+                    return Data_Eq.eq(dictEq)(x.value0)(y.value0);
                 };
                 if (x instanceof EffectRefRead && y instanceof EffectRefRead) {
-                    return eq17(x.value0)(y.value0);
+                    return Data_Eq.eq(dictEq)(x.value0)(y.value0);
                 };
                 if (x instanceof EffectRefWrite && y instanceof EffectRefWrite) {
-                    return eq17(x.value0)(y.value0) && eq17(x.value1)(y.value1);
+                    return Data_Eq.eq(dictEq)(x.value0)(y.value0) && Data_Eq.eq(dictEq)(x.value1)(y.value1);
                 };
                 return false;
             };
@@ -1717,89 +1656,87 @@ var eqBackendAccessor = {
                 return x.value0 === y.value0;
             };
             if (x instanceof GetCtorField && y instanceof GetCtorField) {
-                return eq(x.value0)(y.value0) && eq3(x.value1)(y.value1) && eq4(x.value2)(y.value2) && eq5(x.value3)(y.value3) && x.value4 === y.value4 && x.value5 === y.value5;
+                return Data_Eq.eq(eqQualified)(x.value0)(y.value0) && Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqConstructorType)(x.value1)(y.value1) && Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqProperName)(x.value2)(y.value2) && Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqIdent)(x.value3)(y.value3) && x.value4 === y.value4 && x.value5 === y.value5;
             };
             return false;
         };
     }
 };
-var eq16 = /* #__PURE__ */ Data_Eq.eq(eqBackendAccessor);
 var eqBackendSyntax = function (dictEq) {
-    var eq17 = Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqLiteral(dictEq));
-    var eq18 = Data_Eq.eq(dictEq);
-    var eq19 = Data_Eq.eq(Data_Array_NonEmpty_Internal.eqNonEmptyArray(dictEq));
-    var eq20 = Data_Eq.eq(Data_Eq.eqArray(dictEq));
-    var eq21 = Data_Eq.eq(Data_Eq.eqArray(PureScript_Backend_Optimizer_CoreFn.eqProp(dictEq)));
-    var eq22 = Data_Eq.eq(Data_Eq.eqArray(eqTuple(dictEq)));
-    var eq23 = Data_Eq.eq(Data_Array_NonEmpty_Internal.eqNonEmptyArray(eqTuple1(dictEq)));
-    var eq24 = Data_Eq.eq(Data_Array_NonEmpty_Internal.eqNonEmptyArray(eqPair(dictEq)));
-    var eq25 = Data_Eq.eq(eqBackendOperator(dictEq));
-    var eq26 = Data_Eq.eq(eqBackendEffect(dictEq));
+    var eqLiteral = PureScript_Backend_Optimizer_CoreFn.eqLiteral(dictEq);
+    var eqNonEmptyArray1 = Data_Array_NonEmpty_Internal.eqNonEmptyArray(dictEq);
+    var eqArray2 = Data_Eq.eqArray(dictEq);
+    var eqArray3 = Data_Eq.eqArray(PureScript_Backend_Optimizer_CoreFn.eqProp(dictEq));
+    var eqArray4 = Data_Eq.eqArray(eqTuple(dictEq));
+    var eqNonEmptyArray2 = Data_Array_NonEmpty_Internal.eqNonEmptyArray(eqTuple1(dictEq));
+    var eqNonEmptyArray3 = Data_Array_NonEmpty_Internal.eqNonEmptyArray(eqPair(dictEq));
+    var eqBackendOperator3 = eqBackendOperator(dictEq);
+    var eqBackendEffect1 = eqBackendEffect(dictEq);
     return {
         eq: function (x) {
             return function (y) {
                 if (x instanceof Var && y instanceof Var) {
-                    return eq(x.value0)(y.value0);
+                    return Data_Eq.eq(eqQualified)(x.value0)(y.value0);
                 };
                 if (x instanceof Local && y instanceof Local) {
-                    return eq6(x.value0)(y.value0) && eq9(x.value1)(y.value1);
+                    return Data_Eq.eq(eqMaybe)(x.value0)(y.value0) && Data_Eq.eq(eqLevel)(x.value1)(y.value1);
                 };
                 if (x instanceof Lit && y instanceof Lit) {
-                    return eq17(x.value0)(y.value0);
+                    return Data_Eq.eq(eqLiteral)(x.value0)(y.value0);
                 };
                 if (x instanceof App && y instanceof App) {
-                    return eq18(x.value0)(y.value0) && eq19(x.value1)(y.value1);
+                    return Data_Eq.eq(dictEq)(x.value0)(y.value0) && Data_Eq.eq(eqNonEmptyArray1)(x.value1)(y.value1);
                 };
                 if (x instanceof Abs && y instanceof Abs) {
-                    return eq10(x.value0)(y.value0) && eq18(x.value1)(y.value1);
+                    return Data_Eq.eq(eqNonEmptyArray)(x.value0)(y.value0) && Data_Eq.eq(dictEq)(x.value1)(y.value1);
                 };
                 if (x instanceof UncurriedApp && y instanceof UncurriedApp) {
-                    return eq18(x.value0)(y.value0) && eq20(x.value1)(y.value1);
+                    return Data_Eq.eq(dictEq)(x.value0)(y.value0) && Data_Eq.eq(eqArray2)(x.value1)(y.value1);
                 };
                 if (x instanceof UncurriedAbs && y instanceof UncurriedAbs) {
-                    return eq11(x.value0)(y.value0) && eq18(x.value1)(y.value1);
+                    return Data_Eq.eq(eqArray1)(x.value0)(y.value0) && Data_Eq.eq(dictEq)(x.value1)(y.value1);
                 };
                 if (x instanceof UncurriedEffectApp && y instanceof UncurriedEffectApp) {
-                    return eq18(x.value0)(y.value0) && eq20(x.value1)(y.value1);
+                    return Data_Eq.eq(dictEq)(x.value0)(y.value0) && Data_Eq.eq(eqArray2)(x.value1)(y.value1);
                 };
                 if (x instanceof UncurriedEffectAbs && y instanceof UncurriedEffectAbs) {
-                    return eq11(x.value0)(y.value0) && eq18(x.value1)(y.value1);
+                    return Data_Eq.eq(eqArray1)(x.value0)(y.value0) && Data_Eq.eq(dictEq)(x.value1)(y.value1);
                 };
                 if (x instanceof Accessor && y instanceof Accessor) {
-                    return eq18(x.value0)(y.value0) && eq16(x.value1)(y.value1);
+                    return Data_Eq.eq(dictEq)(x.value0)(y.value0) && Data_Eq.eq(eqBackendAccessor)(x.value1)(y.value1);
                 };
                 if (x instanceof Update && y instanceof Update) {
-                    return eq18(x.value0)(y.value0) && eq21(x.value1)(y.value1);
+                    return Data_Eq.eq(dictEq)(x.value0)(y.value0) && Data_Eq.eq(eqArray3)(x.value1)(y.value1);
                 };
                 if (x instanceof CtorSaturated && y instanceof CtorSaturated) {
-                    return eq(x.value0)(y.value0) && eq3(x.value1)(y.value1) && eq4(x.value2)(y.value2) && eq5(x.value3)(y.value3) && eq22(x.value4)(y.value4);
+                    return Data_Eq.eq(eqQualified)(x.value0)(y.value0) && Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqConstructorType)(x.value1)(y.value1) && Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqProperName)(x.value2)(y.value2) && Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqIdent)(x.value3)(y.value3) && Data_Eq.eq(eqArray4)(x.value4)(y.value4);
                 };
                 if (x instanceof CtorDef && y instanceof CtorDef) {
-                    return eq3(x.value0)(y.value0) && eq4(x.value1)(y.value1) && eq5(x.value2)(y.value2) && eq7(x.value3)(y.value3);
+                    return Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqConstructorType)(x.value0)(y.value0) && Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqProperName)(x.value1)(y.value1) && Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqIdent)(x.value2)(y.value2) && Data_Eq.eq(eqArray)(x.value3)(y.value3);
                 };
                 if (x instanceof LetRec && y instanceof LetRec) {
-                    return eq9(x.value0)(y.value0) && eq23(x.value1)(y.value1) && eq18(x.value2)(y.value2);
+                    return Data_Eq.eq(eqLevel)(x.value0)(y.value0) && Data_Eq.eq(eqNonEmptyArray2)(x.value1)(y.value1) && Data_Eq.eq(dictEq)(x.value2)(y.value2);
                 };
                 if (x instanceof Let && y instanceof Let) {
-                    return eq6(x.value0)(y.value0) && eq9(x.value1)(y.value1) && eq18(x.value2)(y.value2) && eq18(x.value3)(y.value3);
+                    return Data_Eq.eq(eqMaybe)(x.value0)(y.value0) && Data_Eq.eq(eqLevel)(x.value1)(y.value1) && Data_Eq.eq(dictEq)(x.value2)(y.value2) && Data_Eq.eq(dictEq)(x.value3)(y.value3);
                 };
                 if (x instanceof EffectBind && y instanceof EffectBind) {
-                    return eq6(x.value0)(y.value0) && eq9(x.value1)(y.value1) && eq18(x.value2)(y.value2) && eq18(x.value3)(y.value3);
+                    return Data_Eq.eq(eqMaybe)(x.value0)(y.value0) && Data_Eq.eq(eqLevel)(x.value1)(y.value1) && Data_Eq.eq(dictEq)(x.value2)(y.value2) && Data_Eq.eq(dictEq)(x.value3)(y.value3);
                 };
                 if (x instanceof EffectPure && y instanceof EffectPure) {
-                    return eq18(x.value0)(y.value0);
+                    return Data_Eq.eq(dictEq)(x.value0)(y.value0);
                 };
                 if (x instanceof EffectDefer && y instanceof EffectDefer) {
-                    return eq18(x.value0)(y.value0);
+                    return Data_Eq.eq(dictEq)(x.value0)(y.value0);
                 };
                 if (x instanceof Branch && y instanceof Branch) {
-                    return eq24(x.value0)(y.value0) && eq18(x.value1)(y.value1);
+                    return Data_Eq.eq(eqNonEmptyArray3)(x.value0)(y.value0) && Data_Eq.eq(dictEq)(x.value1)(y.value1);
                 };
                 if (x instanceof PrimOp && y instanceof PrimOp) {
-                    return eq25(x.value0)(y.value0);
+                    return Data_Eq.eq(eqBackendOperator3)(x.value0)(y.value0);
                 };
                 if (x instanceof PrimEffect && y instanceof PrimEffect) {
-                    return eq26(x.value0)(y.value0);
+                    return Data_Eq.eq(eqBackendEffect1)(x.value0)(y.value0);
                 };
                 if (x instanceof PrimUndefined && y instanceof PrimUndefined) {
                     return true;
@@ -1808,7 +1745,7 @@ var eqBackendSyntax = function (dictEq) {
                     return x.value0 === y.value0;
                 };
                 if (x instanceof Typed && y instanceof Typed) {
-                    return eq8(x.value0)(y.value0) && eq18(x.value1)(y.value1);
+                    return Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqExprType)(x.value0)(y.value0) && Data_Eq.eq(dictEq)(x.value1)(y.value1);
                 };
                 return false;
             };
@@ -1819,7 +1756,7 @@ var ordBackendAccessor = {
     compare: function (x) {
         return function (y) {
             if (x instanceof GetProp && y instanceof GetProp) {
-                return compare1(x.value0)(y.value0);
+                return Data_Ord.compare(Data_Ord.ordString)(x.value0)(y.value0);
             };
             if (x instanceof GetProp) {
                 return Data_Ordering.LT.value;
@@ -1828,7 +1765,7 @@ var ordBackendAccessor = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof GetIndex && y instanceof GetIndex) {
-                return compare2(x.value0)(y.value0);
+                return Data_Ord.compare(Data_Ord.ordInt)(x.value0)(y.value0);
             };
             if (x instanceof GetIndex) {
                 return Data_Ordering.LT.value;
@@ -1837,42 +1774,42 @@ var ordBackendAccessor = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof GetCtorField && y instanceof GetCtorField) {
-                var v = compare(x.value0)(y.value0);
+                var v = Data_Ord.compare(ordQualified)(x.value0)(y.value0);
                 if (v instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
                 if (v instanceof Data_Ordering.GT) {
                     return Data_Ordering.GT.value;
                 };
-                var v1 = compare3(x.value1)(y.value1);
+                var v1 = Data_Ord.compare(PureScript_Backend_Optimizer_CoreFn.ordConstructorType)(x.value1)(y.value1);
                 if (v1 instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
                 if (v1 instanceof Data_Ordering.GT) {
                     return Data_Ordering.GT.value;
                 };
-                var v2 = compare4(x.value2)(y.value2);
+                var v2 = Data_Ord.compare(PureScript_Backend_Optimizer_CoreFn.ordProperName)(x.value2)(y.value2);
                 if (v2 instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
                 if (v2 instanceof Data_Ordering.GT) {
                     return Data_Ordering.GT.value;
                 };
-                var v3 = compare5(x.value3)(y.value3);
+                var v3 = Data_Ord.compare(PureScript_Backend_Optimizer_CoreFn.ordIdent)(x.value3)(y.value3);
                 if (v3 instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
                 if (v3 instanceof Data_Ordering.GT) {
                     return Data_Ordering.GT.value;
                 };
-                var v4 = compare1(x.value4)(y.value4);
+                var v4 = Data_Ord.compare(Data_Ord.ordString)(x.value4)(y.value4);
                 if (v4 instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
                 if (v4 instanceof Data_Ordering.GT) {
                     return Data_Ordering.GT.value;
                 };
-                return compare2(x.value5)(y.value5);
+                return Data_Ord.compare(Data_Ord.ordInt)(x.value5)(y.value5);
             };
             throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 0, column 0 - line 0, column 0): " + [ x.constructor.name, y.constructor.name ]);
         };

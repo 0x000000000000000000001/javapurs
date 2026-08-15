@@ -30,19 +30,7 @@ import * as PureScript_Backend_Optimizer_CoreFn_Json from "../PureScript.Backend
 import * as PureScript_Backend_Optimizer_CoreFn_Sort from "../PureScript.Backend.Optimizer.CoreFn.Sort/index.js";
 import * as PureScript_Backend_Optimizer_Directives from "../PureScript.Backend.Optimizer.Directives/index.js";
 import * as PureScript_Backend_Optimizer_Directives_Defaults from "../PureScript.Backend.Optimizer.Directives.Defaults/index.js";
-var bind = /* #__PURE__ */ Control_Bind.bind(Effect_Aff.bindAff);
-var bind1 = /* #__PURE__ */ Control_Bind.bind(Data_Either.bindEither);
-var lmap = /* #__PURE__ */ Data_Bifunctor.lmap(Data_Bifunctor.bifunctorEither);
-var discard = /* #__PURE__ */ Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff);
 var liftEffect = /* #__PURE__ */ Effect_Class.liftEffect(Effect_Aff.monadEffectAff);
-var pure = /* #__PURE__ */ Control_Applicative.pure(Effect_Aff.applicativeAff);
-var show = /* #__PURE__ */ Data_Show.show(Effect_Exception.showError);
-var elemIndex = /* #__PURE__ */ Data_Array.elemIndex(Data_Eq.eqString);
-var filterA = /* #__PURE__ */ Data_Array.filterA(Effect_Aff.applicativeAff);
-var traverse = /* #__PURE__ */ Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect_Aff.applicativeAff);
-var fromFoldable = /* #__PURE__ */ Data_List.fromFoldable(Data_Foldable.foldableArray);
-var sortModules = /* #__PURE__ */ PureScript_Backend_Optimizer_CoreFn_Sort.sortModules(Data_List_Types.foldableList);
-var greaterThanOrEq = /* #__PURE__ */ Data_Ord.greaterThanOrEq(Data_Time_Duration.ordMilliseconds);
 var writeCache = function (version) {
     return function (cachePath) {
         return function (backendMod) {
@@ -51,43 +39,43 @@ var writeCache = function (version) {
     };
 };
 var readCoreFnModule = function (filePath) {
-    return bind(Effect_Aff.attempt(Node_FS_Aff.stat(filePath)))(function (statRes) {
+    return Control_Bind.bind(Effect_Aff.bindAff)(Effect_Aff.attempt(Node_FS_Aff.stat(filePath)))(function (statRes) {
         if (statRes instanceof Data_Either.Right) {
-            var $23 = Node_FS_Stats.isFile(statRes.value0);
-            if ($23) {
-                return bind(Node_FS_Aff.readTextFile(Node_Encoding.UTF8.value)(filePath))(function (contents) {
-                    var v = bind1(Data_Argonaut_Parser.jsonParser(contents))((function () {
-                        var $36 = lmap(Data_Argonaut_Decode_Error.printJsonDecodeError);
-                        return function ($37) {
-                            return $36(PureScript_Backend_Optimizer_CoreFn_Json.decodeModule($37));
+            var $4 = Node_FS_Stats.isFile(statRes.value0);
+            if ($4) {
+                return Control_Bind.bind(Effect_Aff.bindAff)(Node_FS_Aff.readTextFile(Node_Encoding.UTF8.value)(filePath))(function (contents) {
+                    var v = Control_Bind.bind(Data_Either.bindEither)(Data_Argonaut_Parser.jsonParser(contents))((function () {
+                        var $17 = Data_Bifunctor.lmap(Data_Bifunctor.bifunctorEither)(Data_Argonaut_Decode_Error.printJsonDecodeError);
+                        return function ($18) {
+                            return $17(PureScript_Backend_Optimizer_CoreFn_Json.decodeModule($18));
                         };
                     })());
                     if (v instanceof Data_Either.Left) {
-                        return discard(liftEffect(Effect_Console.error("Failed to decode " + (filePath + (": " + v.value0)))))(function () {
-                            return pure(Data_Maybe.Nothing.value);
+                        return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(liftEffect(Effect_Console.error("Failed to decode " + (filePath + (": " + v.value0)))))(function () {
+                            return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
                         });
                     };
                     if (v instanceof Data_Either.Right) {
-                        return pure(new Data_Maybe.Just(v.value0));
+                        return Control_Applicative.pure(Effect_Aff.applicativeAff)(new Data_Maybe.Just(v.value0));
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 46, column 9 - line 50, column 39): " + [ v.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 47, column 9 - line 51, column 39): " + [ v.constructor.name ]);
                 });
             };
-            return pure(Data_Maybe.Nothing.value);
+            return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
         };
         if (statRes instanceof Data_Either.Left) {
-            var errStr = show(statRes.value0);
-            return discard((function () {
-                var $28 = Data_String_CodeUnits.contains("ENOENT")(errStr);
-                if ($28) {
-                    return pure(Data_Unit.unit);
+            var errStr = Data_Show.show(Effect_Exception.showError)(statRes.value0);
+            return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)((function () {
+                var $9 = Data_String_CodeUnits.contains("ENOENT")(errStr);
+                if ($9) {
+                    return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Unit.unit);
                 };
                 return liftEffect(Effect_Console.error("Failed to stat " + (filePath + (": " + errStr))));
             })())(function () {
-                return pure(Data_Maybe.Nothing.value);
+                return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
             });
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 42, column 3 - line 57, column 19): " + [ statRes.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 43, column 3 - line 59, column 19): " + [ statRes.constructor.name ]);
     });
 };
 var parseCLIArgs = function (argsRaw) {
@@ -95,21 +83,21 @@ var parseCLIArgs = function (argsRaw) {
         return Data_String_Common.split(" ")(s);
     })(argsRaw);
     var getArg = function (key) {
-        var v = elemIndex(key)(args);
+        var v = Data_Array.elemIndex(Data_Eq.eqString)(key)(args);
         if (v instanceof Data_Maybe.Just) {
             return Data_Array.index(args)(v.value0 + 1 | 0);
         };
         if (v instanceof Data_Maybe.Nothing) {
             return Data_Maybe.Nothing.value;
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 87, column 18 - line 89, column 25): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 89, column 18 - line 91, column 25): " + [ v.constructor.name ]);
     };
     return {
         mbMainModule: getArg("--main"),
         mbAutoloadPath: getArg("--autoload-path"),
         mbFfiDir: getArg("--ffi"),
         mbOutputDir: getArg("--output"),
-        bundle: Data_Maybe.isJust(elemIndex("--bundle")(args))
+        bundle: Data_Maybe.isJust(Data_Array.elemIndex(Data_Eq.eqString)("--bundle")(args))
     };
 };
 var parse = function (version) {
@@ -117,23 +105,23 @@ var parse = function (version) {
 };
 var loadDirectives = /* #__PURE__ */ (function () {
     var parsedDirectives = PureScript_Backend_Optimizer_Directives.parseDirectiveFile(PureScript_Backend_Optimizer_Directives_Defaults.defaultDirectives);
-    return discard(Control_Applicative.when(Effect_Aff.applicativeAff)(!Data_Array["null"](parsedDirectives.errors))(liftEffect(Effect_Console.log("DIRECTIVE PARSE ERRORS"))))(function () {
-        return pure(parsedDirectives.directives);
+    return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(Control_Applicative.when(Effect_Aff.applicativeAff)(!Data_Array["null"](parsedDirectives.errors))(liftEffect(Effect_Console.log("DIRECTIVE PARSE ERRORS"))))(function () {
+        return Control_Applicative.pure(Effect_Aff.applicativeAff)(parsedDirectives.directives);
     });
 })();
 var coreFnModulesFromOutput = function (outputDir) {
-    return bind(Node_FS_Aff.readdir(outputDir))(function (files) {
-        return bind(filterA(function (f) {
-            return bind(Node_FS_Aff.stat(outputDir + ("/" + f)))(function (stat) {
-                return pure(Node_FS_Stats.isDirectory(stat));
+    return Control_Bind.bind(Effect_Aff.bindAff)(Node_FS_Aff.readdir(outputDir))(function (files) {
+        return Control_Bind.bind(Effect_Aff.bindAff)(Data_Array.filterA(Effect_Aff.applicativeAff)(function (f) {
+            return Control_Bind.bind(Effect_Aff.bindAff)(Node_FS_Aff.stat(outputDir + ("/" + f)))(function (stat) {
+                return Control_Applicative.pure(Effect_Aff.applicativeAff)(Node_FS_Stats.isDirectory(stat));
             });
         })(files))(function (validDirs) {
-            return bind(traverse(function (dir) {
+            return Control_Bind.bind(Effect_Aff.bindAff)(Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect_Aff.applicativeAff)(function (dir) {
                 return readCoreFnModule(outputDir + ("/" + (dir + "/corefn.json")));
             })(validDirs))(function (mbModules) {
                 var modulesArray = Data_Array.catMaybes(mbModules);
-                var modulesList = fromFoldable(modulesArray);
-                return pure(sortModules(modulesList));
+                var modulesList = Data_List.fromFoldable(Data_Foldable.foldableArray)(modulesArray);
+                return Control_Applicative.pure(Effect_Aff.applicativeAff)(PureScript_Backend_Optimizer_CoreFn_Sort.sortModules(Data_List_Types.foldableList)(modulesList));
             });
         });
     });
@@ -141,14 +129,14 @@ var coreFnModulesFromOutput = function (outputDir) {
 var checkCache = function (version) {
     return function (corefnPath) {
         return function (cachePath) {
-            return bind(Effect_Aff.attempt(Node_FS_Aff.stat(corefnPath)))(function (corefnStatRes) {
-                return bind(Effect_Aff.attempt(Node_FS_Aff.stat(cachePath)))(function (cacheStatRes) {
-                    if (corefnStatRes instanceof Data_Either.Right && (cacheStatRes instanceof Data_Either.Right && greaterThanOrEq(Node_FS_Stats.modifiedTimeMs(cacheStatRes.value0))(Node_FS_Stats.modifiedTimeMs(corefnStatRes.value0)))) {
-                        return bind(Node_FS_Aff.readTextFile(Node_Encoding.UTF8.value)(cachePath))(function (cacheContent) {
-                            return pure(parse(version)(cacheContent));
+            return Control_Bind.bind(Effect_Aff.bindAff)(Effect_Aff.attempt(Node_FS_Aff.stat(corefnPath)))(function (corefnStatRes) {
+                return Control_Bind.bind(Effect_Aff.bindAff)(Effect_Aff.attempt(Node_FS_Aff.stat(cachePath)))(function (cacheStatRes) {
+                    if (corefnStatRes instanceof Data_Either.Right && (cacheStatRes instanceof Data_Either.Right && Data_Ord.greaterThanOrEq(Data_Time_Duration.ordMilliseconds)(Node_FS_Stats.modifiedTimeMs(cacheStatRes.value0))(Node_FS_Stats.modifiedTimeMs(corefnStatRes.value0)))) {
+                        return Control_Bind.bind(Effect_Aff.bindAff)(Node_FS_Aff.readTextFile(Node_Encoding.UTF8.value)(cachePath))(function (cacheContent) {
+                            return Control_Applicative.pure(Effect_Aff.applicativeAff)(parse(version)(cacheContent));
                         });
                     };
-                    return pure(Data_Maybe.Nothing.value);
+                    return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
                 });
             });
         };
