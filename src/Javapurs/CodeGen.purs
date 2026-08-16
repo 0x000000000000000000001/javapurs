@@ -411,8 +411,8 @@ translateOperator2 _ op e1 e2 = case op of
   OpIntNum OpSubtract -> JavaBinaryOp "-" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
   OpIntNum OpMultiply -> JavaBinaryOp "*" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
   OpIntNum OpDivide -> JavaBinaryOp "/" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
-  OpIntOrd OpEq -> JavaBinaryOp "==" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
-  OpIntOrd OpNotEq -> JavaBinaryOp "!=" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
+  OpIntOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
+  OpIntOrd OpNotEq -> JavaRaw ("!(" <> printExpr (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]) <> ")")
   OpIntOrd OpGt -> JavaBinaryOp ">" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
   OpIntOrd OpGte -> JavaBinaryOp ">=" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
   OpIntOrd OpLt -> JavaBinaryOp "<" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
@@ -421,8 +421,8 @@ translateOperator2 _ op e1 e2 = case op of
   OpNumberNum OpSubtract -> JavaBinaryOp "-" (JavaCast "Double" e1) (JavaCast "Double" e2)
   OpNumberNum OpMultiply -> JavaBinaryOp "*" (JavaCast "Double" e1) (JavaCast "Double" e2)
   OpNumberNum OpDivide -> JavaBinaryOp "/" (JavaCast "Double" e1) (JavaCast "Double" e2)
-  OpNumberOrd OpEq -> JavaBinaryOp "==" (JavaCast "Double" e1) (JavaCast "Double" e2)
-  OpNumberOrd OpNotEq -> JavaBinaryOp "!=" (JavaCast "Double" e1) (JavaCast "Double" e2)
+  OpNumberOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
+  OpNumberOrd OpNotEq -> JavaRaw ("!(" <> printExpr (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]) <> ")")
   OpNumberOrd OpGt -> JavaBinaryOp ">" (JavaCast "Double" e1) (JavaCast "Double" e2)
   OpNumberOrd OpGte -> JavaBinaryOp ">=" (JavaCast "Double" e1) (JavaCast "Double" e2)
   OpNumberOrd OpLt -> JavaBinaryOp "<" (JavaCast "Double" e1) (JavaCast "Double" e2)
