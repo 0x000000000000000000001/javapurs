@@ -65,6 +65,8 @@ translateExprWith inEffectBlock modName loopCtx isTail tcoExpr@(TcoExpr tcoAnaly
         let targetCtx = case unwrapTcoExpr flat.fn of
              Local (Just (Ident fnName)) (Level lvl) ->
                Array.find (\c -> c.ident == localId (Just (Ident fnName)) (Level lvl)) loopCtx
+             Var (Qualified _ (Ident fnName)) ->
+               Array.find (\c -> c.ident == sanitizeName fnName) loopCtx
              _ -> Nothing
         in case targetCtx of
           Just ctx ->
@@ -85,6 +87,8 @@ translateExprWith inEffectBlock modName loopCtx isTail tcoExpr@(TcoExpr tcoAnaly
         let targetCtx = case unwrapTcoExpr flat.fn of
              Local (Just (Ident fnName)) (Level lvl) ->
                Array.find (\c -> c.ident == localId (Just (Ident fnName)) (Level lvl)) loopCtx
+             Var (Qualified _ (Ident fnName)) ->
+               Array.find (\c -> c.ident == sanitizeName fnName) loopCtx
              _ -> Nothing
         in case targetCtx of
           Just ctx ->
@@ -240,19 +244,19 @@ translateExprWith inEffectBlock modName loopCtx isTail tcoExpr@(TcoExpr tcoAnaly
         in { cStmts: rc.stmts, cExpr: rc.expr, vStmts: rv.stmts, vExpr: rv.expr }
       ) cases)
       
-      buildTernary :: Array { cStmts :: Array JavaExpr, cExpr :: JavaExpr, vStmts :: Array JavaExpr, vExpr :: JavaExpr } -> JavaExpr -> JavaExpr
-      buildTernary [] d = d
-      buildTernary arr d =
+      buildTernary :: Array { cStmts :: Array JavaExpr, cExpr :: JavaExpr, vStmts :: Array JavaExpr, vExpr :: JavaExpr } -> { stmts :: Array JavaExpr, expr :: JavaExpr } -> JavaExpr
+      buildTernary [] defRes = wrapInBlock defRes
+      buildTernary arr defRes =
         case Array.uncons arr of
           Just { head, tail } ->
-            let restTernary = buildTernary tail d
+            let restTernary = buildTernary tail defRes
             in if Array.length head.cStmts > 0 || Array.length head.vStmts > 0 then
                  JavaBlock head.cStmts (JavaTernary head.cExpr (wrapInBlock { stmts: head.vStmts, expr: head.vExpr }) restTernary)
                else
                  JavaTernary head.cExpr head.vExpr restTernary
-          Nothing -> d
+          Nothing -> wrapInBlock defRes
           
-    in { stmts: resDef.stmts, expr: buildTernary mappedArgs resDef.expr }
+    in { stmts: [], expr: buildTernary mappedArgs resDef }
   PrimOp op -> case op of
     Op1 op1 e -> 
       let resExpr = wrapInBlock (translateExpr modName loopCtx false e)
