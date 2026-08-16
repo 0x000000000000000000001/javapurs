@@ -16,6 +16,7 @@ import PureScript.Backend.Optimizer.Codegen.Tco as Tco
 import Javapurs.JavaAst (JavaExpr(..), JavaFile)
 import Javapurs.Printer (printExpr)
 import PureScript.Backend.Optimizer.Convert (BackendModule)
+import Debug as Debug
 import PureScript.Backend.Optimizer.CoreFn (Ident(..), Prop(..), Qualified(..), ModuleName(..), Module(..), Literal(..))
 import Data.String as String
 
@@ -32,7 +33,16 @@ wrapInBlock res =
   else JavaBlock res.stmts res.expr
 
 translateExpr :: String -> Array LoopCtx -> Boolean -> TcoExpr -> TransRes
-translateExpr modName loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis syntax) = case syntax of
+translateExpr modName loopCtx isTail tcoExpr =
+  translateExprWith false modName loopCtx isTail tcoExpr
+
+translateExprWith :: Boolean -> String -> Array LoopCtx -> Boolean -> TcoExpr -> TransRes
+translateExprWith inEffectBlock modName loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis syntax) =
+  let isEff = isEffectNode tcoExpr
+  in if isEff && not inEffectBlock then
+    let res = translateExprWith true modName loopCtx false tcoExpr
+    in pureExpr $ JavaAbs [] (wrapInBlock res)
+  else case syntax of
   Lit lit -> case lit of
     LitInt n -> pureExpr $ JavaRaw (show n)
     LitNumber n -> pureExpr $ JavaRaw (show n)
@@ -90,12 +100,20 @@ translateExpr modName loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis syntax) = case
       resFnExpr = wrapInBlock (translateExpr modName loopCtx false fn)
       argsExprs = map (\a -> wrapInBlock (translateExpr modName loopCtx false a)) (Array.fromFoldable args)
     in pureExpr $ foldl JavaApply resFnExpr argsExprs
+  UncurriedAbs args body ->
+    let
+      argsArray = map (\(Tuple mbI lvl) -> localId mbI lvl) args
+      resBody = translateExprWith inEffectBlock modName [] true body
+    in
+      if inEffectBlock && Array.length args == 0 then resBody
+      else pureExpr $ JavaAbs argsArray (wrapInBlock resBody)
   UncurriedEffectAbs args expr ->
     let
       argsArray = map (\(Tuple mbI lvl) -> localId mbI lvl) (Array.fromFoldable args)
-      resBody = translateExpr modName [] true expr
+      resBody = translateExprWith inEffectBlock modName [] true expr
     in
-      pureExpr $ JavaAbs argsArray (wrapInBlock resBody)
+      if inEffectBlock && Array.length args == 0 then resBody
+      else pureExpr $ JavaAbs argsArray (wrapInBlock resBody)
   Local mbIdent (Level lvl) ->
     let
       varName = localId mbIdent (Level lvl)
@@ -116,7 +134,7 @@ translateExpr modName loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis syntax) = case
       resValExpr = wrapInBlock (translateExpr modName loopCtx false val)
       varName = localId mbI lvl
       assignStmt = JavaLocalAssign varName resValExpr
-      resBody = translateExpr modName loopCtx isTail body
+      resBody = translateExprWith inEffectBlock modName loopCtx isTail body
     in { stmts: [assignStmt] <> resBody.stmts, expr: resBody.expr }
   LetRec lvl binds body ->
     let
@@ -135,33 +153,38 @@ translateExpr modName loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis syntax) = case
                   loopBody = translateExpr modName [newLoopCtx] true abs.body
                   funcBody = JavaWhileTrue abs.args (wrapInBlock loopBody)
                 in
-                  let resBody = translateExpr modName loopCtx isTail body
+                  let resBody = translateExprWith inEffectBlock modName loopCtx isTail body
                   in { stmts: [JavaLocalAssign javaName (JavaAbs abs.args funcBody)] <> resBody.stmts, expr: resBody.expr }
               Nothing ->
                 let
                   bindsArray = map (\(Tuple (Ident n) v) -> Tuple (localId (Just (Ident n)) lvl) (wrapInBlock (translateExpr modName loopCtx false v))) (Array.fromFoldable binds)
-                  resBody = translateExpr modName loopCtx isTail body
+                  resBody = translateExprWith inEffectBlock modName loopCtx isTail body
                 in { stmts: [JavaLetRec bindsArray (wrapInBlock resBody)], expr: JavaRaw "null" }
           Nothing -> pureExpr $ JavaRaw "null"
       else
         let
           bindsArray = map (\(Tuple (Ident name) val) -> Tuple (localId (Just (Ident name)) lvl) (wrapInBlock (translateExpr modName loopCtx false val))) (Array.fromFoldable binds)
-          resBody = translateExpr modName loopCtx isTail body
+          resBody = translateExprWith inEffectBlock modName loopCtx isTail body
         in pureExpr $ JavaLetRec bindsArray (wrapInBlock resBody)
   EffectPure val -> translateExpr modName loopCtx isTail val
-  EffectDefer val -> translateExpr modName loopCtx false val
+  EffectDefer val -> translateExprWith inEffectBlock modName loopCtx true val
   EffectBind mbI lvl expr rest ->
     let
-      resExprExpr = wrapInBlock (translateExpr modName loopCtx false expr)
+      realExpr = stripEffectDefer expr
+      realRest = stripEffectAbs rest
+      resExprExpr = wrapInBlock (translateExprWith true modName loopCtx false realExpr)
       varName = localId mbI lvl
       executedExpr =
-        if isEffectNode expr then resExprExpr
+        if isEffectNode realExpr then resExprExpr
         else JavaCall (JavaPropertyAccess resExprExpr "java.util.function.Supplier" "get") []
       assignStmt = JavaLocalAssign varName executedExpr
-      resRest = translateExpr modName loopCtx isTail rest
-    in { stmts: Array.cons assignStmt resRest.stmts, expr: resRest.expr }
+      resRest = translateExprWith true modName loopCtx isTail realRest
+      executedRestExpr =
+        if isEffectNode realRest then resRest.expr
+        else JavaCall (JavaPropertyAccess resRest.expr "java.util.function.Supplier" "get") []
+    in { stmts: Array.cons assignStmt resRest.stmts, expr: executedRestExpr }
   Fail msg -> pureExpr $ JavaThrow msg
-  Typed _ expr -> translateExpr modName loopCtx isTail expr
+  Typed _ expr -> translateExprWith inEffectBlock modName loopCtx isTail expr
   CtorSaturated (Qualified mbMod _) _ _ (Ident ctorName) args ->
     let
       safeCtorName = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") ctorName
@@ -277,6 +300,36 @@ isEffectNode expr = case unwrapTcoExpr expr of
   Let _ _ _ body -> isEffectNode body
   LetRec _ _ body -> isEffectNode body
   _ -> false
+
+stripEffectDefer :: TcoExpr -> TcoExpr
+stripEffectDefer expr@(TcoExpr a syn) = case unwrapTcoExpr expr of
+  EffectDefer inner -> stripEffectDefer inner
+  Abs _ inner -> stripEffectDefer inner
+  Let ident lvl val body -> TcoExpr a (Let ident lvl val (stripEffectDefer body))
+  LetRec lvl bindings body -> TcoExpr a (LetRec lvl bindings (stripEffectDefer body))
+  _ -> expr
+
+stripEffectAbs :: TcoExpr -> TcoExpr
+stripEffectAbs expr@(TcoExpr a syn) =
+  let unwrapped = unwrapTcoExpr expr
+  in case unwrapped of
+  UncurriedEffectAbs [] body -> stripEffectAbs body
+  UncurriedAbs [] body -> stripEffectAbs body
+  Abs args body ->
+    if Array.length (Array.fromFoldable args) == 1 then
+      case Array.head (Array.fromFoldable args) of
+        Just (Tuple Nothing _) -> stripEffectAbs body
+        Just (Tuple (Just (Ident name)) _) ->
+           let _ = Debug.trace ("STRIP_EFFECT_ABS SAW IDENT: " <> name) (\_ -> unit)
+           in if name == "$__unused" then stripEffectAbs body else expr
+        _ -> expr
+    else expr
+  EffectDefer body -> stripEffectAbs body
+  Let ident lvl val body -> TcoExpr a (Let ident lvl val (stripEffectAbs body))
+  LetRec lvl bindings body -> TcoExpr a (LetRec lvl bindings (stripEffectAbs body))
+  _ -> case syn of
+    Typed t inner -> TcoExpr a (Typed t (stripEffectAbs inner))
+    _ -> expr
 
 extractUncurriedAbs :: TcoExpr -> Maybe { args :: Array String, body :: TcoExpr }
 extractUncurriedAbs (TcoExpr _ syntax) = case syntax of
@@ -440,6 +493,6 @@ sanitizeName :: String -> String
 sanitizeName n =
   let
     n' = String.replaceAll (String.Pattern "$") (String.Replacement "") (String.replaceAll (String.Pattern "'") (String.Replacement "$prime") n)
-    isKeyword x = x == "void" || x == "class" || x == "return" || x == "const" || x == "new" || x == "throw" || x == "catch" || x == "try" || x == "if" || x == "else" || x == "while" || x == "for" || x == "do" || x == "switch" || x == "case" || x == "default" || x == "break" || x == "continue" || x == "boolean" || x == "byte" || x == "char" || x == "short" || x == "int" || x == "long" || x == "float" || x == "double" || x == "true" || x == "false" || x == "null" || x == "this" || x == "super" || x == "instanceof" || x == "public" || x == "protected" || x == "private" || x == "static" || x == "final" || x == "abstract" || x == "interface" || x == "implements" || x == "extends" || x == "package" || x == "import" || x == "throws" || x == "enum" || x == "assert" || x == "strictfp" || x == "native" || x == "synchronized" || x == "transient" || x == "volatile"
+    isKeyword x = x == "void" || x == "class" || x == "return" || x == "const" || x == "new" || x == "throw" || x == "catch" || x == "try" || x == "finally" || x == "if" || x == "else" || x == "while" || x == "for" || x == "do" || x == "switch" || x == "case" || x == "default" || x == "break" || x == "continue" || x == "boolean" || x == "byte" || x == "char" || x == "short" || x == "int" || x == "long" || x == "float" || x == "double" || x == "true" || x == "false" || x == "null" || x == "this" || x == "super" || x == "instanceof" || x == "public" || x == "protected" || x == "private" || x == "static" || x == "final" || x == "abstract" || x == "interface" || x == "implements" || x == "extends" || x == "package" || x == "import" || x == "throws" || x == "enum" || x == "assert" || x == "strictfp" || x == "native" || x == "synchronized" || x == "transient" || x == "volatile"
   in
     if isKeyword n' then "$" <> n' else n'

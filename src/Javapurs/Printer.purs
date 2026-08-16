@@ -7,6 +7,8 @@ import Data.String.CodeUnits as StringCodeUnits
 import Data.Maybe (Maybe(..))
 import Data.Array as Array
 import Data.Tuple (Tuple(..))
+import Data.Char as Char
+import Data.Int as Int
 import Javapurs.JavaAst (JavaExpr(..), JavaFile)
 
 
@@ -18,7 +20,16 @@ escapeJavaString s =
     escapeChar '\n' = "\\n"
     escapeChar '\r' = "\\r"
     escapeChar '\t' = "\\t"
-    escapeChar c = StringCodeUnits.singleton c
+    escapeChar c =
+      let code = Char.toCharCode c
+      in if code >= 32 && code <= 126 then StringCodeUnits.singleton c
+         else
+           let hex = Int.toStringAs Int.hexadecimal code
+               pad = if String.length hex == 1 then "000"
+                     else if String.length hex == 2 then "00"
+                     else if String.length hex == 3 then "0"
+                     else ""
+           in "\\u" <> pad <> hex
   in
     String.joinWith "" (map escapeChar (StringCodeUnits.toCharArray s))
 
@@ -48,15 +59,18 @@ printExpr = case _ of
       Nothing -> name
   JavaLocal name -> name
   JavaAbs args body ->
-    let
-      printAbsBody b = case b of
-        JavaBlock stmts expr -> "{ " <> String.joinWith " " (map printExpr stmts) <> " return " <> printExpr expr <> "; }"
-        _ -> printExpr b
-    in
     if Array.length args == 0 then
-      "(java.util.function.Supplier<Object>) () -> " <> printAbsBody body
+      let
+        bodyStr = case body of
+          JavaBlock stmts expr -> "{ " <> String.joinWith " " (map printExpr stmts) <> " return " <> printExpr expr <> "; }"
+          _ -> "{ return " <> printExpr body <> "; }"
+      in "(new java.util.function.Supplier<Object>() { public Object get() " <> bodyStr <> " })"
     else
-      Array.foldr (\arg acc -> "(java.util.function.Function<Object, Object>) (" <> arg <> ") -> " <> acc) (printAbsBody body) args
+      let
+        bodyStr = case body of
+          JavaBlock stmts expr -> "{ " <> String.joinWith " " (map printExpr stmts) <> " return " <> printExpr expr <> "; }"
+          _ -> printExpr body
+      in Array.foldr (\arg acc -> "(java.util.function.Function<Object, Object>) (" <> arg <> ") -> " <> acc) bodyStr args
   JavaNew className args ->
     "new " <> className <> "(" <> String.joinWith ", " (map printExpr args) <> ")"
   JavaTernary cond a b ->
