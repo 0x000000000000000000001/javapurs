@@ -32,10 +32,7 @@ var $runtime_lazy = function (name, moduleName, init) {
         return val;
     };
 };
-var show = /* #__PURE__ */ Data_Show.show(Data_Show.showInt);
-var map = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var abs = /* #__PURE__ */ Data_Ord.abs(Data_Ord.ordInt)(Data_Ring.ringInt);
 var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var identity2 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var Leaf = /* #__PURE__ */ (function () {
@@ -171,8 +168,8 @@ var unsafeNode = function (k, v, l, r) {
         };
         if (r instanceof Node) {
             return new Node(1 + (function () {
-                var $282 = l.value0 > r.value0;
-                if ($282) {
+                var $212 = l.value0 > r.value0;
+                if ($212) {
                     return l.value0;
                 };
                 return r.value0;
@@ -405,7 +402,6 @@ var union = function (dictOrd) {
     return unionWith(dictOrd)(Data_Function["const"]);
 };
 var update = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     return function (f) {
         return function (k) {
             var go = function (v) {
@@ -413,7 +409,7 @@ var update = function (dictOrd) {
                     return Leaf.value;
                 };
                 if (v instanceof Node) {
-                    var v1 = compare(k)(v.value2);
+                    var v1 = Data_Ord.compare(dictOrd)(k)(v.value2);
                     if (v1 instanceof Data_Ordering.LT) {
                         return unsafeBalancedNode(v.value2, v.value3, go(v.value4), v.value5);
                     };
@@ -439,16 +435,14 @@ var update = function (dictOrd) {
     };
 };
 var showTree = function (dictShow) {
-    var show1 = Data_Show.show(dictShow);
     return function (dictShow1) {
-        var show2 = Data_Show.show(dictShow1);
         var go = function (ind) {
             return function (v) {
                 if (v instanceof Leaf) {
                     return ind + "Leaf";
                 };
                 if (v instanceof Node) {
-                    return ind + ("[" + (show(v.value0) + ("] " + (show1(v.value2) + (" => " + (show2(v.value3) + "\x0a")))))) + (go(ind + "    ")(v.value4) + "\x0a" + go(ind + "    ")(v.value5));
+                    return ind + ("[" + (Data_Show.show(Data_Show.showInt)(v.value0) + ("] " + (Data_Show.show(dictShow)(v.value2) + (" => " + (Data_Show.show(dictShow1)(v.value3) + "\x0a")))))) + (go(ind + "    ")(v.value4) + "\x0a" + go(ind + "    ")(v.value5));
                 };
                 throw new Error("Failed pattern match at Data.Map.Internal (line 233, column 12 - line 238, column 34): " + [ v.constructor.name ]);
             };
@@ -458,10 +452,9 @@ var showTree = function (dictShow) {
 };
 var semigroupMap = function () {
     return function (dictOrd) {
-        var unionWith1 = unionWith(dictOrd);
         return function (dictSemigroup) {
             return {
-                append: unionWith1(Data_Semigroup.append(dictSemigroup))
+                append: unionWith(dictOrd)(Data_Semigroup.append(dictSemigroup))
             };
         };
     };
@@ -472,14 +465,13 @@ var pop = function (dictOrd) {
     return function (k) {
         return function (m) {
             var v = unsafeSplit(compare, k, m);
-            return map(function (a) {
+            return Data_Functor.map(Data_Maybe.functorMaybe)(function (a) {
                 return new Data_Tuple.Tuple(a, unsafeJoinNodes(v.value1, v.value2));
             })(v.value0);
         };
     };
 };
 var member = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     return function (k) {
         var go = function ($copy_v) {
             var $tco_done = false;
@@ -490,7 +482,7 @@ var member = function (dictOrd) {
                     return false;
                 };
                 if (v instanceof Node) {
-                    var v1 = compare(k)(v.value2);
+                    var v1 = Data_Ord.compare(dictOrd)(k)(v.value2);
                     if (v1 instanceof Data_Ordering.LT) {
                         $copy_v = v.value4;
                         return;
@@ -537,20 +529,19 @@ var mapMaybeWithKey = function (dictOrd) {
     };
 };
 var mapMaybe = function (dictOrd) {
-    var $782 = mapMaybeWithKey(dictOrd);
-    return function ($783) {
-        return $782(Data_Function["const"]($783));
+    var $712 = mapMaybeWithKey(dictOrd);
+    return function ($713) {
+        return $712(Data_Function["const"]($713));
     };
 };
 var lookupLE = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     return function (k) {
         var go = function (v) {
             if (v instanceof Leaf) {
                 return Data_Maybe.Nothing.value;
             };
             if (v instanceof Node) {
-                var v1 = compare(k)(v.value2);
+                var v1 = Data_Ord.compare(dictOrd)(k)(v.value2);
                 if (v1 instanceof Data_Ordering.LT) {
                     return go(v.value4);
                 };
@@ -578,14 +569,13 @@ var lookupLE = function (dictOrd) {
     };
 };
 var lookupGE = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     return function (k) {
         var go = function (v) {
             if (v instanceof Leaf) {
                 return Data_Maybe.Nothing.value;
             };
             if (v instanceof Node) {
-                var v1 = compare(k)(v.value2);
+                var v1 = Data_Ord.compare(dictOrd)(k)(v.value2);
                 if (v1 instanceof Data_Ordering.LT) {
                     var v2 = go(v.value4);
                     if (v2 instanceof Data_Maybe.Nothing) {
@@ -613,7 +603,6 @@ var lookupGE = function (dictOrd) {
     };
 };
 var lookup = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     return function (k) {
         var go = function ($copy_v) {
             var $tco_done = false;
@@ -624,7 +613,7 @@ var lookup = function (dictOrd) {
                     return Data_Maybe.Nothing.value;
                 };
                 if (v instanceof Node) {
-                    var v1 = compare(k)(v.value2);
+                    var v1 = Data_Ord.compare(dictOrd)(k)(v.value2);
                     if (v1 instanceof Data_Ordering.LT) {
                         $copy_v = v.value4;
                         return;
@@ -679,9 +668,9 @@ var stepUnfoldrUnordered = /* #__PURE__ */ (function () {
     });
 })();
 var toUnfoldableUnordered = function (dictUnfoldable) {
-    var $784 = Data_Unfoldable.unfoldr(dictUnfoldable)(stepUnfoldrUnordered);
-    return function ($785) {
-        return $784(toMapIter($785));
+    var $714 = Data_Unfoldable.unfoldr(dictUnfoldable)(stepUnfoldrUnordered);
+    return function ($715) {
+        return $714(toMapIter($715));
     };
 };
 var stepUnordered = /* #__PURE__ */ (function () {
@@ -764,9 +753,7 @@ var stepAsc = /* #__PURE__ */ (function () {
     })(Data_Function["const"](IterDone.value));
 })();
 var eqMapIter = function (dictEq) {
-    var eq1 = Data_Eq.eq(dictEq);
     return function (dictEq1) {
-        var eq2 = Data_Eq.eq(dictEq1);
         return {
             eq: (function () {
                 var go = function ($copy_a) {
@@ -778,7 +765,7 @@ var eqMapIter = function (dictEq) {
                             var v = stepAsc(a);
                             if (v instanceof IterNext) {
                                 var v2 = stepAsc(b);
-                                if (v2 instanceof IterNext && (eq1(v.value0)(v2.value0) && eq2(v.value1)(v2.value1))) {
+                                if (v2 instanceof IterNext && (Data_Eq.eq(dictEq)(v.value0)(v2.value0) && Data_Eq.eq(dictEq1)(v.value1)(v2.value1))) {
                                     $tco_var_a = v.value2;
                                     $copy_b = v2.value2;
                                     return;
@@ -804,10 +791,8 @@ var eqMapIter = function (dictEq) {
     };
 };
 var ordMapIter = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     var eqMapIter1 = eqMapIter(dictOrd.Eq0());
     return function (dictOrd1) {
-        var compare1 = Data_Ord.compare(dictOrd1);
         var eqMapIter2 = eqMapIter1(dictOrd1.Eq0());
         return {
             compare: (function () {
@@ -820,9 +805,9 @@ var ordMapIter = function (dictOrd) {
                             var v = stepAsc(b);
                             var v1 = stepAsc(a);
                             if (v1 instanceof IterNext && v instanceof IterNext) {
-                                var v3 = compare(v1.value0)(v.value0);
+                                var v3 = Data_Ord.compare(dictOrd)(v1.value0)(v.value0);
                                 if (v3 instanceof Data_Ordering.EQ) {
-                                    var v4 = compare1(v1.value1)(v.value1);
+                                    var v4 = Data_Ord.compare(dictOrd1)(v1.value1)(v.value1);
                                     if (v4 instanceof Data_Ordering.EQ) {
                                         $tco_var_a = v1.value2;
                                         $copy_b = v.value2;
@@ -871,39 +856,36 @@ var stepUnfoldr = /* #__PURE__ */ (function () {
     });
 })();
 var toUnfoldable = function (dictUnfoldable) {
-    var $786 = Data_Unfoldable.unfoldr(dictUnfoldable)(stepUnfoldr);
-    return function ($787) {
-        return $786(toMapIter($787));
+    var $716 = Data_Unfoldable.unfoldr(dictUnfoldable)(stepUnfoldr);
+    return function ($717) {
+        return $716(toMapIter($717));
     };
 };
-var toUnfoldable1 = /* #__PURE__ */ toUnfoldable(Data_Unfoldable.unfoldableArray);
 var showMap = function (dictShow) {
     var showTuple = Data_Tuple.showTuple(dictShow);
     return function (dictShow1) {
-        var show1 = Data_Show.show(Data_Show.showArray(showTuple(dictShow1)));
+        var showArray = Data_Show.showArray(showTuple(dictShow1));
         return {
             show: function (as) {
-                return "(fromFoldable " + (show1(toUnfoldable1(as)) + ")");
+                return "(fromFoldable " + (Data_Show.show(showArray)(toUnfoldable(Data_Unfoldable.unfoldableArray)(as)) + ")");
             }
         };
     };
 };
 var isSubmap = function (dictOrd) {
-    var lookup1 = lookup(dictOrd);
     return function (dictEq) {
-        var eq1 = Data_Eq.eq(dictEq);
         var go = function (m1) {
             return function (m2) {
                 if (m1 instanceof Leaf) {
                     return true;
                 };
                 if (m1 instanceof Node) {
-                    var v1 = lookup1(m1.value2)(m2);
+                    var v1 = lookup(dictOrd)(m1.value2)(m2);
                     if (v1 instanceof Data_Maybe.Nothing) {
                         return false;
                     };
                     if (v1 instanceof Data_Maybe.Just) {
-                        return eq1(m1.value3)(v1.value0) && (go(m1.value4)(m2) && go(m1.value5)(m2));
+                        return Data_Eq.eq(dictEq)(m1.value3)(v1.value0) && (go(m1.value4)(m2) && go(m1.value5)(m2));
                     };
                     throw new Error("Failed pattern match at Data.Map.Internal (line 611, column 7 - line 614, column 40): " + [ v1.constructor.name ]);
                 };
@@ -933,7 +915,6 @@ var intersection = function (dictOrd) {
     return intersectionWith(dictOrd)(Data_Function["const"]);
 };
 var insertWith = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     return function (app) {
         return function (k) {
             return function (v) {
@@ -942,7 +923,7 @@ var insertWith = function (dictOrd) {
                         return singleton(k)(v);
                     };
                     if (v1 instanceof Node) {
-                        var v2 = compare(k)(v1.value2);
+                        var v2 = Data_Ord.compare(dictOrd)(k)(v1.value2);
                         if (v2 instanceof Data_Ordering.LT) {
                             return unsafeBalancedNode(v1.value2, v1.value3, go(v1.value4), v1.value5);
                         };
@@ -962,7 +943,6 @@ var insertWith = function (dictOrd) {
     };
 };
 var insert = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     return function (k) {
         return function (v) {
             var go = function (v1) {
@@ -970,7 +950,7 @@ var insert = function (dictOrd) {
                     return singleton(k)(v);
                 };
                 if (v1 instanceof Node) {
-                    var v2 = compare(k)(v1.value2);
+                    var v2 = Data_Ord.compare(dictOrd)(k)(v1.value2);
                     if (v2 instanceof Data_Ordering.LT) {
                         return unsafeBalancedNode(v1.value2, v1.value3, go(v1.value4), v1.value5);
                     };
@@ -1059,15 +1039,14 @@ var foldableMap = {
         };
     },
     foldMap: function (dictMonoid) {
-        var mempty = Data_Monoid.mempty(dictMonoid);
-        var append1 = Data_Semigroup.append(dictMonoid.Semigroup0());
+        var Semigroup0 = dictMonoid.Semigroup0();
         return function (f) {
             var go = function (v) {
                 if (v instanceof Leaf) {
-                    return mempty;
+                    return Data_Monoid.mempty(dictMonoid);
                 };
                 if (v instanceof Node) {
-                    return append1(go(v.value4))(append1(f(v.value3))(go(v.value5)));
+                    return Data_Semigroup.append(Semigroup0)(go(v.value4))(Data_Semigroup.append(Semigroup0)(f(v.value3))(go(v.value5)));
                 };
                 throw new Error("Failed pattern match at Data.Map.Internal (line 181, column 10 - line 184, column 28): " + [ v.constructor.name ]);
             };
@@ -1115,15 +1094,14 @@ var foldableWithIndexMap = {
         };
     },
     foldMapWithIndex: function (dictMonoid) {
-        var mempty = Data_Monoid.mempty(dictMonoid);
-        var append1 = Data_Semigroup.append(dictMonoid.Semigroup0());
+        var Semigroup0 = dictMonoid.Semigroup0();
         return function (f) {
             var go = function (v) {
                 if (v instanceof Leaf) {
-                    return mempty;
+                    return Data_Monoid.mempty(dictMonoid);
                 };
                 if (v instanceof Node) {
-                    return append1(go(v.value4))(append1(f(v.value2)(v.value3))(go(v.value5)));
+                    return Data_Semigroup.append(Semigroup0)(go(v.value4))(Data_Semigroup.append(Semigroup0)(f(v.value2)(v.value3))(go(v.value5)));
                 };
                 throw new Error("Failed pattern match at Data.Map.Internal (line 201, column 10 - line 204, column 30): " + [ v.constructor.name ]);
             };
@@ -1145,17 +1123,15 @@ var keys = /* #__PURE__ */ (function () {
 })();
 var traversableMap = {
     traverse: function (dictApplicative) {
-        var pure = Control_Applicative.pure(dictApplicative);
         var Apply0 = dictApplicative.Apply0();
-        var apply = Control_Apply.apply(Apply0);
-        var map1 = Data_Functor.map(Apply0.Functor0());
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         return function (f) {
             var go = function (v) {
                 if (v instanceof Leaf) {
-                    return pure(Leaf.value);
+                    return Control_Applicative.pure(dictApplicative)(Leaf.value);
                 };
                 if (v instanceof Node) {
-                    return apply(apply(map1(function (l$prime) {
+                    return Control_Apply.apply(Apply0)(Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (l$prime) {
                         return function (v$prime) {
                             return function (r$prime) {
                                 return new Node(v.value0, v.value1, v.value2, v$prime, l$prime, r$prime);
@@ -1180,17 +1156,15 @@ var traversableMap = {
 };
 var traversableWithIndexMap = {
     traverseWithIndex: function (dictApplicative) {
-        var pure = Control_Applicative.pure(dictApplicative);
         var Apply0 = dictApplicative.Apply0();
-        var apply = Control_Apply.apply(Apply0);
-        var map1 = Data_Functor.map(Apply0.Functor0());
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         return function (f) {
             var go = function (v) {
                 if (v instanceof Leaf) {
-                    return pure(Leaf.value);
+                    return Control_Applicative.pure(dictApplicative)(Leaf.value);
                 };
                 if (v instanceof Node) {
-                    return apply(apply(map1(function (l$prime) {
+                    return Control_Apply.apply(Apply0)(Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (l$prime) {
                         return function (v$prime) {
                             return function (r$prime) {
                                 return new Node(v.value0, v.value1, v.value2, v$prime, l$prime, r$prime);
@@ -1217,9 +1191,6 @@ var values = /* #__PURE__ */ (function () {
     return Data_Foldable.foldr(foldableMap)(Data_List_Types.Cons.create)(Data_List_Types.Nil.value);
 })();
 var foldSubmapBy = function (dictOrd) {
-    var lessThan1 = Data_Ord.lessThan(dictOrd);
-    var greaterThan1 = Data_Ord.greaterThan(dictOrd);
-    var lessThanOrEq1 = Data_Ord.lessThanOrEq(dictOrd);
     return function (appendFn) {
         return function (memptyValue) {
             return function (kmin) {
@@ -1228,7 +1199,7 @@ var foldSubmapBy = function (dictOrd) {
                         var tooSmall = (function () {
                             if (kmin instanceof Data_Maybe.Just) {
                                 return function (k) {
-                                    return lessThan1(k)(kmin.value0);
+                                    return Data_Ord.lessThan(dictOrd)(k)(kmin.value0);
                                 };
                             };
                             if (kmin instanceof Data_Maybe.Nothing) {
@@ -1239,7 +1210,7 @@ var foldSubmapBy = function (dictOrd) {
                         var tooLarge = (function () {
                             if (kmax instanceof Data_Maybe.Just) {
                                 return function (k) {
-                                    return greaterThan1(k)(kmax.value0);
+                                    return Data_Ord.greaterThan(dictOrd)(k)(kmax.value0);
                                 };
                             };
                             if (kmax instanceof Data_Maybe.Nothing) {
@@ -1250,17 +1221,17 @@ var foldSubmapBy = function (dictOrd) {
                         var inBounds = (function () {
                             if (kmin instanceof Data_Maybe.Just && kmax instanceof Data_Maybe.Just) {
                                 return function (k) {
-                                    return lessThanOrEq1(kmin.value0)(k) && lessThanOrEq1(k)(kmax.value0);
+                                    return Data_Ord.lessThanOrEq(dictOrd)(kmin.value0)(k) && Data_Ord.lessThanOrEq(dictOrd)(k)(kmax.value0);
                                 };
                             };
                             if (kmin instanceof Data_Maybe.Just && kmax instanceof Data_Maybe.Nothing) {
                                 return function (k) {
-                                    return lessThanOrEq1(kmin.value0)(k);
+                                    return Data_Ord.lessThanOrEq(dictOrd)(kmin.value0)(k);
                                 };
                             };
                             if (kmin instanceof Data_Maybe.Nothing && kmax instanceof Data_Maybe.Just) {
                                 return function (k) {
-                                    return lessThanOrEq1(k)(kmax.value0);
+                                    return Data_Ord.lessThanOrEq(dictOrd)(k)(kmax.value0);
                                 };
                             };
                             if (kmin instanceof Data_Maybe.Nothing && kmax instanceof Data_Maybe.Nothing) {
@@ -1274,20 +1245,20 @@ var foldSubmapBy = function (dictOrd) {
                             };
                             if (v instanceof Node) {
                                 return appendFn(appendFn((function () {
-                                    var $645 = tooSmall(v.value2);
-                                    if ($645) {
+                                    var $575 = tooSmall(v.value2);
+                                    if ($575) {
                                         return memptyValue;
                                     };
                                     return go(v.value4);
                                 })())((function () {
-                                    var $646 = inBounds(v.value2);
-                                    if ($646) {
+                                    var $576 = inBounds(v.value2);
+                                    if ($576) {
                                         return f(v.value2)(v.value3);
                                     };
                                     return memptyValue;
                                 })()))((function () {
-                                    var $647 = tooLarge(v.value2);
-                                    if ($647) {
+                                    var $577 = tooLarge(v.value2);
+                                    if ($577) {
                                         return memptyValue;
                                     };
                                     return go(v.value5);
@@ -1303,9 +1274,8 @@ var foldSubmapBy = function (dictOrd) {
     };
 };
 var foldSubmap = function (dictOrd) {
-    var foldSubmapBy1 = foldSubmapBy(dictOrd);
     return function (dictMonoid) {
-        return foldSubmapBy1(Data_Semigroup.append(dictMonoid.Semigroup0()))(Data_Monoid.mempty(dictMonoid));
+        return foldSubmapBy(dictOrd)(Data_Semigroup.append(dictMonoid.Semigroup0()))(Data_Monoid.mempty(dictMonoid));
     };
 };
 var findMin = function ($copy_v) {
@@ -1335,14 +1305,13 @@ var findMin = function ($copy_v) {
     return $tco_result;
 };
 var lookupGT = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     return function (k) {
         var go = function (v) {
             if (v instanceof Leaf) {
                 return Data_Maybe.Nothing.value;
             };
             if (v instanceof Node) {
-                var v1 = compare(k)(v.value2);
+                var v1 = Data_Ord.compare(dictOrd)(k)(v.value2);
                 if (v1 instanceof Data_Ordering.LT) {
                     var v2 = go(v.value4);
                     if (v2 instanceof Data_Maybe.Nothing) {
@@ -1393,14 +1362,13 @@ var findMax = function ($copy_v) {
     return $tco_result;
 };
 var lookupLT = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     return function (k) {
         var go = function (v) {
             if (v instanceof Leaf) {
                 return Data_Maybe.Nothing.value;
             };
             if (v instanceof Node) {
-                var v1 = compare(k)(v.value2);
+                var v1 = Data_Ord.compare(dictOrd)(k)(v.value2);
                 if (v1 instanceof Data_Ordering.LT) {
                     return go(v.value4);
                 };
@@ -1463,15 +1431,15 @@ var filterKeys = function (dictOrd) {
     };
 };
 var filter = function (dictOrd) {
-    var $788 = filterWithKey(dictOrd);
-    return function ($789) {
-        return $788(Data_Function["const"]($789));
+    var $718 = filterWithKey(dictOrd);
+    return function ($719) {
+        return $718(Data_Function["const"]($719));
     };
 };
 var eqMap = function (dictEq) {
     var eqMapIter1 = eqMapIter(dictEq);
     return function (dictEq1) {
-        var eq1 = Data_Eq.eq(eqMapIter1(dictEq1));
+        var eqMapIter2 = eqMapIter1(dictEq1);
         return {
             eq: function (xs) {
                 return function (ys) {
@@ -1483,7 +1451,7 @@ var eqMap = function (dictEq) {
                     };
                     if (xs instanceof Node) {
                         if (ys instanceof Node && xs.value1 === ys.value1) {
-                            return eq1(toMapIter(xs))(toMapIter(ys));
+                            return Data_Eq.eq(eqMapIter2)(toMapIter(xs))(toMapIter(ys));
                         };
                         return false;
                     };
@@ -1497,7 +1465,7 @@ var ordMap = function (dictOrd) {
     var ordMapIter1 = ordMapIter(dictOrd);
     var eqMap1 = eqMap(dictOrd.Eq0());
     return function (dictOrd1) {
-        var compare = Data_Ord.compare(ordMapIter1(dictOrd1));
+        var ordMapIter2 = ordMapIter1(dictOrd1);
         var eqMap2 = eqMap1(dictOrd1.Eq0());
         return {
             compare: function (xs) {
@@ -1511,7 +1479,7 @@ var ordMap = function (dictOrd) {
                     if (ys instanceof Leaf) {
                         return Data_Ordering.GT.value;
                     };
-                    return compare(toMapIter(xs))(toMapIter(ys));
+                    return Data_Ord.compare(ordMapIter2)(toMapIter(xs))(toMapIter(ys));
                 };
             },
             Eq0: function () {
@@ -1544,22 +1512,19 @@ var empty = /* #__PURE__ */ (function () {
     return Leaf.value;
 })();
 var fromFoldable = function (dictOrd) {
-    var insert1 = insert(dictOrd);
     return function (dictFoldable) {
         return Data_Foldable.foldl(dictFoldable)(function (m) {
             return function (v) {
-                return insert1(v.value0)(v.value1)(m);
+                return insert(dictOrd)(v.value0)(v.value1)(m);
             };
         })(empty);
     };
 };
 var fromFoldableWith = function (dictOrd) {
-    var insertWith1 = insertWith(dictOrd);
     return function (dictFoldable) {
-        var foldl = Data_Foldable.foldl(dictFoldable);
         return function (f) {
-            var f$prime = insertWith1(Data_Function.flip(f));
-            return foldl(function (m) {
+            var f$prime = insertWith(dictOrd)(Data_Function.flip(f));
+            return Data_Foldable.foldl(dictFoldable)(function (m) {
                 return function (v) {
                     return f$prime(v.value0)(v.value1)(m);
                 };
@@ -1568,12 +1533,11 @@ var fromFoldableWith = function (dictOrd) {
     };
 };
 var fromFoldableWithIndex = function (dictOrd) {
-    var insert1 = insert(dictOrd);
     return function (dictFoldableWithIndex) {
         return Data_FoldableWithIndex.foldlWithIndex(dictFoldableWithIndex)(function (k) {
             return function (m) {
                 return function (v) {
-                    return insert1(k)(v)(m);
+                    return insert(dictOrd)(k)(v)(m);
                 };
             };
         })(empty);
@@ -1594,11 +1558,10 @@ var monoidSemigroupMap = function () {
     };
 };
 var submap = function (dictOrd) {
-    var foldSubmapBy1 = foldSubmapBy(dictOrd);
     var union1 = union(dictOrd);
     return function (kmin) {
         return function (kmax) {
-            return foldSubmapBy1(union1)(empty)(kmin)(kmax)(singleton);
+            return foldSubmapBy(dictOrd)(union1)(empty)(kmin)(kmax)(singleton);
         };
     };
 };
@@ -1617,14 +1580,13 @@ var difference = function (dictOrd) {
     };
 };
 var $$delete = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     return function (k) {
         var go = function (v) {
             if (v instanceof Leaf) {
                 return Leaf.value;
             };
             if (v instanceof Node) {
-                var v1 = compare(k)(v.value2);
+                var v1 = Data_Ord.compare(dictOrd)(k)(v.value2);
                 if (v1 instanceof Data_Ordering.LT) {
                     return unsafeBalancedNode(v.value2, v.value3, go(v.value4), v.value5);
                 };
@@ -1642,8 +1604,6 @@ var $$delete = function (dictOrd) {
     };
 };
 var checkValid = function (dictOrd) {
-    var greaterThan1 = Data_Ord.greaterThan(dictOrd);
-    var lessThan1 = Data_Ord.lessThan(dictOrd);
     var go = function (v) {
         if (v instanceof Leaf) {
             return true;
@@ -1654,16 +1614,16 @@ var checkValid = function (dictOrd) {
                     return true;
                 };
                 if (v.value5 instanceof Node) {
-                    return v.value0 === 2 && (v.value5.value0 === 1 && (v.value1 > v.value5.value1 && (greaterThan1(v.value5.value2)(v.value2) && go(v.value5))));
+                    return v.value0 === 2 && (v.value5.value0 === 1 && (v.value1 > v.value5.value1 && (Data_Ord.greaterThan(dictOrd)(v.value5.value2)(v.value2) && go(v.value5))));
                 };
                 throw new Error("Failed pattern match at Data.Map.Internal (line 264, column 11 - line 268, column 60): " + [ v.value5.constructor.name ]);
             };
             if (v.value4 instanceof Node) {
                 if (v.value5 instanceof Leaf) {
-                    return v.value0 === 2 && (v.value4.value0 === 1 && (v.value1 > v.value4.value1 && (lessThan1(v.value4.value2)(v.value2) && go(v.value4))));
+                    return v.value0 === 2 && (v.value4.value0 === 1 && (v.value1 > v.value4.value1 && (Data_Ord.lessThan(dictOrd)(v.value4.value2)(v.value2) && go(v.value4))));
                 };
                 if (v.value5 instanceof Node) {
-                    return v.value0 > v.value5.value0 && (greaterThan1(v.value5.value2)(v.value2) && (v.value0 > v.value4.value0 && (lessThan1(v.value4.value2)(v.value2) && (abs(v.value5.value0 - v.value4.value0 | 0) < 2 && (((v.value5.value1 + v.value4.value1 | 0) + 1 | 0) === v.value1 && (go(v.value4) && go(v.value5)))))));
+                    return v.value0 > v.value5.value0 && (Data_Ord.greaterThan(dictOrd)(v.value5.value2)(v.value2) && (v.value0 > v.value4.value0 && (Data_Ord.lessThan(dictOrd)(v.value4.value2)(v.value2) && (Data_Ord.abs(Data_Ord.ordInt)(Data_Ring.ringInt)(v.value5.value0 - v.value4.value0 | 0) < 2 && (((v.value5.value1 + v.value4.value1 | 0) + 1 | 0) === v.value1 && (go(v.value4) && go(v.value5)))))));
                 };
                 throw new Error("Failed pattern match at Data.Map.Internal (line 270, column 11 - line 274, column 108): " + [ v.value5.constructor.name ]);
             };
@@ -1685,16 +1645,14 @@ var applyMap = function (dictOrd) {
     };
 };
 var bindMap = function (dictOrd) {
-    var mapMaybeWithKey1 = mapMaybeWithKey(dictOrd);
-    var lookup1 = lookup(dictOrd);
     var applyMap1 = applyMap(dictOrd);
     return {
         bind: function (m) {
             return function (f) {
-                return mapMaybeWithKey1(function (k) {
-                    var $790 = lookup1(k);
-                    return function ($791) {
-                        return $790(f($791));
+                return mapMaybeWithKey(dictOrd)(function (k) {
+                    var $720 = lookup(dictOrd)(k);
+                    return function ($721) {
+                        return $720(f($721));
                     };
                 })(m);
             };

@@ -12,8 +12,6 @@ import * as Node_Encoding from "../Node.Encoding/index.js";
 import * as Node_FS from "../Node.FS/index.js";
 import * as Node_FS_Constants from "../Node.FS.Constants/index.js";
 import * as Node_FS_Perms from "../Node.FS.Perms/index.js";
-var show = /* #__PURE__ */ Data_Show.show(Node_Encoding.showEncoding);
-var div = /* #__PURE__ */ Data_EuclideanRing.div(Data_EuclideanRing.euclideanRingInt);
 var handleCallback = function (cb) {
     return function (err, a) {
         var v = Data_Nullable.toMaybe(err);
@@ -84,7 +82,7 @@ var readTextFile = function (encoding) {
         return function (cb) {
             return function () {
                 return $foreign.readFileImpl(file, {
-                    encoding: show(encoding)
+                    encoding: Data_Show.show(Node_Encoding.showEncoding)(encoding)
                 }, handleCallback(cb));
             };
         };
@@ -201,14 +199,14 @@ var utimes = function (file) {
     return function (atime) {
         return function (mtime) {
             return function (cb) {
-                var toEpochMilliseconds = function ($15) {
-                    return Data_DateTime_Instant.unInstant(Data_DateTime_Instant.fromDateTime($15));
+                var toEpochMilliseconds = function ($11) {
+                    return Data_DateTime_Instant.unInstant(Data_DateTime_Instant.fromDateTime($11));
                 };
                 var ms = function (v) {
                     return Data_Int.round(v);
                 };
                 var fromDate = function (date) {
-                    return div(ms(toEpochMilliseconds(date)))(1000);
+                    return Data_EuclideanRing.div(Data_EuclideanRing.euclideanRingInt)(ms(toEpochMilliseconds(date)))(1000);
                 };
                 return function () {
                     return $foreign.utimesImpl(file, fromDate(atime), fromDate(mtime), handleCallback(cb));
@@ -232,7 +230,7 @@ var writeTextFile = function (encoding) {
             return function (cb) {
                 return function () {
                     return $foreign.writeFileImpl(file, buff, {
-                        encoding: show(encoding)
+                        encoding: Data_Show.show(Node_Encoding.showEncoding)(encoding)
                     }, handleCallback(cb));
                 };
             };
@@ -349,7 +347,7 @@ var appendTextFile = function (encoding) {
             return function (cb) {
                 return function () {
                     return $foreign.appendFileImpl(file, buff, {
-                        encoding: show(encoding)
+                        encoding: Data_Show.show(Node_Encoding.showEncoding)(encoding)
                     }, handleCallback(cb));
                 };
             };

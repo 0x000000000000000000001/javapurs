@@ -3,99 +3,95 @@ import * as Control_Applicative from "../Control.Applicative/index.js";
 import * as Control_Bind from "../Control.Bind/index.js";
 import * as Effect_Class from "../Effect.Class/index.js";
 import * as Effect_Console from "../Effect.Console/index.js";
-var discard = /* #__PURE__ */ Control_Bind.discard(Control_Bind.discardUnit);
 var warnShow = function (dictMonadEffect) {
     var liftEffect = Effect_Class.liftEffect(dictMonadEffect);
     return function (dictShow) {
-        var $55 = Effect_Console.warnShow(dictShow);
-        return function ($56) {
-            return liftEffect($55($56));
+        var $47 = Effect_Console.warnShow(dictShow);
+        return function ($48) {
+            return liftEffect($47($48));
         };
     };
 };
 var warn = function (dictMonadEffect) {
-    var $57 = Effect_Class.liftEffect(dictMonadEffect);
-    return function ($58) {
-        return $57(Effect_Console.warn($58));
+    var $49 = Effect_Class.liftEffect(dictMonadEffect);
+    return function ($50) {
+        return $49(Effect_Console.warn($50));
     };
 };
 var timeLog = function (dictMonadEffect) {
-    var $59 = Effect_Class.liftEffect(dictMonadEffect);
-    return function ($60) {
-        return $59(Effect_Console.timeLog($60));
+    var $51 = Effect_Class.liftEffect(dictMonadEffect);
+    return function ($52) {
+        return $51(Effect_Console.timeLog($52));
     };
 };
 var timeEnd = function (dictMonadEffect) {
-    var $61 = Effect_Class.liftEffect(dictMonadEffect);
-    return function ($62) {
-        return $61(Effect_Console.timeEnd($62));
+    var $53 = Effect_Class.liftEffect(dictMonadEffect);
+    return function ($54) {
+        return $53(Effect_Console.timeEnd($54));
     };
 };
 var time = function (dictMonadEffect) {
-    var $63 = Effect_Class.liftEffect(dictMonadEffect);
-    return function ($64) {
-        return $63(Effect_Console.time($64));
+    var $55 = Effect_Class.liftEffect(dictMonadEffect);
+    return function ($56) {
+        return $55(Effect_Console.time($56));
     };
 };
 var logShow = function (dictMonadEffect) {
     var liftEffect = Effect_Class.liftEffect(dictMonadEffect);
     return function (dictShow) {
-        var $65 = Effect_Console.logShow(dictShow);
-        return function ($66) {
-            return liftEffect($65($66));
+        var $57 = Effect_Console.logShow(dictShow);
+        return function ($58) {
+            return liftEffect($57($58));
         };
     };
 };
 var log = function (dictMonadEffect) {
-    var $67 = Effect_Class.liftEffect(dictMonadEffect);
-    return function ($68) {
-        return $67(Effect_Console.log($68));
+    var $59 = Effect_Class.liftEffect(dictMonadEffect);
+    return function ($60) {
+        return $59(Effect_Console.log($60));
     };
 };
 var infoShow = function (dictMonadEffect) {
     var liftEffect = Effect_Class.liftEffect(dictMonadEffect);
     return function (dictShow) {
-        var $69 = Effect_Console.infoShow(dictShow);
-        return function ($70) {
-            return liftEffect($69($70));
+        var $61 = Effect_Console.infoShow(dictShow);
+        return function ($62) {
+            return liftEffect($61($62));
         };
     };
 };
 var info = function (dictMonadEffect) {
-    var $71 = Effect_Class.liftEffect(dictMonadEffect);
-    return function ($72) {
-        return $71(Effect_Console.info($72));
+    var $63 = Effect_Class.liftEffect(dictMonadEffect);
+    return function ($64) {
+        return $63(Effect_Console.info($64));
     };
 };
 var groupEnd = function (dictMonadEffect) {
     return Effect_Class.liftEffect(dictMonadEffect)(Effect_Console.groupEnd);
 };
 var groupCollapsed = function (dictMonadEffect) {
-    var $73 = Effect_Class.liftEffect(dictMonadEffect);
-    return function ($74) {
-        return $73(Effect_Console.groupCollapsed($74));
+    var $65 = Effect_Class.liftEffect(dictMonadEffect);
+    return function ($66) {
+        return $65(Effect_Console.groupCollapsed($66));
     };
 };
 var group = function (dictMonadEffect) {
-    var $75 = Effect_Class.liftEffect(dictMonadEffect);
-    return function ($76) {
-        return $75(Effect_Console.group($76));
+    var $67 = Effect_Class.liftEffect(dictMonadEffect);
+    return function ($68) {
+        return $67(Effect_Console.group($68));
     };
 };
 var grouped = function (dictMonadEffect) {
     var Monad0 = dictMonadEffect.Monad0();
     var Bind1 = Monad0.Bind1();
-    var discard1 = discard(Bind1);
-    var group1 = group(dictMonadEffect);
-    var bind = Control_Bind.bind(Bind1);
     var groupEnd1 = groupEnd(dictMonadEffect);
-    var pure = Control_Applicative.pure(Monad0.Applicative0());
+    var Applicative0 = Monad0.Applicative0();
     return function (name) {
         return function (inner) {
-            return discard1(group1(name))(function () {
-                return bind(inner)(function (result) {
-                    return discard1(groupEnd1)(function () {
-                        return pure(result);
+            return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(group(dictMonadEffect)(name))(function () {
+                return Control_Bind.bind(Bind1)(inner)(function (result) {
+                    return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(groupEnd1)(function () {
+                        return Control_Applicative.pure(Applicative0)(result);
                     });
                 });
             });
@@ -105,31 +101,31 @@ var grouped = function (dictMonadEffect) {
 var errorShow = function (dictMonadEffect) {
     var liftEffect = Effect_Class.liftEffect(dictMonadEffect);
     return function (dictShow) {
-        var $77 = Effect_Console.errorShow(dictShow);
-        return function ($78) {
-            return liftEffect($77($78));
+        var $69 = Effect_Console.errorShow(dictShow);
+        return function ($70) {
+            return liftEffect($69($70));
         };
     };
 };
 var error = function (dictMonadEffect) {
-    var $79 = Effect_Class.liftEffect(dictMonadEffect);
-    return function ($80) {
-        return $79(Effect_Console.error($80));
+    var $71 = Effect_Class.liftEffect(dictMonadEffect);
+    return function ($72) {
+        return $71(Effect_Console.error($72));
     };
 };
 var debugShow = function (dictMonadEffect) {
     var liftEffect = Effect_Class.liftEffect(dictMonadEffect);
     return function (dictShow) {
-        var $81 = Effect_Console.debugShow(dictShow);
-        return function ($82) {
-            return liftEffect($81($82));
+        var $73 = Effect_Console.debugShow(dictShow);
+        return function ($74) {
+            return liftEffect($73($74));
         };
     };
 };
 var debug = function (dictMonadEffect) {
-    var $83 = Effect_Class.liftEffect(dictMonadEffect);
-    return function ($84) {
-        return $83(Effect_Console.debug($84));
+    var $75 = Effect_Class.liftEffect(dictMonadEffect);
+    return function ($76) {
+        return $75(Effect_Console.debug($76));
     };
 };
 var clear = function (dictMonadEffect) {

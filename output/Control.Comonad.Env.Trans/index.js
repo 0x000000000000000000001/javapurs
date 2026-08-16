@@ -8,7 +8,6 @@ import * as Data_FunctorWithIndex from "../Data.FunctorWithIndex/index.js";
 import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_TraversableWithIndex from "../Data.TraversableWithIndex/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorFn);
 var EnvT = function (x) {
     return x;
 };
@@ -31,22 +30,20 @@ var mapEnvT = function (f) {
     };
 };
 var functorEnvT = function (dictFunctor) {
-    var map1 = Data_Functor.map(dictFunctor);
     return {
         map: function (f) {
             return function (v) {
-                return new Data_Tuple.Tuple(v.value0, map1(f)(v.value1));
+                return new Data_Tuple.Tuple(v.value0, Data_Functor.map(dictFunctor)(f)(v.value1));
             };
         }
     };
 };
 var functorWithIndexEnvT = function (dictFunctorWithIndex) {
-    var mapWithIndex = Data_FunctorWithIndex.mapWithIndex(dictFunctorWithIndex);
     var functorEnvT1 = functorEnvT(dictFunctorWithIndex.Functor0());
     return {
         mapWithIndex: function (f) {
             return function (v) {
-                return new Data_Tuple.Tuple(v.value0, mapWithIndex(f)(v.value1));
+                return new Data_Tuple.Tuple(v.value0, Data_FunctorWithIndex.mapWithIndex(dictFunctorWithIndex)(f)(v.value1));
             };
         },
         Functor0: function () {
@@ -55,59 +52,51 @@ var functorWithIndexEnvT = function (dictFunctorWithIndex) {
     };
 };
 var foldableEnvT = function (dictFoldable) {
-    var foldl = Data_Foldable.foldl(dictFoldable);
-    var foldr = Data_Foldable.foldr(dictFoldable);
-    var foldMap = Data_Foldable.foldMap(dictFoldable);
     return {
         foldl: function (fn) {
             return function (a) {
                 return function (v) {
-                    return foldl(fn)(a)(v.value1);
+                    return Data_Foldable.foldl(dictFoldable)(fn)(a)(v.value1);
                 };
             };
         },
         foldr: function (fn) {
             return function (a) {
                 return function (v) {
-                    return foldr(fn)(a)(v.value1);
+                    return Data_Foldable.foldr(dictFoldable)(fn)(a)(v.value1);
                 };
             };
         },
         foldMap: function (dictMonoid) {
-            var foldMap1 = foldMap(dictMonoid);
             return function (fn) {
                 return function (v) {
-                    return foldMap1(fn)(v.value1);
+                    return Data_Foldable.foldMap(dictFoldable)(dictMonoid)(fn)(v.value1);
                 };
             };
         }
     };
 };
 var foldableWithIndexEnvT = function (dictFoldableWithIndex) {
-    var foldlWithIndex = Data_FoldableWithIndex.foldlWithIndex(dictFoldableWithIndex);
-    var foldrWithIndex = Data_FoldableWithIndex.foldrWithIndex(dictFoldableWithIndex);
-    var foldMapWithIndex = Data_FoldableWithIndex.foldMapWithIndex(dictFoldableWithIndex);
     var foldableEnvT1 = foldableEnvT(dictFoldableWithIndex.Foldable0());
     return {
         foldlWithIndex: function (f) {
             return function (a) {
                 return function (v) {
-                    return foldlWithIndex(f)(a)(v.value1);
+                    return Data_FoldableWithIndex.foldlWithIndex(dictFoldableWithIndex)(f)(a)(v.value1);
                 };
             };
         },
         foldrWithIndex: function (f) {
             return function (a) {
                 return function (v) {
-                    return foldrWithIndex(f)(a)(v.value1);
+                    return Data_FoldableWithIndex.foldrWithIndex(dictFoldableWithIndex)(f)(a)(v.value1);
                 };
             };
         },
         foldMapWithIndex: function (dictMonoid) {
-            var foldMapWithIndex1 = foldMapWithIndex(dictMonoid);
             return function (f) {
                 return function (v) {
-                    return foldMapWithIndex1(f)(v.value1);
+                    return Data_FoldableWithIndex.foldMapWithIndex(dictFoldableWithIndex)(dictMonoid)(f)(v.value1);
                 };
             };
         },
@@ -117,24 +106,20 @@ var foldableWithIndexEnvT = function (dictFoldableWithIndex) {
     };
 };
 var traversableEnvT = function (dictTraversable) {
-    var sequence = Data_Traversable.sequence(dictTraversable);
-    var traverse = Data_Traversable.traverse(dictTraversable);
     var functorEnvT1 = functorEnvT(dictTraversable.Functor0());
     var foldableEnvT1 = foldableEnvT(dictTraversable.Foldable1());
     return {
         sequence: function (dictApplicative) {
-            var map1 = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-            var sequence1 = sequence(dictApplicative);
+            var Functor0 = (dictApplicative.Apply0()).Functor0();
             return function (v) {
-                return map1(map(EnvT)(Data_Tuple.Tuple.create(v.value0)))(sequence1(v.value1));
+                return Data_Functor.map(Functor0)(Data_Functor.map(Data_Functor.functorFn)(EnvT)(Data_Tuple.Tuple.create(v.value0)))(Data_Traversable.sequence(dictTraversable)(dictApplicative)(v.value1));
             };
         },
         traverse: function (dictApplicative) {
-            var map1 = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-            var traverse1 = traverse(dictApplicative);
+            var Functor0 = (dictApplicative.Apply0()).Functor0();
             return function (f) {
                 return function (v) {
-                    return map1(map(EnvT)(Data_Tuple.Tuple.create(v.value0)))(traverse1(f)(v.value1));
+                    return Data_Functor.map(Functor0)(Data_Functor.map(Data_Functor.functorFn)(EnvT)(Data_Tuple.Tuple.create(v.value0)))(Data_Traversable.traverse(dictTraversable)(dictApplicative)(f)(v.value1));
                 };
             };
         },
@@ -147,17 +132,15 @@ var traversableEnvT = function (dictTraversable) {
     };
 };
 var traversableWithIndexEnvT = function (dictTraversableWithIndex) {
-    var traverseWithIndex = Data_TraversableWithIndex.traverseWithIndex(dictTraversableWithIndex);
     var functorWithIndexEnvT1 = functorWithIndexEnvT(dictTraversableWithIndex.FunctorWithIndex0());
     var foldableWithIndexEnvT1 = foldableWithIndexEnvT(dictTraversableWithIndex.FoldableWithIndex1());
     var traversableEnvT1 = traversableEnvT(dictTraversableWithIndex.Traversable2());
     return {
         traverseWithIndex: function (dictApplicative) {
-            var map1 = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-            var traverseWithIndex1 = traverseWithIndex(dictApplicative);
+            var Functor0 = (dictApplicative.Apply0()).Functor0();
             return function (f) {
                 return function (v) {
-                    return map1(map(EnvT)(Data_Tuple.Tuple.create(v.value0)))(traverseWithIndex1(f)(v.value1));
+                    return Data_Functor.map(Functor0)(Data_Functor.map(Data_Functor.functorFn)(EnvT)(Data_Tuple.Tuple.create(v.value0)))(Data_TraversableWithIndex.traverseWithIndex(dictTraversableWithIndex)(dictApplicative)(f)(v.value1));
                 };
             };
         },
@@ -174,16 +157,14 @@ var traversableWithIndexEnvT = function (dictTraversableWithIndex) {
 };
 var extendEnvT = function (dictExtend) {
     var Functor0 = dictExtend.Functor0();
-    var map1 = Data_Functor.map(Functor0);
-    var extend = Control_Extend.extend(dictExtend);
-    var functorEnvT1 = functorEnvT(Functor0);
+    var functorEnvT1 = functorEnvT(dictExtend.Functor0());
     return {
         extend: function (f) {
             return function (v) {
-                return new Data_Tuple.Tuple(v.value0, map1(f)(extend((function () {
-                    var $145 = Data_Tuple.Tuple.create(v.value0);
-                    return function ($146) {
-                        return EnvT($145($146));
+                return new Data_Tuple.Tuple(v.value0, Data_Functor.map(Functor0)(f)(Control_Extend.extend(dictExtend)((function () {
+                    var $122 = Data_Tuple.Tuple.create(v.value0);
+                    return function ($123) {
+                        return EnvT($122($123));
                     };
                 })())(v.value1)));
             };
@@ -201,11 +182,10 @@ var comonadTransEnvT = {
     }
 };
 var comonadEnvT = function (dictComonad) {
-    var extract = Control_Comonad.extract(dictComonad);
     var extendEnvT1 = extendEnvT(dictComonad.Extend0());
     return {
         extract: function (v) {
-            return extract(v.value1);
+            return Control_Comonad.extract(dictComonad)(v.value1);
         },
         Extend0: function () {
             return extendEnvT1;

@@ -6,13 +6,13 @@ import * as Data_Newtype from "../Data.Newtype/index.js";
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
 var withReader = Control_Monad_Reader_Trans.withReaderT;
 var runReader = function (v) {
-    return function ($4) {
-        return unwrap(v($4));
+    return function ($3) {
+        return unwrap(v($3));
     };
 };
 var mapReader = function (f) {
-    return Control_Monad_Reader_Trans.mapReaderT(function ($5) {
-        return Data_Identity.Identity(f(unwrap($5)));
+    return Control_Monad_Reader_Trans.mapReaderT(function ($4) {
+        return Data_Identity.Identity(f(unwrap($4)));
     });
 };
 export {

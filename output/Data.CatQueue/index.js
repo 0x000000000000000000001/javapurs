@@ -27,7 +27,6 @@ var $runtime_lazy = function (name, moduleName, init) {
         return val;
     };
 };
-var map = /* #__PURE__ */ Data_Functor.map(Data_List_Types.functorList);
 var CatQueue = /* #__PURE__ */ (function () {
     function CatQueue(value0, value1) {
         this.value0 = value0;
@@ -92,10 +91,10 @@ var snoc = function (v) {
     };
 };
 var showCatQueue = function (dictShow) {
-    var show = Data_Show.show(Data_List_Types.showList(dictShow));
+    var showList = Data_List_Types.showList(dictShow);
     return {
         show: function (v) {
-            return "(CatQueue " + (show(v.value0) + (" " + (show(v.value1) + ")")));
+            return "(CatQueue " + (Data_Show.show(showList)(v.value0) + (" " + (Data_Show.show(showList)(v.value1) + ")")));
         }
     };
 };
@@ -111,7 +110,7 @@ var length = function (v) {
 var functorCatQueue = {
     map: function (f) {
         return function (v) {
-            return new CatQueue(map(f)(v.value0), map(f)(v.value1));
+            return new CatQueue(Data_Functor.map(Data_List_Types.functorList)(f)(v.value0), Data_Functor.map(Data_List_Types.functorList)(f)(v.value1));
         };
     }
 };
@@ -150,9 +149,8 @@ var foldableCatQueue = {
         return go;
     }
 };
-var foldl = /* #__PURE__ */ Data_Foldable.foldl(foldableCatQueue);
 var semigroupCatQueue = {
-    append: /* #__PURE__ */ foldl(snoc)
+    append: /* #__PURE__ */ Data_Foldable.foldl(foldableCatQueue)(snoc)
 };
 var empty = /* #__PURE__ */ (function () {
     return new CatQueue(Data_List_Types.Nil.value, Data_List_Types.Nil.value);
@@ -165,27 +163,24 @@ var monoidCatQueue = {
 };
 var singleton = /* #__PURE__ */ snoc(empty);
 var fromFoldable = function (dictFoldable) {
-    var foldMap = Data_Foldable.foldMap(dictFoldable)(monoidCatQueue);
     return function (f) {
-        return foldMap(singleton)(f);
+        return Data_Foldable.foldMap(dictFoldable)(monoidCatQueue)(singleton)(f);
     };
 };
 var traversableCatQueue = {
     traverse: function (dictApplicative) {
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         var Apply0 = dictApplicative.Apply0();
-        var map1 = Data_Functor.map(Apply0.Functor0());
-        var lift2 = Control_Apply.lift2(Apply0);
-        var pure = Control_Applicative.pure(dictApplicative);
         return function (f) {
-            var $123 = map1(foldl(snoc)(empty));
-            var $124 = foldl(function (acc) {
-                var $126 = lift2(snoc)(acc);
-                return function ($127) {
-                    return $126(f($127));
+            var $113 = Data_Functor.map(Functor0)(Data_Foldable.foldl(foldableCatQueue)(snoc)(empty));
+            var $114 = Data_Foldable.foldl(foldableCatQueue)(function (acc) {
+                var $116 = Control_Apply.lift2(Apply0)(snoc)(acc);
+                return function ($117) {
+                    return $116(f($117));
                 };
-            })(pure(empty));
-            return function ($125) {
-                return $123($124($125));
+            })(Control_Applicative.pure(dictApplicative)(empty));
+            return function ($115) {
+                return $113($114($115));
             };
         };
     },

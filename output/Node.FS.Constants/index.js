@@ -133,7 +133,6 @@ var showFileFlags = {
         throw new Error("Failed pattern match at Node.FS.Constants (line 58, column 1 - line 70, column 27): " + [ v.constructor.name ]);
     }
 };
-var show = /* #__PURE__ */ Data_Show.show(showFileFlags);
 var fileFlagsToNode = function (ff) {
     if (ff instanceof R) {
         return "r";
@@ -176,7 +175,7 @@ var fileFlagsToNode = function (ff) {
 var eqFileFlags = {
     eq: function (x) {
         return function (y) {
-            return show(x) === show(y);
+            return Data_Show.show(showFileFlags)(x) === Data_Show.show(showFileFlags)(y);
         };
     }
 };

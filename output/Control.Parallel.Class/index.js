@@ -15,7 +15,6 @@ import * as Data_Profunctor_Star from "../Data.Profunctor.Star/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
 import * as Effect_Class from "../Effect.Class/index.js";
 import * as Effect_Ref from "../Effect.Ref/index.js";
-var discard = /* #__PURE__ */ Control_Bind.discard(Control_Bind.discardUnit);
 var ParCont = function (x) {
     return x;
 };
@@ -54,13 +53,13 @@ var monadParStar = function (dictParallel) {
     var applyStar1 = Data_Profunctor_Star.applyStar(dictParallel.Apply1());
     return {
         parallel: function (v) {
-            return function ($124) {
-                return parallel1(v($124));
+            return function ($108) {
+                return parallel1(v($108));
             };
         },
         sequential: function (v) {
-            return function ($125) {
-                return sequential1(v($125));
+            return function ($109) {
+                return sequential1(v($109));
             };
         },
         Apply0: function () {
@@ -86,17 +85,15 @@ var monadParReaderT = function (dictParallel) {
     };
 };
 var monadParMaybeT = function (dictParallel) {
-    var parallel1 = parallel(dictParallel);
-    var sequential1 = sequential(dictParallel);
     var applyCompose = Data_Functor_Compose.applyCompose(dictParallel.Apply1())(Data_Maybe.applyMaybe);
     return function (dictMonad) {
         var applyMaybeT = Control_Monad_Maybe_Trans.applyMaybeT(dictMonad);
         return {
             parallel: function (v) {
-                return parallel1(v);
+                return parallel(dictParallel)(v);
             },
             sequential: function (v) {
-                return sequential1(v);
+                return sequential(dictParallel)(v);
             },
             Apply0: function () {
                 return applyMaybeT;
@@ -108,17 +105,15 @@ var monadParMaybeT = function (dictParallel) {
     };
 };
 var monadParExceptT = function (dictParallel) {
-    var parallel1 = parallel(dictParallel);
-    var sequential1 = sequential(dictParallel);
     var applyCompose = Data_Functor_Compose.applyCompose(dictParallel.Apply1())(Data_Either.applyEither);
     return function (dictMonad) {
         var applyExceptT = Control_Monad_Except_Trans.applyExceptT(dictMonad);
         return {
             parallel: function (v) {
-                return parallel1(v);
+                return parallel(dictParallel)(v);
             },
             sequential: function (v) {
-                return sequential1(v);
+                return sequential(dictParallel)(v);
             },
             Apply0: function () {
                 return applyExceptT;
@@ -134,13 +129,13 @@ var monadParCostar = function (dictParallel) {
     var parallel1 = parallel(dictParallel);
     return {
         parallel: function (v) {
-            return function ($126) {
-                return v(sequential1($126));
+            return function ($110) {
+                return v(sequential1($110));
             };
         },
         sequential: function (v) {
-            return function ($127) {
-                return v(parallel1($127));
+            return function ($111) {
+                return v(parallel1($111));
             };
         },
         Apply0: function () {
@@ -167,33 +162,30 @@ var monadParParCont = function (dictMonadEffect) {
     };
 };
 var functorParCont = function (dictMonadEffect) {
-    var map = Data_Functor.map(Control_Monad_Cont_Trans.functorContT((((dictMonadEffect.Monad0()).Bind1()).Apply0()).Functor0()));
+    var functorContT = Control_Monad_Cont_Trans.functorContT((((dictMonadEffect.Monad0()).Bind1()).Apply0()).Functor0());
     return {
         map: function (f) {
-            var $128 = parallel(monadParParCont(dictMonadEffect));
-            var $129 = map(f);
-            var $130 = sequential(monadParParCont(dictMonadEffect));
-            return function ($131) {
-                return $128($129($130($131)));
+            var $112 = parallel(monadParParCont(dictMonadEffect));
+            var $113 = Data_Functor.map(functorContT)(f);
+            var $114 = sequential(monadParParCont(dictMonadEffect));
+            return function ($115) {
+                return $112($113($114($115)));
             };
         }
     };
 };
 var applyParCont = function (dictMonadEffect) {
     var Bind1 = (dictMonadEffect.Monad0()).Bind1();
-    var bind = Control_Bind.bind(Bind1);
-    var liftEffect = Effect_Class.liftEffect(dictMonadEffect);
-    var discard1 = discard(Bind1);
     return {
         apply: function (v) {
             return function (v1) {
                 return function (k) {
-                    return bind(liftEffect(Effect_Ref["new"](Data_Maybe.Nothing.value)))(function (ra) {
-                        return bind(liftEffect(Effect_Ref["new"](Data_Maybe.Nothing.value)))(function (rb) {
-                            return discard1(Control_Monad_Cont_Trans.runContT(v)(function (a) {
-                                return bind(liftEffect(Effect_Ref.read(rb)))(function (mb) {
+                    return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref["new"](Data_Maybe.Nothing.value)))(function (ra) {
+                        return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref["new"](Data_Maybe.Nothing.value)))(function (rb) {
+                            return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Control_Monad_Cont_Trans.runContT(v)(function (a) {
+                                return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref.read(rb)))(function (mb) {
                                     if (mb instanceof Data_Maybe.Nothing) {
-                                        return liftEffect(Effect_Ref.write(new Data_Maybe.Just(a))(ra));
+                                        return Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref.write(new Data_Maybe.Just(a))(ra));
                                     };
                                     if (mb instanceof Data_Maybe.Just) {
                                         return k(a(mb.value0));
@@ -202,9 +194,9 @@ var applyParCont = function (dictMonadEffect) {
                                 });
                             }))(function () {
                                 return Control_Monad_Cont_Trans.runContT(v1)(function (b) {
-                                    return bind(liftEffect(Effect_Ref.read(ra)))(function (ma) {
+                                    return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref.read(ra)))(function (ma) {
                                         if (ma instanceof Data_Maybe.Nothing) {
-                                            return liftEffect(Effect_Ref.write(new Data_Maybe.Just(b))(rb));
+                                            return Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref.write(new Data_Maybe.Just(b))(rb));
                                         };
                                         if (ma instanceof Data_Maybe.Just) {
                                             return k(ma.value0(b));
@@ -227,10 +219,10 @@ var applicativeParCont = function (dictMonadEffect) {
     var applyParCont1 = applyParCont(dictMonadEffect);
     return {
         pure: (function () {
-            var $132 = parallel(monadParParCont(dictMonadEffect));
-            var $133 = Control_Applicative.pure(Control_Monad_Cont_Trans.applicativeContT((dictMonadEffect.Monad0()).Applicative0()));
-            return function ($134) {
-                return $132($133($134));
+            var $116 = parallel(monadParParCont(dictMonadEffect));
+            var $117 = Control_Applicative.pure(Control_Monad_Cont_Trans.applicativeContT((dictMonadEffect.Monad0()).Applicative0()));
+            return function ($118) {
+                return $116($117($118));
             };
         })(),
         Apply0: function () {
@@ -241,32 +233,29 @@ var applicativeParCont = function (dictMonadEffect) {
 var altParCont = function (dictMonadEffect) {
     var Monad0 = dictMonadEffect.Monad0();
     var Bind1 = Monad0.Bind1();
-    var bind = Control_Bind.bind(Bind1);
-    var liftEffect = Effect_Class.liftEffect(dictMonadEffect);
-    var discard1 = discard(Bind1);
-    var pure = Control_Applicative.pure(Monad0.Applicative0());
+    var Applicative0 = Monad0.Applicative0();
     var functorParCont1 = functorParCont(dictMonadEffect);
     return {
         alt: function (v) {
             return function (v1) {
                 return function (k) {
-                    return bind(liftEffect(Effect_Ref["new"](false)))(function (done) {
-                        return discard1(Control_Monad_Cont_Trans.runContT(v)(function (a) {
-                            return bind(liftEffect(Effect_Ref.read(done)))(function (b) {
+                    return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref["new"](false)))(function (done) {
+                        return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Control_Monad_Cont_Trans.runContT(v)(function (a) {
+                            return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref.read(done)))(function (b) {
                                 if (b) {
-                                    return pure(Data_Unit.unit);
+                                    return Control_Applicative.pure(Applicative0)(Data_Unit.unit);
                                 };
-                                return discard1(liftEffect(Effect_Ref.write(true)(done)))(function () {
+                                return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref.write(true)(done)))(function () {
                                     return k(a);
                                 });
                             });
                         }))(function () {
                             return Control_Monad_Cont_Trans.runContT(v1)(function (a) {
-                                return bind(liftEffect(Effect_Ref.read(done)))(function (b) {
+                                return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref.read(done)))(function (b) {
                                     if (b) {
-                                        return pure(Data_Unit.unit);
+                                        return Control_Applicative.pure(Applicative0)(Data_Unit.unit);
                                     };
-                                    return discard1(liftEffect(Effect_Ref.write(true)(done)))(function () {
+                                    return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref.write(true)(done)))(function () {
                                         return k(a);
                                     });
                                 });
@@ -282,11 +271,11 @@ var altParCont = function (dictMonadEffect) {
     };
 };
 var plusParCont = function (dictMonadEffect) {
-    var pure = Control_Applicative.pure((dictMonadEffect.Monad0()).Applicative0());
+    var Applicative0 = (dictMonadEffect.Monad0()).Applicative0();
     var altParCont1 = altParCont(dictMonadEffect);
     return {
         empty: function (v) {
-            return pure(Data_Unit.unit);
+            return Control_Applicative.pure(Applicative0)(Data_Unit.unit);
         },
         Alt0: function () {
             return altParCont1;

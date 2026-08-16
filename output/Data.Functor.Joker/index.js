@@ -6,25 +6,22 @@ import * as Data_Either from "../Data.Either/index.js";
 import * as Data_Functor from "../Data.Functor/index.js";
 import * as Data_Newtype from "../Data.Newtype/index.js";
 import * as Data_Show from "../Data.Show/index.js";
-var un = /* #__PURE__ */ Data_Newtype.un();
 var Joker = function (x) {
     return x;
 };
 var showJoker = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
-            return "(Joker " + (show(v) + ")");
+            return "(Joker " + (Data_Show.show(dictShow)(v) + ")");
         }
     };
 };
 var profunctorJoker = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return {
         dimap: function (v) {
             return function (g) {
                 return function (v1) {
-                    return map(g)(v1);
+                    return Data_Functor.map(dictFunctor)(g)(v1);
                 };
             };
         }
@@ -44,11 +41,10 @@ var hoistJoker = function (f) {
     };
 };
 var functorJoker = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return {
         map: function (f) {
             return function (v) {
-                return map(f)(v);
+                return Data_Functor.map(dictFunctor)(f)(v);
             };
         }
     };
@@ -57,14 +53,13 @@ var eqJoker = function (dictEq) {
     return dictEq;
 };
 var choiceJoker = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     var profunctorJoker1 = profunctorJoker(dictFunctor);
     return {
         left: function (v) {
-            return map(Data_Either.Left.create)(v);
+            return Data_Functor.map(dictFunctor)(Data_Either.Left.create)(v);
         },
         right: function (v) {
-            return map(Data_Either.Right.create)(v);
+            return Data_Functor.map(dictFunctor)(Data_Either.Right.create)(v);
         },
         Profunctor0: function () {
             return profunctorJoker1;
@@ -72,24 +67,22 @@ var choiceJoker = function (dictFunctor) {
     };
 };
 var bifunctorJoker = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return {
         bimap: function (v) {
             return function (g) {
                 return function (v1) {
-                    return map(g)(v1);
+                    return Data_Functor.map(dictFunctor)(g)(v1);
                 };
             };
         }
     };
 };
 var biapplyJoker = function (dictApply) {
-    var apply = Control_Apply.apply(dictApply);
     var bifunctorJoker1 = bifunctorJoker(dictApply.Functor0());
     return {
         biapply: function (v) {
             return function (v1) {
-                return apply(v)(v1);
+                return Control_Apply.apply(dictApply)(v)(v1);
             };
         },
         Bifunctor0: function () {
@@ -98,12 +91,11 @@ var biapplyJoker = function (dictApply) {
     };
 };
 var biapplicativeJoker = function (dictApplicative) {
-    var pure = Control_Applicative.pure(dictApplicative);
     var biapplyJoker1 = biapplyJoker(dictApplicative.Apply0());
     return {
         bipure: function (v) {
             return function (b) {
-                return pure(b);
+                return Control_Applicative.pure(dictApplicative)(b);
             };
         },
         Biapply0: function () {
@@ -112,12 +104,11 @@ var biapplicativeJoker = function (dictApplicative) {
     };
 };
 var applyJoker = function (dictApply) {
-    var apply = Control_Apply.apply(dictApply);
     var functorJoker1 = functorJoker(dictApply.Functor0());
     return {
         apply: function (v) {
             return function (v1) {
-                return apply(v)(v1);
+                return Control_Apply.apply(dictApply)(v)(v1);
             };
         },
         Functor0: function () {
@@ -126,15 +117,14 @@ var applyJoker = function (dictApply) {
     };
 };
 var bindJoker = function (dictBind) {
-    var bind = Control_Bind.bind(dictBind);
     var applyJoker1 = applyJoker(dictBind.Apply0());
     return {
         bind: function (v) {
             return function (amb) {
-                return bind(v)((function () {
-                    var $76 = un(Joker);
-                    return function ($77) {
-                        return $76(amb($77));
+                return Control_Bind.bind(dictBind)(v)((function () {
+                    var $63 = Data_Newtype.un()(Joker);
+                    return function ($64) {
+                        return $63(amb($64));
                     };
                 })());
             };
@@ -148,9 +138,9 @@ var applicativeJoker = function (dictApplicative) {
     var applyJoker1 = applyJoker(dictApplicative.Apply0());
     return {
         pure: (function () {
-            var $78 = Control_Applicative.pure(dictApplicative);
-            return function ($79) {
-                return Joker($78($79));
+            var $65 = Control_Applicative.pure(dictApplicative);
+            return function ($66) {
+                return Joker($65($66));
             };
         })(),
         Apply0: function () {

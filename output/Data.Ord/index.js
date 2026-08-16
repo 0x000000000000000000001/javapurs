@@ -8,7 +8,6 @@ import * as Data_Symbol from "../Data.Symbol/index.js";
 import * as Record_Unsafe from "../Record.Unsafe/index.js";
 import * as Type_Proxy from "../Type.Proxy/index.js";
 var eqRec = /* #__PURE__ */ Data_Eq.eqRec();
-var notEq = /* #__PURE__ */ Data_Eq.notEq(Data_Ordering.eqOrdering);
 var ordVoid = {
     compare: function (v) {
         return function (v1) {
@@ -142,22 +141,19 @@ var compare1 = function (dict) {
 var compare = function (dict) {
     return dict.compare;
 };
-var compare2 = /* #__PURE__ */ compare(ordInt);
 var comparing = function (dictOrd) {
-    var compare3 = compare(dictOrd);
     return function (f) {
         return function (x) {
             return function (y) {
-                return compare3(f(x))(f(y));
+                return compare(dictOrd)(f(x))(f(y));
             };
         };
     };
 };
 var greaterThan = function (dictOrd) {
-    var compare3 = compare(dictOrd);
     return function (a1) {
         return function (a2) {
-            var v = compare3(a1)(a2);
+            var v = compare(dictOrd)(a1)(a2);
             if (v instanceof Data_Ordering.GT) {
                 return true;
             };
@@ -166,10 +162,9 @@ var greaterThan = function (dictOrd) {
     };
 };
 var greaterThanOrEq = function (dictOrd) {
-    var compare3 = compare(dictOrd);
     return function (a1) {
         return function (a2) {
-            var v = compare3(a1)(a2);
+            var v = compare(dictOrd)(a1)(a2);
             if (v instanceof Data_Ordering.LT) {
                 return false;
             };
@@ -178,10 +173,9 @@ var greaterThanOrEq = function (dictOrd) {
     };
 };
 var lessThan = function (dictOrd) {
-    var compare3 = compare(dictOrd);
     return function (a1) {
         return function (a2) {
-            var v = compare3(a1)(a2);
+            var v = compare(dictOrd)(a1)(a2);
             if (v instanceof Data_Ordering.LT) {
                 return true;
             };
@@ -190,32 +184,28 @@ var lessThan = function (dictOrd) {
     };
 };
 var signum = function (dictOrd) {
-    var lessThan1 = lessThan(dictOrd);
-    var greaterThan1 = greaterThan(dictOrd);
     return function (dictRing) {
         var Semiring0 = dictRing.Semiring0();
         var zero = Data_Semiring.zero(Semiring0);
-        var negate1 = Data_Ring.negate(dictRing);
+        var Semiring01 = dictRing.Semiring0();
         var one = Data_Semiring.one(Semiring0);
-        var one1 = Data_Semiring.one(Semiring0);
         return function (x) {
-            var $90 = lessThan1(x)(zero);
-            if ($90) {
-                return negate1(one);
+            var $66 = lessThan(dictOrd)(x)(zero);
+            if ($66) {
+                return Data_Ring.negate(dictRing)(Data_Semiring.one(Semiring01));
             };
-            var $91 = greaterThan1(x)(zero);
-            if ($91) {
-                return one1;
+            var $67 = greaterThan(dictOrd)(x)(zero);
+            if ($67) {
+                return one;
             };
             return x;
         };
     };
 };
 var lessThanOrEq = function (dictOrd) {
-    var compare3 = compare(dictOrd);
     return function (a1) {
         return function (a2) {
-            var v = compare3(a1)(a2);
+            var v = compare(dictOrd)(a1)(a2);
             if (v instanceof Data_Ordering.GT) {
                 return false;
             };
@@ -224,10 +214,9 @@ var lessThanOrEq = function (dictOrd) {
     };
 };
 var max = function (dictOrd) {
-    var compare3 = compare(dictOrd);
     return function (x) {
         return function (y) {
-            var v = compare3(x)(y);
+            var v = compare(dictOrd)(x)(y);
             if (v instanceof Data_Ordering.LT) {
                 return y;
             };
@@ -242,10 +231,9 @@ var max = function (dictOrd) {
     };
 };
 var min = function (dictOrd) {
-    var compare3 = compare(dictOrd);
     return function (x) {
         return function (y) {
-            var v = compare3(x)(y);
+            var v = compare(dictOrd)(x)(y);
             if (v instanceof Data_Ordering.LT) {
                 return x;
             };
@@ -260,13 +248,12 @@ var min = function (dictOrd) {
     };
 };
 var ordArray = function (dictOrd) {
-    var compare3 = compare(dictOrd);
     var eqArray = Data_Eq.eqArray(dictOrd.Eq0());
     return {
         compare: (function () {
             var toDelta = function (x) {
                 return function (y) {
-                    var v = compare3(x)(y);
+                    var v = compare(dictOrd)(x)(y);
                     if (v instanceof Data_Ordering.EQ) {
                         return 0;
                     };
@@ -281,7 +268,7 @@ var ordArray = function (dictOrd) {
             };
             return function (xs) {
                 return function (ys) {
-                    return compare2(0)($foreign.ordArrayImpl(toDelta)(xs)(ys));
+                    return compare(ordInt)(0)($foreign.ordArrayImpl(toDelta)(xs)(ys));
                 };
             };
         })(),
@@ -299,26 +286,23 @@ var ord1Array = {
     }
 };
 var ordRecordCons = function (dictOrdRecord) {
-    var compareRecord1 = compareRecord(dictOrdRecord);
     var eqRowCons = Data_Eq.eqRowCons(dictOrdRecord.EqRecord0())();
     return function () {
         return function (dictIsSymbol) {
-            var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
             var eqRowCons1 = eqRowCons(dictIsSymbol);
             return function (dictOrd) {
-                var compare3 = compare(dictOrd);
                 var eqRowCons2 = eqRowCons1(dictOrd.Eq0());
                 return {
                     compareRecord: function (v) {
                         return function (ra) {
                             return function (rb) {
-                                var key = reflectSymbol(Type_Proxy["Proxy"].value);
-                                var left = compare3(Record_Unsafe.unsafeGet(key)(ra))(Record_Unsafe.unsafeGet(key)(rb));
-                                var $96 = notEq(left)(Data_Ordering.EQ.value);
-                                if ($96) {
+                                var key = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
+                                var left = compare(dictOrd)(Record_Unsafe.unsafeGet(key)(ra))(Record_Unsafe.unsafeGet(key)(rb));
+                                var $72 = Data_Eq.notEq(Data_Ordering.eqOrdering)(left)(Data_Ordering.EQ.value);
+                                if ($72) {
                                     return left;
                                 };
-                                return compareRecord1(Type_Proxy["Proxy"].value)(ra)(rb);
+                                return compareRecord(dictOrdRecord)(Type_Proxy["Proxy"].value)(ra)(rb);
                             };
                         };
                     },
@@ -331,26 +315,22 @@ var ordRecordCons = function (dictOrdRecord) {
     };
 };
 var clamp = function (dictOrd) {
-    var min1 = min(dictOrd);
-    var max1 = max(dictOrd);
     return function (low) {
         return function (hi) {
             return function (x) {
-                return min1(hi)(max1(low)(x));
+                return min(dictOrd)(hi)(max(dictOrd)(low)(x));
             };
         };
     };
 };
 var between = function (dictOrd) {
-    var lessThan1 = lessThan(dictOrd);
-    var greaterThan1 = greaterThan(dictOrd);
     return function (low) {
         return function (hi) {
             return function (x) {
-                if (lessThan1(x)(low)) {
+                if (lessThan(dictOrd)(x)(low)) {
                     return false;
                 };
-                if (greaterThan1(x)(hi)) {
+                if (greaterThan(dictOrd)(x)(hi)) {
                     return false;
                 };
                 return true;
@@ -359,16 +339,14 @@ var between = function (dictOrd) {
     };
 };
 var abs = function (dictOrd) {
-    var greaterThanOrEq1 = greaterThanOrEq(dictOrd);
     return function (dictRing) {
         var zero = Data_Semiring.zero(dictRing.Semiring0());
-        var negate1 = Data_Ring.negate(dictRing);
         return function (x) {
-            var $100 = greaterThanOrEq1(x)(zero);
-            if ($100) {
+            var $76 = greaterThanOrEq(dictOrd)(x)(zero);
+            if ($76) {
                 return x;
             };
-            return negate1(x);
+            return Data_Ring.negate(dictRing)(x);
         };
     };
 };

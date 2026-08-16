@@ -18,7 +18,6 @@ var $runtime_lazy = function (name, moduleName, init) {
         return val;
     };
 };
-var show = /* #__PURE__ */ Data_Show.show(Data_Show.showInt);
 var Year = function (x) {
     return x;
 };
@@ -160,7 +159,7 @@ var Day = function (x) {
 };
 var showYear = {
     show: function (v) {
-        return "(Year " + (show(v) + ")");
+        return "(Year " + (Data_Show.show(Data_Show.showInt)(v) + ")");
     }
 };
 var showWeekday = {
@@ -232,7 +231,7 @@ var showMonth = {
 };
 var showDay = {
     show: function (v) {
-        return "(Day " + (show(v) + ")");
+        return "(Day " + (Data_Show.show(Data_Show.showInt)(v) + ")");
     }
 };
 var ordYear = Data_Ord.ordInt;
@@ -540,21 +539,21 @@ var boundedEnumYear = {
 var $lazy_enumYear = /* #__PURE__ */ $runtime_lazy("enumYear", "Data.Date.Component", function () {
     return {
         succ: (function () {
-            var $55 = Data_Enum.toEnum(boundedEnumYear);
-            var $56 = Data_Enum.fromEnum(boundedEnumYear);
-            return function ($57) {
-                return $55((function (v) {
+            var $46 = Data_Enum.toEnum(boundedEnumYear);
+            var $47 = Data_Enum.fromEnum(boundedEnumYear);
+            return function ($48) {
+                return $46((function (v) {
                     return v + 1 | 0;
-                })($56($57)));
+                })($47($48)));
             };
         })(),
         pred: (function () {
-            var $58 = Data_Enum.toEnum(boundedEnumYear);
-            var $59 = Data_Enum.fromEnum(boundedEnumYear);
-            return function ($60) {
-                return $58((function (v) {
+            var $49 = Data_Enum.toEnum(boundedEnumYear);
+            var $50 = Data_Enum.fromEnum(boundedEnumYear);
+            return function ($51) {
+                return $49((function (v) {
                     return v - 1 | 0;
-                })($59($60)));
+                })($50($51)));
             };
         })(),
         Ord0: function () {
@@ -623,21 +622,21 @@ var boundedEnumWeekday = {
 var $lazy_enumWeekday = /* #__PURE__ */ $runtime_lazy("enumWeekday", "Data.Date.Component", function () {
     return {
         succ: (function () {
-            var $61 = Data_Enum.toEnum(boundedEnumWeekday);
-            var $62 = Data_Enum.fromEnum(boundedEnumWeekday);
-            return function ($63) {
-                return $61((function (v) {
+            var $52 = Data_Enum.toEnum(boundedEnumWeekday);
+            var $53 = Data_Enum.fromEnum(boundedEnumWeekday);
+            return function ($54) {
+                return $52((function (v) {
                     return v + 1 | 0;
-                })($62($63)));
+                })($53($54)));
             };
         })(),
         pred: (function () {
-            var $64 = Data_Enum.toEnum(boundedEnumWeekday);
-            var $65 = Data_Enum.fromEnum(boundedEnumWeekday);
-            return function ($66) {
-                return $64((function (v) {
+            var $55 = Data_Enum.toEnum(boundedEnumWeekday);
+            var $56 = Data_Enum.fromEnum(boundedEnumWeekday);
+            return function ($57) {
+                return $55((function (v) {
                     return v - 1 | 0;
-                })($65($66)));
+                })($56($57)));
             };
         })(),
         Ord0: function () {
@@ -736,21 +735,21 @@ var boundedEnumMonth = {
 var $lazy_enumMonth = /* #__PURE__ */ $runtime_lazy("enumMonth", "Data.Date.Component", function () {
     return {
         succ: (function () {
-            var $67 = Data_Enum.toEnum(boundedEnumMonth);
-            var $68 = Data_Enum.fromEnum(boundedEnumMonth);
-            return function ($69) {
-                return $67((function (v) {
+            var $58 = Data_Enum.toEnum(boundedEnumMonth);
+            var $59 = Data_Enum.fromEnum(boundedEnumMonth);
+            return function ($60) {
+                return $58((function (v) {
                     return v + 1 | 0;
-                })($68($69)));
+                })($59($60)));
             };
         })(),
         pred: (function () {
-            var $70 = Data_Enum.toEnum(boundedEnumMonth);
-            var $71 = Data_Enum.fromEnum(boundedEnumMonth);
-            return function ($72) {
-                return $70((function (v) {
+            var $61 = Data_Enum.toEnum(boundedEnumMonth);
+            var $62 = Data_Enum.fromEnum(boundedEnumMonth);
+            return function ($63) {
+                return $61((function (v) {
                     return v - 1 | 0;
-                })($71($72)));
+                })($62($63)));
             };
         })(),
         Ord0: function () {
@@ -790,21 +789,21 @@ var boundedEnumDay = {
 var $lazy_enumDay = /* #__PURE__ */ $runtime_lazy("enumDay", "Data.Date.Component", function () {
     return {
         succ: (function () {
-            var $73 = Data_Enum.toEnum(boundedEnumDay);
-            var $74 = Data_Enum.fromEnum(boundedEnumDay);
-            return function ($75) {
-                return $73((function (v) {
+            var $64 = Data_Enum.toEnum(boundedEnumDay);
+            var $65 = Data_Enum.fromEnum(boundedEnumDay);
+            return function ($66) {
+                return $64((function (v) {
                     return v + 1 | 0;
-                })($74($75)));
+                })($65($66)));
             };
         })(),
         pred: (function () {
-            var $76 = Data_Enum.toEnum(boundedEnumDay);
-            var $77 = Data_Enum.fromEnum(boundedEnumDay);
-            return function ($78) {
-                return $76((function (v) {
+            var $67 = Data_Enum.toEnum(boundedEnumDay);
+            var $68 = Data_Enum.fromEnum(boundedEnumDay);
+            return function ($69) {
+                return $67((function (v) {
                     return v - 1 | 0;
-                })($77($78)));
+                })($68($69)));
             };
         })(),
         Ord0: function () {

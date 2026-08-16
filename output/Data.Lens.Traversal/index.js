@@ -14,12 +14,9 @@ import * as Data_Newtype from "../Data.Newtype/index.js";
 import * as Data_Profunctor_Star from "../Data.Profunctor.Star/index.js";
 import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
-var under = /* #__PURE__ */ Data_Newtype.under()();
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
-var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
 var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var join = /* #__PURE__ */ Control_Bind.join(Control_Bind.bindFn);
 var traversed = function (dictTraversable) {
     var traverse = Data_Traversable.traverse(dictTraversable);
     return function (dictWander) {
@@ -28,35 +25,35 @@ var traversed = function (dictTraversable) {
         });
     };
 };
-var traverseOf = /* #__PURE__ */ under(Data_Profunctor_Star.Star);
+var traverseOf = /* #__PURE__ */ Data_Newtype.under()()(Data_Profunctor_Star.Star);
 var sequenceOf = function (t) {
     return traverseOf(t)(identity);
 };
 var itraverseOf = function (t) {
-    var $55 = under(Data_Profunctor_Star.Star)(function ($57) {
-        return t(Data_Lens_Internal_Indexed.Indexed($57));
+    var $43 = Data_Newtype.under()()(Data_Profunctor_Star.Star)(function ($45) {
+        return t(Data_Lens_Internal_Indexed.Indexed($45));
     });
-    return function ($56) {
-        return $55(Data_Tuple.uncurry($56));
+    return function ($44) {
+        return $43(Data_Tuple.uncurry($44));
     };
 };
-var iforOf = function ($58) {
-    return Data_Function.flip(itraverseOf($58));
+var iforOf = function ($46) {
+    return Data_Function.flip(itraverseOf($46));
 };
 var failover = function (dictAlternative) {
-    var pure = Control_Applicative.pure(dictAlternative.Applicative0());
+    var Applicative0 = dictAlternative.Applicative0();
     var empty = Control_Plus.empty(dictAlternative.Plus1());
     return function (t) {
         return function (f) {
             return function (s) {
-                var v = unwrap(t((function () {
-                    var $59 = Data_Tuple.Tuple.create(true);
-                    return function ($60) {
-                        return $59(f($60));
+                var v = Data_Newtype.unwrap()(t((function () {
+                    var $47 = Data_Tuple.Tuple.create(true);
+                    return function ($48) {
+                        return $47(f($48));
                     };
                 })()))(s);
                 if (v.value0) {
-                    return pure(v.value1);
+                    return Control_Applicative.pure(Applicative0)(v.value1);
                 };
                 if (!v.value0) {
                     return empty;
@@ -71,14 +68,13 @@ var elementsOf = function (dictWander) {
         return function (pr) {
             return Data_Lens_Indexed.iwander(function (dictApplicative) {
                 var tr1 = tr(Data_Lens_Internal_Wander.wanderStar(dictApplicative));
-                var pure = Control_Applicative.pure(dictApplicative);
                 return function (f) {
-                    return unwrap1(tr1(function (v) {
-                        var $52 = pr(v.value0);
-                        if ($52) {
+                    return unwrap(tr1(function (v) {
+                        var $40 = pr(v.value0);
+                        if ($40) {
                             return f(v.value0)(v.value1);
                         };
-                        return pure(v.value1);
+                        return Control_Applicative.pure(dictApplicative)(v.value1);
                     }));
                 };
             })(dictWander);
@@ -87,10 +83,9 @@ var elementsOf = function (dictWander) {
 };
 var element = function (dictWander) {
     var unIndex = Data_Lens_Indexed.unIndex((dictWander.Choice1()).Profunctor0());
-    var elementsOf1 = elementsOf(dictWander);
     return function (n) {
         return function (tr) {
-            return unIndex(elementsOf1(function (dictWander1) {
+            return unIndex(elementsOf(dictWander)(function (dictWander1) {
                 return Data_Lens_Indexed.positions(function (dictWander2) {
                     return tr(dictWander2);
                 })(dictWander1);
@@ -113,7 +108,7 @@ var both = function (dictBitraversable) {
     var bitraverse = Data_Bitraversable.bitraverse(dictBitraversable);
     return function (dictWander) {
         return Data_Lens_Internal_Wander.wander(dictWander)(function (dictApplicative) {
-            return join(bitraverse(dictApplicative));
+            return Control_Bind.join(Control_Bind.bindFn)(bitraverse(dictApplicative));
         });
     };
 };

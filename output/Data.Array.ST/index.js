@@ -6,7 +6,6 @@ import * as Control_Monad_ST_Uncurried from "../Control.Monad.ST.Uncurried/index
 import * as Data_Maybe from "../Data.Maybe/index.js";
 import * as Data_Ord from "../Data.Ord/index.js";
 import * as Data_Ordering from "../Data.Ordering/index.js";
-var bind = /* #__PURE__ */ Control_Bind.bind(Control_Monad_ST_Internal.bindST);
 var unshiftAll = /* #__PURE__ */ Control_Monad_ST_Uncurried.runSTFn2($foreign.unshiftAllImpl);
 var unshift = function (a) {
     return Control_Monad_ST_Uncurried.runSTFn2($foreign.unshiftAllImpl)([ a ]);
@@ -40,9 +39,8 @@ var sortBy = function (comp) {
     });
 };
 var sortWith = function (dictOrd) {
-    var comparing = Data_Ord.comparing(dictOrd);
     return function (f) {
-        return sortBy(comparing(f));
+        return sortBy(Data_Ord.comparing(dictOrd)(f));
     };
 };
 var sort = function (dictOrd) {
@@ -52,7 +50,7 @@ var shift = /* #__PURE__ */ (function () {
     return Control_Monad_ST_Uncurried.runSTFn3($foreign.shiftImpl)(Data_Maybe.Just.create)(Data_Maybe.Nothing.value);
 })();
 var run = function (st) {
-    return bind(st)(unsafeFreeze)();
+    return Control_Bind.bind(Control_Monad_ST_Internal.bindST)(st)(unsafeFreeze)();
 };
 var pushAll = /* #__PURE__ */ Control_Monad_ST_Uncurried.runSTFn2($foreign.pushAllImpl);
 var push = /* #__PURE__ */ Control_Monad_ST_Uncurried.runSTFn2($foreign.pushImpl);

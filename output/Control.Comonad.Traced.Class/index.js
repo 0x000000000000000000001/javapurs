@@ -11,23 +11,21 @@ var track = function (dict) {
     return dict.track;
 };
 var tracks = function (dictComonadTraced) {
-    var track1 = track(dictComonadTraced);
-    var extract = Control_Comonad.extract(dictComonadTraced.Comonad0());
+    var Comonad0 = dictComonadTraced.Comonad0();
     return function (f) {
         return function (w) {
-            return track1(f(extract(w)))(w);
+            return track(dictComonadTraced)(f(Control_Comonad.extract(Comonad0)(w)))(w);
         };
     };
 };
 var lowerTrack = function (dictComonadTrans) {
     var lower = Control_Comonad_Trans_Class.lower(dictComonadTrans);
     return function (dictComonadTraced) {
-        var track1 = track(dictComonadTraced);
         var lower1 = lower(dictComonadTraced.Comonad0());
         return function (m) {
-            var $51 = track1(m);
-            return function ($52) {
-                return $51(lower1($52));
+            var $42 = track(dictComonadTraced)(m);
+            return function ($43) {
+                return $42(lower1($43));
             };
         };
     };
@@ -36,10 +34,9 @@ var lowerTrack1 = /* #__PURE__ */ lowerTrack(Control_Comonad_Store_Trans.comonad
 var lowerTrack2 = /* #__PURE__ */ lowerTrack(Control_Comonad_Trans_Class.comonadTransIdentityT);
 var lowerTrack3 = /* #__PURE__ */ lowerTrack(Control_Comonad_Env_Trans.comonadTransEnvT);
 var listens = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return function (f) {
         return function (v) {
-            return map(function (g) {
+            return Data_Functor.map(dictFunctor)(function (g) {
                 return function (t) {
                     return new Data_Tuple.Tuple(g(t), f(t));
                 };
@@ -48,9 +45,8 @@ var listens = function (dictFunctor) {
     };
 };
 var listen = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return function (v) {
-        return map(function (f) {
+        return Data_Functor.map(dictFunctor)(function (f) {
             return function (t) {
                 return new Data_Tuple.Tuple(f(t), t);
             };
@@ -58,14 +54,13 @@ var listen = function (dictFunctor) {
     };
 };
 var comonadTracedTracedT = function (dictComonad) {
-    var extract = Control_Comonad.extract(dictComonad);
     var comonadTracedT = Control_Comonad_Traced_Trans.comonadTracedT(dictComonad);
     return function (dictMonoid) {
         var comonadTracedT1 = comonadTracedT(dictMonoid);
         return {
             track: function (t) {
                 return function (v) {
-                    return extract(v)(t);
+                    return Control_Comonad.extract(dictComonad)(v)(t);
                 };
             },
             Comonad0: function () {
@@ -102,12 +97,11 @@ var comonadTracedEnvT = function (dictComonadTraced) {
     };
 };
 var censor = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return function (f) {
         return function (v) {
-            return map(function (v1) {
-                return function ($53) {
-                    return v1(f($53));
+            return Data_Functor.map(dictFunctor)(function (v1) {
+                return function ($44) {
+                    return v1(f($44));
                 };
             })(v);
         };

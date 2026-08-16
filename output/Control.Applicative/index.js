@@ -7,39 +7,36 @@ var pure = function (dict) {
     return dict.pure;
 };
 var unless = function (dictApplicative) {
-    var pure1 = pure(dictApplicative);
     return function (v) {
         return function (v1) {
             if (!v) {
                 return v1;
             };
             if (v) {
-                return pure1(Data_Unit.unit);
+                return pure(dictApplicative)(Data_Unit.unit);
             };
             throw new Error("Failed pattern match at Control.Applicative (line 68, column 1 - line 68, column 65): " + [ v.constructor.name, v1.constructor.name ]);
         };
     };
 };
 var when = function (dictApplicative) {
-    var pure1 = pure(dictApplicative);
     return function (v) {
         return function (v1) {
             if (v) {
                 return v1;
             };
             if (!v) {
-                return pure1(Data_Unit.unit);
+                return pure(dictApplicative)(Data_Unit.unit);
             };
             throw new Error("Failed pattern match at Control.Applicative (line 63, column 1 - line 63, column 63): " + [ v.constructor.name, v1.constructor.name ]);
         };
     };
 };
 var liftA1 = function (dictApplicative) {
-    var apply = Control_Apply.apply(dictApplicative.Apply0());
-    var pure1 = pure(dictApplicative);
+    var Apply0 = dictApplicative.Apply0();
     return function (f) {
         return function (a) {
-            return apply(pure1(f))(a);
+            return Control_Apply.apply(Apply0)(pure(dictApplicative)(f))(a);
         };
     };
 };

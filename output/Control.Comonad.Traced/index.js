@@ -3,12 +3,11 @@ import * as Control_Comonad_Traced_Class from "../Control.Comonad.Traced.Class/i
 import * as Control_Comonad_Traced_Trans from "../Control.Comonad.Traced.Trans/index.js";
 import * as Data_Identity from "../Data.Identity/index.js";
 import * as Data_Newtype from "../Data.Newtype/index.js";
-var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
-var traced = function ($4) {
-    return Control_Comonad_Traced_Trans.TracedT(Data_Identity.Identity($4));
+var traced = function ($2) {
+    return Control_Comonad_Traced_Trans.TracedT(Data_Identity.Identity($2));
 };
 var runTraced = function (v) {
-    return unwrap(v);
+    return Data_Newtype.unwrap()(v);
 };
 export {
     runTraced,

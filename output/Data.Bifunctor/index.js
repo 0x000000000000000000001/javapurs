@@ -13,9 +13,8 @@ var bivoid = function (dictBifunctor) {
     return bimap(dictBifunctor)(Data_Function["const"](Data_Unit.unit))(Data_Function["const"](Data_Unit.unit));
 };
 var lmap = function (dictBifunctor) {
-    var bimap1 = bimap(dictBifunctor);
     return function (f) {
-        return bimap1(f)(identity);
+        return bimap(dictBifunctor)(f)(identity);
     };
 };
 var rmap = function (dictBifunctor) {

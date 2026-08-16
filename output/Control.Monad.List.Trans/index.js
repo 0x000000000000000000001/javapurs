@@ -14,10 +14,7 @@ import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
 import * as Effect_Class from "../Effect.Class/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
-var map1 = /* #__PURE__ */ Data_Functor.map(Data_Lazy.functorLazy);
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var pure = /* #__PURE__ */ Control_Applicative.pure(Data_Lazy.applicativeLazy);
 var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var Yield = /* #__PURE__ */ (function () {
     function Yield(value0, value1) {
@@ -51,21 +48,19 @@ var ListT = function (x) {
     return x;
 };
 var wrapLazy = function (dictApplicative) {
-    var pure1 = Control_Applicative.pure(dictApplicative);
     return function (v) {
-        return pure1(new Skip(v));
+        return Control_Applicative.pure(dictApplicative)(new Skip(v));
     };
 };
 var wrapEffect = function (dictFunctor) {
-    var map2 = Data_Functor.map(dictFunctor);
     return function (v) {
-        return map2(function ($340) {
-            return Skip.create(Data_Lazy.defer(Data_Function["const"]($340)));
+        return Data_Functor.map(dictFunctor)(function ($279) {
+            return Skip.create(Data_Lazy.defer(Data_Function["const"]($279)));
         })(v);
     };
 };
 var unfold = function (dictMonad) {
-    var map2 = Data_Functor.map(((dictMonad.Bind1()).Apply0()).Functor0());
+    var Functor0 = ((dictMonad.Bind1()).Apply0()).Functor0();
     return function (f) {
         return function (z) {
             var g = function (v) {
@@ -79,71 +74,67 @@ var unfold = function (dictMonad) {
                 };
                 throw new Error("Failed pattern match at Control.Monad.List.Trans (line 130, column 3 - line 130, column 60): " + [ v.constructor.name ]);
             };
-            return map2(g)(f(z));
+            return Data_Functor.map(Functor0)(g)(f(z));
         };
     };
 };
 var uncons = function (dictMonad) {
+    var pure = Control_Applicative.pure(dictMonad.Applicative0());
     var Applicative0 = dictMonad.Applicative0();
-    var pure1 = Control_Applicative.pure(Applicative0);
-    var pure2 = Control_Applicative.pure(Applicative0);
-    var bind = Control_Bind.bind(dictMonad.Bind1());
+    var Bind1 = dictMonad.Bind1();
     return function (v) {
         var g = function (v1) {
             if (v1 instanceof Yield) {
-                return pure1(new Data_Maybe.Just(new Data_Tuple.Tuple(v1.value0, Data_Lazy.force(v1.value1))));
+                return pure(new Data_Maybe.Just(new Data_Tuple.Tuple(v1.value0, Data_Lazy.force(v1.value1))));
             };
             if (v1 instanceof Skip) {
                 return uncons(dictMonad)(Data_Lazy.force(v1.value0));
             };
             if (v1 instanceof Done) {
-                return pure2(Data_Maybe.Nothing.value);
+                return Control_Applicative.pure(Applicative0)(Data_Maybe.Nothing.value);
             };
             throw new Error("Failed pattern match at Control.Monad.List.Trans (line 195, column 3 - line 195, column 50): " + [ v1.constructor.name ]);
         };
-        return bind(v)(g);
+        return Control_Bind.bind(Bind1)(v)(g);
     };
 };
 var tail = function (dictMonad) {
-    var map2 = Data_Functor.map(((dictMonad.Bind1()).Apply0()).Functor0());
-    var uncons1 = uncons(dictMonad);
+    var Functor0 = ((dictMonad.Bind1()).Apply0()).Functor0();
     return function (l) {
-        return map2(map(Data_Tuple.snd))(uncons1(l));
+        return Data_Functor.map(Functor0)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Tuple.snd))(uncons(dictMonad)(l));
     };
 };
 var stepMap = function (dictFunctor) {
-    var map2 = Data_Functor.map(dictFunctor);
     return function (f) {
         return function (v) {
-            return map2(f)(v);
+            return Data_Functor.map(dictFunctor)(f)(v);
         };
     };
 };
 var takeWhile = function (dictApplicative) {
-    var stepMap1 = stepMap((dictApplicative.Apply0()).Functor0());
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (f) {
         var g = function (v) {
             if (v instanceof Yield) {
-                var $257 = f(v.value0);
-                if ($257) {
-                    return new Yield(v.value0, map1(takeWhile(dictApplicative)(f))(v.value1));
+                var $196 = f(v.value0);
+                if ($196) {
+                    return new Yield(v.value0, Data_Functor.map(Data_Lazy.functorLazy)(takeWhile(dictApplicative)(f))(v.value1));
                 };
                 return Done.value;
             };
             if (v instanceof Skip) {
-                return new Skip(map1(takeWhile(dictApplicative)(f))(v.value0));
+                return new Skip(Data_Functor.map(Data_Lazy.functorLazy)(takeWhile(dictApplicative)(f))(v.value0));
             };
             if (v instanceof Done) {
                 return Done.value;
             };
             throw new Error("Failed pattern match at Control.Monad.List.Trans (line 154, column 3 - line 154, column 68): " + [ v.constructor.name ]);
         };
-        return stepMap1(g);
+        return stepMap(Functor0)(g);
     };
 };
 var scanl = function (dictMonad) {
-    var map2 = Data_Functor.map(((dictMonad.Bind1()).Apply0()).Functor0());
-    var unfold1 = unfold(dictMonad);
+    var Functor0 = ((dictMonad.Bind1()).Apply0()).Functor0();
     return function (f) {
         return function (b) {
             return function (l) {
@@ -161,26 +152,24 @@ var scanl = function (dictMonad) {
                         };
                         throw new Error("Failed pattern match at Control.Monad.List.Trans (line 248, column 5 - line 248, column 78): " + [ v1.constructor.name ]);
                     };
-                    return map2(h)(v.value1);
+                    return Data_Functor.map(Functor0)(h)(v.value1);
                 };
-                return unfold1(g)(new Data_Tuple.Tuple(b, l));
+                return unfold(dictMonad)(g)(new Data_Tuple.Tuple(b, l));
             };
         };
     };
 };
 var prepend$prime = function (dictApplicative) {
-    var pure1 = Control_Applicative.pure(dictApplicative);
     return function (h) {
         return function (t) {
-            return pure1(new Yield(h, t));
+            return Control_Applicative.pure(dictApplicative)(new Yield(h, t));
         };
     };
 };
 var prepend = function (dictApplicative) {
-    var prepend$prime1 = prepend$prime(dictApplicative);
     return function (h) {
         return function (t) {
-            return prepend$prime1(h)(Data_Lazy.defer(Data_Function["const"](t)));
+            return prepend$prime(dictApplicative)(h)(Data_Lazy.defer(Data_Function["const"](t)));
         };
     };
 };
@@ -188,15 +177,14 @@ var nil = function (dictApplicative) {
     return Control_Applicative.pure(dictApplicative)(Done.value);
 };
 var singleton = function (dictApplicative) {
-    var prepend1 = prepend(dictApplicative);
     var nil1 = nil(dictApplicative);
     return function (a) {
-        return prepend1(a)(nil1);
+        return prepend(dictApplicative)(a)(nil1);
     };
 };
 var take = function (dictApplicative) {
     var nil1 = nil(dictApplicative);
-    var stepMap1 = stepMap((dictApplicative.Apply0()).Functor0());
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (v) {
         return function (v1) {
             if (v === 0) {
@@ -204,42 +192,36 @@ var take = function (dictApplicative) {
             };
             var f = function (v2) {
                 if (v2 instanceof Yield) {
-                    return new Yield(v2.value0, map1(take(dictApplicative)(v - 1 | 0))(v2.value1));
+                    return new Yield(v2.value0, Data_Functor.map(Data_Lazy.functorLazy)(take(dictApplicative)(v - 1 | 0))(v2.value1));
                 };
                 if (v2 instanceof Skip) {
-                    return new Skip(map1(take(dictApplicative)(v))(v2.value0));
+                    return new Skip(Data_Functor.map(Data_Lazy.functorLazy)(take(dictApplicative)(v))(v2.value0));
                 };
                 if (v2 instanceof Done) {
                     return Done.value;
                 };
                 throw new Error("Failed pattern match at Control.Monad.List.Trans (line 147, column 3 - line 147, column 47): " + [ v2.constructor.name ]);
             };
-            return stepMap1(f)(v1);
+            return stepMap(Functor0)(f)(v1);
         };
     };
 };
 var zipWith$prime = function (dictMonad) {
     var Applicative0 = dictMonad.Applicative0();
-    var pure1 = Control_Applicative.pure(Applicative0);
-    var nil1 = nil(Applicative0);
+    var Functor0 = ((dictMonad.Bind1()).Apply0()).Functor0();
+    var prepend$prime1 = prepend$prime(dictMonad.Applicative0());
     var Bind1 = dictMonad.Bind1();
-    var Functor0 = (Bind1.Apply0()).Functor0();
-    var map2 = Data_Functor.map(Functor0);
-    var prepend$prime1 = prepend$prime(Applicative0);
-    var wrapEffect1 = wrapEffect(Functor0);
-    var bind = Control_Bind.bind(Bind1);
-    var uncons1 = uncons(dictMonad);
     return function (f) {
         var g = function (v) {
             return function (v1) {
                 if (v1 instanceof Data_Maybe.Nothing) {
-                    return pure1(nil1);
+                    return Control_Applicative.pure(Applicative0)(nil(Applicative0));
                 };
                 if (v instanceof Data_Maybe.Nothing) {
-                    return pure1(nil1);
+                    return Control_Applicative.pure(Applicative0)(nil(Applicative0));
                 };
                 if (v instanceof Data_Maybe.Just && v1 instanceof Data_Maybe.Just) {
-                    return map2(Data_Function.flip(prepend$prime1)(Data_Lazy.defer(function (v2) {
+                    return Data_Functor.map(Functor0)(Data_Function.flip(prepend$prime1)(Data_Lazy.defer(function (v2) {
                         return zipWith$prime(dictMonad)(f)(v.value0.value1)(v1.value0.value1);
                     })))(f(v.value0.value0)(v1.value0.value0));
                 };
@@ -248,8 +230,8 @@ var zipWith$prime = function (dictMonad) {
         };
         var loop = function (fa) {
             return function (fb) {
-                return wrapEffect1(bind(uncons1(fa))(function (ua) {
-                    return bind(uncons1(fb))(function (ub) {
+                return wrapEffect(Functor0)(Control_Bind.bind(Bind1)(uncons(dictMonad)(fa))(function (ua) {
+                    return Control_Bind.bind(Bind1)(uncons(dictMonad)(fb))(function (ub) {
                         return g(ua)(ub);
                     });
                 }));
@@ -259,15 +241,14 @@ var zipWith$prime = function (dictMonad) {
     };
 };
 var zipWith = function (dictMonad) {
-    var pure1 = Control_Applicative.pure(dictMonad.Applicative0());
-    var zipWith$prime1 = zipWith$prime(dictMonad);
+    var pure = Control_Applicative.pure(dictMonad.Applicative0());
     return function (f) {
         var g = function (a) {
             return function (b) {
-                return pure1(f(a)(b));
+                return pure(f(a)(b));
             };
         };
-        return zipWith$prime1(g);
+        return zipWith$prime(dictMonad)(g);
     };
 };
 var newtypeListT = {
@@ -276,32 +257,30 @@ var newtypeListT = {
     }
 };
 var mapMaybe = function (dictFunctor) {
-    var stepMap1 = stepMap(dictFunctor);
     return function (f) {
         var g = function (v) {
             if (v instanceof Yield) {
-                return Data_Maybe.fromMaybe(Skip.create)(map(Yield.create)(f(v.value0)))(map1(mapMaybe(dictFunctor)(f))(v.value1));
+                return Data_Maybe.fromMaybe(Skip.create)(Data_Functor.map(Data_Maybe.functorMaybe)(Yield.create)(f(v.value0)))(Data_Functor.map(Data_Lazy.functorLazy)(mapMaybe(dictFunctor)(f))(v.value1));
             };
             if (v instanceof Skip) {
-                return new Skip(map1(mapMaybe(dictFunctor)(f))(v.value0));
+                return new Skip(Data_Functor.map(Data_Lazy.functorLazy)(mapMaybe(dictFunctor)(f))(v.value0));
             };
             if (v instanceof Done) {
                 return Done.value;
             };
             throw new Error("Failed pattern match at Control.Monad.List.Trans (line 183, column 3 - line 183, column 72): " + [ v.constructor.name ]);
         };
-        return stepMap1(g);
+        return stepMap(dictFunctor)(g);
     };
 };
 var iterate = function (dictMonad) {
-    var pure1 = Control_Applicative.pure(dictMonad.Applicative0());
-    var unfold1 = unfold(dictMonad);
+    var pure = Control_Applicative.pure(dictMonad.Applicative0());
     return function (f) {
         return function (a) {
             var g = function (x) {
-                return pure1(new Data_Maybe.Just(new Data_Tuple.Tuple(f(x), x)));
+                return pure(new Data_Maybe.Just(new Data_Tuple.Tuple(f(x), x)));
             };
-            return unfold1(g)(a);
+            return unfold(dictMonad)(g)(a);
         };
     };
 };
@@ -309,38 +288,35 @@ var repeat = function (dictMonad) {
     return iterate(dictMonad)(identity);
 };
 var head = function (dictMonad) {
-    var map2 = Data_Functor.map(((dictMonad.Bind1()).Apply0()).Functor0());
-    var uncons1 = uncons(dictMonad);
+    var Functor0 = ((dictMonad.Bind1()).Apply0()).Functor0();
     return function (l) {
-        return map2(map(Data_Tuple.fst))(uncons1(l));
+        return Data_Functor.map(Functor0)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Tuple.fst))(uncons(dictMonad)(l));
     };
 };
 var functorListT = function (dictFunctor) {
-    var stepMap1 = stepMap(dictFunctor);
     return {
         map: function (f) {
             var g = function (v) {
                 if (v instanceof Yield) {
-                    return new Yield(f(v.value0), map1(Data_Functor.map(functorListT(dictFunctor))(f))(v.value1));
+                    return new Yield(f(v.value0), Data_Functor.map(Data_Lazy.functorLazy)(Data_Functor.map(functorListT(dictFunctor))(f))(v.value1));
                 };
                 if (v instanceof Skip) {
-                    return new Skip(map1(Data_Functor.map(functorListT(dictFunctor))(f))(v.value0));
+                    return new Skip(Data_Functor.map(Data_Lazy.functorLazy)(Data_Functor.map(functorListT(dictFunctor))(f))(v.value0));
                 };
                 if (v instanceof Done) {
                     return Done.value;
                 };
                 throw new Error("Failed pattern match at Control.Monad.List.Trans (line 280, column 5 - line 280, column 48): " + [ v.constructor.name ]);
             };
-            return stepMap1(g);
+            return stepMap(dictFunctor)(g);
         }
     };
 };
 var fromEffect = function (dictApplicative) {
-    var map2 = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-    var nil1 = nil(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (fa) {
-        return map2(Data_Function.flip(Yield.create)(Data_Lazy.defer(function (v) {
-            return nil1;
+        return Data_Functor.map(Functor0)(Data_Function.flip(Yield.create)(Data_Lazy.defer(function (v) {
+            return nil(dictApplicative);
         })))(fa);
     };
 };
@@ -352,20 +328,19 @@ var monadTransListT = {
 var lift = /* #__PURE__ */ Control_Monad_Trans_Class.lift(monadTransListT);
 var foldlRec$prime = function (dictMonadRec) {
     var Monad0 = dictMonadRec.Monad0();
-    var pure1 = Control_Applicative.pure(Monad0.Applicative0());
-    var bind = Control_Bind.bind(Monad0.Bind1());
-    var uncons1 = uncons(Monad0);
-    var tailRecM2 = Control_Monad_Rec_Class.tailRecM2(dictMonadRec);
+    var Applicative0 = Monad0.Applicative0();
+    var Bind1 = Monad0.Bind1();
+    var Monad01 = dictMonadRec.Monad0();
     return function (f) {
         var loop = function (b) {
             return function (l) {
                 var g = function (v) {
                     if (v instanceof Data_Maybe.Nothing) {
-                        return pure1(new Control_Monad_Rec_Class.Done(b));
+                        return Control_Applicative.pure(Applicative0)(new Control_Monad_Rec_Class.Done(b));
                     };
                     if (v instanceof Data_Maybe.Just) {
-                        return bind(f(b)(v.value0.value0))(function (b$prime) {
-                            return pure1(new Control_Monad_Rec_Class.Loop({
+                        return Control_Bind.bind(Bind1)(f(b)(v.value0.value0))(function (b$prime) {
+                            return Control_Applicative.pure(Applicative0)(new Control_Monad_Rec_Class.Loop({
                                 a: b$prime,
                                 b: v.value0.value1
                             }));
@@ -373,113 +348,109 @@ var foldlRec$prime = function (dictMonadRec) {
                     };
                     throw new Error("Failed pattern match at Control.Monad.List.Trans (line 221, column 5 - line 221, column 45): " + [ v.constructor.name ]);
                 };
-                return bind(uncons1(l))(g);
+                return Control_Bind.bind(Bind1)(uncons(Monad01)(l))(g);
             };
         };
-        return tailRecM2(loop);
+        return Control_Monad_Rec_Class.tailRecM2(dictMonadRec)(loop);
     };
 };
 var runListTRec = function (dictMonadRec) {
-    var pure1 = Control_Applicative.pure((dictMonadRec.Monad0()).Applicative0());
+    var Applicative0 = (dictMonadRec.Monad0()).Applicative0();
     return foldlRec$prime(dictMonadRec)(function (v) {
         return function (v1) {
-            return pure1(Data_Unit.unit);
+            return Control_Applicative.pure(Applicative0)(Data_Unit.unit);
         };
     })(Data_Unit.unit);
 };
 var foldlRec = function (dictMonadRec) {
     var Monad0 = dictMonadRec.Monad0();
-    var pure1 = Control_Applicative.pure(Monad0.Applicative0());
-    var bind = Control_Bind.bind(Monad0.Bind1());
-    var uncons1 = uncons(Monad0);
-    var tailRecM2 = Control_Monad_Rec_Class.tailRecM2(dictMonadRec);
+    var Applicative0 = Monad0.Applicative0();
+    var Bind1 = Monad0.Bind1();
+    var Monad01 = dictMonadRec.Monad0();
     return function (f) {
         var loop = function (b) {
             return function (l) {
                 var g = function (v) {
                     if (v instanceof Data_Maybe.Nothing) {
-                        return pure1(new Control_Monad_Rec_Class.Done(b));
+                        return Control_Applicative.pure(Applicative0)(new Control_Monad_Rec_Class.Done(b));
                     };
                     if (v instanceof Data_Maybe.Just) {
-                        return pure1(new Control_Monad_Rec_Class.Loop({
+                        return Control_Applicative.pure(Applicative0)(new Control_Monad_Rec_Class.Loop({
                             a: f(b)(v.value0.value0),
                             b: v.value0.value1
                         }));
                     };
                     throw new Error("Failed pattern match at Control.Monad.List.Trans (line 239, column 7 - line 239, column 47): " + [ v.constructor.name ]);
                 };
-                return bind(uncons1(l))(g);
+                return Control_Bind.bind(Bind1)(uncons(Monad01)(l))(g);
             };
         };
-        return tailRecM2(loop);
+        return Control_Monad_Rec_Class.tailRecM2(dictMonadRec)(loop);
     };
 };
 var foldl$prime = function (dictMonad) {
-    var pure1 = Control_Applicative.pure(dictMonad.Applicative0());
-    var bind = Control_Bind.bind(dictMonad.Bind1());
-    var uncons1 = uncons(dictMonad);
+    var Applicative0 = dictMonad.Applicative0();
+    var Bind1 = dictMonad.Bind1();
     return function (f) {
         var loop = function (b) {
             return function (l) {
                 var g = function (v) {
                     if (v instanceof Data_Maybe.Nothing) {
-                        return pure1(b);
+                        return Control_Applicative.pure(Applicative0)(b);
                     };
                     if (v instanceof Data_Maybe.Just) {
-                        return bind(f(b)(v.value0.value0))(Data_Function.flip(loop)(v.value0.value1));
+                        return Control_Bind.bind(Bind1)(f(b)(v.value0.value0))(Data_Function.flip(loop)(v.value0.value1));
                     };
                     throw new Error("Failed pattern match at Control.Monad.List.Trans (line 212, column 5 - line 212, column 35): " + [ v.constructor.name ]);
                 };
-                return bind(uncons1(l))(g);
+                return Control_Bind.bind(Bind1)(uncons(dictMonad)(l))(g);
             };
         };
         return loop;
     };
 };
 var runListT = function (dictMonad) {
-    var pure1 = Control_Applicative.pure(dictMonad.Applicative0());
+    var Applicative0 = dictMonad.Applicative0();
     return foldl$prime(dictMonad)(function (v) {
         return function (v1) {
-            return pure1(Data_Unit.unit);
+            return Control_Applicative.pure(Applicative0)(Data_Unit.unit);
         };
     })(Data_Unit.unit);
 };
 var foldl = function (dictMonad) {
-    var pure1 = Control_Applicative.pure(dictMonad.Applicative0());
-    var bind = Control_Bind.bind(dictMonad.Bind1());
-    var uncons1 = uncons(dictMonad);
+    var Applicative0 = dictMonad.Applicative0();
+    var Bind1 = dictMonad.Bind1();
     return function (f) {
         var loop = function (b) {
             return function (l) {
                 var g = function (v) {
                     if (v instanceof Data_Maybe.Nothing) {
-                        return pure1(b);
+                        return Control_Applicative.pure(Applicative0)(b);
                     };
                     if (v instanceof Data_Maybe.Just) {
                         return loop(f(b)(v.value0.value0))(v.value0.value1);
                     };
                     throw new Error("Failed pattern match at Control.Monad.List.Trans (line 229, column 5 - line 229, column 35): " + [ v.constructor.name ]);
                 };
-                return bind(uncons1(l))(g);
+                return Control_Bind.bind(Bind1)(uncons(dictMonad)(l))(g);
             };
         };
         return loop;
     };
 };
 var filter = function (dictFunctor) {
-    var stepMap1 = stepMap(dictFunctor);
     return function (f) {
         var g = function (v) {
             if (v instanceof Yield) {
-                var s$prime = map1(filter(dictFunctor)(f))(v.value1);
-                var $307 = f(v.value0);
-                if ($307) {
+                var s$prime = Data_Functor.map(Data_Lazy.functorLazy)(filter(dictFunctor)(f))(v.value1);
+                var $246 = f(v.value0);
+                if ($246) {
                     return new Yield(v.value0, s$prime);
                 };
                 return new Skip(s$prime);
             };
             if (v instanceof Skip) {
-                var s$prime = map1(filter(dictFunctor)(f))(v.value0);
+                var s$prime = Data_Functor.map(Data_Lazy.functorLazy)(filter(dictFunctor)(f))(v.value0);
                 return new Skip(s$prime);
             };
             if (v instanceof Done) {
@@ -487,33 +458,33 @@ var filter = function (dictFunctor) {
             };
             throw new Error("Failed pattern match at Control.Monad.List.Trans (line 176, column 3 - line 176, column 80): " + [ v.constructor.name ]);
         };
-        return stepMap1(g);
+        return stepMap(dictFunctor)(g);
     };
 };
 var dropWhile = function (dictApplicative) {
-    var stepMap1 = stepMap((dictApplicative.Apply0()).Functor0());
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (f) {
         var g = function (v) {
             if (v instanceof Yield) {
-                var $312 = f(v.value0);
-                if ($312) {
-                    return new Skip(map1(dropWhile(dictApplicative)(f))(v.value1));
+                var $251 = f(v.value0);
+                if ($251) {
+                    return new Skip(Data_Functor.map(Data_Lazy.functorLazy)(dropWhile(dictApplicative)(f))(v.value1));
                 };
                 return new Yield(v.value0, v.value1);
             };
             if (v instanceof Skip) {
-                return new Skip(map1(dropWhile(dictApplicative)(f))(v.value0));
+                return new Skip(Data_Functor.map(Data_Lazy.functorLazy)(dropWhile(dictApplicative)(f))(v.value0));
             };
             if (v instanceof Done) {
                 return Done.value;
             };
             throw new Error("Failed pattern match at Control.Monad.List.Trans (line 169, column 3 - line 169, column 70): " + [ v.constructor.name ]);
         };
-        return stepMap1(g);
+        return stepMap(Functor0)(g);
     };
 };
 var drop = function (dictApplicative) {
-    var stepMap1 = stepMap((dictApplicative.Apply0()).Functor0());
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (v) {
         return function (v1) {
             if (v === 0) {
@@ -521,41 +492,39 @@ var drop = function (dictApplicative) {
             };
             var f = function (v2) {
                 if (v2 instanceof Yield) {
-                    return new Skip(map1(drop(dictApplicative)(v - 1 | 0))(v2.value1));
+                    return new Skip(Data_Functor.map(Data_Lazy.functorLazy)(drop(dictApplicative)(v - 1 | 0))(v2.value1));
                 };
                 if (v2 instanceof Skip) {
-                    return new Skip(map1(drop(dictApplicative)(v))(v2.value0));
+                    return new Skip(Data_Functor.map(Data_Lazy.functorLazy)(drop(dictApplicative)(v))(v2.value0));
                 };
                 if (v2 instanceof Done) {
                     return Done.value;
                 };
                 throw new Error("Failed pattern match at Control.Monad.List.Trans (line 162, column 3 - line 162, column 44): " + [ v2.constructor.name ]);
             };
-            return stepMap1(f)(v1);
+            return stepMap(Functor0)(f)(v1);
         };
     };
 };
 var cons = function (dictApplicative) {
-    var pure1 = Control_Applicative.pure(dictApplicative);
+    var pure = Control_Applicative.pure(dictApplicative);
     return function (lh) {
         return function (t) {
-            return pure1(new Yield(Data_Lazy.force(lh), t));
+            return pure(new Yield(Data_Lazy.force(lh), t));
         };
     };
 };
 var unfoldable1ListT = function (dictMonad) {
     var Applicative0 = dictMonad.Applicative0();
-    var singleton1 = singleton(Applicative0);
-    var cons1 = cons(Applicative0);
     return {
         unfoldr1: function (f) {
             return function (b) {
                 var go = function (v) {
                     if (v.value1 instanceof Data_Maybe.Nothing) {
-                        return singleton1(v.value0);
+                        return singleton(Applicative0)(v.value0);
                     };
                     if (v.value1 instanceof Data_Maybe.Just) {
-                        return cons1(pure(v.value0))(Data_Lazy.defer(function (v1) {
+                        return cons(Applicative0)(Control_Applicative.pure(Data_Lazy.applicativeLazy)(v.value0))(Data_Lazy.defer(function (v1) {
                             return go(f(v.value1.value0));
                         }));
                     };
@@ -568,18 +537,16 @@ var unfoldable1ListT = function (dictMonad) {
 };
 var unfoldableListT = function (dictMonad) {
     var Applicative0 = dictMonad.Applicative0();
-    var nil1 = nil(Applicative0);
-    var cons1 = cons(Applicative0);
     var unfoldable1ListT1 = unfoldable1ListT(dictMonad);
     return {
         unfoldr: function (f) {
             return function (b) {
                 var go = function (v) {
                     if (v instanceof Data_Maybe.Nothing) {
-                        return nil1;
+                        return nil(Applicative0);
                     };
                     if (v instanceof Data_Maybe.Just) {
-                        return cons1(pure(v.value0.value0))(Data_Lazy.defer(function (v1) {
+                        return cons(Applicative0)(Control_Applicative.pure(Data_Lazy.applicativeLazy)(v.value0.value0))(Data_Lazy.defer(function (v1) {
                             return go(f(v.value0.value1));
                         }));
                     };
@@ -599,17 +566,17 @@ var semigroupListT = function (dictApplicative) {
     };
 };
 var concat = function (dictApplicative) {
-    var stepMap1 = stepMap((dictApplicative.Apply0()).Functor0());
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (x) {
         return function (y) {
             var f = function (v) {
                 if (v instanceof Yield) {
-                    return new Yield(v.value0, map1(function (v1) {
+                    return new Yield(v.value0, Data_Functor.map(Data_Lazy.functorLazy)(function (v1) {
                         return Data_Semigroup.append(semigroupListT(dictApplicative))(v1)(y);
                     })(v.value1));
                 };
                 if (v instanceof Skip) {
-                    return new Skip(map1(function (v1) {
+                    return new Skip(Data_Functor.map(Data_Lazy.functorLazy)(function (v1) {
                         return Data_Semigroup.append(semigroupListT(dictApplicative))(v1)(y);
                     })(v.value0));
                 };
@@ -618,7 +585,7 @@ var concat = function (dictApplicative) {
                 };
                 throw new Error("Failed pattern match at Control.Monad.List.Trans (line 106, column 3 - line 106, column 43): " + [ v.constructor.name ]);
             };
-            return stepMap1(f)(x);
+            return stepMap(Functor0)(f)(x);
         };
     };
 };
@@ -645,20 +612,20 @@ var monadListT = function (dictMonad) {
     };
 };
 var bindListT = function (dictMonad) {
-    var append = Data_Semigroup.append(semigroupListT(dictMonad.Applicative0()));
-    var stepMap1 = stepMap(((dictMonad.Bind1()).Apply0()).Functor0());
+    var semigroupListT1 = semigroupListT(dictMonad.Applicative0());
+    var Functor0 = ((dictMonad.Bind1()).Apply0()).Functor0();
     return {
         bind: function (fa) {
             return function (f) {
                 var g = function (v) {
                     if (v instanceof Yield) {
                         var h = function (s$prime) {
-                            return append(f(v.value0))(Control_Bind.bind(bindListT(dictMonad))(s$prime)(f));
+                            return Data_Semigroup.append(semigroupListT1)(f(v.value0))(Control_Bind.bind(bindListT(dictMonad))(s$prime)(f));
                         };
-                        return new Skip(map1(h)(v.value1));
+                        return new Skip(Data_Functor.map(Data_Lazy.functorLazy)(h)(v.value1));
                     };
                     if (v instanceof Skip) {
-                        return new Skip(map1(function (v1) {
+                        return new Skip(Data_Functor.map(Data_Lazy.functorLazy)(function (v1) {
                             return Control_Bind.bind(bindListT(dictMonad))(v1)(f);
                         })(v.value0));
                     };
@@ -667,7 +634,7 @@ var bindListT = function (dictMonad) {
                     };
                     throw new Error("Failed pattern match at Control.Monad.List.Trans (line 306, column 5 - line 308, column 31): " + [ v.constructor.name ]);
                 };
-                return stepMap1(g)(fa);
+                return stepMap(Functor0)(g)(fa);
             };
         },
         Apply0: function () {
@@ -697,10 +664,10 @@ var monadEffectListT = function (dictMonadEffect) {
     var monadListT1 = monadListT(Monad0);
     return {
         liftEffect: (function () {
-            var $341 = lift(Monad0);
-            var $342 = Effect_Class.liftEffect(dictMonadEffect);
-            return function ($343) {
-                return $341($342($343));
+            var $280 = lift(Monad0);
+            var $281 = Effect_Class.liftEffect(dictMonadEffect);
+            return function ($282) {
+                return $280($281($282));
             };
         })(),
         Monad0: function () {
@@ -713,10 +680,10 @@ var monadSTListT = function (dictMonadST) {
     var monadListT1 = monadListT(Monad0);
     return {
         liftST: (function () {
-            var $344 = lift(Monad0);
-            var $345 = Control_Monad_ST_Class.liftST(dictMonadST);
-            return function ($346) {
-                return $344($345($346));
+            var $283 = lift(Monad0);
+            var $284 = Control_Monad_ST_Class.liftST(dictMonadST);
+            return function ($285) {
+                return $283($284($285));
             };
         })(),
         Monad0: function () {

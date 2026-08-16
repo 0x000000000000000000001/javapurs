@@ -26,10 +26,10 @@ var unfoldable1NonEmptyArray = Data_Unfoldable1.unfoldable1Array;
 var traversableWithIndexNonEmptyArray = Data_TraversableWithIndex.traversableWithIndexArray;
 var traversableNonEmptyArray = Data_Traversable.traversableArray;
 var showNonEmptyArray = function (dictShow) {
-    var show = Data_Show.show(Data_Show.showArray(dictShow));
+    var showArray = Data_Show.showArray(dictShow);
     return {
         show: function (v) {
-            return "(NonEmptyArray " + (show(v) + ")");
+            return "(NonEmptyArray " + (Data_Show.show(showArray)(v) + ")");
         }
     };
 };

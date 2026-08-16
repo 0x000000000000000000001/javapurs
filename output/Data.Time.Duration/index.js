@@ -5,8 +5,6 @@ import * as Data_Newtype from "../Data.Newtype/index.js";
 import * as Data_Ord from "../Data.Ord/index.js";
 import * as Data_Ring from "../Data.Ring/index.js";
 import * as Data_Show from "../Data.Show/index.js";
-var show = /* #__PURE__ */ Data_Show.show(Data_Show.showNumber);
-var over = /* #__PURE__ */ Data_Newtype.over()();
 var negate = /* #__PURE__ */ Data_Ring.negate(Data_Ring.ringNumber);
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var Seconds = function (x) {
@@ -29,27 +27,27 @@ var toDuration = function (dict) {
 };
 var showSeconds = {
     show: function (v) {
-        return "(Seconds " + (show(v) + ")");
+        return "(Seconds " + (Data_Show.show(Data_Show.showNumber)(v) + ")");
     }
 };
 var showMinutes = {
     show: function (v) {
-        return "(Minutes " + (show(v) + ")");
+        return "(Minutes " + (Data_Show.show(Data_Show.showNumber)(v) + ")");
     }
 };
 var showMilliseconds = {
     show: function (v) {
-        return "(Milliseconds " + (show(v) + ")");
+        return "(Milliseconds " + (Data_Show.show(Data_Show.showNumber)(v) + ")");
     }
 };
 var showHours = {
     show: function (v) {
-        return "(Hours " + (show(v) + ")");
+        return "(Hours " + (Data_Show.show(Data_Show.showNumber)(v) + ")");
     }
 };
 var showDays = {
     show: function (v) {
-        return "(Days " + (show(v) + ")");
+        return "(Days " + (Data_Show.show(Data_Show.showNumber)(v) + ")");
     }
 };
 var semigroupSeconds = {
@@ -151,11 +149,11 @@ var fromDuration = function (dict) {
     return dict.fromDuration;
 };
 var negateDuration = function (dictDuration) {
-    var $57 = toDuration(dictDuration);
-    var $58 = over(Milliseconds)(negate);
-    var $59 = fromDuration(dictDuration);
-    return function ($60) {
-        return $57($58($59($60)));
+    var $49 = toDuration(dictDuration);
+    var $50 = Data_Newtype.over()()(Milliseconds)(negate);
+    var $51 = fromDuration(dictDuration);
+    return function ($52) {
+        return $49($50($51($52)));
     };
 };
 var eqSeconds = Data_Eq.eqNumber;
@@ -164,18 +162,18 @@ var eqMilliseconds = Data_Eq.eqNumber;
 var eqHours = Data_Eq.eqNumber;
 var eqDays = Data_Eq.eqNumber;
 var durationSeconds = {
-    fromDuration: /* #__PURE__ */ over(Seconds)(function (v) {
+    fromDuration: /* #__PURE__ */ Data_Newtype.over()()(Seconds)(function (v) {
         return v * 1000.0;
     }),
-    toDuration: /* #__PURE__ */ over(Milliseconds)(function (v) {
+    toDuration: /* #__PURE__ */ Data_Newtype.over()()(Milliseconds)(function (v) {
         return v / 1000.0;
     })
 };
 var durationMinutes = {
-    fromDuration: /* #__PURE__ */ over(Minutes)(function (v) {
+    fromDuration: /* #__PURE__ */ Data_Newtype.over()()(Minutes)(function (v) {
         return v * 60000.0;
     }),
-    toDuration: /* #__PURE__ */ over(Milliseconds)(function (v) {
+    toDuration: /* #__PURE__ */ Data_Newtype.over()()(Milliseconds)(function (v) {
         return v / 60000.0;
     })
 };
@@ -184,27 +182,27 @@ var durationMilliseconds = {
     toDuration: identity
 };
 var durationHours = {
-    fromDuration: /* #__PURE__ */ over(Hours)(function (v) {
+    fromDuration: /* #__PURE__ */ Data_Newtype.over()()(Hours)(function (v) {
         return v * 3600000.0;
     }),
-    toDuration: /* #__PURE__ */ over(Milliseconds)(function (v) {
+    toDuration: /* #__PURE__ */ Data_Newtype.over()()(Milliseconds)(function (v) {
         return v / 3600000.0;
     })
 };
 var durationDays = {
-    fromDuration: /* #__PURE__ */ over(Days)(function (v) {
+    fromDuration: /* #__PURE__ */ Data_Newtype.over()()(Days)(function (v) {
         return v * 8.64e7;
     }),
-    toDuration: /* #__PURE__ */ over(Milliseconds)(function (v) {
+    toDuration: /* #__PURE__ */ Data_Newtype.over()()(Milliseconds)(function (v) {
         return v / 8.64e7;
     })
 };
 var convertDuration = function (dictDuration) {
     var fromDuration1 = fromDuration(dictDuration);
     return function (dictDuration1) {
-        var $61 = toDuration(dictDuration1);
-        return function ($62) {
-            return $61(fromDuration1($62));
+        var $53 = toDuration(dictDuration1);
+        return function ($54) {
+            return $53(fromDuration1($54));
         };
     };
 };

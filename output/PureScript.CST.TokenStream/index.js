@@ -65,9 +65,9 @@ var newtypeTokenStream = {
     }
 };
 var step = /* #__PURE__ */ (function () {
-    var $32 = Data_Newtype.unwrap();
-    return function ($33) {
-        return Data_Lazy.force($32($33));
+    var $30 = Data_Newtype.unwrap();
+    return function ($31) {
+        return Data_Lazy.force($30($31));
     };
 })();
 var unwindLayout = function (pos) {

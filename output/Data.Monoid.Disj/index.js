@@ -7,37 +7,33 @@ var Disj = function (x) {
     return x;
 };
 var showDisj = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
-            return "(Disj " + (show(v) + ")");
+            return "(Disj " + (Data_Show.show(dictShow)(v) + ")");
         }
     };
 };
 var semiringDisj = function (dictHeytingAlgebra) {
-    var disj = Data_HeytingAlgebra.disj(dictHeytingAlgebra);
-    var conj = Data_HeytingAlgebra.conj(dictHeytingAlgebra);
     return {
         zero: Data_HeytingAlgebra.ff(dictHeytingAlgebra),
         one: Data_HeytingAlgebra.tt(dictHeytingAlgebra),
         add: function (v) {
             return function (v1) {
-                return disj(v)(v1);
+                return Data_HeytingAlgebra.disj(dictHeytingAlgebra)(v)(v1);
             };
         },
         mul: function (v) {
             return function (v1) {
-                return conj(v)(v1);
+                return Data_HeytingAlgebra.conj(dictHeytingAlgebra)(v)(v1);
             };
         }
     };
 };
 var semigroupDisj = function (dictHeytingAlgebra) {
-    var disj = Data_HeytingAlgebra.disj(dictHeytingAlgebra);
     return {
         append: function (v) {
             return function (v1) {
-                return disj(v)(v1);
+                return Data_HeytingAlgebra.disj(dictHeytingAlgebra)(v)(v1);
             };
         }
     };

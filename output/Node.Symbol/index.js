@@ -3,7 +3,6 @@ import * as $foreign from "./foreign.js";
 import * as Data_Functor from "../Data.Functor/index.js";
 import * as Data_Nullable from "../Data.Nullable/index.js";
 import * as Effect from "../Effect/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(Effect.functorEffect);
 var showSymbol = function (s) {
     return $foreign.showSymbolImpl(s);
 };
@@ -13,7 +12,7 @@ var showJsSymbol = {
     }
 };
 var keyFor = function (s) {
-    return map(Data_Nullable.toMaybe)(function () {
+    return Data_Functor.map(Effect.functorEffect)(Data_Nullable.toMaybe)(function () {
         return $foreign.keyForImpl(s);
     });
 };

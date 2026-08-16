@@ -13,7 +13,6 @@ import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Safe_Coerce from "../Safe.Coerce/index.js";
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
 var identity2 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var coerce = /* #__PURE__ */ Safe_Coerce.coerce();
 var coerce1 = /* #__PURE__ */ Safe_Coerce.coerce();
@@ -27,35 +26,32 @@ var under = function (l) {
     return withIso(l)(function (sa) {
         return function (bt) {
             return function (ts) {
-                return function ($34) {
-                    return sa(ts(bt($34)));
+                return function ($25) {
+                    return sa(ts(bt($25)));
                 };
             };
         };
     });
 };
 var re = function (t) {
-    return unwrap(t(identity2));
+    return Data_Newtype.unwrap()(t(identity2));
 };
 var iso = function (f) {
     return function (g) {
         return function (dictProfunctor) {
-            var dimap = Data_Profunctor.dimap(dictProfunctor);
             return function (pab) {
-                return dimap(f)(g)(pab);
+                return Data_Profunctor.dimap(dictProfunctor)(f)(g)(pab);
             };
         };
     };
 };
 var mapping = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return function (dictFunctor1) {
-        var map1 = Data_Functor.map(dictFunctor1);
         return function (l) {
             return function (dictProfunctor) {
                 return withIso(l)(function (sa) {
                     return function (bt) {
-                        return iso(map(sa))(map1(bt))(dictProfunctor);
+                        return iso(Data_Functor.map(dictFunctor)(sa))(Data_Functor.map(dictFunctor1)(bt))(dictProfunctor);
                     };
                 });
             };
@@ -63,11 +59,10 @@ var mapping = function (dictFunctor) {
     };
 };
 var non = function (dictEq) {
-    var eq = Data_Eq.eq(dictEq);
     return function (def) {
         return function (dictProfunctor) {
             var g = function (a) {
-                if (eq(a)(def)) {
+                if (Data_Eq.eq(dictEq)(a)(def)) {
                     return Data_Maybe.Nothing.value;
                 };
                 if (Data_Boolean.otherwise) {
@@ -86,9 +81,7 @@ var flipped = function (dictProfunctor) {
     return iso(Data_Function.flip)(Data_Function.flip)(dictProfunctor);
 };
 var dimapping = function (dictProfunctor) {
-    var dimap = Data_Profunctor.dimap(dictProfunctor);
     return function (dictProfunctor1) {
-        var dimap1 = Data_Profunctor.dimap(dictProfunctor1);
         return function (f) {
             return function (g) {
                 return function (dictProfunctor2) {
@@ -96,7 +89,7 @@ var dimapping = function (dictProfunctor) {
                         return function (bt) {
                             return withIso(g)(function (ssaa) {
                                 return function (bbtt) {
-                                    return iso(dimap(sa)(ssaa))(dimap1(bt)(bbtt))(dictProfunctor2);
+                                    return iso(Data_Profunctor.dimap(dictProfunctor)(sa)(ssaa))(Data_Profunctor.dimap(dictProfunctor1)(bt)(bbtt))(dictProfunctor2);
                                 };
                             });
                         };
@@ -128,14 +121,13 @@ var cloneIso = function (l) {
     };
 };
 var auf = function (dictProfunctor) {
-    var rmap = Data_Profunctor.rmap(dictProfunctor);
     return function (l) {
         return withIso(l)(function (sa) {
             return function (bt) {
                 return function (f) {
                     return function (g) {
                         return function (e) {
-                            return bt(f(rmap(sa)(g))(e));
+                            return bt(f(Data_Profunctor.rmap(dictProfunctor)(sa)(g))(e));
                         };
                     };
                 };

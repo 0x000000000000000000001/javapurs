@@ -8,8 +8,6 @@ import * as Data_Unit from "../Data.Unit/index.js";
 import * as Record_Unsafe from "../Record.Unsafe/index.js";
 import * as Type_Proxy from "../Type.Proxy/index.js";
 var semigroupRecord = /* #__PURE__ */ Data_Semigroup.semigroupRecord();
-var mod = /* #__PURE__ */ Data_EuclideanRing.mod(Data_EuclideanRing.euclideanRingInt);
-var div = /* #__PURE__ */ Data_EuclideanRing.div(Data_EuclideanRing.euclideanRingInt);
 var monoidUnit = {
     mempty: Data_Unit.unit,
     Semigroup0: function () {
@@ -62,11 +60,10 @@ var mempty = function (dict) {
     return dict.mempty;
 };
 var monoidFn = function (dictMonoid) {
-    var mempty1 = mempty(dictMonoid);
     var semigroupFn = Data_Semigroup.semigroupFn(dictMonoid.Semigroup0());
     return {
         mempty: function (v) {
-            return mempty1;
+            return mempty(dictMonoid);
         },
         Semigroup0: function () {
             return semigroupFn;
@@ -74,19 +71,17 @@ var monoidFn = function (dictMonoid) {
     };
 };
 var monoidRecordCons = function (dictIsSymbol) {
-    var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
     var semigroupRecordCons = Data_Semigroup.semigroupRecordCons(dictIsSymbol)();
     return function (dictMonoid) {
         var mempty1 = mempty(dictMonoid);
         var Semigroup0 = dictMonoid.Semigroup0();
         return function () {
             return function (dictMonoidRecord) {
-                var memptyRecord1 = memptyRecord(dictMonoidRecord);
                 var semigroupRecordCons1 = semigroupRecordCons(dictMonoidRecord.SemigroupRecord0())(Semigroup0);
                 return {
                     memptyRecord: function (v) {
-                        var tail = memptyRecord1(Type_Proxy["Proxy"].value);
-                        var key = reflectSymbol(Type_Proxy["Proxy"].value);
+                        var tail = memptyRecord(dictMonoidRecord)(Type_Proxy["Proxy"].value);
+                        var key = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
                         var insert = Record_Unsafe.unsafeSet(key);
                         return insert(mempty1)(tail);
                     },
@@ -100,7 +95,7 @@ var monoidRecordCons = function (dictIsSymbol) {
 };
 var power = function (dictMonoid) {
     var mempty1 = mempty(dictMonoid);
-    var append = Data_Semigroup.append(dictMonoid.Semigroup0());
+    var Semigroup0 = dictMonoid.Semigroup0();
     return function (x) {
         var go = function (p) {
             if (p <= 0) {
@@ -109,13 +104,13 @@ var power = function (dictMonoid) {
             if (p === 1) {
                 return x;
             };
-            if (mod(p)(2) === 0) {
-                var x$prime = go(div(p)(2));
-                return append(x$prime)(x$prime);
+            if (Data_EuclideanRing.mod(Data_EuclideanRing.euclideanRingInt)(p)(2) === 0) {
+                var x$prime = go(Data_EuclideanRing.div(Data_EuclideanRing.euclideanRingInt)(p)(2));
+                return Data_Semigroup.append(Semigroup0)(x$prime)(x$prime);
             };
             if (Data_Boolean.otherwise) {
-                var x$prime = go(div(p)(2));
-                return append(x$prime)(append(x$prime)(x));
+                var x$prime = go(Data_EuclideanRing.div(Data_EuclideanRing.euclideanRingInt)(p)(2));
+                return Data_Semigroup.append(Semigroup0)(x$prime)(Data_Semigroup.append(Semigroup0)(x$prime)(x));
             };
             throw new Error("Failed pattern match at Data.Monoid (line 88, column 3 - line 88, column 17): " + [ p.constructor.name ]);
         };

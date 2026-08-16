@@ -52,10 +52,9 @@ var ask = function (dict) {
     return dict.ask;
 };
 var asks = function (dictComonadAsk) {
-    var ask1 = ask(dictComonadAsk);
     return function (f) {
         return function (x) {
-            return f(ask1(x));
+            return f(ask(dictComonadAsk)(x));
         };
     };
 };
@@ -64,10 +63,10 @@ var comonadAskStoreT = function (dictComonadAsk) {
     var comonadStoreT = Control_Comonad_Store_Trans.comonadStoreT(Comonad0);
     return {
         ask: (function () {
-            var $55 = ask(dictComonadAsk);
-            var $56 = lower(Comonad0);
-            return function ($57) {
-                return $55($56($57));
+            var $51 = ask(dictComonadAsk);
+            var $52 = lower(Comonad0);
+            return function ($53) {
+                return $51($52($53));
             };
         })(),
         Comonad0: function () {
@@ -76,12 +75,11 @@ var comonadAskStoreT = function (dictComonadAsk) {
     };
 };
 var comonadEnvStoreT = function (dictComonadEnv) {
-    var local1 = local(dictComonadEnv);
     var comonadAskStoreT1 = comonadAskStoreT(dictComonadEnv.ComonadAsk0());
     return {
         local: function (f) {
             return function (v) {
-                return new Data_Tuple.Tuple(local1(f)(v.value0), v.value1);
+                return new Data_Tuple.Tuple(local(dictComonadEnv)(f)(v.value0), v.value1);
             };
         },
         ComonadAsk0: function () {
@@ -97,9 +95,9 @@ var comonadAskTracedT = function (dictComonadAsk) {
         var comonadTracedT1 = comonadTracedT(dictMonoid);
         return {
             ask: (function () {
-                var $58 = Control_Comonad_Trans_Class.lower(Control_Comonad_Traced_Trans.comonadTransTracedT(dictMonoid))(Comonad0);
-                return function ($59) {
-                    return ask1($58($59));
+                var $54 = Control_Comonad_Trans_Class.lower(Control_Comonad_Traced_Trans.comonadTransTracedT(dictMonoid))(Comonad0);
+                return function ($55) {
+                    return ask1($54($55));
                 };
             })(),
             Comonad0: function () {
@@ -109,14 +107,13 @@ var comonadAskTracedT = function (dictComonadAsk) {
     };
 };
 var comonadEnvTracedT = function (dictComonadEnv) {
-    var local1 = local(dictComonadEnv);
     var comonadAskTracedT1 = comonadAskTracedT(dictComonadEnv.ComonadAsk0());
     return function (dictMonoid) {
         var comonadAskTracedT2 = comonadAskTracedT1(dictMonoid);
         return {
             local: function (f) {
                 return function (v) {
-                    return local1(f)(v);
+                    return local(dictComonadEnv)(f)(v);
                 };
             },
             ComonadAsk0: function () {

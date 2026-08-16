@@ -13,26 +13,24 @@ var Star = function (x) {
     return x;
 };
 var semigroupoidStar = function (dictBind) {
-    var bind = Control_Bind.bind(dictBind);
     return {
         compose: function (v) {
             return function (v1) {
                 return function (x) {
-                    return bind(v1(x))(v);
+                    return Control_Bind.bind(dictBind)(v1(x))(v);
                 };
             };
         }
     };
 };
 var profunctorStar = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return {
         dimap: function (f) {
             return function (g) {
                 return function (v) {
-                    var $128 = map(g);
-                    return function ($129) {
-                        return $128(v(f($129)));
+                    var $112 = Data_Functor.map(dictFunctor)(g);
+                    return function ($113) {
+                        return $112(v(f($113)));
                     };
                 };
             };
@@ -40,19 +38,18 @@ var profunctorStar = function (dictFunctor) {
     };
 };
 var strongStar = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     var profunctorStar1 = profunctorStar(dictFunctor);
     return {
         first: function (v) {
             return function (v1) {
-                return map(function (v2) {
+                return Data_Functor.map(dictFunctor)(function (v2) {
                     return new Data_Tuple.Tuple(v2, v1.value1);
                 })(v(v1.value0));
             };
         },
         second: function (v) {
             return function (v1) {
-                return map(Data_Tuple.Tuple.create(v1.value0))(v(v1.value1));
+                return Data_Functor.map(dictFunctor)(Data_Tuple.Tuple.create(v1.value0))(v(v1.value1));
             };
         },
         Profunctor0: function () {
@@ -66,14 +63,13 @@ var newtypeStar = {
     }
 };
 var invariantStar = function (dictInvariant) {
-    var imap = Data_Functor_Invariant.imap(dictInvariant);
     return {
         imap: function (f) {
             return function (g) {
                 return function (v) {
-                    var $130 = imap(f)(g);
-                    return function ($131) {
-                        return $130(v($131));
+                    var $114 = Data_Functor_Invariant.imap(dictInvariant)(f)(g);
+                    return function ($115) {
+                        return $114(v($115));
                     };
                 };
             };
@@ -82,45 +78,41 @@ var invariantStar = function (dictInvariant) {
 };
 var hoistStar = function (f) {
     return function (v) {
-        return function ($132) {
-            return f(v($132));
+        return function ($116) {
+            return f(v($116));
         };
     };
 };
 var functorStar = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return {
         map: function (f) {
             return function (v) {
-                var $133 = map(f);
-                return function ($134) {
-                    return $133(v($134));
+                var $117 = Data_Functor.map(dictFunctor)(f);
+                return function ($118) {
+                    return $117(v($118));
                 };
             };
         }
     };
 };
 var distributiveStar = function (dictDistributive) {
-    var collect = Data_Distributive.collect(dictDistributive);
     var functorStar1 = functorStar(dictDistributive.Functor0());
     return {
         distribute: function (dictFunctor) {
-            var collect1 = collect(dictFunctor);
             return function (f) {
                 return function (a) {
-                    return collect1(function (v) {
+                    return Data_Distributive.collect(dictDistributive)(dictFunctor)(function (v) {
                         return v(a);
                     })(f);
                 };
             };
         },
         collect: function (dictFunctor) {
-            var map = Data_Functor.map(dictFunctor);
             return function (f) {
-                var $135 = Data_Distributive.distribute(distributiveStar(dictDistributive))(dictFunctor);
-                var $136 = map(f);
-                return function ($137) {
-                    return $135($136($137));
+                var $119 = Data_Distributive.distribute(distributiveStar(dictDistributive))(dictFunctor);
+                var $120 = Data_Functor.map(dictFunctor)(f);
+                return function ($121) {
+                    return $119($120($121));
                 };
             };
         },
@@ -130,13 +122,12 @@ var distributiveStar = function (dictDistributive) {
     };
 };
 var closedStar = function (dictDistributive) {
-    var distribute = Data_Distributive.distribute(dictDistributive)(Data_Functor.functorFn);
     var profunctorStar1 = profunctorStar(dictDistributive.Functor0());
     return {
         closed: function (v) {
             return function (g) {
-                return distribute(function ($138) {
-                    return v(g($138));
+                return Data_Distributive.distribute(dictDistributive)(Data_Functor.functorFn)(function ($122) {
+                    return v(g($122));
                 });
             };
         },
@@ -146,29 +137,29 @@ var closedStar = function (dictDistributive) {
     };
 };
 var choiceStar = function (dictApplicative) {
-    var Functor0 = (dictApplicative.Apply0()).Functor0();
-    var map = Data_Functor.map(Functor0);
+    var Apply0 = dictApplicative.Apply0();
+    var Functor0 = Apply0.Functor0();
     var pure = Control_Applicative.pure(dictApplicative);
     var pure1 = Control_Applicative.pure(dictApplicative);
-    var profunctorStar1 = profunctorStar(Functor0);
+    var profunctorStar1 = profunctorStar(Apply0.Functor0());
     return {
         left: function (v) {
             return Data_Either.either((function () {
-                var $139 = map(Data_Either.Left.create);
-                return function ($140) {
-                    return $139(v($140));
+                var $123 = Data_Functor.map(Functor0)(Data_Either.Left.create);
+                return function ($124) {
+                    return $123(v($124));
                 };
-            })())(function ($141) {
-                return pure(Data_Either.Right.create($141));
+            })())(function ($125) {
+                return pure(Data_Either.Right.create($125));
             });
         },
         right: function (v) {
-            return Data_Either.either(function ($142) {
-                return pure1(Data_Either.Left.create($142));
+            return Data_Either.either(function ($126) {
+                return pure1(Data_Either.Left.create($126));
             })((function () {
-                var $143 = map(Data_Either.Right.create);
-                return function ($144) {
-                    return $143(v($144));
+                var $127 = Data_Functor.map(Functor0)(Data_Either.Right.create);
+                return function ($128) {
+                    return $127(v($128));
                 };
             })());
         },
@@ -187,13 +178,12 @@ var categoryStar = function (dictMonad) {
     };
 };
 var applyStar = function (dictApply) {
-    var apply = Control_Apply.apply(dictApply);
     var functorStar1 = functorStar(dictApply.Functor0());
     return {
         apply: function (v) {
             return function (v1) {
                 return function (a) {
-                    return apply(v(a))(v1(a));
+                    return Control_Apply.apply(dictApply)(v(a))(v1(a));
                 };
             };
         },
@@ -203,13 +193,12 @@ var applyStar = function (dictApply) {
     };
 };
 var bindStar = function (dictBind) {
-    var bind = Control_Bind.bind(dictBind);
     var applyStar1 = applyStar(dictBind.Apply0());
     return {
         bind: function (v) {
             return function (f) {
                 return function (x) {
-                    return bind(v(x))(function (a) {
+                    return Control_Bind.bind(dictBind)(v(x))(function (a) {
                         var v1 = f(a);
                         return v1(x);
                     });
@@ -222,12 +211,11 @@ var bindStar = function (dictBind) {
     };
 };
 var applicativeStar = function (dictApplicative) {
-    var pure = Control_Applicative.pure(dictApplicative);
     var applyStar1 = applyStar(dictApplicative.Apply0());
     return {
         pure: function (a) {
             return function (v) {
-                return pure(a);
+                return Control_Applicative.pure(dictApplicative)(a);
             };
         },
         Apply0: function () {
@@ -248,13 +236,12 @@ var monadStar = function (dictMonad) {
     };
 };
 var altStar = function (dictAlt) {
-    var alt = Control_Alt.alt(dictAlt);
     var functorStar1 = functorStar(dictAlt.Functor0());
     return {
         alt: function (v) {
             return function (v1) {
                 return function (a) {
-                    return alt(v(a))(v1(a));
+                    return Control_Alt.alt(dictAlt)(v(a))(v1(a));
                 };
             };
         },

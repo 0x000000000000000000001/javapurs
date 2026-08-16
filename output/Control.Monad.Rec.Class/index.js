@@ -10,8 +10,6 @@ import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
 import * as Effect from "../Effect/index.js";
 import * as Effect_Ref from "../Effect.Ref/index.js";
-var bindFlipped = /* #__PURE__ */ Control_Bind.bindFlipped(Effect.bindEffect);
-var map = /* #__PURE__ */ Data_Functor.map(Effect.functorEffect);
 var Loop = /* #__PURE__ */ (function () {
     function Loop(value0) {
         this.value0 = value0;
@@ -34,11 +32,10 @@ var tailRecM = function (dict) {
     return dict.tailRecM;
 };
 var tailRecM2 = function (dictMonadRec) {
-    var tailRecM1 = tailRecM(dictMonadRec);
     return function (f) {
         return function (a) {
             return function (b) {
-                return tailRecM1(function (o) {
+                return tailRecM(dictMonadRec)(function (o) {
                     return f(o.a)(o.b);
                 })({
                     a: a,
@@ -49,12 +46,11 @@ var tailRecM2 = function (dictMonadRec) {
     };
 };
 var tailRecM3 = function (dictMonadRec) {
-    var tailRecM1 = tailRecM(dictMonadRec);
     return function (f) {
         return function (a) {
             return function (b) {
                 return function (c) {
-                    return tailRecM1(function (o) {
+                    return tailRecM(dictMonadRec)(function (o) {
                         return f(o.a)(o.b)(o.c);
                     })({
                         a: a,
@@ -67,11 +63,10 @@ var tailRecM3 = function (dictMonadRec) {
     };
 };
 var untilJust = function (dictMonadRec) {
-    var tailRecM1 = tailRecM(dictMonadRec);
-    var mapFlipped = Data_Functor.mapFlipped((((dictMonadRec.Monad0()).Bind1()).Apply0()).Functor0());
+    var Functor0 = (((dictMonadRec.Monad0()).Bind1()).Apply0()).Functor0();
     return function (m) {
-        return tailRecM1(function (v) {
-            return mapFlipped(m)(function (v1) {
+        return tailRecM(dictMonadRec)(function (v) {
+            return Data_Functor.mapFlipped(Functor0)(m)(function (v1) {
                 if (v1 instanceof Data_Maybe.Nothing) {
                     return new Loop(Data_Unit.unit);
                 };
@@ -84,23 +79,21 @@ var untilJust = function (dictMonadRec) {
     };
 };
 var whileJust = function (dictMonoid) {
-    var append = Data_Semigroup.append(dictMonoid.Semigroup0());
-    var mempty = Data_Monoid.mempty(dictMonoid);
+    var Semigroup0 = dictMonoid.Semigroup0();
     return function (dictMonadRec) {
-        var tailRecM1 = tailRecM(dictMonadRec);
-        var mapFlipped = Data_Functor.mapFlipped((((dictMonadRec.Monad0()).Bind1()).Apply0()).Functor0());
+        var Functor0 = (((dictMonadRec.Monad0()).Bind1()).Apply0()).Functor0();
         return function (m) {
-            return tailRecM1(function (v) {
-                return mapFlipped(m)(function (v1) {
+            return tailRecM(dictMonadRec)(function (v) {
+                return Data_Functor.mapFlipped(Functor0)(m)(function (v1) {
                     if (v1 instanceof Data_Maybe.Nothing) {
                         return new Done(v);
                     };
                     if (v1 instanceof Data_Maybe.Just) {
-                        return new Loop(append(v)(v1.value0));
+                        return new Loop(Data_Semigroup.append(Semigroup0)(v)(v1.value0));
                     };
                     throw new Error("Failed pattern match at Control.Monad.Rec.Class (line 172, column 45 - line 174, column 26): " + [ v1.constructor.name ]);
                 });
-            })(mempty);
+            })(Data_Monoid.mempty(dictMonoid));
         };
     };
 };
@@ -124,8 +117,8 @@ var tailRec = function (f) {
         };
         return $tco_result;
     };
-    return function ($85) {
-        return go(f($85));
+    return function ($68) {
+        return go(f($68));
     };
 };
 var tailRec2 = function (f) {
@@ -182,11 +175,11 @@ var monadRecIdentity = {
         var runIdentity = function (v) {
             return v;
         };
-        var $86 = tailRec(function ($88) {
-            return runIdentity(f($88));
+        var $69 = tailRec(function ($71) {
+            return runIdentity(f($71));
         });
-        return function ($87) {
-            return Data_Identity.Identity($86($87));
+        return function ($70) {
+            return Data_Identity.Identity($69($70));
         };
     },
     Monad0: function () {
@@ -239,7 +232,7 @@ var monadRecEffect = {
                 throw new Error("Failed pattern match at Control.Monad.Rec.Class (line 137, column 30 - line 137, column 44): " + [ v.constructor.name ]);
             };
             return function __do() {
-                var r = bindFlipped(Effect_Ref["new"])(f(a))();
+                var r = Control_Bind.bindFlipped(Effect.bindEffect)(Effect_Ref["new"])(f(a))();
                 (function () {
                     while (!(function __do() {
                         var v = Effect_Ref.read(r)();
@@ -257,7 +250,7 @@ var monadRecEffect = {
                     };
                     return {};
                 })();
-                return map(fromDone)(Effect_Ref.read(r))();
+                return Data_Functor.map(Effect.functorEffect)(fromDone)(Effect_Ref.read(r))();
             };
         };
     },
@@ -298,11 +291,10 @@ var functorStep = {
     }
 };
 var forever = function (dictMonadRec) {
-    var tailRecM1 = tailRecM(dictMonadRec);
-    var voidRight = Data_Functor.voidRight((((dictMonadRec.Monad0()).Bind1()).Apply0()).Functor0());
+    var Functor0 = (((dictMonadRec.Monad0()).Bind1()).Apply0()).Functor0();
     return function (ma) {
-        return tailRecM1(function (u) {
-            return voidRight(new Loop(u))(ma);
+        return tailRecM(dictMonadRec)(function (u) {
+            return Data_Functor.voidRight(Functor0)(new Loop(u))(ma);
         })(Data_Unit.unit);
     };
 };

@@ -16,17 +16,6 @@ import * as Data_Time from "../Data.Time/index.js";
 import * as Data_Time_Component from "../Data.Time.Component/index.js";
 import * as Data_Time_Duration from "../Data.Time.Duration/index.js";
 import * as Foreign from "../Foreign/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorFn);
-var map1 = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
-var show = /* #__PURE__ */ Data_Show.show(Data_Show.showNumber);
-var fromEnum = /* #__PURE__ */ Data_Enum.fromEnum(Data_Date_Component.boundedEnumYear);
-var fromEnum1 = /* #__PURE__ */ Data_Enum.fromEnum(Data_Date_Component.boundedEnumMonth);
-var fromEnum2 = /* #__PURE__ */ Data_Enum.fromEnum(Data_Date_Component.boundedEnumDay);
-var fromEnum3 = /* #__PURE__ */ Data_Enum.fromEnum(Data_Time_Component.boundedEnumHour);
-var fromEnum4 = /* #__PURE__ */ Data_Enum.fromEnum(Data_Time_Component.boundedEnumMinute);
-var fromEnum5 = /* #__PURE__ */ Data_Enum.fromEnum(Data_Time_Component.boundedEnumSecond);
-var fromEnum6 = /* #__PURE__ */ Data_Enum.fromEnum(Data_Time_Component.boundedEnumMillisecond);
-var compare = /* #__PURE__ */ Data_Ord.compare(Data_Ord.ordNumber);
 var toUTCString = function (dt) {
     return $foreign.dateMethod("toUTCString", dt);
 };
@@ -37,18 +26,18 @@ var toString = function (dt) {
     return $foreign.dateMethod("toString", dt);
 };
 var toInstant = /* #__PURE__ */ (function () {
-    return Control_Bind.composeKleisliFlipped(Data_Maybe.bindMaybe)(function ($21) {
-        return Data_DateTime_Instant.instant(Data_Time_Duration.Milliseconds($21));
+    return Control_Bind.composeKleisliFlipped(Data_Maybe.bindMaybe)(function ($4) {
+        return Data_DateTime_Instant.instant(Data_Time_Duration.Milliseconds($4));
     })($foreign.toInstantImpl(Data_Maybe.Just.create)(Data_Maybe.Nothing.value));
 })();
 var toISOString = function (dt) {
     return $foreign.dateMethodEff("toISOString", dt);
 };
-var toDateTime = /* #__PURE__ */ map(/* #__PURE__ */ map1(Data_DateTime_Instant.toDateTime))(toInstant);
+var toDateTime = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorFn)(/* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe)(Data_DateTime_Instant.toDateTime))(toInstant);
 var toDateString = function (dt) {
     return $foreign.dateMethod("toDateString", dt);
 };
-var toDate = /* #__PURE__ */ map(/* #__PURE__ */ map1(Data_DateTime.date))(toDateTime);
+var toDate = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorFn)(/* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe)(Data_DateTime.date))(toDateTime);
 var readDate = /* #__PURE__ */ Foreign.unsafeReadTagged(Data_Identity.monadIdentity)("Date");
 var getUTCSeconds = function (dt) {
     return $foreign.dateMethod("getUTCSeconds", dt);
@@ -82,7 +71,7 @@ var getTime = function (dt) {
 };
 var showJSDate = {
     show: function (a) {
-        return "(fromTime " + (show(getTime(a)) + ")");
+        return "(fromTime " + (Data_Show.show(Data_Show.showNumber)(getTime(a)) + ")");
     }
 };
 var getSeconds = function (dt) {
@@ -111,13 +100,13 @@ var getDate = function (dt) {
 };
 var fromDateTime = function (v) {
     return $foreign.jsdate({
-        year: Data_Int.toNumber(fromEnum(Data_Date.year(v.value0))),
-        month: Data_Int.toNumber(fromEnum1(Data_Date.month(v.value0)) - 1 | 0),
-        day: Data_Int.toNumber(fromEnum2(Data_Date.day(v.value0))),
-        hour: Data_Int.toNumber(fromEnum3(Data_Time.hour(v.value1))),
-        minute: Data_Int.toNumber(fromEnum4(Data_Time.minute(v.value1))),
-        second: Data_Int.toNumber(fromEnum5(Data_Time.second(v.value1))),
-        millisecond: Data_Int.toNumber(fromEnum6(Data_Time.millisecond(v.value1)))
+        year: Data_Int.toNumber(Data_Enum.fromEnum(Data_Date_Component.boundedEnumYear)(Data_Date.year(v.value0))),
+        month: Data_Int.toNumber(Data_Enum.fromEnum(Data_Date_Component.boundedEnumMonth)(Data_Date.month(v.value0)) - 1 | 0),
+        day: Data_Int.toNumber(Data_Enum.fromEnum(Data_Date_Component.boundedEnumDay)(Data_Date.day(v.value0))),
+        hour: Data_Int.toNumber(Data_Enum.fromEnum(Data_Time_Component.boundedEnumHour)(Data_Time.hour(v.value1))),
+        minute: Data_Int.toNumber(Data_Enum.fromEnum(Data_Time_Component.boundedEnumMinute)(Data_Time.minute(v.value1))),
+        second: Data_Int.toNumber(Data_Enum.fromEnum(Data_Time_Component.boundedEnumSecond)(Data_Time.second(v.value1))),
+        millisecond: Data_Int.toNumber(Data_Enum.fromEnum(Data_Time_Component.boundedEnumMillisecond)(Data_Time.millisecond(v.value1)))
     });
 };
 var eqJSDate = {
@@ -130,7 +119,7 @@ var eqJSDate = {
 var ordJSDate = {
     compare: function (a) {
         return function (b) {
-            return compare(getTime(a))(getTime(b));
+            return Data_Ord.compare(Data_Ord.ordNumber)(getTime(a))(getTime(b));
         };
     },
     Eq0: function () {

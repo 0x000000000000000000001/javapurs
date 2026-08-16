@@ -13,8 +13,8 @@ var invariantEndo = {
     imap: function (ab) {
         return function (ba) {
             return function (v) {
-                return function ($42) {
-                    return ab(v(ba($42)));
+                return function ($39) {
+                    return ab(v(ba($39)));
                 };
             };
         };
@@ -57,10 +57,9 @@ var invariantAdditive = {
     }
 };
 var imapF = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return function (f) {
         return function (v) {
-            return map(f);
+            return Data_Functor.map(dictFunctor)(f);
         };
     };
 };
@@ -74,12 +73,11 @@ var imap = function (dict) {
     return dict.imap;
 };
 var invariantAlternate = function (dictInvariant) {
-    var imap1 = imap(dictInvariant);
     return {
         imap: function (f) {
             return function (g) {
                 return function (v) {
-                    return imap1(f)(g)(v);
+                    return imap(dictInvariant)(f)(g)(v);
                 };
             };
         }

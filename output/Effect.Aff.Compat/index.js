@@ -11,18 +11,18 @@ var EffectFnAff = function (x) {
 var fromEffectFnAff = function (v) {
     return Effect_Aff.makeAff(function (k) {
         return function __do() {
-            var v1 = v(function ($10) {
-                return k(Data_Either.Left.create($10))();
-            }, function ($11) {
-                return k(Data_Either.Right.create($11))();
+            var v1 = v(function ($5) {
+                return k(Data_Either.Left.create($5))();
+            }, function ($6) {
+                return k(Data_Either.Right.create($6))();
             });
             return function (e) {
                 return Effect_Aff.makeAff(function (k2) {
                     return function __do() {
-                        v1(e, function ($12) {
-                            return k2(Data_Either.Left.create($12))();
-                        }, function ($13) {
-                            return k2(Data_Either.Right.create($13))();
+                        v1(e, function ($7) {
+                            return k2(Data_Either.Left.create($7))();
+                        }, function ($8) {
+                            return k2(Data_Either.Right.create($8))();
                         });
                         return Effect_Aff.nonCanceler;
                     };

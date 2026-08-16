@@ -3,13 +3,11 @@ import * as Data_Function from "../Data.Function/index.js";
 import * as Data_Lens_Lens from "../Data.Lens.Lens/index.js";
 import * as Record from "../Record/index.js";
 var prop = function (dictIsSymbol) {
-    var get = Record.get(dictIsSymbol)();
-    var set = Record.set(dictIsSymbol)()();
     return function () {
         return function () {
             return function (l) {
                 return function (dictStrong) {
-                    return Data_Lens_Lens.lens(get(l))(Data_Function.flip(set(l)))(dictStrong);
+                    return Data_Lens_Lens.lens(Record.get(dictIsSymbol)()(l))(Data_Function.flip(Record.set(dictIsSymbol)()()(l)))(dictStrong);
                 };
             };
         };

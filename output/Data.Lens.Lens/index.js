@@ -10,8 +10,6 @@ import * as Data_Profunctor_Strong from "../Data.Profunctor.Strong/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var lift2 = /* #__PURE__ */ Control_Apply.lift2(Control_Apply.applyFn);
-var un = /* #__PURE__ */ Data_Newtype.un();
 var withLens = function (l) {
     return function (f) {
         var v = l(new Data_Lens_Internal_Shop.Shop(identity, function (v1) {
@@ -33,16 +31,15 @@ var withIndexedLens = function (l) {
     };
 };
 var lensStore = function (l) {
-    return withLens(l)(lift2(Data_Tuple.Tuple.create));
+    return withLens(l)(Control_Apply.lift2(Control_Apply.applyFn)(Data_Tuple.Tuple.create));
 };
 var lens$prime = function (to) {
     return function (dictStrong) {
-        var dimap = Data_Profunctor.dimap(dictStrong.Profunctor0());
-        var first = Data_Profunctor_Strong.first(dictStrong);
+        var Profunctor0 = dictStrong.Profunctor0();
         return function (pab) {
-            return dimap(to)(function (v) {
+            return Data_Profunctor.dimap(Profunctor0)(to)(function (v) {
                 return v.value1(v.value0);
-            })(first(pab));
+            })(Data_Profunctor_Strong.first(dictStrong)(pab));
         };
     };
 };
@@ -59,12 +56,11 @@ var lens = function (get) {
 };
 var ilens$prime = function (to) {
     return function (dictStrong) {
-        var dimap = Data_Profunctor.dimap(dictStrong.Profunctor0());
-        var first = Data_Profunctor_Strong.first(dictStrong);
+        var Profunctor0 = dictStrong.Profunctor0();
         return function (pab) {
-            return dimap(to)(function (v) {
+            return Data_Profunctor.dimap(Profunctor0)(to)(function (v) {
                 return v.value1(v.value0);
-            })(first(un(Data_Lens_Internal_Indexed.Indexed)(pab)));
+            })(Data_Profunctor_Strong.first(dictStrong)(Data_Newtype.un()(Data_Lens_Internal_Indexed.Indexed)(pab)));
         };
     };
 };

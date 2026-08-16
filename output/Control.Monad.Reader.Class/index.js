@@ -22,10 +22,10 @@ var ask = function (dict) {
     return dict.ask;
 };
 var asks = function (dictMonadAsk) {
-    var map = Data_Functor.map((((dictMonadAsk.Monad0()).Bind1()).Apply0()).Functor0());
+    var Functor0 = (((dictMonadAsk.Monad0()).Bind1()).Apply0()).Functor0();
     var ask1 = ask(dictMonadAsk);
     return function (f) {
-        return map(f)(ask1);
+        return Data_Functor.map(Functor0)(f)(ask1);
     };
 };
 export {

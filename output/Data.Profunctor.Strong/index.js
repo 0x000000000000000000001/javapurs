@@ -21,27 +21,22 @@ var first = function (dict) {
     return dict.first;
 };
 var splitStrong = function (dictSemigroupoid) {
-    var composeFlipped = Control_Semigroupoid.composeFlipped(dictSemigroupoid);
     return function (dictStrong) {
-        var first1 = first(dictStrong);
-        var second1 = second(dictStrong);
         return function (l) {
             return function (r) {
-                return composeFlipped(first1(l))(second1(r));
+                return Control_Semigroupoid.composeFlipped(dictSemigroupoid)(first(dictStrong)(l))(second(dictStrong)(r));
             };
         };
     };
 };
 var fanout = function (dictSemigroupoid) {
-    var splitStrong1 = splitStrong(dictSemigroupoid);
     return function (dictStrong) {
-        var lcmap = Data_Profunctor.lcmap(dictStrong.Profunctor0());
-        var splitStrong2 = splitStrong1(dictStrong);
+        var Profunctor0 = dictStrong.Profunctor0();
         return function (l) {
             return function (r) {
-                return lcmap(function (a) {
+                return Data_Profunctor.lcmap(Profunctor0)(function (a) {
                     return new Data_Tuple.Tuple(a, a);
-                })(splitStrong2(l)(r));
+                })(splitStrong(dictSemigroupoid)(dictStrong)(l)(r));
             };
         };
     };

@@ -18,9 +18,7 @@ var union = function () {
 };
 var semigroupoidBuilder = Control_Semigroupoid.semigroupoidFn;
 var rename = function (dictIsSymbol) {
-    var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
     return function (dictIsSymbol1) {
-        var reflectSymbol1 = Data_Symbol.reflectSymbol(dictIsSymbol1);
         return function () {
             return function () {
                 return function () {
@@ -28,7 +26,7 @@ var rename = function (dictIsSymbol) {
                         return function (l1) {
                             return function (l2) {
                                 return function (r1) {
-                                    return $foreign.unsafeRename(reflectSymbol(l1))(reflectSymbol1(l2))(r1);
+                                    return $foreign.unsafeRename(Data_Symbol.reflectSymbol(dictIsSymbol)(l1))(Data_Symbol.reflectSymbol(dictIsSymbol1)(l2))(r1);
                                 };
                             };
                         };
@@ -44,11 +42,10 @@ var nub = function () {
 var modify = function () {
     return function () {
         return function (dictIsSymbol) {
-            var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
             return function (l) {
                 return function (f) {
                     return function (r1) {
-                        return $foreign.unsafeModify(reflectSymbol(l))(f)(r1);
+                        return $foreign.unsafeModify(Data_Symbol.reflectSymbol(dictIsSymbol)(l))(f)(r1);
                     };
                 };
             };
@@ -67,11 +64,10 @@ var merge = function () {
 var insert = function () {
     return function () {
         return function (dictIsSymbol) {
-            var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
             return function (l) {
                 return function (a) {
                     return function (r1) {
-                        return $foreign.unsafeInsert(reflectSymbol(l))(a)(r1);
+                        return $foreign.unsafeInsert(Data_Symbol.reflectSymbol(dictIsSymbol)(l))(a)(r1);
                     };
                 };
             };
@@ -88,12 +84,11 @@ var disjointUnion = function () {
     };
 };
 var $$delete = function (dictIsSymbol) {
-    var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
     return function () {
         return function () {
             return function (l) {
                 return function (r2) {
-                    return $foreign.unsafeDelete(reflectSymbol(l))(r2);
+                    return $foreign.unsafeDelete(Data_Symbol.reflectSymbol(dictIsSymbol)(l))(r2);
                 };
             };
         };

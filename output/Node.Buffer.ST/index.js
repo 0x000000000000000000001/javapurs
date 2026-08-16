@@ -2,7 +2,6 @@
 import * as Control_Bind from "../Control.Bind/index.js";
 import * as Control_Monad_ST_Internal from "../Control.Monad.ST.Internal/index.js";
 import * as Node_Buffer from "../Node.Buffer/index.js";
-var bind = /* #__PURE__ */ Control_Bind.bind(Control_Monad_ST_Internal.bindST);
 var writeString = Node_Buffer.writeString;
 var write = Node_Buffer.write;
 var unsafeThaw = Node_Buffer.unsafeThaw;
@@ -20,7 +19,7 @@ var slice = Node_Buffer.slice;
 var size = Node_Buffer.size;
 var setAtOffset = Node_Buffer.setAtOffset;
 var run = function (st) {
-    return bind(st)(unsafeFreeze)();
+    return Control_Bind.bind(Control_Monad_ST_Internal.bindST)(st)(unsafeFreeze)();
 };
 var readString = Node_Buffer.readString;
 var read = Node_Buffer.read;

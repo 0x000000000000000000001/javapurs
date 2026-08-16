@@ -21,7 +21,6 @@ import * as Data_Show from "../Data.Show/index.js";
 import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_TraversableWithIndex from "../Data.TraversableWithIndex/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
-var add = /* #__PURE__ */ Data_Semiring.add(Data_Semiring.semiringInt);
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var Nil = /* #__PURE__ */ (function () {
@@ -114,7 +113,6 @@ var listMap = function (f) {
 var functorList = {
     map: listMap
 };
-var map = /* #__PURE__ */ Data_Functor.map(functorList);
 var functorNonEmptyList = /* #__PURE__ */ Data_NonEmpty.functorNonEmpty(functorList);
 var foldableList = {
     foldr: function (f) {
@@ -145,9 +143,9 @@ var foldableList = {
                 };
                 return go(Nil.value);
             })();
-            var $287 = Data_Foldable.foldl(foldableList)(Data_Function.flip(f))(b);
-            return function ($288) {
-                return $287(rev($288));
+            var $251 = Data_Foldable.foldl(foldableList)(Data_Function.flip(f))(b);
+            return function ($252) {
+                return $251(rev($252));
             };
         };
     },
@@ -178,35 +176,32 @@ var foldableList = {
         return go;
     },
     foldMap: function (dictMonoid) {
-        var append2 = Data_Semigroup.append(dictMonoid.Semigroup0());
+        var Semigroup0 = dictMonoid.Semigroup0();
         var mempty = Data_Monoid.mempty(dictMonoid);
         return function (f) {
             return Data_Foldable.foldl(foldableList)(function (acc) {
-                var $289 = append2(acc);
-                return function ($290) {
-                    return $289(f($290));
+                var $253 = Data_Semigroup.append(Semigroup0)(acc);
+                return function ($254) {
+                    return $253(f($254));
                 };
             })(mempty);
         };
     }
 };
-var foldl = /* #__PURE__ */ Data_Foldable.foldl(foldableList);
-var foldr = /* #__PURE__ */ Data_Foldable.foldr(foldableList);
-var intercalate = /* #__PURE__ */ Data_Foldable.intercalate(foldableList)(Data_Monoid.monoidString);
 var foldableNonEmptyList = /* #__PURE__ */ Data_NonEmpty.foldableNonEmpty(foldableList);
 var foldableWithIndexList = {
     foldrWithIndex: function (f) {
         return function (b) {
             return function (xs) {
                 var v = (function () {
-                    var rev = foldl(function (v1) {
+                    var rev = Data_Foldable.foldl(foldableList)(function (v1) {
                         return function (a) {
                             return new Data_Tuple.Tuple(v1.value0 + 1 | 0, new Cons(a, v1.value1));
                         };
                     });
                     return rev(new Data_Tuple.Tuple(0, Nil.value))(xs);
                 })();
-                return Data_Tuple.snd(foldl(function (v1) {
+                return Data_Tuple.snd(Data_Foldable.foldl(foldableList)(function (v1) {
                     return function (a) {
                         return new Data_Tuple.Tuple(v1.value0 - 1 | 0, f(v1.value0 - 1 | 0)(a)(v1.value1));
                     };
@@ -216,26 +211,26 @@ var foldableWithIndexList = {
     },
     foldlWithIndex: function (f) {
         return function (acc) {
-            var $291 = foldl(function (v) {
+            var $255 = Data_Foldable.foldl(foldableList)(function (v) {
                 return function (a) {
                     return new Data_Tuple.Tuple(v.value0 + 1 | 0, f(v.value0)(v.value1)(a));
                 };
             })(new Data_Tuple.Tuple(0, acc));
-            return function ($292) {
-                return Data_Tuple.snd($291($292));
+            return function ($256) {
+                return Data_Tuple.snd($255($256));
             };
         };
     },
     foldMapWithIndex: function (dictMonoid) {
-        var append2 = Data_Semigroup.append(dictMonoid.Semigroup0());
+        var Semigroup0 = dictMonoid.Semigroup0();
         var mempty = Data_Monoid.mempty(dictMonoid);
         return function (f) {
             return Data_FoldableWithIndex.foldlWithIndex(foldableWithIndexList)(function (i) {
                 return function (acc) {
-                    var $293 = append2(acc);
-                    var $294 = f(i);
-                    return function ($295) {
-                        return $293($294($295));
+                    var $257 = Data_Semigroup.append(Semigroup0)(acc);
+                    var $258 = f(i);
+                    return function ($259) {
+                        return $257($258($259));
                     };
                 };
             })(mempty);
@@ -246,20 +241,14 @@ var foldableWithIndexList = {
     }
 };
 var foldableWithIndexNonEmpty = /* #__PURE__ */ Data_NonEmpty.foldableWithIndexNonEmpty(foldableWithIndexList);
-var foldMapWithIndex = /* #__PURE__ */ Data_FoldableWithIndex.foldMapWithIndex(foldableWithIndexNonEmpty);
-var foldlWithIndex = /* #__PURE__ */ Data_FoldableWithIndex.foldlWithIndex(foldableWithIndexNonEmpty);
-var foldrWithIndex = /* #__PURE__ */ Data_FoldableWithIndex.foldrWithIndex(foldableWithIndexNonEmpty);
-var foldrWithIndex1 = /* #__PURE__ */ Data_FoldableWithIndex.foldrWithIndex(foldableWithIndexList);
-var foldlWithIndex1 = /* #__PURE__ */ Data_FoldableWithIndex.foldlWithIndex(foldableWithIndexList);
 var foldableWithIndexNonEmptyList = {
     foldMapWithIndex: function (dictMonoid) {
-        var foldMapWithIndex1 = foldMapWithIndex(dictMonoid);
         return function (f) {
             return function (v) {
-                return foldMapWithIndex1((function () {
-                    var $296 = Data_Maybe.maybe(0)(add(1));
-                    return function ($297) {
-                        return f($296($297));
+                return Data_FoldableWithIndex.foldMapWithIndex(foldableWithIndexNonEmpty)(dictMonoid)((function () {
+                    var $260 = Data_Maybe.maybe(0)(Data_Semiring.add(Data_Semiring.semiringInt)(1));
+                    return function ($261) {
+                        return f($260($261));
                     };
                 })())(v);
             };
@@ -268,10 +257,10 @@ var foldableWithIndexNonEmptyList = {
     foldlWithIndex: function (f) {
         return function (b) {
             return function (v) {
-                return foldlWithIndex((function () {
-                    var $298 = Data_Maybe.maybe(0)(add(1));
-                    return function ($299) {
-                        return f($298($299));
+                return Data_FoldableWithIndex.foldlWithIndex(foldableWithIndexNonEmpty)((function () {
+                    var $262 = Data_Maybe.maybe(0)(Data_Semiring.add(Data_Semiring.semiringInt)(1));
+                    return function ($263) {
+                        return f($262($263));
                     };
                 })())(b)(v);
             };
@@ -280,10 +269,10 @@ var foldableWithIndexNonEmptyList = {
     foldrWithIndex: function (f) {
         return function (b) {
             return function (v) {
-                return foldrWithIndex((function () {
-                    var $300 = Data_Maybe.maybe(0)(add(1));
-                    return function ($301) {
-                        return f($300($301));
+                return Data_FoldableWithIndex.foldrWithIndex(foldableWithIndexNonEmpty)((function () {
+                    var $264 = Data_Maybe.maybe(0)(Data_Semiring.add(Data_Semiring.semiringInt)(1));
+                    return function ($265) {
+                        return f($264($265));
                     };
                 })())(b)(v);
             };
@@ -295,7 +284,7 @@ var foldableWithIndexNonEmptyList = {
 };
 var functorWithIndexList = {
     mapWithIndex: function (f) {
-        return foldrWithIndex1(function (i) {
+        return Data_FoldableWithIndex.foldrWithIndex(foldableWithIndexList)(function (i) {
             return function (x) {
                 return function (acc) {
                     return new Cons(f(i)(x), acc);
@@ -307,14 +296,14 @@ var functorWithIndexList = {
         return functorList;
     }
 };
-var mapWithIndex = /* #__PURE__ */ Data_FunctorWithIndex.mapWithIndex(/* #__PURE__ */ Data_NonEmpty.functorWithIndex(functorWithIndexList));
+var functorWithIndex = /* #__PURE__ */ Data_NonEmpty.functorWithIndex(functorWithIndexList);
 var functorWithIndexNonEmptyList = {
     mapWithIndex: function (fn) {
         return function (v) {
-            return mapWithIndex((function () {
-                var $302 = Data_Maybe.maybe(0)(add(1));
-                return function ($303) {
-                    return fn($302($303));
+            return Data_FunctorWithIndex.mapWithIndex(functorWithIndex)((function () {
+                var $266 = Data_Maybe.maybe(0)(Data_Semiring.add(Data_Semiring.semiringInt)(1));
+                return function ($267) {
+                    return fn($266($267));
                 };
             })())(v);
         };
@@ -326,11 +315,10 @@ var functorWithIndexNonEmptyList = {
 var semigroupList = {
     append: function (xs) {
         return function (ys) {
-            return foldr(Cons.create)(ys)(xs);
+            return Data_Foldable.foldr(foldableList)(Cons.create)(ys)(xs);
         };
     }
 };
-var append1 = /* #__PURE__ */ Data_Semigroup.append(semigroupList);
 var monoidList = /* #__PURE__ */ (function () {
     return {
         mempty: Nil.value,
@@ -342,7 +330,7 @@ var monoidList = /* #__PURE__ */ (function () {
 var semigroupNonEmptyList = {
     append: function (v) {
         return function (as$prime) {
-            return new Data_NonEmpty.NonEmpty(v.value0, append1(v.value1)(toList(as$prime)));
+            return new Data_NonEmpty.NonEmpty(v.value0, Data_Semigroup.append(semigroupList)(v.value1)(toList(as$prime)));
         };
     }
 };
@@ -353,34 +341,32 @@ var showList = function (dictShow) {
             if (v instanceof Nil) {
                 return "Nil";
             };
-            return "(" + (intercalate(" : ")(map(show)(v)) + " : Nil)");
+            return "(" + (Data_Foldable.intercalate(foldableList)(Data_Monoid.monoidString)(" : ")(Data_Functor.map(functorList)(show)(v)) + " : Nil)");
         }
     };
 };
 var showNonEmptyList = function (dictShow) {
-    var show = Data_Show.show(Data_NonEmpty.showNonEmpty(dictShow)(showList(dictShow)));
+    var showNonEmpty = Data_NonEmpty.showNonEmpty(dictShow)(showList(dictShow));
     return {
         show: function (v) {
-            return "(NonEmptyList " + (show(v) + ")");
+            return "(NonEmptyList " + (Data_Show.show(showNonEmpty)(v) + ")");
         }
     };
 };
 var traversableList = {
     traverse: function (dictApplicative) {
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         var Apply0 = dictApplicative.Apply0();
-        var map1 = Data_Functor.map(Apply0.Functor0());
-        var lift2 = Control_Apply.lift2(Apply0);
-        var pure2 = Control_Applicative.pure(dictApplicative);
         return function (f) {
-            var $304 = map1(foldl(Data_Function.flip(Cons.create))(Nil.value));
-            var $305 = foldl(function (acc) {
-                var $307 = lift2(Data_Function.flip(Cons.create))(acc);
-                return function ($308) {
-                    return $307(f($308));
+            var $268 = Data_Functor.map(Functor0)(Data_Foldable.foldl(foldableList)(Data_Function.flip(Cons.create))(Nil.value));
+            var $269 = Data_Foldable.foldl(foldableList)(function (acc) {
+                var $271 = Control_Apply.lift2(Apply0)(Data_Function.flip(Cons.create))(acc);
+                return function ($272) {
+                    return $271(f($272));
                 };
-            })(pure2(Nil.value));
-            return function ($306) {
-                return $304($305($306));
+            })(Control_Applicative.pure(dictApplicative)(Nil.value));
+            return function ($270) {
+                return $268($269($270));
             };
         };
     },
@@ -397,24 +383,22 @@ var traversableList = {
 var traversableNonEmptyList = /* #__PURE__ */ Data_NonEmpty.traversableNonEmpty(traversableList);
 var traversableWithIndexList = {
     traverseWithIndex: function (dictApplicative) {
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         var Apply0 = dictApplicative.Apply0();
-        var map1 = Data_Functor.map(Apply0.Functor0());
-        var lift2 = Control_Apply.lift2(Apply0);
-        var pure2 = Control_Applicative.pure(dictApplicative);
         return function (f) {
-            var rev = foldl(Data_Function.flip(Cons.create))(Nil.value);
-            var $309 = map1(rev);
-            var $310 = foldlWithIndex1(function (i) {
+            var rev = Data_Foldable.foldl(foldableList)(Data_Function.flip(Cons.create))(Nil.value);
+            var $273 = Data_Functor.map(Functor0)(rev);
+            var $274 = Data_FoldableWithIndex.foldlWithIndex(foldableWithIndexList)(function (i) {
                 return function (acc) {
-                    var $312 = lift2(Data_Function.flip(Cons.create))(acc);
-                    var $313 = f(i);
-                    return function ($314) {
-                        return $312($313($314));
+                    var $276 = Control_Apply.lift2(Apply0)(Data_Function.flip(Cons.create))(acc);
+                    var $277 = f(i);
+                    return function ($278) {
+                        return $276($277($278));
                     };
                 };
-            })(pure2(Nil.value));
-            return function ($311) {
-                return $309($310($311));
+            })(Control_Applicative.pure(dictApplicative)(Nil.value));
+            return function ($275) {
+                return $273($274($275));
             };
         };
     },
@@ -428,17 +412,16 @@ var traversableWithIndexList = {
         return traversableList;
     }
 };
-var traverseWithIndex = /* #__PURE__ */ Data_TraversableWithIndex.traverseWithIndex(/* #__PURE__ */ Data_NonEmpty.traversableWithIndexNonEmpty(traversableWithIndexList));
+var traversableWithIndexNonEmpty = /* #__PURE__ */ Data_NonEmpty.traversableWithIndexNonEmpty(traversableWithIndexList);
 var traversableWithIndexNonEmptyList = {
     traverseWithIndex: function (dictApplicative) {
-        var map1 = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-        var traverseWithIndex1 = traverseWithIndex(dictApplicative);
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         return function (f) {
             return function (v) {
-                return map1(NonEmptyList)(traverseWithIndex1((function () {
-                    var $315 = Data_Maybe.maybe(0)(add(1));
-                    return function ($316) {
-                        return f($315($316));
+                return Data_Functor.map(Functor0)(NonEmptyList)(Data_TraversableWithIndex.traverseWithIndex(traversableWithIndexNonEmpty)(dictApplicative)((function () {
+                    var $279 = Data_Maybe.maybe(0)(Data_Semiring.add(Data_Semiring.semiringInt)(1));
+                    return function ($280) {
+                        return f($279($280));
                     };
                 })())(v));
             };
@@ -471,7 +454,7 @@ var unfoldable1List = {
                         };
                         if (v.value1 instanceof Data_Maybe.Nothing) {
                             $tco_done = true;
-                            return foldl(Data_Function.flip(Cons.create))(Nil.value)(new Cons(v.value0, memo));
+                            return Data_Foldable.foldl(foldableList)(Data_Function.flip(Cons.create))(Nil.value)(new Cons(v.value0, memo));
                         };
                         throw new Error("Failed pattern match at Data.List.Types (line 135, column 22 - line 137, column 61): " + [ v.constructor.name ]);
                     };
@@ -497,7 +480,7 @@ var unfoldableList = {
                         var v = f(source);
                         if (v instanceof Data_Maybe.Nothing) {
                             $tco_done = true;
-                            return foldl(Data_Function.flip(Cons.create))(Nil.value)(memo);
+                            return Data_Foldable.foldl(foldableList)(Data_Function.flip(Cons.create))(Nil.value)(memo);
                         };
                         if (v instanceof Data_Maybe.Just) {
                             $tco_var_source = v.value0.value1;
@@ -532,7 +515,7 @@ var extendNonEmptyList = {
                     };
                 };
             };
-            return new Data_NonEmpty.NonEmpty(f(v), (foldr(go)({
+            return new Data_NonEmpty.NonEmpty(f(v), (Data_Foldable.foldr(foldableList)(go)({
                 val: Nil.value,
                 acc: Nil.value
             })(v.value1)).val);
@@ -558,7 +541,7 @@ var extendList = {
                         };
                     };
                 };
-                return new Cons(v(v1), (foldr(go)({
+                return new Cons(v(v1), (Data_Foldable.foldr(foldableList)(go)({
                     val: Nil.value,
                     acc: Nil.value
                 })(v1.value1)).val);
@@ -572,7 +555,6 @@ var extendList = {
 };
 var eq1List = {
     eq1: function (dictEq) {
-        var eq = Data_Eq.eq(dictEq);
         return function (xs) {
             return function (ys) {
                 var go = function ($copy_v) {
@@ -594,7 +576,7 @@ var eq1List = {
                                 if (v instanceof Cons && v1 instanceof Cons) {
                                     $tco_var_v = v.value1;
                                     $tco_var_v1 = v1.value1;
-                                    $copy_v2 = v2 && eq(v1.value0)(v.value0);
+                                    $copy_v2 = v2 && Data_Eq.eq(dictEq)(v1.value0)(v.value0);
                                     return;
                                 };
                                 $tco_done = true;
@@ -625,7 +607,6 @@ var eqNonEmptyList = function (dictEq) {
 };
 var ord1List = {
     compare1: function (dictOrd) {
-        var compare = Data_Ord.compare(dictOrd);
         return function (xs) {
             return function (ys) {
                 var go = function ($copy_v) {
@@ -647,7 +628,7 @@ var ord1List = {
                                 return Data_Ordering.GT.value;
                             };
                             if (v instanceof Cons && v1 instanceof Cons) {
-                                var v2 = compare(v.value0)(v1.value0);
+                                var v2 = Data_Ord.compare(dictOrd)(v.value0)(v1.value0);
                                 if (v2 instanceof Data_Ordering.EQ) {
                                     $tco_var_v = v.value1;
                                     $copy_v1 = v1.value1;
@@ -702,7 +683,7 @@ var applyList = {
                 return Nil.value;
             };
             if (v instanceof Cons) {
-                return append1(map(v.value0)(v1))(Control_Apply.apply(applyList)(v.value1)(v1));
+                return Data_Semigroup.append(semigroupList)(Data_Functor.map(functorList)(v.value0)(v1))(Control_Apply.apply(applyList)(v.value1)(v1));
             };
             throw new Error("Failed pattern match at Data.List.Types (line 157, column 1 - line 159, column 48): " + [ v.constructor.name, v1.constructor.name ]);
         };
@@ -711,11 +692,10 @@ var applyList = {
         return functorList;
     }
 };
-var apply = /* #__PURE__ */ Control_Apply.apply(applyList);
 var applyNonEmptyList = {
     apply: function (v) {
         return function (v1) {
-            return new Data_NonEmpty.NonEmpty(v.value0(v1.value0), append1(apply(v.value1)(new Cons(v1.value0, Nil.value)))(apply(new Cons(v.value0, v.value1))(v1.value1)));
+            return new Data_NonEmpty.NonEmpty(v.value0(v1.value0), Data_Semigroup.append(semigroupList)(Control_Apply.apply(applyList)(v.value1)(new Cons(v1.value0, Nil.value)))(Control_Apply.apply(applyList)(new Cons(v.value0, v.value1))(v1.value1)));
         };
     },
     Functor0: function () {
@@ -729,7 +709,7 @@ var bindList = {
                 return Nil.value;
             };
             if (v instanceof Cons) {
-                return append1(v1(v.value0))(Control_Bind.bind(bindList)(v.value1)(v1));
+                return Data_Semigroup.append(semigroupList)(v1(v.value0))(Control_Bind.bind(bindList)(v.value1)(v1));
             };
             throw new Error("Failed pattern match at Data.List.Types (line 164, column 1 - line 166, column 37): " + [ v.constructor.name, v1.constructor.name ]);
         };
@@ -738,13 +718,12 @@ var bindList = {
         return applyList;
     }
 };
-var bind = /* #__PURE__ */ Control_Bind.bind(bindList);
 var bindNonEmptyList = {
     bind: function (v) {
         return function (f) {
             var v1 = f(v.value0);
-            return new Data_NonEmpty.NonEmpty(v1.value0, append1(v1.value1)(bind(v.value1)(function ($317) {
-                return toList(f($317));
+            return new Data_NonEmpty.NonEmpty(v1.value0, Data_Semigroup.append(semigroupList)(v1.value1)(Control_Bind.bind(bindList)(v.value1)(function ($281) {
+                return toList(f($281));
             })));
         };
     },
@@ -806,9 +785,9 @@ var monadPlusList = {
 };
 var applicativeNonEmptyList = {
     pure: /* #__PURE__ */ (function () {
-        var $318 = Data_NonEmpty.singleton(plusList);
-        return function ($319) {
-            return NonEmptyList($318($319));
+        var $282 = Data_NonEmpty.singleton(plusList);
+        return function ($283) {
+            return NonEmptyList($282($283));
         };
     })(),
     Apply0: function () {
@@ -816,7 +795,6 @@ var applicativeNonEmptyList = {
     }
 };
 var pure = /* #__PURE__ */ Control_Applicative.pure(applicativeNonEmptyList);
-var pure1 = /* #__PURE__ */ Control_Applicative.pure(applicativeNonEmptyList);
 var monadNonEmptyList = {
     Applicative0: function () {
         return applicativeNonEmptyList;
@@ -828,18 +806,15 @@ var monadNonEmptyList = {
 var traversable1NonEmptyList = {
     traverse1: function (dictApply) {
         var Functor0 = dictApply.Functor0();
-        var mapFlipped = Data_Functor.mapFlipped(Functor0);
-        var lift2 = Control_Apply.lift2(dictApply);
-        var map1 = Data_Functor.map(Functor0);
         return function (f) {
             return function (v) {
-                return mapFlipped(foldl(function (acc) {
-                    var $320 = lift2(Data_Function.flip(nelCons))(acc);
-                    return function ($321) {
-                        return $320(f($321));
+                return Data_Functor.mapFlipped(Functor0)(Data_Foldable.foldl(foldableList)(function (acc) {
+                    var $284 = Control_Apply.lift2(dictApply)(Data_Function.flip(nelCons))(acc);
+                    return function ($285) {
+                        return $284(f($285));
                     };
-                })(map1(pure)(f(v.value0)))(v.value1))(function (v1) {
-                    return foldl(Data_Function.flip(nelCons))(pure1(v1.value0))(v1.value1);
+                })(Data_Functor.map(Functor0)(pure)(f(v.value0)))(v.value1))(function (v1) {
+                    return Data_Foldable.foldl(foldableList)(Data_Function.flip(nelCons))(Control_Applicative.pure(applicativeNonEmptyList)(v1.value0))(v1.value1);
                 });
             };
         };

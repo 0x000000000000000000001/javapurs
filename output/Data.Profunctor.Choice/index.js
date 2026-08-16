@@ -12,25 +12,20 @@ var left = function (dict) {
     return dict.left;
 };
 var splitChoice = function (dictSemigroupoid) {
-    var composeFlipped = Control_Semigroupoid.composeFlipped(dictSemigroupoid);
     return function (dictChoice) {
-        var left1 = left(dictChoice);
-        var right1 = right(dictChoice);
         return function (l) {
             return function (r) {
-                return composeFlipped(left1(l))(right1(r));
+                return Control_Semigroupoid.composeFlipped(dictSemigroupoid)(left(dictChoice)(l))(right(dictChoice)(r));
             };
         };
     };
 };
 var fanin = function (dictSemigroupoid) {
-    var splitChoice1 = splitChoice(dictSemigroupoid);
     return function (dictChoice) {
-        var rmap = Data_Profunctor.rmap(dictChoice.Profunctor0());
-        var splitChoice2 = splitChoice1(dictChoice);
+        var Profunctor0 = dictChoice.Profunctor0();
         return function (l) {
             return function (r) {
-                return rmap(Data_Either.either(identity)(identity))(splitChoice2(l)(r));
+                return Data_Profunctor.rmap(Profunctor0)(Data_Either.either(identity)(identity))(splitChoice(dictSemigroupoid)(dictChoice)(l)(r));
             };
         };
     };

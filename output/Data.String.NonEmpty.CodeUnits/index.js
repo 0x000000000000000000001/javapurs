@@ -5,16 +5,14 @@ import * as Data_Semigroup_Foldable from "../Data.Semigroup.Foldable/index.js";
 import * as Data_String_CodeUnits from "../Data.String.CodeUnits/index.js";
 import * as Data_String_NonEmpty_Internal from "../Data.String.NonEmpty.Internal/index.js";
 import * as Data_String_Unsafe from "../Data.String.Unsafe/index.js";
-var fromJust = /* #__PURE__ */ Data_Maybe.fromJust();
-var fromJust1 = /* #__PURE__ */ Data_Maybe.fromJust();
 var toNonEmptyString = Data_String_NonEmpty_Internal.NonEmptyString;
 var snoc = function (c) {
     return function (s) {
         return toNonEmptyString(s + Data_String_CodeUnits.singleton(c));
     };
 };
-var singleton = function ($24) {
-    return toNonEmptyString(Data_String_CodeUnits.singleton($24));
+var singleton = function ($18) {
+    return toNonEmptyString(Data_String_CodeUnits.singleton($18));
 };
 var liftS = function (f) {
     return function (v) {
@@ -22,34 +20,34 @@ var liftS = function (f) {
     };
 };
 var takeWhile = function (f) {
-    var $25 = liftS(Data_String_CodeUnits.takeWhile(f));
-    return function ($26) {
-        return Data_String_NonEmpty_Internal.fromString($25($26));
+    var $19 = liftS(Data_String_CodeUnits.takeWhile(f));
+    return function ($20) {
+        return Data_String_NonEmpty_Internal.fromString($19($20));
     };
 };
 var lastIndexOf$prime = function (pat) {
-    var $27 = Data_String_CodeUnits["lastIndexOf$prime"](pat);
-    return function ($28) {
-        return liftS($27($28));
+    var $21 = Data_String_CodeUnits["lastIndexOf$prime"](pat);
+    return function ($22) {
+        return liftS($21($22));
     };
 };
-var lastIndexOf = function ($29) {
-    return liftS(Data_String_CodeUnits.lastIndexOf($29));
+var lastIndexOf = function ($23) {
+    return liftS(Data_String_CodeUnits.lastIndexOf($23));
 };
 var indexOf$prime = function (pat) {
-    var $30 = Data_String_CodeUnits["indexOf$prime"](pat);
-    return function ($31) {
-        return liftS($30($31));
+    var $24 = Data_String_CodeUnits["indexOf$prime"](pat);
+    return function ($25) {
+        return liftS($24($25));
     };
 };
-var indexOf = function ($32) {
-    return liftS(Data_String_CodeUnits.indexOf($32));
+var indexOf = function ($26) {
+    return liftS(Data_String_CodeUnits.indexOf($26));
 };
 var fromNonEmptyString = function (v) {
     return v;
 };
-var length = function ($33) {
-    return Data_String_CodeUnits.length(fromNonEmptyString($33));
+var length = function ($27) {
+    return Data_String_CodeUnits.length(fromNonEmptyString($27));
 };
 var splitAt = function (i) {
     return function (nes) {
@@ -63,8 +61,8 @@ var splitAt = function (i) {
 var take = function (i) {
     return function (nes) {
         var s = fromNonEmptyString(nes);
-        var $19 = i < 1;
-        if ($19) {
+        var $13 = i < 1;
+        if ($13) {
             return Data_Maybe.Nothing.value;
         };
         return new Data_Maybe.Just(toNonEmptyString(Data_String_CodeUnits.take(i)(s)));
@@ -73,22 +71,25 @@ var take = function (i) {
 var takeRight = function (i) {
     return function (nes) {
         var s = fromNonEmptyString(nes);
-        var $20 = i < 1;
-        if ($20) {
+        var $14 = i < 1;
+        if ($14) {
             return Data_Maybe.Nothing.value;
         };
         return new Data_Maybe.Just(toNonEmptyString(Data_String_CodeUnits.takeRight(i)(s)));
     };
 };
-var toChar = function ($34) {
-    return Data_String_CodeUnits.toChar(fromNonEmptyString($34));
+var toChar = function ($28) {
+    return Data_String_CodeUnits.toChar(fromNonEmptyString($28));
 };
-var toCharArray = function ($35) {
-    return Data_String_CodeUnits.toCharArray(fromNonEmptyString($35));
+var toCharArray = function ($29) {
+    return Data_String_CodeUnits.toCharArray(fromNonEmptyString($29));
 };
-var toNonEmptyCharArray = function ($37) {
-    return fromJust(Data_Array_NonEmpty.fromArray(toCharArray($37)));
-};
+var toNonEmptyCharArray = /* #__PURE__ */ (function () {
+    var $30 = Data_Maybe.fromJust();
+    return function ($31) {
+        return $30(Data_Array_NonEmpty.fromArray(toCharArray($31)));
+    };
+})();
 var uncons = function (nes) {
     var s = fromNonEmptyString(nes);
     return {
@@ -97,9 +98,9 @@ var uncons = function (nes) {
     };
 };
 var fromFoldable1 = function (dictFoldable1) {
-    var $38 = Data_Semigroup_Foldable.fold1(dictFoldable1)(Data_String_NonEmpty_Internal.semigroupNonEmptyString);
-    return function ($39) {
-        return $38($39);
+    var $32 = Data_Semigroup_Foldable.fold1(dictFoldable1)(Data_String_NonEmpty_Internal.semigroupNonEmptyString);
+    return function ($33) {
+        return $32($33);
     };
 };
 var fromCharArray = function (v) {
@@ -108,20 +109,23 @@ var fromCharArray = function (v) {
     };
     return new Data_Maybe.Just(toNonEmptyString(Data_String_CodeUnits.fromCharArray(v)));
 };
-var fromNonEmptyCharArray = function ($41) {
-    return fromJust1(fromCharArray(Data_Array_NonEmpty.toArray($41)));
-};
+var fromNonEmptyCharArray = /* #__PURE__ */ (function () {
+    var $34 = Data_Maybe.fromJust();
+    return function ($35) {
+        return $34(fromCharArray(Data_Array_NonEmpty.toArray($35)));
+    };
+})();
 var dropWhile = function (f) {
-    var $42 = liftS(Data_String_CodeUnits.dropWhile(f));
-    return function ($43) {
-        return Data_String_NonEmpty_Internal.fromString($42($43));
+    var $36 = liftS(Data_String_CodeUnits.dropWhile(f));
+    return function ($37) {
+        return Data_String_NonEmpty_Internal.fromString($36($37));
     };
 };
 var dropRight = function (i) {
     return function (nes) {
         var s = fromNonEmptyString(nes);
-        var $22 = i >= Data_String_CodeUnits.length(s);
-        if ($22) {
+        var $16 = i >= Data_String_CodeUnits.length(s);
+        if ($16) {
             return Data_Maybe.Nothing.value;
         };
         return new Data_Maybe.Just(toNonEmptyString(Data_String_CodeUnits.dropRight(i)(s)));
@@ -130,23 +134,23 @@ var dropRight = function (i) {
 var drop = function (i) {
     return function (nes) {
         var s = fromNonEmptyString(nes);
-        var $23 = i >= Data_String_CodeUnits.length(s);
-        if ($23) {
+        var $17 = i >= Data_String_CodeUnits.length(s);
+        if ($17) {
             return Data_Maybe.Nothing.value;
         };
         return new Data_Maybe.Just(toNonEmptyString(Data_String_CodeUnits.drop(i)(s)));
     };
 };
-var countPrefix = function ($44) {
-    return liftS(Data_String_CodeUnits.countPrefix($44));
+var countPrefix = function ($38) {
+    return liftS(Data_String_CodeUnits.countPrefix($38));
 };
 var cons = function (c) {
     return function (s) {
         return toNonEmptyString(Data_String_CodeUnits.singleton(c) + s);
     };
 };
-var charAt = function ($45) {
-    return liftS(Data_String_CodeUnits.charAt($45));
+var charAt = function ($39) {
+    return liftS(Data_String_CodeUnits.charAt($39));
 };
 export {
     fromCharArray,

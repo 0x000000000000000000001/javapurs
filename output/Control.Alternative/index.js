@@ -6,11 +6,11 @@ import * as Control_Plus from "../Control.Plus/index.js";
 import * as Data_Functor from "../Data.Functor/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
 var guard = function (dictAlternative) {
-    var pure = Control_Applicative.pure(dictAlternative.Applicative0());
+    var Applicative0 = dictAlternative.Applicative0();
     var empty = Control_Plus.empty(dictAlternative.Plus1());
     return function (v) {
         if (v) {
-            return pure(Data_Unit.unit);
+            return Control_Applicative.pure(Applicative0)(Data_Unit.unit);
         };
         if (!v) {
             return empty;

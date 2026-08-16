@@ -18,8 +18,6 @@ import * as Data_Monoid from "../Data.Monoid/index.js";
 import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Effect_Class from "../Effect.Class/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
-var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var MaybeT = function (x) {
     return x;
 };
@@ -33,25 +31,23 @@ var newtypeMaybeT = {
 };
 var monadTransMaybeT = {
     lift: function (dictMonad) {
-        var $165 = Control_Monad.liftM1(dictMonad)(Data_Maybe.Just.create);
-        return function ($166) {
-            return MaybeT($165($166));
+        var $141 = Control_Monad.liftM1(dictMonad)(Data_Maybe.Just.create);
+        return function ($142) {
+            return MaybeT($141($142));
         };
     }
 };
 var lift = /* #__PURE__ */ Control_Monad_Trans_Class.lift(monadTransMaybeT);
-var lift1 = /* #__PURE__ */ Control_Monad_Trans_Class.lift(monadTransMaybeT);
 var mapMaybeT = function (f) {
     return function (v) {
         return f(v);
     };
 };
 var functorMaybeT = function (dictFunctor) {
-    var map1 = Data_Functor.map(dictFunctor);
     return {
         map: function (f) {
             return function (v) {
-                return map1(map(f))(v);
+                return Data_Functor.map(dictFunctor)(Data_Functor.map(Data_Maybe.functorMaybe)(f))(v);
             };
         }
     };
@@ -67,14 +63,14 @@ var monadMaybeT = function (dictMonad) {
     };
 };
 var bindMaybeT = function (dictMonad) {
-    var bind = Control_Bind.bind(dictMonad.Bind1());
-    var pure = Control_Applicative.pure(dictMonad.Applicative0());
+    var Bind1 = dictMonad.Bind1();
+    var Applicative0 = dictMonad.Applicative0();
     return {
         bind: function (v) {
             return function (f) {
-                return bind(v)(function (v1) {
+                return Control_Bind.bind(Bind1)(v)(function (v1) {
                     if (v1 instanceof Data_Maybe.Nothing) {
-                        return pure(Data_Maybe.Nothing.value);
+                        return Control_Applicative.pure(Applicative0)(Data_Maybe.Nothing.value);
                     };
                     if (v1 instanceof Data_Maybe.Just) {
                         var v2 = f(v1.value0);
@@ -101,9 +97,9 @@ var applyMaybeT = function (dictMonad) {
 var applicativeMaybeT = function (dictMonad) {
     return {
         pure: (function () {
-            var $167 = Control_Applicative.pure(dictMonad.Applicative0());
-            return function ($168) {
-                return MaybeT($167(Data_Maybe.Just.create($168)));
+            var $143 = Control_Applicative.pure(dictMonad.Applicative0());
+            return function ($144) {
+                return MaybeT($143(Data_Maybe.Just.create($144)));
             };
         })(),
         Apply0: function () {
@@ -112,29 +108,27 @@ var applicativeMaybeT = function (dictMonad) {
     };
 };
 var semigroupMaybeT = function (dictMonad) {
-    var lift2 = Control_Apply.lift2(applyMaybeT(dictMonad));
+    var applyMaybeT1 = applyMaybeT(dictMonad);
     return function (dictSemigroup) {
         return {
-            append: lift2(Data_Semigroup.append(dictSemigroup))
+            append: Control_Apply.lift2(applyMaybeT1)(Data_Semigroup.append(dictSemigroup))
         };
     };
 };
 var monadAskMaybeT = function (dictMonadAsk) {
-    var Monad0 = dictMonadAsk.Monad0();
-    var monadMaybeT1 = monadMaybeT(Monad0);
+    var monadMaybeT1 = monadMaybeT(dictMonadAsk.Monad0());
     return {
-        ask: lift(Monad0)(Control_Monad_Reader_Class.ask(dictMonadAsk)),
+        ask: Control_Monad_Trans_Class.lift(monadTransMaybeT)(dictMonadAsk.Monad0())(Control_Monad_Reader_Class.ask(dictMonadAsk)),
         Monad0: function () {
             return monadMaybeT1;
         }
     };
 };
 var monadReaderMaybeT = function (dictMonadReader) {
-    var local = Control_Monad_Reader_Class.local(dictMonadReader);
     var monadAskMaybeT1 = monadAskMaybeT(dictMonadReader.MonadAsk0());
     return {
         local: function (f) {
-            return mapMaybeT(local(f));
+            return mapMaybeT(Control_Monad_Reader_Class.local(dictMonadReader)(f));
         },
         MonadAsk0: function () {
             return monadAskMaybeT1;
@@ -142,11 +136,10 @@ var monadReaderMaybeT = function (dictMonadReader) {
     };
 };
 var monadContMaybeT = function (dictMonadCont) {
-    var callCC = Control_Monad_Cont_Class.callCC(dictMonadCont);
     var monadMaybeT1 = monadMaybeT(dictMonadCont.Monad0());
     return {
         callCC: function (f) {
-            return callCC(function (c) {
+            return Control_Monad_Cont_Class.callCC(dictMonadCont)(function (c) {
                 var v = f(function (a) {
                     return c(new Data_Maybe.Just(a));
                 });
@@ -163,10 +156,10 @@ var monadEffectMaybe = function (dictMonadEffect) {
     var monadMaybeT1 = monadMaybeT(Monad0);
     return {
         liftEffect: (function () {
-            var $169 = lift1(Monad0);
-            var $170 = Effect_Class.liftEffect(dictMonadEffect);
-            return function ($171) {
-                return $169($170($171));
+            var $145 = lift(Monad0);
+            var $146 = Effect_Class.liftEffect(dictMonadEffect);
+            return function ($147) {
+                return $145($146($147));
             };
         })(),
         Monad0: function () {
@@ -175,17 +168,16 @@ var monadEffectMaybe = function (dictMonadEffect) {
     };
 };
 var monadRecMaybeT = function (dictMonadRec) {
-    var tailRecM = Control_Monad_Rec_Class.tailRecM(dictMonadRec);
     var Monad0 = dictMonadRec.Monad0();
-    var bind = Control_Bind.bind(Monad0.Bind1());
-    var pure = Control_Applicative.pure(Monad0.Applicative0());
+    var Bind1 = Monad0.Bind1();
+    var Applicative0 = Monad0.Applicative0();
     var monadMaybeT1 = monadMaybeT(Monad0);
     return {
         tailRecM: function (f) {
-            var $172 = tailRecM(function (a) {
+            var $148 = Control_Monad_Rec_Class.tailRecM(dictMonadRec)(function (a) {
                 var v = f(a);
-                return bind(v)(function (m$prime) {
-                    return pure((function () {
+                return Control_Bind.bind(Bind1)(v)(function (m$prime) {
+                    return Control_Applicative.pure(Applicative0)((function () {
                         if (m$prime instanceof Data_Maybe.Nothing) {
                             return new Control_Monad_Rec_Class.Done(Data_Maybe.Nothing.value);
                         };
@@ -199,8 +191,8 @@ var monadRecMaybeT = function (dictMonadRec) {
                     })());
                 });
             });
-            return function ($173) {
-                return MaybeT($172($173));
+            return function ($149) {
+                return MaybeT($148($149));
             };
         },
         Monad0: function () {
@@ -210,12 +202,10 @@ var monadRecMaybeT = function (dictMonadRec) {
 };
 var monadStateMaybeT = function (dictMonadState) {
     var Monad0 = dictMonadState.Monad0();
-    var lift2 = lift(Monad0);
-    var state = Control_Monad_State_Class.state(dictMonadState);
-    var monadMaybeT1 = monadMaybeT(Monad0);
+    var monadMaybeT1 = monadMaybeT(dictMonadState.Monad0());
     return {
         state: function (f) {
-            return lift2(state(f));
+            return Control_Monad_Trans_Class.lift(monadTransMaybeT)(Monad0)(Control_Monad_State_Class.state(dictMonadState)(f));
         },
         Monad0: function () {
             return monadMaybeT1;
@@ -228,10 +218,10 @@ var monadTellMaybeT = function (dictMonadTell) {
     var monadMaybeT1 = monadMaybeT(Monad1);
     return {
         tell: (function () {
-            var $174 = lift1(Monad1);
-            var $175 = Control_Monad_Writer_Class.tell(dictMonadTell);
-            return function ($176) {
-                return $174($175($176));
+            var $150 = lift(Monad1);
+            var $151 = Control_Monad_Writer_Class.tell(dictMonadTell);
+            return function ($152) {
+                return $150($151($152));
             };
         })(),
         Semigroup0: function () {
@@ -245,27 +235,24 @@ var monadTellMaybeT = function (dictMonadTell) {
 var monadWriterMaybeT = function (dictMonadWriter) {
     var MonadTell1 = dictMonadWriter.MonadTell1();
     var Monad1 = MonadTell1.Monad1();
-    var bind = Control_Bind.bind(Monad1.Bind1());
-    var listen = Control_Monad_Writer_Class.listen(dictMonadWriter);
+    var Bind1 = Monad1.Bind1();
+    var pure = Control_Applicative.pure(Monad1.Applicative0());
     var Applicative0 = Monad1.Applicative0();
-    var pure = Control_Applicative.pure(Applicative0);
-    var pass = Control_Monad_Writer_Class.pass(dictMonadWriter);
-    var pure1 = Control_Applicative.pure(Applicative0);
     var Monoid0 = dictMonadWriter.Monoid0();
     var monadTellMaybeT1 = monadTellMaybeT(MonadTell1);
     return {
         listen: mapMaybeT(function (m) {
-            return bind(listen(m))(function (v) {
-                return pure(map(function (r) {
+            return Control_Bind.bind(Bind1)(Control_Monad_Writer_Class.listen(dictMonadWriter)(m))(function (v) {
+                return pure(Data_Functor.map(Data_Maybe.functorMaybe)(function (r) {
                     return new Data_Tuple.Tuple(r, v.value1);
                 })(v.value0));
             });
         }),
         pass: mapMaybeT(function (m) {
-            return pass(bind(m)(function (a) {
-                return pure1((function () {
+            return Control_Monad_Writer_Class.pass(dictMonadWriter)(Control_Bind.bind(Bind1)(m)(function (a) {
+                return Control_Applicative.pure(Applicative0)((function () {
                     if (a instanceof Data_Maybe.Nothing) {
-                        return new Data_Tuple.Tuple(Data_Maybe.Nothing.value, identity);
+                        return new Data_Tuple.Tuple(Data_Maybe.Nothing.value, Control_Category.identity(Control_Category.categoryFn));
                     };
                     if (a instanceof Data_Maybe.Just) {
                         return new Data_Tuple.Tuple(new Data_Maybe.Just(a.value0.value0), a.value0.value1);
@@ -284,12 +271,10 @@ var monadWriterMaybeT = function (dictMonadWriter) {
 };
 var monadThrowMaybeT = function (dictMonadThrow) {
     var Monad0 = dictMonadThrow.Monad0();
-    var lift2 = lift(Monad0);
-    var throwError = Control_Monad_Error_Class.throwError(dictMonadThrow);
-    var monadMaybeT1 = monadMaybeT(Monad0);
+    var monadMaybeT1 = monadMaybeT(dictMonadThrow.Monad0());
     return {
         throwError: function (e) {
-            return lift2(throwError(e));
+            return Control_Monad_Trans_Class.lift(monadTransMaybeT)(Monad0)(Control_Monad_Error_Class.throwError(dictMonadThrow)(e));
         },
         Monad0: function () {
             return monadMaybeT1;
@@ -297,12 +282,11 @@ var monadThrowMaybeT = function (dictMonadThrow) {
     };
 };
 var monadErrorMaybeT = function (dictMonadError) {
-    var catchError = Control_Monad_Error_Class.catchError(dictMonadError);
     var monadThrowMaybeT1 = monadThrowMaybeT(dictMonadError.MonadThrow0());
     return {
         catchError: function (v) {
             return function (h) {
-                return catchError(v)(function (a) {
+                return Control_Monad_Error_Class.catchError(dictMonadError)(v)(function (a) {
                     var v1 = h(a);
                     return v1;
                 });
@@ -318,10 +302,10 @@ var monadSTMaybeT = function (dictMonadST) {
     var monadMaybeT1 = monadMaybeT(Monad0);
     return {
         liftST: (function () {
-            var $177 = lift1(Monad0);
-            var $178 = Control_Monad_ST_Class.liftST(dictMonadST);
-            return function ($179) {
-                return $177($178($179));
+            var $153 = lift(Monad0);
+            var $154 = Control_Monad_ST_Class.liftST(dictMonadST);
+            return function ($155) {
+                return $153($154($155));
             };
         })(),
         Monad0: function () {
@@ -330,12 +314,12 @@ var monadSTMaybeT = function (dictMonadST) {
     };
 };
 var monoidMaybeT = function (dictMonad) {
-    var pure = Control_Applicative.pure(applicativeMaybeT(dictMonad));
+    var applicativeMaybeT1 = applicativeMaybeT(dictMonad);
     var semigroupMaybeT1 = semigroupMaybeT(dictMonad);
     return function (dictMonoid) {
         var semigroupMaybeT2 = semigroupMaybeT1(dictMonoid.Semigroup0());
         return {
-            mempty: pure(Data_Monoid.mempty(dictMonoid)),
+            mempty: Control_Applicative.pure(applicativeMaybeT1)(Data_Monoid.mempty(dictMonoid)),
             Semigroup0: function () {
                 return semigroupMaybeT2;
             }
@@ -344,17 +328,16 @@ var monoidMaybeT = function (dictMonad) {
 };
 var altMaybeT = function (dictMonad) {
     var Bind1 = dictMonad.Bind1();
-    var bind = Control_Bind.bind(Bind1);
-    var pure = Control_Applicative.pure(dictMonad.Applicative0());
-    var functorMaybeT1 = functorMaybeT((Bind1.Apply0()).Functor0());
+    var Applicative0 = dictMonad.Applicative0();
+    var functorMaybeT1 = functorMaybeT(((dictMonad.Bind1()).Apply0()).Functor0());
     return {
         alt: function (v) {
             return function (v1) {
-                return bind(v)(function (m) {
+                return Control_Bind.bind(Bind1)(v)(function (m) {
                     if (m instanceof Data_Maybe.Nothing) {
                         return v1;
                     };
-                    return pure(m);
+                    return Control_Applicative.pure(Applicative0)(m);
                 });
             };
         },

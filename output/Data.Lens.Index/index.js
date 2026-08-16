@@ -18,7 +18,6 @@ var ix = function (dict) {
     return dict.ix;
 };
 var indexSet = function (dictOrd) {
-    var member = Data_Set.member(dictOrd);
     return {
         ix: function (x) {
             return function (dictStrong) {
@@ -29,8 +28,8 @@ var indexSet = function (dictOrd) {
                         };
                     };
                     var pre = function (xs) {
-                        var $36 = member(x)(xs);
-                        if ($36) {
+                        var $32 = Data_Set.member(dictOrd)(x)(xs);
+                        if ($32) {
                             return new Data_Either.Right(Data_Unit.unit);
                         };
                         return new Data_Either.Left(xs);
@@ -68,21 +67,19 @@ var indexMaybe = {
     }
 };
 var indexMap = function (dictOrd) {
-    var update = Data_Map_Internal.update(dictOrd);
-    var lookup = Data_Map_Internal.lookup(dictOrd);
     return {
         ix: function (k) {
             return function (dictStrong) {
                 return function (dictChoice) {
                     var set = function (s) {
                         return function (b) {
-                            return update(function (v) {
+                            return Data_Map_Internal.update(dictOrd)(function (v) {
                                 return new Data_Maybe.Just(b);
                             })(k)(s);
                         };
                     };
                     var pre = function (s) {
-                        return Data_Maybe.maybe(new Data_Either.Left(s))(Data_Either.Right.create)(lookup(k)(s));
+                        return Data_Maybe.maybe(new Data_Either.Left(s))(Data_Either.Right.create)(Data_Map_Internal.lookup(dictOrd)(k)(s));
                     };
                     return Data_Lens_AffineTraversal.affineTraversal(set)(pre)(dictStrong)(dictChoice);
                 };
@@ -136,7 +133,6 @@ var indexForeignObject = {
     }
 };
 var indexFn = function (dictEq) {
-    var eq = Data_Eq.eq(dictEq);
     return {
         ix: function (i) {
             return function (dictStrong) {
@@ -146,8 +142,8 @@ var indexFn = function (dictEq) {
                     })(function (f) {
                         return function (a) {
                             return function (j) {
-                                var $37 = eq(i)(j);
-                                if ($37) {
+                                var $33 = Data_Eq.eq(dictEq)(i)(j);
+                                if ($33) {
                                     return a;
                                 };
                                 return f(j);

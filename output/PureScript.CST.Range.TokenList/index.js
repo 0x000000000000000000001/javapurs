@@ -7,7 +7,6 @@ import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Unfoldable from "../Data.Unfoldable/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
-var unsafeIndex = /* #__PURE__ */ Data_Array.unsafeIndex();
 var TokenEmpty = /* #__PURE__ */ (function () {
     function TokenEmpty() {
 
@@ -116,7 +115,6 @@ var semigroupTokenList = {
         };
     }
 };
-var append = /* #__PURE__ */ Data_Semigroup.append(semigroupTokenList);
 var uncons2 = function ($copy_done) {
     return function ($copy_more) {
         return function ($copy_l) {
@@ -133,17 +131,17 @@ var uncons2 = function ($copy_done) {
                     };
                     if (l instanceof TokenCons) {
                         $tco_done = true;
-                        return more(l.value0)(append(l.value1)(r));
+                        return more(l.value0)(Data_Semigroup.append(semigroupTokenList)(l.value1)(r));
                     };
                     if (l instanceof TokenWrap) {
                         $tco_done = true;
-                        return more(l.value0)(append(l.value1)(new TokenCons(l.value2, r)));
+                        return more(l.value0)(Data_Semigroup.append(semigroupTokenList)(l.value1)(new TokenCons(l.value2, r)));
                     };
                     if (l instanceof TokenAppend) {
                         $tco_var_done = done;
                         $tco_var_more = more;
                         $tco_var_l = l.value0;
-                        $copy_r = append(l.value1)(r);
+                        $copy_r = Data_Semigroup.append(semigroupTokenList)(l.value1)(r);
                         return;
                     };
                     if (l instanceof TokenDefer) {
@@ -159,12 +157,12 @@ var uncons2 = function ($copy_done) {
                                 return r;
                             };
                             if (Data_Boolean.otherwise) {
-                                return append(new TokenArray(l.value0 + 1 | 0, l.value1, l.value2))(r);
+                                return Data_Semigroup.append(semigroupTokenList)(new TokenArray(l.value0 + 1 | 0, l.value1, l.value2))(r);
                             };
                             throw new Error("Failed pattern match at PureScript.CST.Range.TokenList (line 102, column 7 - line 104, column 56): " + [  ]);
                         })();
                         $tco_done = true;
-                        return more(unsafeIndex(l.value2)(l.value0))(next);
+                        return more(l["value2"][l.value0])(next);
                     };
                     throw new Error("Failed pattern match at PureScript.CST.Range.TokenList (line 94, column 25 - line 105, column 52): " + [ l.constructor.name ]);
                 };
@@ -194,7 +192,7 @@ var uncons$prime = function ($copy_done) {
                 };
                 if (v instanceof TokenWrap) {
                     $tco_done = true;
-                    return more(v.value0)(append(v.value1)(singleton(v.value2)));
+                    return more(v.value0)(Data_Semigroup.append(semigroupTokenList)(v.value1)(singleton(v.value2)));
                 };
                 if (v instanceof TokenAppend) {
                     $tco_done = true;
@@ -217,7 +215,7 @@ var uncons$prime = function ($copy_done) {
                         throw new Error("Failed pattern match at PureScript.CST.Range.TokenList (line 88, column 7 - line 90, column 51): " + [  ]);
                     })();
                     $tco_done = true;
-                    return more(unsafeIndex(v.value2)(v.value0))(next);
+                    return more(v["value2"][v.value0])(next);
                 };
                 throw new Error("Failed pattern match at PureScript.CST.Range.TokenList (line 80, column 21 - line 91, column 52): " + [ v.constructor.name ]);
             };
@@ -304,7 +302,7 @@ var head = function ($copy_v) {
         };
         if (v instanceof TokenArray) {
             $tco_done = true;
-            return new Data_Maybe.Just(unsafeIndex(v.value2)(v.value0));
+            return new Data_Maybe.Just(v["value2"][v.value0]);
         };
         throw new Error("Failed pattern match at PureScript.CST.Range.TokenList (line 64, column 8 - line 70, column 67): " + [ v.constructor.name ]);
     };
@@ -315,8 +313,8 @@ var head = function ($copy_v) {
 };
 var fromArray = function (arr) {
     var len = Data_Array.length(arr);
-    var $57 = len === 0;
-    if ($57) {
+    var $47 = len === 0;
+    if ($47) {
         return TokenEmpty.value;
     };
     return new TokenArray(0, len - 1 | 0, arr);

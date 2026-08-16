@@ -8,20 +8,18 @@ var Clown = function (x) {
     return x;
 };
 var showClown = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
-            return "(Clown " + (show(v) + ")");
+            return "(Clown " + (Data_Show.show(dictShow)(v) + ")");
         }
     };
 };
 var profunctorClown = function (dictContravariant) {
-    var cmap = Data_Functor_Contravariant.cmap(dictContravariant);
     return {
         dimap: function (f) {
             return function (v) {
                 return function (v1) {
-                    return cmap(f)(v1);
+                    return Data_Functor_Contravariant.cmap(dictContravariant)(f)(v1);
                 };
             };
         }
@@ -51,24 +49,22 @@ var eqClown = function (dictEq) {
     return dictEq;
 };
 var bifunctorClown = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return {
         bimap: function (f) {
             return function (v) {
                 return function (v1) {
-                    return map(f)(v1);
+                    return Data_Functor.map(dictFunctor)(f)(v1);
                 };
             };
         }
     };
 };
 var biapplyClown = function (dictApply) {
-    var apply = Control_Apply.apply(dictApply);
     var bifunctorClown1 = bifunctorClown(dictApply.Functor0());
     return {
         biapply: function (v) {
             return function (v1) {
-                return apply(v)(v1);
+                return Control_Apply.apply(dictApply)(v)(v1);
             };
         },
         Bifunctor0: function () {
@@ -77,12 +73,11 @@ var biapplyClown = function (dictApply) {
     };
 };
 var biapplicativeClown = function (dictApplicative) {
-    var pure = Control_Applicative.pure(dictApplicative);
     var biapplyClown1 = biapplyClown(dictApplicative.Apply0());
     return {
         bipure: function (a) {
             return function (v) {
-                return pure(a);
+                return Control_Applicative.pure(dictApplicative)(a);
             };
         },
         Biapply0: function () {

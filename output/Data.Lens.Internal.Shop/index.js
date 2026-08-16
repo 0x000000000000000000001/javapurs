@@ -16,12 +16,12 @@ var profunctorShop = {
     dimap: function (f) {
         return function (g) {
             return function (v) {
-                return new Shop(function ($31) {
-                    return v.value0(f($31));
+                return new Shop(function ($30) {
+                    return v.value0(f($30));
                 }, function (s) {
-                    var $32 = v.value1(f(s));
-                    return function ($33) {
-                        return g($32($33));
+                    var $31 = v.value1(f(s));
+                    return function ($32) {
+                        return g($31($32));
                     };
                 });
             };

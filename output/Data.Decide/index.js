@@ -8,9 +8,9 @@ var choosePredicate = {
     choose: function (f) {
         return function (v) {
             return function (v1) {
-                var $57 = Data_Either.either(v)(v1);
-                return function ($58) {
-                    return $57(f($58));
+                var $55 = Data_Either.either(v)(v1);
+                return function ($56) {
+                    return $55(f($56));
                 };
             };
         };
@@ -25,9 +25,9 @@ var chooseOp = function (dictSemigroup) {
         choose: function (f) {
             return function (v) {
                 return function (v1) {
-                    var $59 = Data_Either.either(v)(v1);
-                    return function ($60) {
-                        return $59(f($60));
+                    var $57 = Data_Either.either(v)(v1);
+                    return function ($58) {
+                        return $57(f($58));
                     };
                 };
             };

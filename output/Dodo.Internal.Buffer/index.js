@@ -3,7 +3,6 @@ import * as Data_Foldable from "../Data.Foldable/index.js";
 import * as Data_Function from "../Data.Function/index.js";
 import * as Data_List from "../Data.List/index.js";
 import * as Data_List_Types from "../Data.List.Types/index.js";
-var foldr = /* #__PURE__ */ Data_Foldable.foldr(Data_List_Types.foldableList);
 var Buffer = function (x) {
     return x;
 };
@@ -38,14 +37,14 @@ var isBranching = function (v) {
 };
 var commit = function (v) {
     return {
-        buffer: foldr(Data_Function.flip(foldr(Data_Function.apply)))(v.buffer)(v.queue),
+        buffer: Data_Foldable.foldr(Data_List_Types.foldableList)(Data_Function.flip(Data_Foldable.foldr(Data_List_Types.foldableList)(Data_Function.apply)))(v.buffer)(v.queue),
         queue: Data_List_Types.Nil.value
     };
 };
-var get = function ($23) {
+var get = function ($21) {
     return (function (v) {
         return v.buffer;
-    })(commit($23));
+    })(commit($21));
 };
 var branch = function (v) {
     return {

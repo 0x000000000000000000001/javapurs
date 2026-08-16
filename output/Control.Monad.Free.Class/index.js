@@ -11,15 +11,13 @@ var wrapFree = function (dict) {
     return dict.wrapFree;
 };
 var monadFreeWriterT = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return function (dictMonadFree) {
-        var wrapFree1 = wrapFree(dictMonadFree);
         var Monad0 = dictMonadFree.Monad0();
         return function (dictMonoid) {
             var monadWriterT = Control_Monad_Writer_Trans.monadWriterT(dictMonoid)(Monad0);
             return {
                 wrapFree: function (f) {
-                    return wrapFree1(map(Control_Monad_Writer_Trans.runWriterT)(f));
+                    return wrapFree(dictMonadFree)(Data_Functor.map(dictFunctor)(Control_Monad_Writer_Trans.runWriterT)(f));
                 },
                 Monad0: function () {
                     return monadWriterT;
@@ -29,14 +27,12 @@ var monadFreeWriterT = function (dictFunctor) {
     };
 };
 var monadFreeStateT = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return function (dictMonadFree) {
-        var wrapFree1 = wrapFree(dictMonadFree);
         var monadStateT = Control_Monad_State_Trans.monadStateT(dictMonadFree.Monad0());
         return {
             wrapFree: function (f) {
                 return function (s) {
-                    return wrapFree1(map(function (st) {
+                    return wrapFree(dictMonadFree)(Data_Functor.map(dictFunctor)(function (st) {
                         return Control_Monad_State_Trans.runStateT(st)(s);
                     })(f));
                 };
@@ -48,14 +44,12 @@ var monadFreeStateT = function (dictFunctor) {
     };
 };
 var monadFreeReaderT = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return function (dictMonadFree) {
-        var wrapFree1 = wrapFree(dictMonadFree);
         var monadReaderT = Control_Monad_Reader_Trans.monadReaderT(dictMonadFree.Monad0());
         return {
             wrapFree: function (f) {
                 return function (r) {
-                    return wrapFree1(map(function (rt) {
+                    return wrapFree(dictMonadFree)(Data_Functor.map(dictFunctor)(function (rt) {
                         return Control_Monad_Reader_Trans.runReaderT(rt)(r);
                     })(f));
                 };
@@ -67,13 +61,11 @@ var monadFreeReaderT = function (dictFunctor) {
     };
 };
 var monadFreeMaybeT = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return function (dictMonadFree) {
-        var wrapFree1 = wrapFree(dictMonadFree);
         var monadMaybeT = Control_Monad_Maybe_Trans.monadMaybeT(dictMonadFree.Monad0());
         return {
             wrapFree: function (f) {
-                return wrapFree1(map(Control_Monad_Maybe_Trans.runMaybeT)(f));
+                return wrapFree(dictMonadFree)(Data_Functor.map(dictFunctor)(Control_Monad_Maybe_Trans.runMaybeT)(f));
             },
             Monad0: function () {
                 return monadMaybeT;
@@ -83,9 +75,9 @@ var monadFreeMaybeT = function (dictFunctor) {
 };
 var monadFreeFree = {
     wrapFree: /* #__PURE__ */ (function () {
-        var $35 = Control_Bind.join(Control_Monad_Free.freeBind);
-        return function ($36) {
-            return $35(Control_Monad_Free.liftF($36));
+        var $24 = Control_Bind.join(Control_Monad_Free.freeBind);
+        return function ($25) {
+            return $24(Control_Monad_Free.liftF($25));
         };
     })(),
     Monad0: function () {
@@ -93,13 +85,11 @@ var monadFreeFree = {
     }
 };
 var monadFreeExceptT = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return function (dictMonadFree) {
-        var wrapFree1 = wrapFree(dictMonadFree);
         var monadExceptT = Control_Monad_Except_Trans.monadExceptT(dictMonadFree.Monad0());
         return {
             wrapFree: function (f) {
-                return wrapFree1(map(Control_Monad_Except_Trans.runExceptT)(f));
+                return wrapFree(dictMonadFree)(Data_Functor.map(dictFunctor)(Control_Monad_Except_Trans.runExceptT)(f));
             },
             Monad0: function () {
                 return monadExceptT;

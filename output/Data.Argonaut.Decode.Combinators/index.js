@@ -4,7 +4,6 @@ import * as Data_Argonaut_Decode_Decoders from "../Data.Argonaut.Decode.Decoders
 import * as Data_Either from "../Data.Either/index.js";
 import * as Data_Functor from "../Data.Functor/index.js";
 import * as Data_Maybe from "../Data.Maybe/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(Data_Either.functorEither);
 var getFieldOptional$prime = function (dictDecodeJson) {
     return Data_Argonaut_Decode_Decoders["getFieldOptional$prime"](Data_Argonaut_Decode_Class.decodeJson(dictDecodeJson));
 };
@@ -16,7 +15,7 @@ var getField = function (dictDecodeJson) {
 };
 var defaultField = function (parser) {
     return function ($$default) {
-        return map(Data_Maybe.fromMaybe($$default))(parser);
+        return Data_Functor.map(Data_Either.functorEither)(Data_Maybe.fromMaybe($$default))(parser);
     };
 };
 export {

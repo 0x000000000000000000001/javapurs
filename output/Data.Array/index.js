@@ -24,31 +24,17 @@ import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Unfoldable from "../Data.Unfoldable/index.js";
-var sequence = /* #__PURE__ */ Data_Traversable.sequence(Data_Traversable.traversableArray);
-var traverse_ = /* #__PURE__ */ Data_Foldable.traverse_(Control_Monad_ST_Internal.applicativeST);
-var $$void = /* #__PURE__ */ Data_Functor["void"](Control_Monad_ST_Internal.functorST);
 var intercalate1 = /* #__PURE__ */ Data_Foldable.intercalate(Data_Foldable.foldableArray);
-var apply = /* #__PURE__ */ Control_Apply.apply(Data_Maybe.applyMaybe);
-var map = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
-var void1 = /* #__PURE__ */ Data_Functor["void"](Control_Monad_ST_Internal.functorST);
-var map1 = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorArray);
-var map2 = /* #__PURE__ */ Data_Functor.map(Control_Monad_ST_Internal.functorST);
+var $$void = /* #__PURE__ */ Data_Functor["void"](Control_Monad_ST_Internal.functorST);
 var fromJust = /* #__PURE__ */ Data_Maybe.fromJust();
-var when = /* #__PURE__ */ Control_Applicative.when(Control_Monad_ST_Internal.applicativeST);
-var notEq = /* #__PURE__ */ Data_Eq.notEq(Data_Ordering.eqOrdering);
-var eq1 = /* #__PURE__ */ Data_Eq.eq(Data_Ordering.eqOrdering);
 var foldMap1 = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableArray);
 var fold1 = /* #__PURE__ */ Data_Foldable.fold(Data_Foldable.foldableArray);
-var fromJust1 = /* #__PURE__ */ Data_Maybe.fromJust();
-var append = /* #__PURE__ */ Data_Semigroup.append(Data_Semigroup.semigroupArray);
-var traverse = /* #__PURE__ */ Data_Traversable.traverse(Data_Traversable.traversableArray);
 var zipWith = /* #__PURE__ */ Data_Function_Uncurried.runFn3($foreign.zipWithImpl);
 var zipWithA = function (dictApplicative) {
-    var sequence1 = sequence(dictApplicative);
     return function (f) {
         return function (xs) {
             return function (ys) {
-                return sequence1(zipWith(f)(xs)(ys));
+                return Data_Traversable.sequence(Data_Traversable.traversableArray)(dictApplicative)(zipWith(f)(xs)(ys));
             };
         };
     };
@@ -57,11 +43,10 @@ var zip = /* #__PURE__ */ (function () {
     return zipWith(Data_Tuple.Tuple.create);
 })();
 var updateAtIndices = function (dictFoldable) {
-    var traverse_1 = traverse_(dictFoldable);
     return function (us) {
         return function (xs) {
             return Data_Array_ST.withArray(function (res) {
-                return traverse_1(function (v) {
+                return Data_Foldable.traverse_(Control_Monad_ST_Internal.applicativeST)(dictFoldable)(function (v) {
                     return Data_Array_ST.poke(v.value0)(v.value1)(res);
                 })(us);
             })(xs)();
@@ -74,7 +59,6 @@ var updateAt = /* #__PURE__ */ (function () {
 var unsafeIndex = function () {
     return Data_Function_Uncurried.runFn2($foreign.unsafeIndexImpl);
 };
-var unsafeIndex1 = /* #__PURE__ */ unsafeIndex();
 var uncons = /* #__PURE__ */ (function () {
     return Data_Function_Uncurried.runFn3($foreign.unconsImpl)(Data_Function["const"](Data_Maybe.Nothing.value))(function (x) {
         return function (xs) {
@@ -86,19 +70,18 @@ var uncons = /* #__PURE__ */ (function () {
     });
 })();
 var toUnfoldable = function (dictUnfoldable) {
-    var unfoldr = Data_Unfoldable.unfoldr(dictUnfoldable);
     return function (xs) {
         var len = $foreign.length(xs);
         var f = function (i) {
             if (i < len) {
-                return new Data_Maybe.Just(new Data_Tuple.Tuple(unsafeIndex1(xs)(i), i + 1 | 0));
+                return new Data_Maybe.Just(new Data_Tuple.Tuple(unsafeIndex()(xs)(i), i + 1 | 0));
             };
             if (Data_Boolean.otherwise) {
                 return Data_Maybe.Nothing.value;
             };
             throw new Error("Failed pattern match at Data.Array (line 163, column 3 - line 165, column 26): " + [ i.constructor.name ]);
         };
-        return unfoldr(f)(0);
+        return Data_Unfoldable.unfoldr(dictUnfoldable)(f)(0);
     };
 };
 var tail = /* #__PURE__ */ (function () {
@@ -123,12 +106,10 @@ var sortBy = function (comp) {
     });
 };
 var sortWith = function (dictOrd) {
-    var comparing = Data_Ord.comparing(dictOrd);
     return function (f) {
-        return sortBy(comparing(f));
+        return sortBy(Data_Ord.comparing(dictOrd)(f));
     };
 };
-var sortWith1 = /* #__PURE__ */ sortWith(Data_Ord.ordInt);
 var sort = function (dictOrd) {
     var compare = Data_Ord.compare(dictOrd);
     return function (xs) {
@@ -157,8 +138,8 @@ var splitAt = function (v) {
 };
 var take = function (n) {
     return function (xs) {
-        var $155 = n < 1;
-        if ($155) {
+        var $106 = n < 1;
+        if ($106) {
             return [  ];
         };
         return slice(0)(n)(xs);
@@ -176,12 +157,11 @@ var $$null = function (xs) {
     return $foreign.length(xs) === 0;
 };
 var modifyAtIndices = function (dictFoldable) {
-    var traverse_1 = traverse_(dictFoldable);
     return function (is) {
         return function (f) {
             return function (xs) {
                 return Data_Array_ST.withArray(function (res) {
-                    return traverse_1(function (i) {
+                    return Data_Foldable.traverse_(Control_Monad_ST_Internal.applicativeST)(dictFoldable)(function (i) {
                         return Data_Array_ST.modify(i)(f)(res);
                     })(is);
                 })(xs)();
@@ -199,7 +179,7 @@ var intersperse = function (a) {
         if (Data_Boolean.otherwise) {
             return Data_Array_ST.run((function () {
                 var unsafeGetElem = function (idx) {
-                    return unsafeIndex1(arr)(idx);
+                    return unsafeIndex()(arr)(idx);
                 };
                 return function __do() {
                     var out = Data_Array_ST["new"]();
@@ -207,7 +187,7 @@ var intersperse = function (a) {
                     Control_Monad_ST_Internal["for"](1)(v)(function (idx) {
                         return function __do() {
                             Data_Array_ST.push(a)(out)();
-                            return $$void(Data_Array_ST.push(unsafeGetElem(idx))(out))();
+                            return Data_Functor["void"](Control_Monad_ST_Internal.functorST)(Data_Array_ST.push(unsafeGetElem(idx))(out))();
                         };
                     })();
                     return out;
@@ -239,7 +219,7 @@ var last = function (xs) {
     return index(xs)($foreign.length(xs) - 1 | 0);
 };
 var unsnoc = function (xs) {
-    return apply(map(function (v) {
+    return Control_Apply.apply(Data_Maybe.applyMaybe)(Data_Functor.map(Data_Maybe.functorMaybe)(function (v) {
         return function (v1) {
             return {
                 init: v,
@@ -266,8 +246,8 @@ var span = function (p) {
             function $tco_loop(i) {
                 var v = index(arr)(i);
                 if (v instanceof Data_Maybe.Just) {
-                    var $159 = p(v.value0);
-                    if ($159) {
+                    var $110 = p(v.value0);
+                    if ($110) {
                         $copy_i = i + 1 | 0;
                         return;
                     };
@@ -321,8 +301,8 @@ var unzip = function (xs) {
         })();
         Data_Array_ST_Iterator.iterate(iter)(function (v) {
             return function __do() {
-                void1(Data_Array_ST.push(v.value0)(fsts))();
-                return void1(Data_Array_ST.push(v.value1)(snds))();
+                $$void(Data_Array_ST.push(v.value0)(fsts))();
+                return $$void(Data_Array_ST.push(v.value1)(snds))();
             };
         })();
         var fsts$prime = Data_Array_ST.unsafeFreeze(fsts)();
@@ -345,19 +325,19 @@ var nubBy = function (comp) {
             return [  ];
         };
         if (v instanceof Data_Maybe.Just) {
-            return map1(Data_Tuple.snd)(sortWith1(Data_Tuple.fst)((function __do() {
+            return Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(sortWith(Data_Ord.ordInt)(Data_Tuple.fst)((function __do() {
                 var result = Data_Array_ST.unsafeThaw(singleton(v.value0))();
                 Control_Monad_ST_Internal.foreach(indexedAndSorted)(function (v1) {
                     return function __do() {
-                        var lst = map2((function () {
-                            var $186 = function ($188) {
-                                return fromJust(last($188));
+                        var lst = Data_Functor.map(Control_Monad_ST_Internal.functorST)((function () {
+                            var $137 = function ($139) {
+                                return fromJust(last($139));
                             };
-                            return function ($187) {
-                                return Data_Tuple.snd($186($187));
+                            return function ($138) {
+                                return Data_Tuple.snd($137($138));
                             };
                         })())(Data_Array_ST.unsafeFreeze(result))();
-                        return when(notEq(comp(lst)(v1.value1))(Data_Ordering.EQ.value))(void1(Data_Array_ST.push(v1)(result)))();
+                        return Control_Applicative.when(Control_Monad_ST_Internal.applicativeST)(Data_Eq.notEq(Data_Ordering.eqOrdering)(comp(lst)(v1.value1))(Data_Ordering.EQ.value))($$void(Data_Array_ST.push(v1)(result)))();
                     };
                 })();
                 return Data_Array_ST.unsafeFreeze(result)();
@@ -377,11 +357,11 @@ var groupBy = function (op) {
                 return index(xs)(v);
             })();
             Data_Array_ST_Iterator.iterate(iter)(function (x) {
-                return $$void(function __do() {
-                    var sub1 = Data_Array_ST["new"]();
-                    Data_Array_ST.push(x)(sub1)();
-                    Data_Array_ST_Iterator.pushWhile(op(x))(iter)(sub1)();
-                    var grp = Data_Array_ST.unsafeFreeze(sub1)();
+                return Data_Functor["void"](Control_Monad_ST_Internal.functorST)(function __do() {
+                    var sub = Data_Array_ST["new"]();
+                    Data_Array_ST.push(x)(sub)();
+                    Data_Array_ST_Iterator.pushWhile(op(x))(iter)(sub)();
+                    var grp = Data_Array_ST.unsafeFreeze(sub)();
                     return Data_Array_ST.push(grp)(result)();
                 });
             })();
@@ -390,23 +370,23 @@ var groupBy = function (op) {
     };
 };
 var groupAllBy = function (cmp) {
-    var $189 = groupBy(function (x) {
+    var $140 = groupBy(function (x) {
         return function (y) {
-            return eq1(cmp(x)(y))(Data_Ordering.EQ.value);
+            return Data_Eq.eq(Data_Ordering.eqOrdering)(cmp(x)(y))(Data_Ordering.EQ.value);
         };
     });
-    var $190 = sortBy(cmp);
-    return function ($191) {
-        return $189($190($191));
+    var $141 = sortBy(cmp);
+    return function ($142) {
+        return $140($141($142));
     };
 };
 var groupAll = function (dictOrd) {
     return groupAllBy(Data_Ord.compare(dictOrd));
 };
 var group = function (dictEq) {
-    var eq2 = Data_Eq.eq(dictEq);
+    var eq = Data_Eq.eq(dictEq);
     return function (xs) {
-        return groupBy(eq2)(xs);
+        return groupBy(eq)(xs);
     };
 };
 var fromFoldable = function (dictFoldable) {
@@ -452,20 +432,19 @@ var transpose = function (xs) {
 };
 var foldRecM = function (dictMonadRec) {
     var Monad0 = dictMonadRec.Monad0();
-    var pure2 = Control_Applicative.pure(Monad0.Applicative0());
-    var bind1 = Control_Bind.bind(Monad0.Bind1());
-    var tailRecM2 = Control_Monad_Rec_Class.tailRecM2(dictMonadRec);
+    var Applicative0 = Monad0.Applicative0();
+    var Bind1 = Monad0.Bind1();
     return function (f) {
         return function (b) {
             return function (array) {
                 var go = function (res) {
                     return function (i) {
                         if (i >= $foreign.length(array)) {
-                            return pure2(new Control_Monad_Rec_Class.Done(res));
+                            return Control_Applicative.pure(Applicative0)(new Control_Monad_Rec_Class.Done(res));
                         };
                         if (Data_Boolean.otherwise) {
-                            return bind1(f(res)(unsafeIndex1(array)(i)))(function (res$prime) {
-                                return pure2(new Control_Monad_Rec_Class.Loop({
+                            return Control_Bind.bind(Bind1)(f(res)(unsafeIndex()(array)(i)))(function (res$prime) {
+                                return Control_Applicative.pure(Applicative0)(new Control_Monad_Rec_Class.Loop({
                                     a: res$prime,
                                     b: i + 1 | 0
                                 }));
@@ -474,7 +453,7 @@ var foldRecM = function (dictMonadRec) {
                         throw new Error("Failed pattern match at Data.Array (line 1349, column 3 - line 1353, column 42): " + [ res.constructor.name, i.constructor.name ]);
                     };
                 };
-                return tailRecM2(go)(b)(0);
+                return Control_Monad_Rec_Class.tailRecM2(dictMonadRec)(go)(b)(0);
             };
         };
     };
@@ -483,15 +462,15 @@ var foldMap = function (dictMonoid) {
     return foldMap1(dictMonoid);
 };
 var foldM = function (dictMonad) {
-    var pure2 = Control_Applicative.pure(dictMonad.Applicative0());
-    var bind1 = Control_Bind.bind(dictMonad.Bind1());
+    var Applicative0 = dictMonad.Applicative0();
+    var Bind1 = dictMonad.Bind1();
     return function (f) {
         return function (b) {
             return Data_Function_Uncurried.runFn3($foreign.unconsImpl)(function (v) {
-                return pure2(b);
+                return Control_Applicative.pure(Applicative0)(b);
             })(function (a) {
                 return function (as) {
-                    return bind1(f(b)(a))(function (b$prime) {
+                    return Control_Bind.bind(Bind1)(f(b)(a))(function (b$prime) {
                         return foldM(dictMonad)(f)(b$prime)(as);
                     });
                 };
@@ -514,9 +493,9 @@ var insertBy = function (cmp) {
             var i = Data_Maybe.maybe(0)(function (v) {
                 return v + 1 | 0;
             })(findLastIndex(function (y) {
-                return eq1(cmp(x)(y))(Data_Ordering.GT.value);
+                return Data_Eq.eq(Data_Ordering.eqOrdering)(cmp(x)(y))(Data_Ordering.GT.value);
             })(ys));
-            return fromJust1(insertAt(i)(x)(ys));
+            return Data_Maybe.fromJust()(insertAt(i)(x)(ys));
         };
     };
 };
@@ -528,15 +507,15 @@ var findIndex = /* #__PURE__ */ (function () {
 })();
 var find = function (f) {
     return function (xs) {
-        return map(unsafeIndex1(xs))(findIndex(f)(xs));
+        return Data_Functor.map(Data_Maybe.functorMaybe)(unsafeIndex()(xs))(findIndex(f)(xs));
     };
 };
 var filter = /* #__PURE__ */ Data_Function_Uncurried.runFn2($foreign.filterImpl);
-var intersectBy = function (eq2) {
+var intersectBy = function (eq) {
     return function (xs) {
         return function (ys) {
             return filter(function (x) {
-                return Data_Maybe.isJust(findIndex(eq2(x))(ys));
+                return Data_Maybe.isJust(findIndex(eq(x))(ys));
             })(xs);
         };
     };
@@ -545,34 +524,30 @@ var intersect = function (dictEq) {
     return intersectBy(Data_Eq.eq(dictEq));
 };
 var elemLastIndex = function (dictEq) {
-    var eq2 = Data_Eq.eq(dictEq);
     return function (x) {
         return findLastIndex(function (v) {
-            return eq2(v)(x);
+            return Data_Eq.eq(dictEq)(v)(x);
         });
     };
 };
 var elemIndex = function (dictEq) {
-    var eq2 = Data_Eq.eq(dictEq);
     return function (x) {
         return findIndex(function (v) {
-            return eq2(v)(x);
+            return Data_Eq.eq(dictEq)(v)(x);
         });
     };
 };
 var notElem = function (dictEq) {
-    var elemIndex1 = elemIndex(dictEq);
     return function (a) {
         return function (arr) {
-            return Data_Maybe.isNothing(elemIndex1(a)(arr));
+            return Data_Maybe.isNothing(elemIndex(dictEq)(a)(arr));
         };
     };
 };
 var elem = function (dictEq) {
-    var elemIndex1 = elemIndex(dictEq);
     return function (a) {
         return function (arr) {
-            return Data_Maybe.isJust(elemIndex1(a)(arr));
+            return Data_Maybe.isJust(elemIndex(dictEq)(a)(arr));
         };
     };
 };
@@ -588,8 +563,8 @@ var dropEnd = function (n) {
 };
 var drop = function (n) {
     return function (xs) {
-        var $176 = n < 1;
-        if ($176) {
+        var $127 = n < 1;
+        if ($127) {
             return xs;
         };
         return slice(n)($foreign.length(xs))(xs);
@@ -610,7 +585,7 @@ var deleteBy = function (v) {
                 return [  ];
             };
             return Data_Maybe.maybe(v2)(function (i) {
-                return fromJust1(deleteAt(i)(v2));
+                return Data_Maybe.fromJust()(deleteAt(i)(v2));
             })(findIndex(v(v1))(v2));
         };
     };
@@ -623,74 +598,72 @@ var difference = function (dictEq) {
 };
 var cons = function (x) {
     return function (xs) {
-        return append([ x ])(xs);
+        return Data_Semigroup.append(Data_Semigroup.semigroupArray)([ x ])(xs);
     };
 };
 var some = function (dictAlternative) {
-    var apply1 = Control_Apply.apply((dictAlternative.Applicative0()).Apply0());
-    var map3 = Data_Functor.map(((dictAlternative.Plus1()).Alt0()).Functor0());
+    var Apply0 = (dictAlternative.Applicative0()).Apply0();
+    var Functor0 = ((dictAlternative.Plus1()).Alt0()).Functor0();
     return function (dictLazy) {
-        var defer = Control_Lazy.defer(dictLazy);
         return function (v) {
-            return apply1(map3(cons)(v))(defer(function (v1) {
+            return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(cons)(v))(Control_Lazy.defer(dictLazy)(function (v1) {
                 return many(dictAlternative)(dictLazy)(v);
             }));
         };
     };
 };
 var many = function (dictAlternative) {
-    var alt = Control_Alt.alt((dictAlternative.Plus1()).Alt0());
-    var pure2 = Control_Applicative.pure(dictAlternative.Applicative0());
+    var Alt0 = (dictAlternative.Plus1()).Alt0();
+    var Applicative0 = dictAlternative.Applicative0();
     return function (dictLazy) {
         return function (v) {
-            return alt(some(dictAlternative)(dictLazy)(v))(pure2([  ]));
+            return Control_Alt.alt(Alt0)(some(dictAlternative)(dictLazy)(v))(Control_Applicative.pure(Applicative0)([  ]));
         };
     };
 };
 var concatMap = /* #__PURE__ */ Data_Function.flip(/* #__PURE__ */ Control_Bind.bind(Control_Bind.bindArray));
 var mapMaybe = function (f) {
     return concatMap((function () {
-        var $192 = Data_Maybe.maybe([  ])(singleton);
-        return function ($193) {
-            return $192(f($193));
+        var $143 = Data_Maybe.maybe([  ])(singleton);
+        return function ($144) {
+            return $143(f($144));
         };
     })());
 };
 var filterA = function (dictApplicative) {
-    var traverse1 = traverse(dictApplicative);
-    var map3 = Data_Functor.map((dictApplicative.Apply0()).Functor0());
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (p) {
-        var $194 = map3(mapMaybe(function (v) {
+        var $145 = Data_Functor.map(Functor0)(mapMaybe(function (v) {
             if (v.value1) {
                 return new Data_Maybe.Just(v.value0);
             };
             return Data_Maybe.Nothing.value;
         }));
-        var $195 = traverse1(function (x) {
-            return map3(Data_Tuple.Tuple.create(x))(p(x));
+        var $146 = Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(function (x) {
+            return Data_Functor.map(Functor0)(Data_Tuple.Tuple.create(x))(p(x));
         });
-        return function ($196) {
-            return $194($195($196));
+        return function ($147) {
+            return $145($146($147));
         };
     };
 };
 var catMaybes = /* #__PURE__ */ mapMaybe(/* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn));
 var any = /* #__PURE__ */ Data_Function_Uncurried.runFn2($foreign.anyImpl);
-var nubByEq = function (eq2) {
+var nubByEq = function (eq) {
     return function (xs) {
         return (function __do() {
             var arr = Data_Array_ST["new"]();
             Control_Monad_ST_Internal.foreach(xs)(function (x) {
                 return function __do() {
-                    var e = map2((function () {
-                        var $197 = any(function (v) {
-                            return eq2(v)(x);
+                    var e = Data_Functor.map(Control_Monad_ST_Internal.functorST)((function () {
+                        var $148 = any(function (v) {
+                            return eq(v)(x);
                         });
-                        return function ($198) {
-                            return !$197($198);
+                        return function ($149) {
+                            return !$148($149);
                         };
                     })())(Data_Array_ST.unsafeFreeze(arr))();
-                    return when(e)(void1(Data_Array_ST.push(x)(arr)))();
+                    return Control_Applicative.when(Control_Monad_ST_Internal.applicativeST)(e)($$void(Data_Array_ST.push(x)(arr)))();
                 };
             })();
             return Data_Array_ST.unsafeFreeze(arr)();
@@ -700,10 +673,10 @@ var nubByEq = function (eq2) {
 var nubEq = function (dictEq) {
     return nubByEq(Data_Eq.eq(dictEq));
 };
-var unionBy = function (eq2) {
+var unionBy = function (eq) {
     return function (xs) {
         return function (ys) {
-            return append(xs)(foldl(Data_Function.flip(deleteBy(eq2)))(nubByEq(eq2)(ys))(xs));
+            return Data_Semigroup.append(Data_Semigroup.semigroupArray)(xs)(foldl(Data_Function.flip(deleteBy(eq)))(nubByEq(eq)(ys))(xs));
         };
     };
 };

@@ -11,16 +11,15 @@ var coerce7 = /* #__PURE__ */ Safe_Coerce.coerce();
 var coerce8 = /* #__PURE__ */ Safe_Coerce.coerce();
 var coerce9 = /* #__PURE__ */ Safe_Coerce.coerce();
 var coerce10 = /* #__PURE__ */ Safe_Coerce.coerce();
+var coerce11 = /* #__PURE__ */ Safe_Coerce.coerce();
 var wrap = function () {
     return coerce;
 };
 var wrap1 = /* #__PURE__ */ wrap();
-var wrap2 = /* #__PURE__ */ wrap();
 var unwrap = function () {
     return coerce1;
 };
 var unwrap1 = /* #__PURE__ */ unwrap();
-var unwrap2 = /* #__PURE__ */ unwrap();
 var underF2 = function () {
     return function () {
         return function () {
@@ -74,7 +73,7 @@ var overF2 = function () {
         return function () {
             return function () {
                 return function (v) {
-                    return coerce2;
+                    return coerce7;
                 };
             };
         };
@@ -85,7 +84,7 @@ var overF = function () {
         return function () {
             return function () {
                 return function (v) {
-                    return coerce3;
+                    return coerce8;
                 };
             };
         };
@@ -94,14 +93,14 @@ var overF = function () {
 var over2 = function () {
     return function () {
         return function (v) {
-            return coerce7;
+            return coerce9;
         };
     };
 };
 var over = function () {
     return function () {
         return function (v) {
-            return coerce8;
+            return coerce10;
         };
     };
 };
@@ -148,14 +147,14 @@ var newtypeAdditive = {
 var modify = function () {
     return function (fn) {
         return function (t) {
-            return wrap1(fn(unwrap2(t)));
+            return wrap()(fn(unwrap()(t)));
         };
     };
 };
 var collect = function () {
     return function () {
         return function (v) {
-            return coerce9;
+            return coerce11;
         };
     };
 };
@@ -175,7 +174,7 @@ var ala = function () {
         return function () {
             return function (v) {
                 return function (f) {
-                    return coerce10(f(wrap2));
+                    return Safe_Coerce.coerce()(f(wrap1));
                 };
             };
         };

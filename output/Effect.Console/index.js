@@ -2,21 +2,18 @@
 import * as $foreign from "./foreign.js";
 import * as Data_Show from "../Data.Show/index.js";
 var warnShow = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return function (a) {
-        return $foreign.warn(show(a));
+        return $foreign.warn(Data_Show.show(dictShow)(a));
     };
 };
 var logShow = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return function (a) {
-        return $foreign.log(show(a));
+        return $foreign.log(Data_Show.show(dictShow)(a));
     };
 };
 var infoShow = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return function (a) {
-        return $foreign.info(show(a));
+        return $foreign.info(Data_Show.show(dictShow)(a));
     };
 };
 var grouped = function (name) {
@@ -30,15 +27,13 @@ var grouped = function (name) {
     };
 };
 var errorShow = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return function (a) {
-        return $foreign.error(show(a));
+        return $foreign.error(Data_Show.show(dictShow)(a));
     };
 };
 var debugShow = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return function (a) {
-        return $foreign.debug(show(a));
+        return $foreign.debug(Data_Show.show(dictShow)(a));
     };
 };
 export {

@@ -2,7 +2,6 @@
 import * as Data_Eq from "../Data.Eq/index.js";
 import * as Data_Function from "../Data.Function/index.js";
 import * as Data_Ordering from "../Data.Ordering/index.js";
-var eq = /* #__PURE__ */ Data_Eq.eq(Data_Ordering.eqOrdering);
 var Equivalence = function (x) {
     return x;
 };
@@ -45,7 +44,7 @@ var contravariantEquivalence = {
 var comparisonEquivalence = function (v) {
     return function (a) {
         return function (b) {
-            return eq(v(a)(b))(Data_Ordering.EQ.value);
+            return Data_Eq.eq(Data_Ordering.eqOrdering)(v(a)(b))(Data_Ordering.EQ.value);
         };
     };
 };

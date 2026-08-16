@@ -110,3 +110,13 @@ rename env s = case _ of
   JavaCast c e ->
     let Tuple e' s1 = rename env s e
     in Tuple (JavaCast c e') s1
+  JavaLocalAssign n e ->
+    let Tuple e' s1 = rename env s e
+    in Tuple (JavaLocalAssign (lookupName n env) e') s1
+  JavaBlock stmts e ->
+    let Tuple stmts' s1 = foldl (\(Tuple acc s') stmt ->
+                                   let Tuple stmt' s'' = rename env s' stmt
+                                   in Tuple (Array.snoc acc stmt') s''
+                                ) (Tuple [] s) stmts
+        Tuple e' s2 = rename env s1 e
+    in Tuple (JavaBlock stmts' e') s2

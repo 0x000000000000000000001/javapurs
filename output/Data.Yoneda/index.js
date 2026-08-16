@@ -10,8 +10,6 @@ import * as Data_Eq from "../Data.Eq/index.js";
 import * as Data_Functor from "../Data.Functor/index.js";
 import * as Data_Ord from "../Data.Ord/index.js";
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var map = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorFn);
-var compose = /* #__PURE__ */ Control_Semigroupoid.compose(Control_Semigroupoid.semigroupoidFn);
 var Yoneda = function (x) {
     return x;
 };
@@ -24,10 +22,9 @@ var lowerYoneda = function (v) {
     return v(identity);
 };
 var liftYoneda = function (dictFunctor) {
-    var map1 = Data_Functor.map(dictFunctor);
     return function (m) {
         return function (k) {
-            return map1(k)(m);
+            return Data_Functor.map(dictFunctor)(k)(m);
         };
     };
 };
@@ -38,29 +35,28 @@ var monadTransYoneda = {
 };
 var hoistYoneda = function (nat) {
     return function (v) {
-        return map(nat)(v);
+        return Data_Functor.map(Data_Functor.functorFn)(nat)(v);
     };
 };
 var functorYoneda = {
     map: function (f) {
         return function (m) {
             return function (k) {
-                return runYoneda(m)(function ($77) {
-                    return k(f($77));
+                return runYoneda(m)(function ($67) {
+                    return k(f($67));
                 });
             };
         };
     }
 };
 var extendYoneda = function (dictExtend) {
-    var extend = Control_Extend.extend(dictExtend);
     var liftYoneda1 = liftYoneda(dictExtend.Functor0());
     return {
         extend: function (f) {
             return function (v) {
                 return function (k) {
-                    return extend(function ($78) {
-                        return k(f(liftYoneda1($78)));
+                    return Control_Extend.extend(dictExtend)(function ($68) {
+                        return k(f(liftYoneda1($68)));
                     })(v(identity));
                 };
             };
@@ -71,28 +67,24 @@ var extendYoneda = function (dictExtend) {
     };
 };
 var eqYoneda = function (dictEq1) {
-    var eq1 = Data_Eq.eq1(dictEq1);
     return function (dictEq) {
-        var eq11 = eq1(dictEq);
         return {
             eq: function (x) {
                 return function (y) {
-                    return eq11(lowerYoneda(x))(lowerYoneda(y));
+                    return Data_Eq.eq1(dictEq1)(dictEq)(lowerYoneda(x))(lowerYoneda(y));
                 };
             }
         };
     };
 };
 var ordYoneda = function (dictOrd1) {
-    var compare1 = Data_Ord.compare1(dictOrd1);
     var eqYoneda1 = eqYoneda(dictOrd1.Eq10());
     return function (dictOrd) {
-        var compare11 = compare1(dictOrd);
         var eqYoneda2 = eqYoneda1(dictOrd.Eq0());
         return {
             compare: function (x) {
                 return function (y) {
-                    return compare11(lowerYoneda(x))(lowerYoneda(y));
+                    return Data_Ord.compare1(dictOrd1)(dictOrd)(lowerYoneda(x))(lowerYoneda(y));
                 };
             },
             Eq0: function () {
@@ -125,9 +117,9 @@ var comonadYoneda = function (dictComonad) {
     var extendYoneda1 = extendYoneda(dictComonad.Extend0());
     return {
         extract: (function () {
-            var $79 = Control_Comonad.extract(dictComonad);
-            return function ($80) {
-                return $79(lowerYoneda($80));
+            var $69 = Control_Comonad.extract(dictComonad);
+            return function ($70) {
+                return $69(lowerYoneda($70));
             };
         })(),
         Extend0: function () {
@@ -136,12 +128,11 @@ var comonadYoneda = function (dictComonad) {
     };
 };
 var applyYoneda = function (dictApply) {
-    var apply = Control_Apply.apply(dictApply);
     return {
         apply: function (v) {
             return function (v1) {
                 return function (k) {
-                    return apply(v(compose(k)))(v1(identity));
+                    return Control_Apply.apply(dictApply)(v(Control_Semigroupoid.compose(Control_Semigroupoid.semigroupoidFn)(k)))(v1(identity));
                 };
             };
         },
@@ -151,13 +142,12 @@ var applyYoneda = function (dictApply) {
     };
 };
 var bindYoneda = function (dictBind) {
-    var bind = Control_Bind.bind(dictBind);
     var applyYoneda1 = applyYoneda(dictBind.Apply0());
     return {
         bind: function (v) {
             return function (g) {
                 return function (k) {
-                    return bind(v(identity))(function (a) {
+                    return Control_Bind.bind(dictBind)(v(identity))(function (a) {
                         return runYoneda(g(a))(k);
                     });
                 };
@@ -173,10 +163,10 @@ var applicativeYoneda = function (dictApplicative) {
     var applyYoneda1 = applyYoneda(Apply0);
     return {
         pure: (function () {
-            var $81 = liftYoneda(Apply0.Functor0());
-            var $82 = Control_Applicative.pure(dictApplicative);
-            return function ($83) {
-                return $81($82($83));
+            var $71 = liftYoneda(Apply0.Functor0());
+            var $72 = Control_Applicative.pure(dictApplicative);
+            return function ($73) {
+                return $71($72($73));
             };
         })(),
         Apply0: function () {

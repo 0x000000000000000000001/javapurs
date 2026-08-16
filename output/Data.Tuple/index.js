@@ -37,37 +37,29 @@ var snd = function (v) {
     return v.value1;
 };
 var showTuple = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return function (dictShow1) {
-        var show1 = Data_Show.show(dictShow1);
         return {
             show: function (v) {
-                return "(Tuple " + (show(v.value0) + (" " + (show1(v.value1) + ")")));
+                return "(Tuple " + (Data_Show.show(dictShow)(v.value0) + (" " + (Data_Show.show(dictShow1)(v.value1) + ")")));
             }
         };
     };
 };
 var semiringTuple = function (dictSemiring) {
-    var add = Data_Semiring.add(dictSemiring);
-    var one = Data_Semiring.one(dictSemiring);
-    var mul = Data_Semiring.mul(dictSemiring);
-    var zero = Data_Semiring.zero(dictSemiring);
     return function (dictSemiring1) {
-        var add1 = Data_Semiring.add(dictSemiring1);
-        var mul1 = Data_Semiring.mul(dictSemiring1);
         return {
             add: function (v) {
                 return function (v1) {
-                    return new Tuple(add(v.value0)(v1.value0), add1(v.value1)(v1.value1));
+                    return new Tuple(Data_Semiring.add(dictSemiring)(v.value0)(v1.value0), Data_Semiring.add(dictSemiring1)(v.value1)(v1.value1));
                 };
             },
-            one: new Tuple(one, Data_Semiring.one(dictSemiring1)),
+            one: new Tuple(Data_Semiring.one(dictSemiring), Data_Semiring.one(dictSemiring1)),
             mul: function (v) {
                 return function (v1) {
-                    return new Tuple(mul(v.value0)(v1.value0), mul1(v.value1)(v1.value1));
+                    return new Tuple(Data_Semiring.mul(dictSemiring)(v.value0)(v1.value0), Data_Semiring.mul(dictSemiring1)(v.value1)(v1.value1));
                 };
             },
-            zero: new Tuple(zero, Data_Semiring.zero(dictSemiring1))
+            zero: new Tuple(Data_Semiring.zero(dictSemiring), Data_Semiring.zero(dictSemiring1))
         };
     };
 };
@@ -79,28 +71,24 @@ var semigroupoidTuple = {
     }
 };
 var semigroupTuple = function (dictSemigroup) {
-    var append1 = Data_Semigroup.append(dictSemigroup);
     return function (dictSemigroup1) {
-        var append2 = Data_Semigroup.append(dictSemigroup1);
         return {
             append: function (v) {
                 return function (v1) {
-                    return new Tuple(append1(v.value0)(v1.value0), append2(v.value1)(v1.value1));
+                    return new Tuple(Data_Semigroup.append(dictSemigroup)(v.value0)(v1.value0), Data_Semigroup.append(dictSemigroup1)(v.value1)(v1.value1));
                 };
             }
         };
     };
 };
 var ringTuple = function (dictRing) {
-    var sub = Data_Ring.sub(dictRing);
     var semiringTuple1 = semiringTuple(dictRing.Semiring0());
     return function (dictRing1) {
-        var sub1 = Data_Ring.sub(dictRing1);
         var semiringTuple2 = semiringTuple1(dictRing1.Semiring0());
         return {
             sub: function (v) {
                 return function (v1) {
-                    return new Tuple(sub(v.value0)(v1.value0), sub1(v.value1)(v1.value1));
+                    return new Tuple(Data_Ring.sub(dictRing)(v.value0)(v1.value0), Data_Ring.sub(dictRing1)(v.value1)(v1.value1));
                 };
             },
             Semiring0: function () {
@@ -110,12 +98,11 @@ var ringTuple = function (dictRing) {
     };
 };
 var monoidTuple = function (dictMonoid) {
-    var mempty = Data_Monoid.mempty(dictMonoid);
     var semigroupTuple1 = semigroupTuple(dictMonoid.Semigroup0());
     return function (dictMonoid1) {
         var semigroupTuple2 = semigroupTuple1(dictMonoid1.Semigroup0());
         return {
-            mempty: new Tuple(mempty, Data_Monoid.mempty(dictMonoid1)),
+            mempty: new Tuple(Data_Monoid.mempty(dictMonoid), Data_Monoid.mempty(dictMonoid1)),
             Semigroup0: function () {
                 return semigroupTuple2;
             }
@@ -123,37 +110,27 @@ var monoidTuple = function (dictMonoid) {
     };
 };
 var heytingAlgebraTuple = function (dictHeytingAlgebra) {
-    var tt = Data_HeytingAlgebra.tt(dictHeytingAlgebra);
-    var ff = Data_HeytingAlgebra.ff(dictHeytingAlgebra);
-    var implies = Data_HeytingAlgebra.implies(dictHeytingAlgebra);
-    var conj1 = Data_HeytingAlgebra.conj(dictHeytingAlgebra);
-    var disj = Data_HeytingAlgebra.disj(dictHeytingAlgebra);
-    var not = Data_HeytingAlgebra.not(dictHeytingAlgebra);
     return function (dictHeytingAlgebra1) {
-        var implies1 = Data_HeytingAlgebra.implies(dictHeytingAlgebra1);
-        var conj2 = Data_HeytingAlgebra.conj(dictHeytingAlgebra1);
-        var disj1 = Data_HeytingAlgebra.disj(dictHeytingAlgebra1);
-        var not1 = Data_HeytingAlgebra.not(dictHeytingAlgebra1);
         return {
-            tt: new Tuple(tt, Data_HeytingAlgebra.tt(dictHeytingAlgebra1)),
-            ff: new Tuple(ff, Data_HeytingAlgebra.ff(dictHeytingAlgebra1)),
+            tt: new Tuple(Data_HeytingAlgebra.tt(dictHeytingAlgebra), Data_HeytingAlgebra.tt(dictHeytingAlgebra1)),
+            ff: new Tuple(Data_HeytingAlgebra.ff(dictHeytingAlgebra), Data_HeytingAlgebra.ff(dictHeytingAlgebra1)),
             implies: function (v) {
                 return function (v1) {
-                    return new Tuple(implies(v.value0)(v1.value0), implies1(v.value1)(v1.value1));
+                    return new Tuple(Data_HeytingAlgebra.implies(dictHeytingAlgebra)(v.value0)(v1.value0), Data_HeytingAlgebra.implies(dictHeytingAlgebra1)(v.value1)(v1.value1));
                 };
             },
             conj: function (v) {
                 return function (v1) {
-                    return new Tuple(conj1(v.value0)(v1.value0), conj2(v.value1)(v1.value1));
+                    return new Tuple(Data_HeytingAlgebra.conj(dictHeytingAlgebra)(v.value0)(v1.value0), Data_HeytingAlgebra.conj(dictHeytingAlgebra1)(v.value1)(v1.value1));
                 };
             },
             disj: function (v) {
                 return function (v1) {
-                    return new Tuple(disj(v.value0)(v1.value0), disj1(v.value1)(v1.value1));
+                    return new Tuple(Data_HeytingAlgebra.disj(dictHeytingAlgebra)(v.value0)(v1.value0), Data_HeytingAlgebra.disj(dictHeytingAlgebra1)(v.value1)(v1.value1));
                 };
             },
             not: function (v) {
-                return new Tuple(not(v.value0), not1(v.value1));
+                return new Tuple(Data_HeytingAlgebra.not(dictHeytingAlgebra)(v.value0), Data_HeytingAlgebra.not(dictHeytingAlgebra1)(v.value1));
             }
         };
     };
@@ -205,35 +182,31 @@ var extendTuple = {
     }
 };
 var eqTuple = function (dictEq) {
-    var eq = Data_Eq.eq(dictEq);
     return function (dictEq1) {
-        var eq1 = Data_Eq.eq(dictEq1);
         return {
             eq: function (x) {
                 return function (y) {
-                    return eq(x.value0)(y.value0) && eq1(x.value1)(y.value1);
+                    return Data_Eq.eq(dictEq)(x.value0)(y.value0) && Data_Eq.eq(dictEq1)(x.value1)(y.value1);
                 };
             }
         };
     };
 };
 var ordTuple = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     var eqTuple1 = eqTuple(dictOrd.Eq0());
     return function (dictOrd1) {
-        var compare1 = Data_Ord.compare(dictOrd1);
         var eqTuple2 = eqTuple1(dictOrd1.Eq0());
         return {
             compare: function (x) {
                 return function (y) {
-                    var v = compare(x.value0)(y.value0);
+                    var v = Data_Ord.compare(dictOrd)(x.value0)(y.value0);
                     if (v instanceof Data_Ordering.LT) {
                         return Data_Ordering.LT.value;
                     };
                     if (v instanceof Data_Ordering.GT) {
                         return Data_Ordering.GT.value;
                     };
-                    return compare1(x.value1)(y.value1);
+                    return Data_Ord.compare(dictOrd1)(x.value1)(y.value1);
                 };
             },
             Eq0: function () {
@@ -287,14 +260,12 @@ var commutativeRingTuple = function (dictCommutativeRing) {
     };
 };
 var boundedTuple = function (dictBounded) {
-    var top = Data_Bounded.top(dictBounded);
-    var bottom = Data_Bounded.bottom(dictBounded);
     var ordTuple1 = ordTuple(dictBounded.Ord0());
     return function (dictBounded1) {
         var ordTuple2 = ordTuple1(dictBounded1.Ord0());
         return {
-            top: new Tuple(top, Data_Bounded.top(dictBounded1)),
-            bottom: new Tuple(bottom, Data_Bounded.bottom(dictBounded1)),
+            top: new Tuple(Data_Bounded.top(dictBounded), Data_Bounded.top(dictBounded1)),
+            bottom: new Tuple(Data_Bounded.bottom(dictBounded), Data_Bounded.bottom(dictBounded1)),
             Ord0: function () {
                 return ordTuple2;
             }
@@ -313,11 +284,10 @@ var booleanAlgebraTuple = function (dictBooleanAlgebra) {
     };
 };
 var applyTuple = function (dictSemigroup) {
-    var append1 = Data_Semigroup.append(dictSemigroup);
     return {
         apply: function (v) {
             return function (v1) {
-                return new Tuple(append1(v.value0)(v1.value0), v.value1(v1.value1));
+                return new Tuple(Data_Semigroup.append(dictSemigroup)(v.value0)(v1.value0), v.value1(v1.value1));
             };
         },
         Functor0: function () {
@@ -326,13 +296,12 @@ var applyTuple = function (dictSemigroup) {
     };
 };
 var bindTuple = function (dictSemigroup) {
-    var append1 = Data_Semigroup.append(dictSemigroup);
     var applyTuple1 = applyTuple(dictSemigroup);
     return {
         bind: function (v) {
             return function (f) {
                 var v1 = f(v.value1);
-                return new Tuple(append1(v.value0)(v1.value0), v1.value1);
+                return new Tuple(Data_Semigroup.append(dictSemigroup)(v.value0)(v1.value0), v1.value1);
             };
         },
         Apply0: function () {

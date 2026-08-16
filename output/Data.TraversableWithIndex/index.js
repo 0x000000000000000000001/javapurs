@@ -26,13 +26,13 @@ var traverse6 = /* #__PURE__ */ Data_Traversable.traverse(Data_Traversable.trave
 var traverse7 = /* #__PURE__ */ Data_Traversable.traverse(Data_Traversable.traversableAdditive);
 var traverseWithIndexDefault = function (dictTraversableWithIndex) {
     var sequence = Data_Traversable.sequence(dictTraversableWithIndex.Traversable2());
-    var mapWithIndex = Data_FunctorWithIndex.mapWithIndex(dictTraversableWithIndex.FunctorWithIndex0());
+    var FunctorWithIndex0 = dictTraversableWithIndex.FunctorWithIndex0();
     return function (dictApplicative) {
         var sequence1 = sequence(dictApplicative);
         return function (f) {
-            var $174 = mapWithIndex(f);
-            return function ($175) {
-                return sequence1($174($175));
+            var $143 = Data_FunctorWithIndex.mapWithIndex(FunctorWithIndex0)(f);
+            return function ($144) {
+                return sequence1($143($144));
             };
         };
     };
@@ -41,20 +41,18 @@ var traverseWithIndex = function (dict) {
     return dict.traverseWithIndex;
 };
 var traverseDefault = function (dictTraversableWithIndex) {
-    var traverseWithIndex1 = traverseWithIndex(dictTraversableWithIndex);
     return function (dictApplicative) {
-        var traverseWithIndex2 = traverseWithIndex1(dictApplicative);
         return function (f) {
-            return traverseWithIndex2(Data_Function["const"](f));
+            return traverseWithIndex(dictTraversableWithIndex)(dictApplicative)(Data_Function["const"](f));
         };
     };
 };
 var traversableWithIndexTuple = {
     traverseWithIndex: function (dictApplicative) {
-        var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         return function (f) {
             return function (v) {
-                return map(Data_Tuple.Tuple.create(v.value0))(f(Data_Unit.unit)(v.value1));
+                return Data_Functor.map(Functor0)(Data_Tuple.Tuple.create(v.value0))(f(Data_Unit.unit)(v.value1));
             };
         };
     },
@@ -69,26 +67,22 @@ var traversableWithIndexTuple = {
     }
 };
 var traversableWithIndexProduct = function (dictTraversableWithIndex) {
-    var traverseWithIndex1 = traverseWithIndex(dictTraversableWithIndex);
     var functorWithIndexProduct = Data_FunctorWithIndex.functorWithIndexProduct(dictTraversableWithIndex.FunctorWithIndex0());
     var foldableWithIndexProduct = Data_FoldableWithIndex.foldableWithIndexProduct(dictTraversableWithIndex.FoldableWithIndex1());
     var traversableProduct = Data_Traversable.traversableProduct(dictTraversableWithIndex.Traversable2());
     return function (dictTraversableWithIndex1) {
-        var traverseWithIndex2 = traverseWithIndex(dictTraversableWithIndex1);
         var functorWithIndexProduct1 = functorWithIndexProduct(dictTraversableWithIndex1.FunctorWithIndex0());
         var foldableWithIndexProduct1 = foldableWithIndexProduct(dictTraversableWithIndex1.FoldableWithIndex1());
         var traversableProduct1 = traversableProduct(dictTraversableWithIndex1.Traversable2());
         return {
             traverseWithIndex: function (dictApplicative) {
-                var lift2 = Control_Apply.lift2(dictApplicative.Apply0());
-                var traverseWithIndex3 = traverseWithIndex1(dictApplicative);
-                var traverseWithIndex4 = traverseWithIndex2(dictApplicative);
+                var Apply0 = dictApplicative.Apply0();
                 return function (f) {
                     return function (v) {
-                        return lift2(Data_Functor_Product.product)(traverseWithIndex3(function ($176) {
-                            return f(Data_Either.Left.create($176));
-                        })(v.value0))(traverseWithIndex4(function ($177) {
-                            return f(Data_Either.Right.create($177));
+                        return Control_Apply.lift2(Apply0)(Data_Functor_Product.product)(traverseWithIndex(dictTraversableWithIndex)(dictApplicative)(function ($145) {
+                            return f(Data_Either.Left.create($145));
+                        })(v.value0))(traverseWithIndex(dictTraversableWithIndex1)(dictApplicative)(function ($146) {
+                            return f(Data_Either.Right.create($146));
                         })(v.value1));
                     };
                 };
@@ -158,10 +152,10 @@ var traversableWithIndexLast = {
 };
 var traversableWithIndexIdentity = {
     traverseWithIndex: function (dictApplicative) {
-        var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         return function (f) {
             return function (v) {
-                return map(Data_Identity.Identity)(f(Data_Unit.unit)(v));
+                return Data_Functor.map(Functor0)(Data_Identity.Identity)(f(Data_Unit.unit)(v));
             };
         };
     },
@@ -194,15 +188,14 @@ var traversableWithIndexFirst = {
 };
 var traversableWithIndexEither = {
     traverseWithIndex: function (dictApplicative) {
-        var pure = Control_Applicative.pure(dictApplicative);
-        var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         return function (v) {
             return function (v1) {
                 if (v1 instanceof Data_Either.Left) {
-                    return pure(new Data_Either.Left(v1.value0));
+                    return Control_Applicative.pure(dictApplicative)(new Data_Either.Left(v1.value0));
                 };
                 if (v1 instanceof Data_Either.Right) {
-                    return map(Data_Either.Right.create)(v(Data_Unit.unit)(v1.value0));
+                    return Data_Functor.map(Functor0)(Data_Either.Right.create)(v(Data_Unit.unit)(v1.value0));
                 };
                 throw new Error("Failed pattern match at Data.TraversableWithIndex (line 95, column 1 - line 97, column 53): " + [ v.constructor.name, v1.constructor.name ]);
             };
@@ -253,40 +246,36 @@ var traversableWithIndexDisj = {
     }
 };
 var traversableWithIndexCoproduct = function (dictTraversableWithIndex) {
-    var traverseWithIndex1 = traverseWithIndex(dictTraversableWithIndex);
     var functorWithIndexCoproduct = Data_FunctorWithIndex.functorWithIndexCoproduct(dictTraversableWithIndex.FunctorWithIndex0());
     var foldableWithIndexCoproduct = Data_FoldableWithIndex.foldableWithIndexCoproduct(dictTraversableWithIndex.FoldableWithIndex1());
     var traversableCoproduct = Data_Traversable.traversableCoproduct(dictTraversableWithIndex.Traversable2());
     return function (dictTraversableWithIndex1) {
-        var traverseWithIndex2 = traverseWithIndex(dictTraversableWithIndex1);
         var functorWithIndexCoproduct1 = functorWithIndexCoproduct(dictTraversableWithIndex1.FunctorWithIndex0());
         var foldableWithIndexCoproduct1 = foldableWithIndexCoproduct(dictTraversableWithIndex1.FoldableWithIndex1());
         var traversableCoproduct1 = traversableCoproduct(dictTraversableWithIndex1.Traversable2());
         return {
             traverseWithIndex: function (dictApplicative) {
-                var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-                var traverseWithIndex3 = traverseWithIndex1(dictApplicative);
-                var traverseWithIndex4 = traverseWithIndex2(dictApplicative);
+                var Functor0 = (dictApplicative.Apply0()).Functor0();
                 return function (f) {
                     return Data_Functor_Coproduct.coproduct((function () {
-                        var $178 = map(function ($181) {
-                            return Data_Functor_Coproduct.Coproduct(Data_Either.Left.create($181));
+                        var $147 = Data_Functor.map(Functor0)(function ($150) {
+                            return Data_Functor_Coproduct.Coproduct(Data_Either.Left.create($150));
                         });
-                        var $179 = traverseWithIndex3(function ($182) {
-                            return f(Data_Either.Left.create($182));
+                        var $148 = traverseWithIndex(dictTraversableWithIndex)(dictApplicative)(function ($151) {
+                            return f(Data_Either.Left.create($151));
                         });
-                        return function ($180) {
-                            return $178($179($180));
+                        return function ($149) {
+                            return $147($148($149));
                         };
                     })())((function () {
-                        var $183 = map(function ($186) {
-                            return Data_Functor_Coproduct.Coproduct(Data_Either.Right.create($186));
+                        var $152 = Data_Functor.map(Functor0)(function ($155) {
+                            return Data_Functor_Coproduct.Coproduct(Data_Either.Right.create($155));
                         });
-                        var $184 = traverseWithIndex4(function ($187) {
-                            return f(Data_Either.Right.create($187));
+                        var $153 = traverseWithIndex(dictTraversableWithIndex1)(dictApplicative)(function ($156) {
+                            return f(Data_Either.Right.create($156));
                         });
-                        return function ($185) {
-                            return $183($184($185));
+                        return function ($154) {
+                            return $152($153($154));
                         };
                     })());
                 };
@@ -305,10 +294,9 @@ var traversableWithIndexCoproduct = function (dictTraversableWithIndex) {
 };
 var traversableWithIndexConst = {
     traverseWithIndex: function (dictApplicative) {
-        var pure = Control_Applicative.pure(dictApplicative);
         return function (v) {
             return function (v1) {
-                return pure(v1);
+                return Control_Applicative.pure(dictApplicative)(v1);
             };
         };
     },
@@ -340,26 +328,24 @@ var traversableWithIndexConj = {
     }
 };
 var traversableWithIndexCompose = function (dictTraversableWithIndex) {
-    var traverseWithIndex1 = traverseWithIndex(dictTraversableWithIndex);
     var functorWithIndexCompose = Data_FunctorWithIndex.functorWithIndexCompose(dictTraversableWithIndex.FunctorWithIndex0());
     var foldableWithIndexCompose = Data_FoldableWithIndex.foldableWithIndexCompose(dictTraversableWithIndex.FoldableWithIndex1());
     var traversableCompose = Data_Traversable.traversableCompose(dictTraversableWithIndex.Traversable2());
     return function (dictTraversableWithIndex1) {
-        var traverseWithIndex2 = traverseWithIndex(dictTraversableWithIndex1);
+        var traverseWithIndex1 = traverseWithIndex(dictTraversableWithIndex1);
         var functorWithIndexCompose1 = functorWithIndexCompose(dictTraversableWithIndex1.FunctorWithIndex0());
         var foldableWithIndexCompose1 = foldableWithIndexCompose(dictTraversableWithIndex1.FoldableWithIndex1());
         var traversableCompose1 = traversableCompose(dictTraversableWithIndex1.Traversable2());
         return {
             traverseWithIndex: function (dictApplicative) {
-                var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-                var traverseWithIndex3 = traverseWithIndex1(dictApplicative);
-                var traverseWithIndex4 = traverseWithIndex2(dictApplicative);
+                var Functor0 = (dictApplicative.Apply0()).Functor0();
+                var traverseWithIndex2 = traverseWithIndex1(dictApplicative);
                 return function (f) {
                     return function (v) {
-                        return map(Data_Functor_Compose.Compose)(traverseWithIndex3((function () {
-                            var $188 = Data_Tuple.curry(f);
-                            return function ($189) {
-                                return traverseWithIndex4($188($189));
+                        return Data_Functor.map(Functor0)(Data_Functor_Compose.Compose)(traverseWithIndex(dictTraversableWithIndex)(dictApplicative)((function () {
+                            var $157 = Data_Tuple.curry(f);
+                            return function ($158) {
+                                return traverseWithIndex2($157($158));
                             };
                         })())(v));
                     };
@@ -392,17 +378,15 @@ var traversableWithIndexArray = {
     }
 };
 var traversableWithIndexApp = function (dictTraversableWithIndex) {
-    var traverseWithIndex1 = traverseWithIndex(dictTraversableWithIndex);
     var functorWithIndexApp = Data_FunctorWithIndex.functorWithIndexApp(dictTraversableWithIndex.FunctorWithIndex0());
     var foldableWithIndexApp = Data_FoldableWithIndex.foldableWithIndexApp(dictTraversableWithIndex.FoldableWithIndex1());
     var traversableApp = Data_Traversable.traversableApp(dictTraversableWithIndex.Traversable2());
     return {
         traverseWithIndex: function (dictApplicative) {
-            var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-            var traverseWithIndex2 = traverseWithIndex1(dictApplicative);
+            var Functor0 = (dictApplicative.Apply0()).Functor0();
             return function (f) {
                 return function (v) {
-                    return map(Data_Functor_App.App)(traverseWithIndex2(f)(v));
+                    return Data_Functor.map(Functor0)(Data_Functor_App.App)(traverseWithIndex(dictTraversableWithIndex)(dictApplicative)(f)(v));
                 };
             };
         },
@@ -435,11 +419,10 @@ var traversableWithIndexAdditive = {
     }
 };
 var mapAccumRWithIndex = function (dictTraversableWithIndex) {
-    var traverseWithIndex1 = traverseWithIndex(dictTraversableWithIndex)(Data_Traversable_Accum_Internal.applicativeStateR);
     return function (f) {
         return function (s0) {
             return function (xs) {
-                return Data_Traversable_Accum_Internal.stateR(traverseWithIndex1(function (i) {
+                return Data_Traversable_Accum_Internal.stateR(traverseWithIndex(dictTraversableWithIndex)(Data_Traversable_Accum_Internal.applicativeStateR)(function (i) {
                     return function (a) {
                         return function (s) {
                             return f(i)(s)(a);
@@ -451,11 +434,10 @@ var mapAccumRWithIndex = function (dictTraversableWithIndex) {
     };
 };
 var scanrWithIndex = function (dictTraversableWithIndex) {
-    var mapAccumRWithIndex1 = mapAccumRWithIndex(dictTraversableWithIndex);
     return function (f) {
         return function (b0) {
             return function (xs) {
-                return (mapAccumRWithIndex1(function (i) {
+                return (mapAccumRWithIndex(dictTraversableWithIndex)(function (i) {
                     return function (b) {
                         return function (a) {
                             var b$prime = f(i)(a)(b);
@@ -471,11 +453,10 @@ var scanrWithIndex = function (dictTraversableWithIndex) {
     };
 };
 var mapAccumLWithIndex = function (dictTraversableWithIndex) {
-    var traverseWithIndex1 = traverseWithIndex(dictTraversableWithIndex)(Data_Traversable_Accum_Internal.applicativeStateL);
     return function (f) {
         return function (s0) {
             return function (xs) {
-                return Data_Traversable_Accum_Internal.stateL(traverseWithIndex1(function (i) {
+                return Data_Traversable_Accum_Internal.stateL(traverseWithIndex(dictTraversableWithIndex)(Data_Traversable_Accum_Internal.applicativeStateL)(function (i) {
                     return function (a) {
                         return function (s) {
                             return f(i)(s)(a);
@@ -487,11 +468,10 @@ var mapAccumLWithIndex = function (dictTraversableWithIndex) {
     };
 };
 var scanlWithIndex = function (dictTraversableWithIndex) {
-    var mapAccumLWithIndex1 = mapAccumLWithIndex(dictTraversableWithIndex);
     return function (f) {
         return function (b0) {
             return function (xs) {
-                return (mapAccumLWithIndex1(function (i) {
+                return (mapAccumLWithIndex(dictTraversableWithIndex)(function (i) {
                     return function (b) {
                         return function (a) {
                             var b$prime = f(i)(b)(a);

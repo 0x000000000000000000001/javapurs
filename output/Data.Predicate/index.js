@@ -13,8 +13,8 @@ var heytingAlgebraPredicate = /* #__PURE__ */ Data_HeytingAlgebra.heytingAlgebra
 var contravariantPredicate = {
     cmap: function (f) {
         return function (v) {
-            return function ($6) {
-                return v(f($6));
+            return function ($5) {
+                return v(f($5));
             };
         };
     }

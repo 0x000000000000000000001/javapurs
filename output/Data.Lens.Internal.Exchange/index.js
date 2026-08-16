@@ -15,10 +15,10 @@ var profunctorExchange = {
     dimap: function (f) {
         return function (g) {
             return function (v) {
-                return new Exchange(function ($12) {
-                    return v.value0(f($12));
-                }, function ($13) {
-                    return g(v.value1($13));
+                return new Exchange(function ($11) {
+                    return v.value0(f($11));
+                }, function ($12) {
+                    return g(v.value1($12));
                 });
             };
         };
@@ -27,8 +27,8 @@ var profunctorExchange = {
 var functorExchange = {
     map: function (f) {
         return function (v) {
-            return new Exchange(v.value0, function ($14) {
-                return f(v.value1($14));
+            return new Exchange(v.value0, function ($13) {
+                return f(v.value1($13));
             });
         };
     }

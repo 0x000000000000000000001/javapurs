@@ -8,8 +8,8 @@ var Op = function (x) {
 var semigroupoidOp = {
     compose: function (v) {
         return function (v1) {
-            return function ($13) {
-                return v1(v($13));
+            return function ($12) {
+                return v1(v($12));
             };
         };
     }
@@ -28,8 +28,8 @@ var monoidOp = function (dictMonoid) {
 var contravariantOp = {
     cmap: function (f) {
         return function (v) {
-            return function ($14) {
-                return v(f($14));
+            return function ($13) {
+                return v(f($13));
             };
         };
     }

@@ -64,8 +64,8 @@ var parseFlags = function (s) {
 var match = /* #__PURE__ */ (function () {
     return $foreign["_match"](Data_Maybe.Just.create)(Data_Maybe.Nothing.value);
 })();
-var flags = function ($10) {
-    return Data_String_Regex_Flags.RegexFlags($foreign.flagsImpl($10));
+var flags = function ($8) {
+    return Data_String_Regex_Flags.RegexFlags($foreign.flagsImpl($8));
 };
 export {
     source,

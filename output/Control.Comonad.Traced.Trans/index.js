@@ -16,11 +16,10 @@ var newtypeTracedT = {
     }
 };
 var functorTracedT = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return {
         map: function (f) {
             return function (v) {
-                return map(function (g) {
+                return Data_Functor.map(dictFunctor)(function (g) {
                     return function (t) {
                         return f(g(t));
                     };
@@ -30,20 +29,17 @@ var functorTracedT = function (dictFunctor) {
     };
 };
 var extendTracedT = function (dictExtend) {
-    var extend = Control_Extend.extend(dictExtend);
     var Functor0 = dictExtend.Functor0();
-    var map = Data_Functor.map(Functor0);
-    var functorTracedT1 = functorTracedT(Functor0);
+    var functorTracedT1 = functorTracedT(dictExtend.Functor0());
     return function (dictSemigroup) {
-        var append = Data_Semigroup.append(dictSemigroup);
         return {
             extend: function (f) {
                 return function (v) {
-                    return extend(function (w$prime) {
+                    return Control_Extend.extend(dictExtend)(function (w$prime) {
                         return function (t) {
-                            return f(map(function (h) {
+                            return f(Data_Functor.map(Functor0)(function (h) {
                                 return function (t$prime) {
-                                    return h(append(t)(t$prime));
+                                    return h(Data_Semigroup.append(dictSemigroup)(t)(t$prime));
                                 };
                             })(w$prime));
                         };
@@ -57,27 +53,24 @@ var extendTracedT = function (dictExtend) {
     };
 };
 var comonadTransTracedT = function (dictMonoid) {
-    var mempty = Data_Monoid.mempty(dictMonoid);
     return {
         lower: function (dictComonad) {
-            var map = Data_Functor.map((dictComonad.Extend0()).Functor0());
+            var Functor0 = (dictComonad.Extend0()).Functor0();
             return function (v) {
-                return map(function (f) {
-                    return f(mempty);
+                return Data_Functor.map(Functor0)(function (f) {
+                    return f(Data_Monoid.mempty(dictMonoid));
                 })(v);
             };
         }
     };
 };
 var comonadTracedT = function (dictComonad) {
-    var extract = Control_Comonad.extract(dictComonad);
     var extendTracedT1 = extendTracedT(dictComonad.Extend0());
     return function (dictMonoid) {
-        var mempty = Data_Monoid.mempty(dictMonoid);
         var extendTracedT2 = extendTracedT1(dictMonoid.Semigroup0());
         return {
             extract: function (v) {
-                return extract(v)(mempty);
+                return Control_Comonad.extract(dictComonad)(v)(Data_Monoid.mempty(dictMonoid));
             },
             Extend0: function () {
                 return extendTracedT2;

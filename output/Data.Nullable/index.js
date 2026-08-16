@@ -12,9 +12,9 @@ var toMaybe = function (n) {
 var showNullable = function (dictShow) {
     return {
         show: (function () {
-            var $17 = Data_Maybe.maybe("null")(Data_Show.show(dictShow));
-            return function ($18) {
-                return $17(toMaybe($18));
+            var $16 = Data_Maybe.maybe("null")(Data_Show.show(dictShow));
+            return function ($17) {
+                return $16(toMaybe($17));
             };
         })()
     };

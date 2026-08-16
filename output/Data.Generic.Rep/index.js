@@ -2,7 +2,6 @@
 import * as Data_Show from "../Data.Show/index.js";
 import * as Data_Symbol from "../Data.Symbol/index.js";
 import * as Type_Proxy from "../Type.Proxy/index.js";
-var show = /* #__PURE__ */ Data_Show.show(Data_Show.showString);
 var Inl = /* #__PURE__ */ (function () {
     function Inl(value0) {
         this.value0 = value0;
@@ -53,16 +52,14 @@ var to = function (dict) {
     return dict.to;
 };
 var showSum = function (dictShow) {
-    var show1 = Data_Show.show(dictShow);
     return function (dictShow1) {
-        var show2 = Data_Show.show(dictShow1);
         return {
             show: function (v) {
                 if (v instanceof Inl) {
-                    return "(Inl " + (show1(v.value0) + ")");
+                    return "(Inl " + (Data_Show.show(dictShow)(v.value0) + ")");
                 };
                 if (v instanceof Inr) {
-                    return "(Inr " + (show2(v.value0) + ")");
+                    return "(Inr " + (Data_Show.show(dictShow1)(v.value0) + ")");
                 };
                 throw new Error("Failed pattern match at Data.Generic.Rep (line 32, column 1 - line 34, column 42): " + [ v.constructor.name ]);
             }
@@ -70,12 +67,10 @@ var showSum = function (dictShow) {
     };
 };
 var showProduct = function (dictShow) {
-    var show1 = Data_Show.show(dictShow);
     return function (dictShow1) {
-        var show2 = Data_Show.show(dictShow1);
         return {
             show: function (v) {
-                return "(Product " + (show1(v.value0) + (" " + (show2(v.value1) + ")")));
+                return "(Product " + (Data_Show.show(dictShow)(v.value0) + (" " + (Data_Show.show(dictShow1)(v.value1) + ")")));
             }
         };
     };
@@ -86,21 +81,18 @@ var showNoArguments = {
     }
 };
 var showConstructor = function (dictIsSymbol) {
-    var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
     return function (dictShow) {
-        var show1 = Data_Show.show(dictShow);
         return {
             show: function (v) {
-                return "(Constructor @" + (show(reflectSymbol(Type_Proxy["Proxy"].value)) + (" " + (show1(v) + ")")));
+                return "(Constructor @" + (Data_Show.show(Data_Show.showString)(Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value)) + (" " + (Data_Show.show(dictShow)(v) + ")")));
             }
         };
     };
 };
 var showArgument = function (dictShow) {
-    var show1 = Data_Show.show(dictShow);
     return {
         show: function (v) {
-            return "(Argument " + (show1(v) + ")");
+            return "(Argument " + (Data_Show.show(dictShow)(v) + ")");
         }
     };
 };

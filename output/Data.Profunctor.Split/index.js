@@ -41,10 +41,10 @@ var profunctorSplit = {
         return function (g) {
             return unSplit(function (h) {
                 return function (i) {
-                    return split(function ($12) {
-                        return h(f($12));
-                    })(function ($13) {
-                        return g(i($13));
+                    return split(function ($11) {
+                        return h(f($11));
+                    })(function ($12) {
+                        return g(i($12));
                     });
                 };
             });
@@ -58,9 +58,9 @@ var liftSplit = /* #__PURE__ */ split(identity)(identity);
 var hoistSplit = function (nat) {
     return unSplit(function (f) {
         return function (g) {
-            var $14 = split(f)(g);
-            return function ($15) {
-                return $14(nat($15));
+            var $13 = split(f)(g);
+            return function ($14) {
+                return $13(nat($14));
             };
         };
     });
@@ -70,8 +70,8 @@ var functorSplit = {
         return unSplit(function (g) {
             return function (h) {
                 return function (fx) {
-                    return split(g)(function ($16) {
-                        return f(h($16));
+                    return split(g)(function ($15) {
+                        return f(h($15));
                     })(fx);
                 };
             };

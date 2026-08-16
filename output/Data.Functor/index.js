@@ -8,10 +8,9 @@ var map = function (dict) {
     return dict.map;
 };
 var mapFlipped = function (dictFunctor) {
-    var map1 = map(dictFunctor);
     return function (fa) {
         return function (f) {
-            return map1(f)(fa);
+            return map(dictFunctor)(f)(fa);
         };
     };
 };
@@ -19,17 +18,15 @@ var $$void = function (dictFunctor) {
     return map(dictFunctor)(Data_Function["const"](Data_Unit.unit));
 };
 var voidLeft = function (dictFunctor) {
-    var map1 = map(dictFunctor);
     return function (f) {
         return function (x) {
-            return map1(Data_Function["const"](x))(f);
+            return map(dictFunctor)(Data_Function["const"](x))(f);
         };
     };
 };
 var voidRight = function (dictFunctor) {
-    var map1 = map(dictFunctor);
     return function (x) {
-        return map1(Data_Function["const"](x));
+        return map(dictFunctor)(Data_Function["const"](x));
     };
 };
 var functorProxy = {
@@ -46,10 +43,9 @@ var functorArray = {
     map: $foreign.arrayMap
 };
 var flap = function (dictFunctor) {
-    var map1 = map(dictFunctor);
     return function (ff) {
         return function (x) {
-            return map1(function (f) {
+            return map(dictFunctor)(function (f) {
                 return f(x);
             })(ff);
         };

@@ -8,8 +8,6 @@ import * as Effect_Uncurried from "../Effect.Uncurried/index.js";
 import * as Node_Buffer_Immutable from "../Node.Buffer.Immutable/index.js";
 import * as Node_Buffer_Types from "../Node.Buffer.Types/index.js";
 import * as Node_Encoding from "../Node.Encoding/index.js";
-var show = /* #__PURE__ */ Data_Show.show(Node_Buffer_Types.showBufferValueType);
-var map = /* #__PURE__ */ Data_Functor.map(Effect.functorEffect);
 var writeString = function (enc) {
     return function (offset) {
         return function (len) {
@@ -28,16 +26,16 @@ var write = function (ty) {
         return function (offset) {
             return function (buf) {
                 return function () {
-                    return $foreign.writeInternal(show(ty), value, offset, buf);
+                    return $foreign.writeInternal(Data_Show.show(Node_Buffer_Types.showBufferValueType)(ty), value, offset, buf);
                 };
             };
         };
     };
 };
 var unsafeThaw = /* #__PURE__ */ (function () {
-    var $8 = Control_Applicative.pure(Effect.applicativeEffect);
-    return function ($9) {
-        return $8($9);
+    var $4 = Control_Applicative.pure(Effect.applicativeEffect);
+    return function ($5) {
+        return $4($5);
     };
 })();
 var usingToImmutable = function (f) {
@@ -46,14 +44,14 @@ var usingToImmutable = function (f) {
     };
 };
 var unsafeFreeze = /* #__PURE__ */ (function () {
-    var $10 = Control_Applicative.pure(Effect.applicativeEffect);
-    return function ($11) {
-        return $10($11);
+    var $6 = Control_Applicative.pure(Effect.applicativeEffect);
+    return function ($7) {
+        return $6($7);
     };
 })();
 var usingFromImmutable = function (f) {
     return function (buf) {
-        return map(f)(unsafeFreeze(buf));
+        return Data_Functor.map(Effect.functorEffect)(f)(unsafeFreeze(buf));
     };
 };
 var transcode = function (buf) {

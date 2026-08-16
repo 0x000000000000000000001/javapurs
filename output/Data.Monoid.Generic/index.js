@@ -20,17 +20,15 @@ var genericMonoidConstructor = function (dictGenericMonoid) {
     };
 };
 var genericMonoidProduct = function (dictGenericMonoid) {
-    var genericMempty$prime1 = genericMempty$prime(dictGenericMonoid);
     return function (dictGenericMonoid1) {
         return {
-            "genericMempty'": new Data_Generic_Rep.Product(genericMempty$prime1, genericMempty$prime(dictGenericMonoid1))
+            "genericMempty'": new Data_Generic_Rep.Product(genericMempty$prime(dictGenericMonoid), genericMempty$prime(dictGenericMonoid1))
         };
     };
 };
 var genericMempty = function (dictGeneric) {
-    var to = Data_Generic_Rep.to(dictGeneric);
     return function (dictGenericMonoid) {
-        return to(genericMempty$prime(dictGenericMonoid));
+        return Data_Generic_Rep.to(dictGeneric)(genericMempty$prime(dictGenericMonoid));
     };
 };
 export {

@@ -11,21 +11,19 @@ var App = function (x) {
     return x;
 };
 var showApp = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
-            return "(App " + (show(v) + ")");
+            return "(App " + (Data_Show.show(dictShow)(v) + ")");
         }
     };
 };
 var semigroupApp = function (dictApply) {
-    var lift2 = Control_Apply.lift2(dictApply);
     return function (dictSemigroup) {
-        var append1 = Data_Semigroup.append(dictSemigroup);
+        var append = Data_Semigroup.append(dictSemigroup);
         return {
             append: function (v) {
                 return function (v1) {
-                    return lift2(append1)(v)(v1);
+                    return Control_Apply.lift2(dictApply)(append)(v)(v1);
                 };
             }
         };
@@ -40,12 +38,11 @@ var newtypeApp = {
     }
 };
 var monoidApp = function (dictApplicative) {
-    var pure = Control_Applicative.pure(dictApplicative);
     var semigroupApp1 = semigroupApp(dictApplicative.Apply0());
     return function (dictMonoid) {
         var semigroupApp2 = semigroupApp1(dictMonoid.Semigroup0());
         return {
-            mempty: pure(Data_Monoid.mempty(dictMonoid)),
+            mempty: Control_Applicative.pure(dictApplicative)(Data_Monoid.mempty(dictMonoid)),
             Semigroup0: function () {
                 return semigroupApp2;
             }
@@ -75,28 +72,24 @@ var extendApp = function (dictExtend) {
     return dictExtend;
 };
 var eqApp = function (dictEq1) {
-    var eq1 = Data_Eq.eq1(dictEq1);
     return function (dictEq) {
-        var eq11 = eq1(dictEq);
         return {
             eq: function (x) {
                 return function (y) {
-                    return eq11(x)(y);
+                    return Data_Eq.eq1(dictEq1)(dictEq)(x)(y);
                 };
             }
         };
     };
 };
 var ordApp = function (dictOrd1) {
-    var compare1 = Data_Ord.compare1(dictOrd1);
     var eqApp1 = eqApp(dictOrd1.Eq10());
     return function (dictOrd) {
-        var compare11 = compare1(dictOrd);
         var eqApp2 = eqApp1(dictOrd.Eq0());
         return {
             compare: function (x) {
                 return function (y) {
-                    return compare11(x)(y);
+                    return Data_Ord.compare1(dictOrd1)(dictOrd)(x)(y);
                 };
             },
             Eq0: function () {

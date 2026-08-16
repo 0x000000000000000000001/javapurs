@@ -12,10 +12,9 @@ var compose = function (dict) {
     return dict.compose;
 };
 var composeFlipped = function (dictSemigroupoid) {
-    var compose1 = compose(dictSemigroupoid);
     return function (f) {
         return function (g) {
-            return compose1(g)(f);
+            return compose(dictSemigroupoid)(g)(f);
         };
     };
 };

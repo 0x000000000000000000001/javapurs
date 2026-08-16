@@ -10,8 +10,6 @@ import * as Data_Show from "../Data.Show/index.js";
 import * as Data_String_CodeUnits from "../Data.String.CodeUnits/index.js";
 import * as Data_String_Common from "../Data.String.Common/index.js";
 import * as Data_Symbol from "../Data.Symbol/index.js";
-var show = /* #__PURE__ */ Data_Show.show(Data_Show.showString);
-var composeKleisliFlipped = /* #__PURE__ */ Control_Bind.composeKleisliFlipped(Data_Maybe.bindMaybe);
 var fromJust = /* #__PURE__ */ Data_Maybe.fromJust();
 var NonEmptyString = function (x) {
     return x;
@@ -30,13 +28,12 @@ var toLower = function (v) {
 };
 var showNonEmptyString = {
     show: function (v) {
-        return "(NonEmptyString.unsafeFromString " + (show(v) + ")");
+        return "(NonEmptyString.unsafeFromString " + (Data_Show.show(Data_Show.showString)(v) + ")");
     }
 };
-var show1 = /* #__PURE__ */ Data_Show.show(showNonEmptyString);
 var showNonEmptyReplacement = {
     show: function (v) {
-        return "(NonEmptyReplacement " + (show1(v) + ")");
+        return "(NonEmptyReplacement " + (Data_Show.show(showNonEmptyString)(v) + ")");
     }
 };
 var semigroupNonEmptyString = Data_Semigroup.semigroupString;
@@ -63,10 +60,9 @@ var prependString = function (s1) {
 var ordNonEmptyString = Data_Ord.ordString;
 var ordNonEmptyReplacement = ordNonEmptyString;
 var nonEmptyNonEmpty = function (dictIsSymbol) {
-    var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
     return {
         nes: function (p) {
-            return reflectSymbol(p);
+            return Data_Symbol.reflectSymbol(dictIsSymbol)(p);
         }
     };
 };
@@ -91,29 +87,28 @@ var liftS = function (f) {
     };
 };
 var joinWith1 = function (dictFoldable1) {
-    var intercalate = Data_Foldable.intercalate(dictFoldable1.Foldable0())(Data_Monoid.monoidString);
+    var Foldable0 = dictFoldable1.Foldable0();
     return function (v) {
-        var $59 = intercalate(v);
-        return function ($60) {
-            return NonEmptyString($59($60));
+        var $48 = Data_Foldable.intercalate(Foldable0)(Data_Monoid.monoidString)(v);
+        return function ($49) {
+            return NonEmptyString($48($49));
         };
     };
 };
 var joinWith = function (dictFoldable) {
-    var intercalate = Data_Foldable.intercalate(dictFoldable)(Data_Monoid.monoidString);
     return function (splice) {
-        var $61 = intercalate(splice);
-        return function ($62) {
-            return $61($62);
+        var $50 = Data_Foldable.intercalate(dictFoldable)(Data_Monoid.monoidString)(splice);
+        return function ($51) {
+            return $50($51);
         };
     };
 };
 var join1With = function (dictFoldable1) {
-    var joinWith2 = joinWith(dictFoldable1.Foldable0());
+    var Foldable0 = dictFoldable1.Foldable0();
     return function (splice) {
-        var $63 = joinWith2(splice);
-        return function ($64) {
-            return NonEmptyString($63($64));
+        var $52 = joinWith(Foldable0)(splice);
+        return function ($53) {
+            return NonEmptyString($52($53));
         };
     };
 };
@@ -124,23 +119,23 @@ var fromString = function (v) {
     return new Data_Maybe.Just(v);
 };
 var stripPrefix = function (pat) {
-    return composeKleisliFlipped(fromString)(liftS(Data_String_CodeUnits.stripPrefix(pat)));
+    return Control_Bind.composeKleisliFlipped(Data_Maybe.bindMaybe)(fromString)(liftS(Data_String_CodeUnits.stripPrefix(pat)));
 };
 var stripSuffix = function (pat) {
-    return composeKleisliFlipped(fromString)(liftS(Data_String_CodeUnits.stripSuffix(pat)));
+    return Control_Bind.composeKleisliFlipped(Data_Maybe.bindMaybe)(fromString)(liftS(Data_String_CodeUnits.stripSuffix(pat)));
 };
 var trim = function (v) {
     return fromString(Data_String_Common.trim(v));
 };
 var unsafeFromString = function () {
-    return function ($65) {
-        return fromJust(fromString($65));
+    return function ($54) {
+        return fromJust(fromString($54));
     };
 };
 var eqNonEmptyString = Data_Eq.eqString;
 var eqNonEmptyReplacement = eqNonEmptyString;
-var contains = function ($66) {
-    return liftS(Data_String_CodeUnits.contains($66));
+var contains = function ($55) {
+    return liftS(Data_String_CodeUnits.contains($55));
 };
 var appendString = function (v) {
     return function (s2) {

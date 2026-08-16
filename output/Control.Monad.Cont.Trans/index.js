@@ -33,16 +33,15 @@ var newtypeContT = {
 };
 var monadTransContT = {
     lift: function (dictMonad) {
-        var bind = Control_Bind.bind(dictMonad.Bind1());
+        var Bind1 = dictMonad.Bind1();
         return function (m) {
             return function (k) {
-                return bind(m)(k);
+                return Control_Bind.bind(Bind1)(m)(k);
             };
         };
     }
 };
 var lift = /* #__PURE__ */ Control_Monad_Trans_Class.lift(monadTransContT);
-var lift1 = /* #__PURE__ */ Control_Monad_Trans_Class.lift(monadTransContT);
 var mapContT = function (f) {
     return function (v) {
         return function (k) {
@@ -101,10 +100,10 @@ var bindContT = function (dictBind) {
     };
 };
 var semigroupContT = function (dictApply) {
-    var lift2 = Control_Apply.lift2(applyContT(dictApply));
+    var applyContT1 = applyContT(dictApply);
     return function (dictSemigroup) {
         return {
-            append: lift2(Data_Semigroup.append(dictSemigroup))
+            append: Control_Apply.lift2(applyContT1)(Data_Semigroup.append(dictSemigroup))
         };
     };
 };
@@ -134,10 +133,9 @@ var monadContT = function (dictMonad) {
     };
 };
 var monadAskContT = function (dictMonadAsk) {
-    var Monad0 = dictMonadAsk.Monad0();
-    var monadContT1 = monadContT(Monad0);
+    var monadContT1 = monadContT(dictMonadAsk.Monad0());
     return {
-        ask: lift(Monad0)(Control_Monad_Reader_Class.ask(dictMonadAsk)),
+        ask: Control_Monad_Trans_Class.lift(monadTransContT)(dictMonadAsk.Monad0())(Control_Monad_Reader_Class.ask(dictMonadAsk)),
         Monad0: function () {
             return monadContT1;
         }
@@ -145,19 +143,18 @@ var monadAskContT = function (dictMonadAsk) {
 };
 var monadReaderContT = function (dictMonadReader) {
     var MonadAsk0 = dictMonadReader.MonadAsk0();
-    var bind = Control_Bind.bind((MonadAsk0.Monad0()).Bind1());
+    var Bind1 = (MonadAsk0.Monad0()).Bind1();
     var ask = Control_Monad_Reader_Class.ask(MonadAsk0);
-    var local = Control_Monad_Reader_Class.local(dictMonadReader);
     var monadAskContT1 = monadAskContT(MonadAsk0);
     return {
         local: function (f) {
             return function (v) {
                 return function (k) {
-                    return bind(ask)(function (r) {
-                        return local(f)(v((function () {
-                            var $95 = local(Data_Function["const"](r));
-                            return function ($96) {
-                                return $95(k($96));
+                    return Control_Bind.bind(Bind1)(ask)(function (r) {
+                        return Control_Monad_Reader_Class.local(dictMonadReader)(f)(v((function () {
+                            var $87 = Control_Monad_Reader_Class.local(dictMonadReader)(Data_Function["const"](r));
+                            return function ($88) {
+                                return $87(k($88));
                             };
                         })()));
                     });
@@ -192,10 +189,10 @@ var monadEffectContT = function (dictMonadEffect) {
     var monadContT1 = monadContT(Monad0);
     return {
         liftEffect: (function () {
-            var $97 = lift1(Monad0);
-            var $98 = Effect_Class.liftEffect(dictMonadEffect);
-            return function ($99) {
-                return $97($98($99));
+            var $89 = lift(Monad0);
+            var $90 = Effect_Class.liftEffect(dictMonadEffect);
+            return function ($91) {
+                return $89($90($91));
             };
         })(),
         Monad0: function () {
@@ -208,10 +205,10 @@ var monadStateContT = function (dictMonadState) {
     var monadContT1 = monadContT(Monad0);
     return {
         state: (function () {
-            var $100 = lift1(Monad0);
-            var $101 = Control_Monad_State_Class.state(dictMonadState);
-            return function ($102) {
-                return $100($101($102));
+            var $92 = lift(Monad0);
+            var $93 = Control_Monad_State_Class.state(dictMonadState);
+            return function ($94) {
+                return $92($93($94));
             };
         })(),
         Monad0: function () {
@@ -224,10 +221,10 @@ var monadSTContT = function (dictMonadST) {
     var monadContT1 = monadContT(Monad0);
     return {
         liftST: (function () {
-            var $103 = lift1(Monad0);
-            var $104 = Control_Monad_ST_Class.liftST(dictMonadST);
-            return function ($105) {
-                return $103($104($105));
+            var $95 = lift(Monad0);
+            var $96 = Control_Monad_ST_Class.liftST(dictMonadST);
+            return function ($97) {
+                return $95($96($97));
             };
         })(),
         Monad0: function () {
@@ -236,12 +233,12 @@ var monadSTContT = function (dictMonadST) {
     };
 };
 var monoidContT = function (dictApplicative) {
-    var pure = Control_Applicative.pure(applicativeContT(dictApplicative));
+    var applicativeContT1 = applicativeContT(dictApplicative);
     var semigroupContT1 = semigroupContT(dictApplicative.Apply0());
     return function (dictMonoid) {
         var semigroupContT2 = semigroupContT1(dictMonoid.Semigroup0());
         return {
-            mempty: pure(Data_Monoid.mempty(dictMonoid)),
+            mempty: Control_Applicative.pure(applicativeContT1)(Data_Monoid.mempty(dictMonoid)),
             Semigroup0: function () {
                 return semigroupContT2;
             }

@@ -16,30 +16,6 @@ import * as Data_Show from "../Data.Show/index.js";
 import * as Data_Time from "../Data.Time/index.js";
 import * as Data_Time_Component from "../Data.Time.Component/index.js";
 import * as Data_Time_Duration from "../Data.Time.Duration/index.js";
-var fromEnum = /* #__PURE__ */ Data_Enum.fromEnum(Data_Date_Component.boundedEnumYear);
-var fromEnum1 = /* #__PURE__ */ Data_Enum.fromEnum(Data_Date_Component.boundedEnumMonth);
-var fromEnum2 = /* #__PURE__ */ Data_Enum.fromEnum(Data_Date_Component.boundedEnumDay);
-var fromEnum3 = /* #__PURE__ */ Data_Enum.fromEnum(Data_Time_Component.boundedEnumHour);
-var fromEnum4 = /* #__PURE__ */ Data_Enum.fromEnum(Data_Time_Component.boundedEnumMinute);
-var fromEnum5 = /* #__PURE__ */ Data_Enum.fromEnum(Data_Time_Component.boundedEnumSecond);
-var fromEnum6 = /* #__PURE__ */ Data_Enum.fromEnum(Data_Time_Component.boundedEnumMillisecond);
-var show = /* #__PURE__ */ Data_Show.show(Data_Date.showDate);
-var show1 = /* #__PURE__ */ Data_Show.show(Data_Time.showTime);
-var eq = /* #__PURE__ */ Data_Eq.eq(Data_Date.eqDate);
-var eq1 = /* #__PURE__ */ Data_Eq.eq(Data_Time.eqTime);
-var compare = /* #__PURE__ */ Data_Ord.compare(Data_Date.ordDate);
-var compare1 = /* #__PURE__ */ Data_Ord.compare(Data_Time.ordTime);
-var bind = /* #__PURE__ */ Control_Bind.bind(Data_Maybe.bindMaybe);
-var apply = /* #__PURE__ */ Control_Apply.apply(Data_Maybe.applyMaybe);
-var map = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
-var join = /* #__PURE__ */ Control_Bind.join(Data_Maybe.bindMaybe);
-var toEnum = /* #__PURE__ */ Data_Enum.toEnum(Data_Date_Component.boundedEnumYear);
-var toEnum1 = /* #__PURE__ */ Data_Enum.toEnum(Data_Date_Component.boundedEnumMonth);
-var toEnum2 = /* #__PURE__ */ Data_Enum.toEnum(Data_Date_Component.boundedEnumDay);
-var toEnum3 = /* #__PURE__ */ Data_Enum.toEnum(Data_Time_Component.boundedEnumHour);
-var toEnum4 = /* #__PURE__ */ Data_Enum.toEnum(Data_Time_Component.boundedEnumMinute);
-var toEnum5 = /* #__PURE__ */ Data_Enum.toEnum(Data_Time_Component.boundedEnumSecond);
-var toEnum6 = /* #__PURE__ */ Data_Enum.toEnum(Data_Time_Component.boundedEnumMillisecond);
 var DateTime = /* #__PURE__ */ (function () {
     function DateTime(value0, value1) {
         this.value0 = value0;
@@ -54,13 +30,13 @@ var DateTime = /* #__PURE__ */ (function () {
 })();
 var toRecord = function (v) {
     return {
-        year: fromEnum(Data_Date.year(v.value0)),
-        month: fromEnum1(Data_Date.month(v.value0)),
-        day: fromEnum2(Data_Date.day(v.value0)),
-        hour: fromEnum3(Data_Time.hour(v.value1)),
-        minute: fromEnum4(Data_Time.minute(v.value1)),
-        second: fromEnum5(Data_Time.second(v.value1)),
-        millisecond: fromEnum6(Data_Time.millisecond(v.value1))
+        year: Data_Enum.fromEnum(Data_Date_Component.boundedEnumYear)(Data_Date.year(v.value0)),
+        month: Data_Enum.fromEnum(Data_Date_Component.boundedEnumMonth)(Data_Date.month(v.value0)),
+        day: Data_Enum.fromEnum(Data_Date_Component.boundedEnumDay)(Data_Date.day(v.value0)),
+        hour: Data_Enum.fromEnum(Data_Time_Component.boundedEnumHour)(Data_Time.hour(v.value1)),
+        minute: Data_Enum.fromEnum(Data_Time_Component.boundedEnumMinute)(Data_Time.minute(v.value1)),
+        second: Data_Enum.fromEnum(Data_Time_Component.boundedEnumSecond)(Data_Time.second(v.value1)),
+        millisecond: Data_Enum.fromEnum(Data_Time_Component.boundedEnumMillisecond)(Data_Time.millisecond(v.value1))
     };
 };
 var time = function (v) {
@@ -68,14 +44,13 @@ var time = function (v) {
 };
 var showDateTime = {
     show: function (v) {
-        return "(DateTime " + (show(v.value0) + (" " + (show1(v.value1) + ")")));
+        return "(DateTime " + (Data_Show.show(Data_Date.showDate)(v.value0) + (" " + (Data_Show.show(Data_Time.showTime)(v.value1) + ")")));
     }
 };
 var modifyTimeF = function (dictFunctor) {
-    var map1 = Data_Functor.map(dictFunctor);
     return function (f) {
         return function (v) {
-            return map1(DateTime.create(v.value0))(f(v.value1));
+            return Data_Functor.map(dictFunctor)(DateTime.create(v.value0))(f(v.value1));
         };
     };
 };
@@ -85,10 +60,9 @@ var modifyTime = function (f) {
     };
 };
 var modifyDateF = function (dictFunctor) {
-    var map1 = Data_Functor.map(dictFunctor);
     return function (f) {
         return function (v) {
-            return map1(Data_Function.flip(DateTime.create)(v.value1))(f(v.value0));
+            return Data_Functor.map(dictFunctor)(Data_Function.flip(DateTime.create)(v.value1))(f(v.value0));
         };
     };
 };
@@ -100,21 +74,21 @@ var modifyDate = function (f) {
 var eqDateTime = {
     eq: function (x) {
         return function (y) {
-            return eq(x.value0)(y.value0) && eq1(x.value1)(y.value1);
+            return Data_Eq.eq(Data_Date.eqDate)(x.value0)(y.value0) && Data_Eq.eq(Data_Time.eqTime)(x.value1)(y.value1);
         };
     }
 };
 var ordDateTime = {
     compare: function (x) {
         return function (y) {
-            var v = compare(x.value0)(y.value0);
+            var v = Data_Ord.compare(Data_Date.ordDate)(x.value0)(y.value0);
             if (v instanceof Data_Ordering.LT) {
                 return Data_Ordering.LT.value;
             };
             if (v instanceof Data_Ordering.GT) {
                 return Data_Ordering.GT.value;
             };
-            return compare1(x.value1)(y.value1);
+            return Data_Ord.compare(Data_Time.ordTime)(x.value1)(y.value1);
         };
     },
     Eq0: function () {
@@ -142,11 +116,10 @@ var boundedDateTime = /* #__PURE__ */ (function () {
     };
 })();
 var adjust = function (dictDuration) {
-    var fromDuration = Data_Time_Duration.fromDuration(dictDuration);
     return function (d) {
         return function (dt) {
-            return bind($foreign.adjustImpl(Data_Maybe.Just.create)(Data_Maybe.Nothing.value)(fromDuration(d))(toRecord(dt)))(function (rec) {
-                return apply(map(DateTime.create)(join(apply(apply(map(Data_Date.exactDate)(toEnum(rec.year)))(toEnum1(rec.month)))(toEnum2(rec.day)))))(apply(apply(apply(map(Data_Time.Time.create)(toEnum3(rec.hour)))(toEnum4(rec.minute)))(toEnum5(rec.second)))(toEnum6(rec.millisecond)));
+            return Control_Bind.bind(Data_Maybe.bindMaybe)($foreign.adjustImpl(Data_Maybe.Just.create)(Data_Maybe.Nothing.value)(Data_Time_Duration.fromDuration(dictDuration)(d))(toRecord(dt)))(function (rec) {
+                return Control_Apply.apply(Data_Maybe.applyMaybe)(Data_Functor.map(Data_Maybe.functorMaybe)(DateTime.create)(Control_Bind.join(Data_Maybe.bindMaybe)(Control_Apply.apply(Data_Maybe.applyMaybe)(Control_Apply.apply(Data_Maybe.applyMaybe)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Date.exactDate)(Data_Enum.toEnum(Data_Date_Component.boundedEnumYear)(rec.year)))(Data_Enum.toEnum(Data_Date_Component.boundedEnumMonth)(rec.month)))(Data_Enum.toEnum(Data_Date_Component.boundedEnumDay)(rec.day)))))(Control_Apply.apply(Data_Maybe.applyMaybe)(Control_Apply.apply(Data_Maybe.applyMaybe)(Control_Apply.apply(Data_Maybe.applyMaybe)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Time.Time.create)(Data_Enum.toEnum(Data_Time_Component.boundedEnumHour)(rec.hour)))(Data_Enum.toEnum(Data_Time_Component.boundedEnumMinute)(rec.minute)))(Data_Enum.toEnum(Data_Time_Component.boundedEnumSecond)(rec.second)))(Data_Enum.toEnum(Data_Time_Component.boundedEnumMillisecond)(rec.millisecond)));
             });
         };
     };

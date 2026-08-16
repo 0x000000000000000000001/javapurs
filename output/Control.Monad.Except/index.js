@@ -5,12 +5,12 @@ import * as Data_Identity from "../Data.Identity/index.js";
 import * as Data_Newtype from "../Data.Newtype/index.js";
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
 var withExcept = /* #__PURE__ */ Control_Monad_Except_Trans.withExceptT(Data_Identity.functorIdentity);
-var runExcept = function ($3) {
-    return unwrap(Control_Monad_Except_Trans.runExceptT($3));
+var runExcept = function ($2) {
+    return unwrap(Control_Monad_Except_Trans.runExceptT($2));
 };
 var mapExcept = function (f) {
-    return Control_Monad_Except_Trans.mapExceptT(function ($4) {
-        return Data_Identity.Identity(f(unwrap($4)));
+    return Control_Monad_Except_Trans.mapExceptT(function ($3) {
+        return Data_Identity.Identity(f(unwrap($3)));
     });
 };
 export {

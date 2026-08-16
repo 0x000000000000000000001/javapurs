@@ -76,13 +76,12 @@ var foldableIdentityT = function (dictFoldable) {
     return dictFoldable;
 };
 var extendIdentityI = function (dictExtend) {
-    var extend = Control_Extend.extend(dictExtend);
     var functorIdentityT1 = functorIdentityT(dictExtend.Functor0());
     return {
         extend: function (f) {
             return function (v) {
-                return extend(function ($77) {
-                    return f(IdentityT($77));
+                return Control_Extend.extend(dictExtend)(function ($71) {
+                    return f(IdentityT($71));
                 })(v);
             };
         },
@@ -92,28 +91,24 @@ var extendIdentityI = function (dictExtend) {
     };
 };
 var eqIdentityT = function (dictEq1) {
-    var eq1 = Data_Eq.eq1(dictEq1);
     return function (dictEq) {
-        var eq11 = eq1(dictEq);
         return {
             eq: function (x) {
                 return function (y) {
-                    return eq11(x)(y);
+                    return Data_Eq.eq1(dictEq1)(dictEq)(x)(y);
                 };
             }
         };
     };
 };
 var ordIdentityT = function (dictOrd1) {
-    var compare1 = Data_Ord.compare1(dictOrd1);
     var eqIdentityT1 = eqIdentityT(dictOrd1.Eq10());
     return function (dictOrd) {
-        var compare11 = compare1(dictOrd);
         var eqIdentityT2 = eqIdentityT1(dictOrd.Eq0());
         return {
             compare: function (x) {
                 return function (y) {
-                    return compare11(x)(y);
+                    return Data_Ord.compare1(dictOrd1)(dictOrd)(x)(y);
                 };
             },
             Eq0: function () {
@@ -146,9 +141,9 @@ var comonadIdentityT = function (dictComonad) {
     var extendIdentityI1 = extendIdentityI(dictComonad.Extend0());
     return {
         extract: (function () {
-            var $78 = Control_Comonad.extract(dictComonad);
-            return function ($79) {
-                return $78(runIdentityT($79));
+            var $72 = Control_Comonad.extract(dictComonad);
+            return function ($73) {
+                return $72(runIdentityT($73));
             };
         })(),
         Extend0: function () {

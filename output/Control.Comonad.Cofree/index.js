@@ -24,10 +24,8 @@ import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(Data_Lazy.functorLazy);
-var map1 = /* #__PURE__ */ Data_Functor.map(Data_Tuple.functorTuple);
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var state = /* #__PURE__ */ Control_Monad_State_Class.state(/* #__PURE__ */ Control_Monad_State_Trans.monadStateStateT(Data_Identity.monadIdentity));
+var monadStateStateT = /* #__PURE__ */ Control_Monad_State_Trans.monadStateStateT(Data_Identity.monadIdentity);
 var monadRecStateT = /* #__PURE__ */ Control_Monad_State_Trans.monadRecStateT(Control_Monad_Rec_Class.monadRecIdentity);
 var Cofree = function (x) {
     return x;
@@ -51,13 +49,12 @@ var lazyCofree = {
     }
 };
 var hoistCofree = function (dictFunctor) {
-    var map2 = Data_Functor.map(dictFunctor);
     return function (nat) {
         return function (v) {
-            return map(map1((function () {
-                var $185 = map2(hoistCofree(dictFunctor)(nat));
-                return function ($186) {
-                    return nat($185($186));
+            return Data_Functor.map(Data_Lazy.functorLazy)(Data_Functor.map(Data_Tuple.functorTuple)((function () {
+                var $139 = Data_Functor.map(dictFunctor)(hoistCofree(dictFunctor)(nat));
+                return function ($140) {
+                    return nat($139($140));
                 };
             })()))(v);
         };
@@ -67,12 +64,11 @@ var head = function (v) {
     return Data_Tuple.fst(Data_Lazy.force(v));
 };
 var functorCofree = function (dictFunctor) {
-    var map2 = Data_Functor.map(dictFunctor);
     return {
         map: function (f) {
             var loop = function (v) {
-                return map(function (v1) {
-                    return new Data_Tuple.Tuple(f(v1.value0), map2(loop)(v1.value1));
+                return Data_Functor.map(Data_Lazy.functorLazy)(function (v1) {
+                    return new Data_Tuple.Tuple(f(v1.value0), Data_Functor.map(dictFunctor)(loop)(v1.value1));
                 })(v);
             };
             return loop;
@@ -80,14 +76,13 @@ var functorCofree = function (dictFunctor) {
     };
 };
 var functorWithIndexCofree = function (dictFunctor) {
-    var map2 = Data_Functor.map(dictFunctor);
     var functorCofree1 = functorCofree(dictFunctor);
     return {
         mapWithIndex: function (f) {
             var loop = function (n) {
                 return function (v) {
-                    return map(function (v1) {
-                        return new Data_Tuple.Tuple(f(n)(v1.value0), map2(loop(n + 1 | 0))(v1.value1));
+                    return Data_Functor.map(Data_Lazy.functorLazy)(function (v1) {
+                        return new Data_Tuple.Tuple(f(n)(v1.value0), Data_Functor.map(dictFunctor)(loop(n + 1 | 0))(v1.value1));
                     })(v);
                 };
             };
@@ -99,14 +94,11 @@ var functorWithIndexCofree = function (dictFunctor) {
     };
 };
 var foldableCofree = function (dictFoldable) {
-    var foldr = Data_Foldable.foldr(dictFoldable);
-    var foldl = Data_Foldable.foldl(dictFoldable);
-    var foldMap = Data_Foldable.foldMap(dictFoldable);
     return {
         foldr: function (f) {
             var go = function (fa) {
                 return function (b) {
-                    return f(head(fa))(foldr(go)(b)(tail(fa)));
+                    return f(head(fa))(Data_Foldable.foldr(dictFoldable)(go)(b)(tail(fa)));
                 };
             };
             return Data_Function.flip(go);
@@ -114,17 +106,16 @@ var foldableCofree = function (dictFoldable) {
         foldl: function (f) {
             var go = function (b) {
                 return function (fa) {
-                    return foldl(go)(f(b)(head(fa)))(tail(fa));
+                    return Data_Foldable.foldl(dictFoldable)(go)(f(b)(head(fa)))(tail(fa));
                 };
             };
             return go;
         },
         foldMap: function (dictMonoid) {
-            var append = Data_Semigroup.append(dictMonoid.Semigroup0());
-            var foldMap1 = foldMap(dictMonoid);
+            var Semigroup0 = dictMonoid.Semigroup0();
             return function (f) {
                 var go = function (fa) {
-                    return append(f(head(fa)))(foldMap1(go)(tail(fa)));
+                    return Data_Semigroup.append(Semigroup0)(f(head(fa)))(Data_Foldable.foldMap(dictFoldable)(dictMonoid)(go)(tail(fa)));
                 };
                 return go;
             };
@@ -132,16 +123,13 @@ var foldableCofree = function (dictFoldable) {
     };
 };
 var foldableWithIndexCofree = function (dictFoldable) {
-    var foldr = Data_Foldable.foldr(dictFoldable);
-    var foldl = Data_Foldable.foldl(dictFoldable);
-    var foldMap = Data_Foldable.foldMap(dictFoldable);
     var foldableCofree1 = foldableCofree(dictFoldable);
     return {
         foldrWithIndex: function (f) {
             var go = function (ix) {
                 return function (b) {
                     return function (fa) {
-                        return f(ix)(head(fa))(foldr(Data_Function.flip(go(ix + 1 | 0)))(b)(tail(fa)));
+                        return f(ix)(head(fa))(Data_Foldable.foldr(dictFoldable)(Data_Function.flip(go(ix + 1 | 0)))(b)(tail(fa)));
                     };
                 };
             };
@@ -151,19 +139,18 @@ var foldableWithIndexCofree = function (dictFoldable) {
             var go = function (ix) {
                 return function (b) {
                     return function (fa) {
-                        return foldl(go(ix + 1 | 0))(f(ix)(b)(head(fa)))(tail(fa));
+                        return Data_Foldable.foldl(dictFoldable)(go(ix + 1 | 0))(f(ix)(b)(head(fa)))(tail(fa));
                     };
                 };
             };
             return go(0);
         },
         foldMapWithIndex: function (dictMonoid) {
-            var append = Data_Semigroup.append(dictMonoid.Semigroup0());
-            var foldMap1 = foldMap(dictMonoid);
+            var Semigroup0 = dictMonoid.Semigroup0();
             return function (f) {
                 var go = function (ix) {
                     return function (fa) {
-                        return append(f(ix)(head(fa)))(foldMap1(go(ix + 1 | 0))(tail(fa)));
+                        return Data_Semigroup.append(Semigroup0)(f(ix)(head(fa)))(Data_Foldable.foldMap(dictFoldable)(dictMonoid)(go(ix + 1 | 0))(tail(fa)));
                     };
                 };
                 return go(0);
@@ -175,7 +162,6 @@ var foldableWithIndexCofree = function (dictFoldable) {
     };
 };
 var traversableCofree = function (dictTraversable) {
-    var traverse = Data_Traversable.traverse(dictTraversable);
     var functorCofree1 = functorCofree(dictTraversable.Functor0());
     var foldableCofree1 = foldableCofree(dictTraversable.Foldable1());
     return {
@@ -184,12 +170,10 @@ var traversableCofree = function (dictTraversable) {
         },
         traverse: function (dictApplicative) {
             var Apply0 = dictApplicative.Apply0();
-            var apply = Control_Apply.apply(Apply0);
-            var map2 = Data_Functor.map(Apply0.Functor0());
-            var traverse1 = traverse(dictApplicative);
+            var Functor0 = (dictApplicative.Apply0()).Functor0();
             return function (f) {
                 var loop = function (ta) {
-                    return apply(map2(mkCofree)(f(head(ta))))(traverse1(loop)(tail(ta)));
+                    return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(mkCofree)(f(head(ta))))(Data_Traversable.traverse(dictTraversable)(dictApplicative)(loop)(tail(ta)));
                 };
                 return loop;
             };
@@ -203,20 +187,17 @@ var traversableCofree = function (dictTraversable) {
     };
 };
 var traversableWithIndexCofree = function (dictTraversable) {
-    var traverse = Data_Traversable.traverse(dictTraversable);
     var functorWithIndexCofree1 = functorWithIndexCofree(dictTraversable.Functor0());
     var foldableWithIndexCofree1 = foldableWithIndexCofree(dictTraversable.Foldable1());
     var traversableCofree1 = traversableCofree(dictTraversable);
     return {
         traverseWithIndex: function (dictApplicative) {
             var Apply0 = dictApplicative.Apply0();
-            var apply = Control_Apply.apply(Apply0);
-            var map2 = Data_Functor.map(Apply0.Functor0());
-            var traverse1 = traverse(dictApplicative);
+            var Functor0 = (dictApplicative.Apply0()).Functor0();
             return function (f) {
                 var loop = function (ix) {
                     return function (ta) {
-                        return apply(map2(mkCofree)(f(ix)(head(ta))))(traverse1(loop(ix + 1 | 0))(tail(ta)));
+                        return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(mkCofree)(f(ix)(head(ta))))(Data_Traversable.traverse(dictTraversable)(dictApplicative)(loop(ix + 1 | 0))(tail(ta)));
                     };
                 };
                 return loop(0);
@@ -234,13 +215,12 @@ var traversableWithIndexCofree = function (dictTraversable) {
     };
 };
 var extendCofree = function (dictFunctor) {
-    var map2 = Data_Functor.map(dictFunctor);
     var functorCofree1 = functorCofree(dictFunctor);
     return {
         extend: function (f) {
             var loop = function (v) {
-                return map(function (v1) {
-                    return new Data_Tuple.Tuple(f(v), map2(loop)(v1.value1));
+                return Data_Functor.map(Data_Lazy.functorLazy)(function (v1) {
+                    return new Data_Tuple.Tuple(f(v), Data_Functor.map(dictFunctor)(loop)(v1.value1));
                 })(v);
             };
             return loop;
@@ -251,30 +231,26 @@ var extendCofree = function (dictFunctor) {
     };
 };
 var eqCofree = function (dictEq1) {
-    var eq1 = Data_Eq.eq1(dictEq1);
     return function (dictEq) {
-        var eq = Data_Eq.eq(dictEq);
         return {
             eq: function (x) {
                 return function (y) {
-                    return eq(head(x))(head(y)) && eq1(eqCofree(dictEq1)(dictEq))(tail(x))(tail(y));
+                    return Data_Eq.eq(dictEq)(head(x))(head(y)) && Data_Eq.eq1(dictEq1)(eqCofree(dictEq1)(dictEq))(tail(x))(tail(y));
                 };
             }
         };
     };
 };
 var ordCofree = function (dictOrd1) {
-    var compare1 = Data_Ord.compare1(dictOrd1);
     var eqCofree1 = eqCofree(dictOrd1.Eq10());
     return function (dictOrd) {
-        var compare = Data_Ord.compare(dictOrd);
         var eqCofree2 = eqCofree1(dictOrd.Eq0());
         return {
             compare: function (x) {
                 return function (y) {
-                    var v = compare(head(x))(head(y));
+                    var v = Data_Ord.compare(dictOrd)(head(x))(head(y));
                     if (v instanceof Data_Ordering.EQ) {
-                        return compare1(ordCofree(dictOrd1)(dictOrd))(tail(x))(tail(y));
+                        return Data_Ord.compare1(dictOrd1)(ordCofree(dictOrd1)(dictOrd))(tail(x))(tail(y));
                     };
                     return v;
                 };
@@ -305,19 +281,17 @@ var ord1Cofree = function (dictOrd1) {
         }
     };
 };
-var deferCofree = function ($187) {
-    return Cofree(Data_Lazy.defer($187));
+var deferCofree = function ($141) {
+    return Cofree(Data_Lazy.defer($141));
 };
 var semigroupCofree = function (dictApply) {
-    var apply = Control_Apply.apply(dictApply);
-    var map2 = Data_Functor.map(dictApply.Functor0());
+    var Functor0 = dictApply.Functor0();
     return function (dictSemigroup) {
-        var append = Data_Semigroup.append(dictSemigroup);
         return {
             append: function (x) {
                 return function (y) {
                     return deferCofree(function (v) {
-                        return new Data_Tuple.Tuple(append(head(x))(head(y)), apply(map2(Data_Semigroup.append(semigroupCofree(dictApply)(dictSemigroup)))(tail(x)))(tail(y)));
+                        return new Data_Tuple.Tuple(Data_Semigroup.append(dictSemigroup)(head(x))(head(y)), Control_Apply.apply(dictApply)(Data_Functor.map(Functor0)(Data_Semigroup.append(semigroupCofree(dictApply)(dictSemigroup)))(tail(x)))(tail(y)));
                     });
                 };
             }
@@ -325,14 +299,12 @@ var semigroupCofree = function (dictApply) {
     };
 };
 var monoidCofree = function (dictApplicative) {
-    var pure = Control_Applicative.pure(dictApplicative);
     var semigroupCofree1 = semigroupCofree(dictApplicative.Apply0());
     return function (dictMonoid) {
-        var mempty = Data_Monoid.mempty(dictMonoid);
         var semigroupCofree2 = semigroupCofree1(dictMonoid.Semigroup0());
         return {
             mempty: deferCofree(function (v) {
-                return new Data_Tuple.Tuple(mempty, pure(Data_Monoid.mempty(monoidCofree(dictApplicative)(dictMonoid))));
+                return new Data_Tuple.Tuple(Data_Monoid.mempty(dictMonoid), Control_Applicative.pure(dictApplicative)(Data_Monoid.mempty(monoidCofree(dictApplicative)(dictMonoid))));
             }),
             Semigroup0: function () {
                 return semigroupCofree2;
@@ -350,45 +322,41 @@ var comonadCofree = function (dictFunctor) {
     };
 };
 var explore = function (dictFunctor) {
-    var map2 = Data_Functor.map(dictFunctor);
-    var runFreeM = Control_Monad_Free.runFreeM(dictFunctor)(monadRecStateT);
     return function (dictFunctor1) {
-        var extract = Control_Comonad.extract(comonadCofree(dictFunctor1));
+        var comonadCofree1 = comonadCofree(dictFunctor1);
         return function (pair) {
             return function (m) {
                 return function (w) {
                     var step = function (ff) {
-                        return state(function (cof) {
-                            return pair(map2(Data_Tuple.Tuple.create)(ff))(tail(cof));
+                        return Control_Monad_State_Class.state(monadStateStateT)(function (cof) {
+                            return pair(Data_Functor.map(dictFunctor)(Data_Tuple.Tuple.create)(ff))(tail(cof));
                         });
                     };
-                    var v = Control_Monad_State.runState(runFreeM(step)(m))(w);
-                    return v.value0(extract(v.value1));
+                    var v = Control_Monad_State.runState(Control_Monad_Free.runFreeM(dictFunctor)(monadRecStateT)(step)(m))(w);
+                    return v.value0(Control_Comonad.extract(comonadCofree1)(v.value1));
                 };
             };
         };
     };
 };
 var exploreM = function (dictFunctor) {
-    var map2 = Data_Functor.map(dictFunctor);
-    var runFreeM = Control_Monad_Free.runFreeM(dictFunctor);
     return function (dictFunctor1) {
-        var extract = Control_Comonad.extract(comonadCofree(dictFunctor1));
+        var comonadCofree1 = comonadCofree(dictFunctor1);
         return function (dictMonadRec) {
-            var map3 = Data_Functor.map((((dictMonadRec.Monad0()).Bind1()).Apply0()).Functor0());
-            var runFreeM1 = runFreeM(Control_Monad_State_Trans.monadRecStateT(dictMonadRec));
+            var Functor0 = (((dictMonadRec.Monad0()).Bind1()).Apply0()).Functor0();
+            var monadRecStateT1 = Control_Monad_State_Trans.monadRecStateT(dictMonadRec);
             return function (pair) {
                 return function (m) {
                     return function (w) {
                         var step = function (ff) {
                             return function (cof) {
-                                return pair(map2(Data_Tuple.Tuple.create)(ff))(tail(cof));
+                                return pair(Data_Functor.map(dictFunctor)(Data_Tuple.Tuple.create)(ff))(tail(cof));
                             };
                         };
                         var $$eval = function (v) {
-                            return v.value0(extract(v.value1));
+                            return v.value0(Control_Comonad.extract(comonadCofree1)(v.value1));
                         };
-                        return map3($$eval)(Control_Monad_State_Trans.runStateT(runFreeM1(step)(m))(w));
+                        return Data_Functor.map(Functor0)($$eval)(Control_Monad_State_Trans.runStateT(Control_Monad_Free.runFreeM(dictFunctor)(monadRecStateT1)(step)(m))(w));
                     };
                 };
             };
@@ -396,11 +364,10 @@ var exploreM = function (dictFunctor) {
     };
 };
 var buildCofree = function (dictFunctor) {
-    var map2 = Data_Functor.map(dictFunctor);
     return function (k) {
         return function (s) {
             return Data_Lazy.defer(function (v) {
-                return map1(map2(buildCofree(dictFunctor)(k)))(k(s));
+                return Data_Functor.map(Data_Tuple.functorTuple)(Data_Functor.map(dictFunctor)(buildCofree(dictFunctor)(k)))(k(s));
             });
         };
     };
@@ -416,15 +383,15 @@ var monadCofree = function (dictAlternative) {
     };
 };
 var bindCofree = function (dictAlternative) {
-    var Alt0 = (dictAlternative.Plus1()).Alt0();
-    var alt = Control_Alt.alt(Alt0);
-    var map2 = Data_Functor.map(Alt0.Functor0());
+    var Plus1 = dictAlternative.Plus1();
+    var Alt0 = Plus1.Alt0();
+    var Functor0 = (Plus1.Alt0()).Functor0();
     return {
         bind: function (fa) {
             return function (f) {
                 var loop = function (fa$prime) {
                     var fh = f(head(fa$prime));
-                    return mkCofree(head(fh))(alt(tail(fh))(map2(loop)(tail(fa$prime))));
+                    return mkCofree(head(fh))(Control_Alt.alt(Alt0)(tail(fh))(Data_Functor.map(Functor0)(loop)(tail(fa$prime))));
                 };
                 return loop(fa);
             };

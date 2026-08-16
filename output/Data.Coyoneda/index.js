@@ -43,15 +43,12 @@ var lowerCoyoneda = function (dictFunctor) {
     return unCoyoneda(Data_Functor.map(dictFunctor));
 };
 var foldableCoyoneda = function (dictFoldable) {
-    var foldr = Data_Foldable.foldr(dictFoldable);
-    var foldl = Data_Foldable.foldl(dictFoldable);
-    var foldMap = Data_Foldable.foldMap(dictFoldable);
     return {
         foldr: function (f) {
             return function (z) {
                 return unCoyoneda(function (k) {
-                    return foldr(function ($175) {
-                        return f(k($175));
+                    return Data_Foldable.foldr(dictFoldable)(function ($143) {
+                        return f(k($143));
                     })(z);
                 });
             };
@@ -59,21 +56,20 @@ var foldableCoyoneda = function (dictFoldable) {
         foldl: function (f) {
             return function (z) {
                 return unCoyoneda(function (k) {
-                    return foldl(function (x) {
-                        var $176 = f(x);
-                        return function ($177) {
-                            return $176(k($177));
+                    return Data_Foldable.foldl(dictFoldable)(function (x) {
+                        var $144 = f(x);
+                        return function ($145) {
+                            return $144(k($145));
                         };
                     })(z);
                 });
             };
         },
         foldMap: function (dictMonoid) {
-            var foldMap1 = foldMap(dictMonoid);
             return function (f) {
                 return unCoyoneda(function (k) {
-                    return foldMap1(function ($178) {
-                        return f(k($178));
+                    return Data_Foldable.foldMap(dictFoldable)(dictMonoid)(function ($146) {
+                        return f(k($146));
                     });
                 });
             };
@@ -81,15 +77,13 @@ var foldableCoyoneda = function (dictFoldable) {
     };
 };
 var foldable1Coyoneda = function (dictFoldable1) {
-    var foldMap1 = Data_Semigroup_Foldable.foldMap1(dictFoldable1);
     var foldableCoyoneda1 = foldableCoyoneda(dictFoldable1.Foldable0());
     return {
         foldMap1: function (dictSemigroup) {
-            var foldMap11 = foldMap1(dictSemigroup);
             return function (f) {
                 return unCoyoneda(function (k) {
-                    return foldMap11(function ($179) {
-                        return f(k($179));
+                    return Data_Semigroup_Foldable.foldMap1(dictFoldable1)(dictSemigroup)(function ($147) {
+                        return f(k($147));
                     });
                 });
             };
@@ -102,15 +96,12 @@ var foldable1Coyoneda = function (dictFoldable1) {
     };
 };
 var eqCoyoneda = function (dictFunctor) {
-    var lowerCoyoneda1 = lowerCoyoneda(dictFunctor);
     return function (dictEq1) {
-        var eq1 = Data_Eq.eq1(dictEq1);
         return function (dictEq) {
-            var eq11 = eq1(dictEq);
             return {
                 eq: function (x) {
                     return function (y) {
-                        return eq11(lowerCoyoneda1(x))(lowerCoyoneda1(y));
+                        return Data_Eq.eq1(dictEq1)(dictEq)(lowerCoyoneda(dictFunctor)(x))(lowerCoyoneda(dictFunctor)(y));
                     };
                 }
             };
@@ -118,18 +109,15 @@ var eqCoyoneda = function (dictFunctor) {
     };
 };
 var ordCoyoneda = function (dictFunctor) {
-    var lowerCoyoneda1 = lowerCoyoneda(dictFunctor);
     var eqCoyoneda1 = eqCoyoneda(dictFunctor);
     return function (dictOrd1) {
-        var compare1 = Data_Ord.compare1(dictOrd1);
         var eqCoyoneda2 = eqCoyoneda1(dictOrd1.Eq10());
         return function (dictOrd) {
-            var compare11 = compare1(dictOrd);
             var eqCoyoneda3 = eqCoyoneda2(dictOrd.Eq0());
             return {
                 compare: function (x) {
                     return function (y) {
-                        return compare11(lowerCoyoneda1(x))(lowerCoyoneda1(y));
+                        return Data_Ord.compare1(dictOrd1)(dictOrd)(lowerCoyoneda(dictFunctor)(x))(lowerCoyoneda(dictFunctor)(y));
                     };
                 },
                 Eq0: function () {
@@ -175,8 +163,8 @@ var functorCoyoneda = {
     map: function (f) {
         return function (v) {
             return Data_Exists.runExists(function (v1) {
-                return coyoneda(function ($180) {
-                    return f(v1.value0($180));
+                return coyoneda(function ($148) {
+                    return f(v1.value0($148));
                 })(v1.value1);
             })(v);
         };
@@ -194,24 +182,24 @@ var hoistCoyoneda = function (nat) {
 };
 var liftCoyoneda = /* #__PURE__ */ coyoneda(/* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn));
 var distributiveCoyoneda = function (dictDistributive) {
-    var collect = Data_Distributive.collect(dictDistributive);
-    var lowerCoyoneda1 = lowerCoyoneda(dictDistributive.Functor0());
+    var Functor0 = dictDistributive.Functor0();
+    var lowerCoyoneda1 = lowerCoyoneda(Functor0);
+    var lowerCoyoneda2 = lowerCoyoneda(Functor0);
     return {
         collect: function (dictFunctor) {
-            var collect1 = collect(dictFunctor);
             return function (f) {
-                var $181 = collect1(function ($183) {
-                    return lowerCoyoneda1(f($183));
+                var $149 = Data_Distributive.collect(dictDistributive)(dictFunctor)(function ($151) {
+                    return lowerCoyoneda1(f($151));
                 });
-                return function ($182) {
-                    return liftCoyoneda($181($182));
+                return function ($150) {
+                    return liftCoyoneda($149($150));
                 };
             };
         },
         distribute: function (dictFunctor) {
-            var $184 = collect(dictFunctor)(lowerCoyoneda1);
-            return function ($185) {
-                return liftCoyoneda($184($185));
+            var $152 = Data_Distributive.collect(dictDistributive)(dictFunctor)(lowerCoyoneda2);
+            return function ($153) {
+                return liftCoyoneda($152($153));
             };
         },
         Functor0: function () {
@@ -220,15 +208,14 @@ var distributiveCoyoneda = function (dictDistributive) {
     };
 };
 var extendCoyoneda = function (dictExtend) {
-    var extend = Control_Extend.extend(dictExtend);
     return {
         extend: function (f) {
             return function (v) {
                 return Data_Exists.runExists(function (v1) {
-                    return liftCoyoneda(extend((function () {
-                        var $186 = coyoneda(v1.value0);
-                        return function ($187) {
-                            return f($186($187));
+                    return liftCoyoneda(Control_Extend.extend(dictExtend)((function () {
+                        var $154 = coyoneda(v1.value0);
+                        return function ($155) {
+                            return f($154($155));
                         };
                     })())(v1.value1));
                 })(v);
@@ -245,32 +232,29 @@ var monadTransCoyoneda = {
     }
 };
 var traversableCoyoneda = function (dictTraversable) {
-    var traverse = Data_Traversable.traverse(dictTraversable);
     var foldableCoyoneda1 = foldableCoyoneda(dictTraversable.Foldable1());
     return {
         traverse: function (dictApplicative) {
-            var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-            var traverse1 = traverse(dictApplicative);
+            var Functor0 = (dictApplicative.Apply0()).Functor0();
             return function (f) {
                 return unCoyoneda(function (k) {
-                    var $188 = map(liftCoyoneda);
-                    var $189 = traverse1(function ($191) {
-                        return f(k($191));
+                    var $156 = Data_Functor.map(Functor0)(liftCoyoneda);
+                    var $157 = Data_Traversable.traverse(dictTraversable)(dictApplicative)(function ($159) {
+                        return f(k($159));
                     });
-                    return function ($190) {
-                        return $188($189($190));
+                    return function ($158) {
+                        return $156($157($158));
                     };
                 });
             };
         },
         sequence: function (dictApplicative) {
-            var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-            var traverse1 = traverse(dictApplicative);
+            var Functor0 = (dictApplicative.Apply0()).Functor0();
             return unCoyoneda(function (k) {
-                var $192 = map(liftCoyoneda);
-                var $193 = traverse1(k);
-                return function ($194) {
-                    return $192($193($194));
+                var $160 = Data_Functor.map(Functor0)(liftCoyoneda);
+                var $161 = Data_Traversable.traverse(dictTraversable)(dictApplicative)(k);
+                return function ($162) {
+                    return $160($161($162));
                 };
             });
         },
@@ -283,36 +267,34 @@ var traversableCoyoneda = function (dictTraversable) {
     };
 };
 var traversable1Coyoneda = function (dictTraversable1) {
-    var traverse1 = Data_Semigroup_Traversable.traverse1(dictTraversable1);
     var sequence1 = Data_Semigroup_Traversable.sequence1(dictTraversable1);
     var Traversable1 = dictTraversable1.Traversable1();
-    var map = Data_Functor.map(Traversable1.Functor0());
+    var Functor0 = Traversable1.Functor0();
     var foldable1Coyoneda1 = foldable1Coyoneda(dictTraversable1.Foldable10());
     var traversableCoyoneda1 = traversableCoyoneda(Traversable1);
     return {
         traverse1: function (dictApply) {
-            var map1 = Data_Functor.map(dictApply.Functor0());
-            var traverse11 = traverse1(dictApply);
+            var Functor01 = dictApply.Functor0();
             return function (f) {
                 return unCoyoneda(function (k) {
-                    var $195 = map1(liftCoyoneda);
-                    var $196 = traverse11(function ($198) {
-                        return f(k($198));
+                    var $163 = Data_Functor.map(Functor01)(liftCoyoneda);
+                    var $164 = Data_Semigroup_Traversable.traverse1(dictTraversable1)(dictApply)(function ($166) {
+                        return f(k($166));
                     });
-                    return function ($197) {
-                        return $195($196($197));
+                    return function ($165) {
+                        return $163($164($165));
                     };
                 });
             };
         },
         sequence1: function (dictApply) {
-            var map1 = Data_Functor.map(dictApply.Functor0());
+            var Functor01 = dictApply.Functor0();
             var sequence11 = sequence1(dictApply);
             return unCoyoneda(function (k) {
-                var $199 = map1(liftCoyoneda);
-                var $200 = map(k);
-                return function ($201) {
-                    return $199(sequence11($200($201)));
+                var $167 = Data_Functor.map(Functor01)(liftCoyoneda);
+                var $168 = Data_Functor.map(Functor0)(k);
+                return function ($169) {
+                    return $167(sequence11($168($169)));
                 };
             });
         },
@@ -325,12 +307,11 @@ var traversable1Coyoneda = function (dictTraversable1) {
     };
 };
 var comonadCoyoneda = function (dictComonad) {
-    var extract = Control_Comonad.extract(dictComonad);
     var extendCoyoneda1 = extendCoyoneda(dictComonad.Extend0());
     return {
         extract: function (v) {
             return Data_Exists.runExists(function (v1) {
-                return v1.value0(extract(v1.value1));
+                return v1.value0(Control_Comonad.extract(dictComonad)(v1.value1));
             })(v);
         },
         Extend0: function () {
@@ -339,12 +320,11 @@ var comonadCoyoneda = function (dictComonad) {
     };
 };
 var applyCoyoneda = function (dictApply) {
-    var apply = Control_Apply.apply(dictApply);
-    var lowerCoyoneda1 = lowerCoyoneda(dictApply.Functor0());
+    var Functor0 = dictApply.Functor0();
     return {
         apply: function (f) {
             return function (g) {
-                return liftCoyoneda(apply(lowerCoyoneda1(f))(lowerCoyoneda1(g)));
+                return liftCoyoneda(Control_Apply.apply(dictApply)(lowerCoyoneda(Functor0)(f))(lowerCoyoneda(Functor0)(g)));
             };
         },
         Functor0: function () {
@@ -353,7 +333,6 @@ var applyCoyoneda = function (dictApply) {
     };
 };
 var bindCoyoneda = function (dictBind) {
-    var bindFlipped = Control_Bind.bindFlipped(dictBind);
     var Apply0 = dictBind.Apply0();
     var lowerCoyoneda1 = lowerCoyoneda(Apply0.Functor0());
     var applyCoyoneda1 = applyCoyoneda(Apply0);
@@ -361,8 +340,8 @@ var bindCoyoneda = function (dictBind) {
         bind: function (v) {
             return function (f) {
                 return liftCoyoneda(Data_Exists.runExists(function (v1) {
-                    return bindFlipped(function ($202) {
-                        return lowerCoyoneda1(f(v1.value0($202)));
+                    return Control_Bind.bindFlipped(dictBind)(function ($170) {
+                        return lowerCoyoneda1(f(v1.value0($170)));
                     })(v1.value1);
                 })(v));
             };
@@ -376,9 +355,9 @@ var applicativeCoyoneda = function (dictApplicative) {
     var applyCoyoneda1 = applyCoyoneda(dictApplicative.Apply0());
     return {
         pure: (function () {
-            var $203 = Control_Applicative.pure(dictApplicative);
-            return function ($204) {
-                return liftCoyoneda($203($204));
+            var $171 = Control_Applicative.pure(dictApplicative);
+            return function ($172) {
+                return liftCoyoneda($171($172));
             };
         })(),
         Apply0: function () {
@@ -399,12 +378,11 @@ var monadCoyoneda = function (dictMonad) {
     };
 };
 var altCoyoneda = function (dictAlt) {
-    var alt = Control_Alt.alt(dictAlt);
-    var lowerCoyoneda1 = lowerCoyoneda(dictAlt.Functor0());
+    var Functor0 = dictAlt.Functor0();
     return {
         alt: function (x) {
             return function (y) {
-                return liftCoyoneda(alt(lowerCoyoneda1(x))(lowerCoyoneda1(y)));
+                return liftCoyoneda(Control_Alt.alt(dictAlt)(lowerCoyoneda(Functor0)(x))(lowerCoyoneda(Functor0)(y)));
             };
         },
         Functor0: function () {

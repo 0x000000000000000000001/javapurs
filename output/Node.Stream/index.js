@@ -13,9 +13,7 @@ import * as Node_Buffer from "../Node.Buffer/index.js";
 import * as Node_Encoding from "../Node.Encoding/index.js";
 import * as Node_EventEmitter from "../Node.EventEmitter/index.js";
 import * as Unsafe_Coerce from "../Unsafe.Coerce/index.js";
-var show = /* #__PURE__ */ Data_Show.show(Node_Encoding.showEncoding);
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var map = /* #__PURE__ */ Data_Functor.map(Effect.functorEffect);
 var writeableNeedDrain = function (w) {
     return function () {
         return $foreign.writeableNeedDrainImpl(w);
@@ -115,14 +113,14 @@ var toEventEmitter = Unsafe_Coerce.unsafeCoerce;
 var setEncoding = function (r) {
     return function (enc) {
         return function () {
-            return $foreign.setEncodingImpl(r, show(enc));
+            return $foreign.setEncodingImpl(r, Data_Show.show(Node_Encoding.showEncoding)(enc));
         };
     };
 };
 var setDefaultEncoding = function (r) {
     return function (enc) {
         return function () {
-            return $foreign.setDefaultEncodingImpl(r, show(enc));
+            return $foreign.setDefaultEncodingImpl(r, Data_Show.show(Node_Encoding.showEncoding)(enc));
         };
     };
 };
@@ -183,10 +181,10 @@ var readEither$prime = function (r) {
                 return Data_Maybe.Nothing.value;
             };
             if (v instanceof Data_Maybe.Just) {
-                return $foreign.readChunkImpl(function ($28) {
-                    return Data_Maybe.Just.create(Data_Either.Right.create($28));
-                }, function ($29) {
-                    return Data_Maybe.Just.create(Data_Either.Left.create($29));
+                return $foreign.readChunkImpl(function ($23) {
+                    return Data_Maybe.Just.create(Data_Either.Right.create($23));
+                }, function ($24) {
+                    return Data_Maybe.Just.create(Data_Either.Left.create($24));
                 }, v.value0);
             };
             throw new Error("Failed pattern match at Node.Stream (line 252, column 3 - line 259, column 10): " + [ v.constructor.name ]);
@@ -201,10 +199,10 @@ var readEither = function (r) {
             return Data_Maybe.Nothing.value;
         };
         if (v instanceof Data_Maybe.Just) {
-            return $foreign.readChunkImpl(function ($30) {
-                return Data_Maybe.Just.create(Data_Either.Right.create($30));
-            }, function ($31) {
-                return Data_Maybe.Just.create(Data_Either.Left.create($31));
+            return $foreign.readChunkImpl(function ($25) {
+                return Data_Maybe.Just.create(Data_Either.Right.create($25));
+            }, function ($26) {
+                return Data_Maybe.Just.create(Data_Either.Left.create($26));
             }, v.value0);
         };
         throw new Error("Failed pattern match at Node.Stream (line 238, column 3 - line 245, column 10): " + [ v.constructor.name ]);
@@ -238,7 +236,7 @@ var readString$prime = function (r) {
                     return Data_Maybe.Nothing.value;
                 };
                 if (mbBuf instanceof Data_Maybe.Just) {
-                    return map(Data_Maybe.Just.create)(Node_Buffer.toString(enc)(mbBuf.value0))();
+                    return Data_Functor.map(Effect.functorEffect)(Data_Maybe.Just.create)(Node_Buffer.toString(enc)(mbBuf.value0))();
                 };
                 throw new Error("Failed pattern match at Node.Stream (line 227, column 3 - line 231, column 39): " + [ mbBuf.constructor.name ]);
             };
@@ -270,7 +268,7 @@ var readString = function (r) {
                 return Data_Maybe.Nothing.value;
             };
             if (mbBuf instanceof Data_Maybe.Just) {
-                return map(Data_Maybe.Just.create)(Node_Buffer.toString(enc)(mbBuf.value0))();
+                return Data_Functor.map(Effect.functorEffect)(Data_Maybe.Just.create)(Node_Buffer.toString(enc)(mbBuf.value0))();
             };
             throw new Error("Failed pattern match at Node.Stream (line 209, column 3 - line 213, column 39): " + [ mbBuf.constructor.name ]);
         };
@@ -381,10 +379,10 @@ var dataHStr = /* #__PURE__ */ (function () {
 var dataHEither = /* #__PURE__ */ (function () {
     return new Node_EventEmitter.EventHandle("data", function (cb) {
         return function (chunk) {
-            return $foreign.readChunkImpl(function ($32) {
-                return cb(Data_Either.Left.create($32))();
-            }, function ($33) {
-                return cb(Data_Either.Right.create($33))();
+            return $foreign.readChunkImpl(function ($27) {
+                return cb(Data_Either.Left.create($27))();
+            }, function ($28) {
+                return cb(Data_Either.Right.create($28))();
             }, chunk);
         };
     });

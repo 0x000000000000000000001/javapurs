@@ -18,23 +18,12 @@ import * as Data_Set from "../Data.Set/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Unfoldable from "../Data.Unfoldable/index.js";
 import * as PureScript_CST_Types from "../PureScript.CST.Types/index.js";
-var eq = /* #__PURE__ */ Data_Eq.eq(Data_Eq.eqInt);
 var add = /* #__PURE__ */ Data_Semiring.add(Data_Semiring.semiringInt);
-var bind = /* #__PURE__ */ Control_Bind.bind(Control_Bind.bindArray);
-var toUnfoldable = /* #__PURE__ */ Data_Map_Internal.toUnfoldable(Data_Unfoldable.unfoldableArray);
-var append = /* #__PURE__ */ Data_Semigroup.append(Data_Semigroup.semigroupArray);
-var map = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorArray);
-var toUnfoldable1 = /* #__PURE__ */ Data_Set.toUnfoldable(Data_Unfoldable.unfoldableArray);
-var bind1 = /* #__PURE__ */ Control_Bind.bind(Data_Maybe.bindMaybe);
-var foldl = /* #__PURE__ */ Data_Foldable.foldl(Data_Set.foldableSet);
-var all = /* #__PURE__ */ Data_Foldable.all(Data_Map_Internal.foldableMap)(Data_HeytingAlgebra.heytingAlgebraBoolean);
-var map1 = /* #__PURE__ */ Data_Functor.map(Data_Either.functorEither);
-var fromFoldable = /* #__PURE__ */ Data_Set.fromFoldable(Data_Foldable.foldableArray)(PureScript_CST_Types.ordModuleName);
-var fromFoldable1 = /* #__PURE__ */ Data_Map_Internal.fromFoldable(PureScript_CST_Types.ordModuleName);
-var fromFoldable2 = /* #__PURE__ */ fromFoldable1(Data_Foldable.foldableArray);
-var fromFoldable3 = /* #__PURE__ */ fromFoldable1(Data_Foldable.foldableArray);
+var fromFoldable = /* #__PURE__ */ Data_Map_Internal.fromFoldable(PureScript_CST_Types.ordModuleName);
+var fromFoldable1 = /* #__PURE__ */ fromFoldable(Data_Foldable.foldableArray);
+var fromFoldable2 = /* #__PURE__ */ fromFoldable(Data_Foldable.foldableArray);
 var lookup = /* #__PURE__ */ Data_Map_Internal.lookup(PureScript_CST_Types.ordModuleName);
-var toUnfoldable2 = /* #__PURE__ */ Data_List.toUnfoldable(Data_Unfoldable.unfoldableArray);
+var toUnfoldable = /* #__PURE__ */ Data_List.toUnfoldable(Data_Unfoldable.unfoldableArray);
 var Sorted = /* #__PURE__ */ (function () {
     function Sorted(value0) {
         this.value0 = value0;
@@ -54,49 +43,42 @@ var CycleDetected = /* #__PURE__ */ (function () {
     return CycleDetected;
 })();
 var topoSort = function (dictOrd) {
-    var fromFoldableWith = Data_Map_Internal.fromFoldableWith(dictOrd)(Data_Foldable.foldableArray);
-    var filterWithKey = Data_Map_Internal.filterWithKey(dictOrd);
-    var member = Data_Set.member(dictOrd);
-    var lookup1 = Data_Map_Internal.lookup(dictOrd);
     var insert = Data_Set.insert(dictOrd);
-    var insertWith = Data_Map_Internal.insertWith(dictOrd);
-    var insert1 = Data_Set.insert(dictOrd);
-    var $$delete = Data_Set["delete"](dictOrd);
     return function (graph) {
         var isRoot = function (v) {
-            var $46 = v.value1 === 0;
-            if ($46) {
+            var $19 = v.value1 === 0;
+            if ($19) {
                 return new Data_Maybe.Just(v.value0);
             };
             return Data_Maybe.Nothing.value;
         };
-        var importCounts = fromFoldableWith(add)(bind(toUnfoldable(graph))(function (v) {
-            return append([ new Data_Tuple.Tuple(v.value0, 0) ])(map(Data_Function.flip(Data_Tuple.Tuple.create)(1))(toUnfoldable1(v.value1)));
+        var importCounts = Data_Map_Internal.fromFoldableWith(dictOrd)(Data_Foldable.foldableArray)(add)(Control_Bind.bind(Control_Bind.bindArray)(Data_Map_Internal.toUnfoldable(Data_Unfoldable.unfoldableArray)(graph))(function (v) {
+            return Data_Semigroup.append(Data_Semigroup.semigroupArray)([ new Data_Tuple.Tuple(v.value0, 0) ])(Data_Functor.map(Data_Functor.functorArray)(Data_Function.flip(Data_Tuple.Tuple.create)(1))(Data_Set.toUnfoldable(Data_Unfoldable.unfoldableArray)(v.value1)));
         }));
-        var startingModules = Data_Map.keys(filterWithKey(function (k) {
+        var startingModules = Data_Map.keys(Data_Map_Internal.filterWithKey(dictOrd)(function (k) {
             return function (v) {
                 return Data_Maybe.isJust(isRoot(new Data_Tuple.Tuple(k, v)));
             };
         })(importCounts));
         var depthFirst = function (v) {
-            var $53 = member(v.curr)(v.visited);
-            if ($53) {
+            var $26 = Data_Set.member(dictOrd)(v.curr)(v.visited);
+            if ($26) {
                 return new Data_Maybe.Just(new Data_List_Types.Cons(v.curr, v.path));
             };
-            var $54 = Data_Maybe.maybe(true)(Data_Set.isEmpty)(lookup1(v.curr)(graph));
-            if ($54) {
+            var $27 = Data_Maybe.maybe(true)(Data_Set.isEmpty)(Data_Map_Internal.lookup(dictOrd)(v.curr)(graph));
+            if ($27) {
                 return Data_Maybe.Nothing.value;
             };
-            return bind1(lookup1(v.curr)(graph))(function (reachable) {
-                return foldl(function (b) {
+            return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(dictOrd)(v.curr)(graph))(function (reachable) {
+                return Data_Foldable.foldl(Data_Set.foldableSet)(function (b) {
                     return function (a) {
-                        var $55 = Data_Maybe.isJust(b);
-                        if ($55) {
+                        var $28 = Data_Maybe.isJust(b);
+                        if ($28) {
                             return b;
                         };
                         return depthFirst({
                             path: new Data_List_Types.Cons(v.curr, v.path),
-                            visited: insert(v.curr)(v.visited),
+                            visited: Data_Set.insert(dictOrd)(v.curr)(v.visited),
                             curr: a
                         });
                     };
@@ -105,13 +87,13 @@ var topoSort = function (dictOrd) {
         };
         var decrementImport = function (usages) {
             return function (k) {
-                return insertWith(add)(k)(-1 | 0)(usages);
+                return Data_Map_Internal.insertWith(dictOrd)(add)(k)(-1 | 0)(usages);
             };
         };
         var appendRoots = function (usages) {
             return function (roots) {
                 return function (curr) {
-                    return Data_Maybe.maybe(roots)(Data_Function.flip(insert1)(roots))(bind1(lookup1(curr)(usages))(function (count) {
+                    return Data_Maybe.maybe(roots)(Data_Function.flip(insert)(roots))(Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(dictOrd)(curr)(usages))(function (count) {
                         return isRoot(new Data_Tuple.Tuple(curr, count));
                     }));
                 };
@@ -123,8 +105,8 @@ var topoSort = function (dictOrd) {
             function $tco_loop(v) {
                 var v1 = Data_Set.findMin(v.roots);
                 if (v1 instanceof Data_Maybe.Nothing) {
-                    var $61 = all(eq(0))(v.usages);
-                    if ($61) {
+                    var $34 = Data_Foldable.all(Data_Map_Internal.foldableMap)(Data_HeytingAlgebra.heytingAlgebraBoolean)(Data_Eq.eq(Data_Eq.eqInt)(0))(v.usages);
+                    if ($34) {
                         $tco_done = true;
                         return new Data_Either.Right({
                             roots: v.roots,
@@ -132,15 +114,15 @@ var topoSort = function (dictOrd) {
                             usages: v.usages
                         });
                     };
-                    var nonLeaf = Data_Map.keys(filterWithKey(function (a) {
+                    var nonLeaf = Data_Map.keys(Data_Map_Internal.filterWithKey(dictOrd)(function (a) {
                         return function (count) {
-                            return count > 0 && !Data_Maybe.maybe(true)(Data_Set.isEmpty)(lookup1(a)(graph));
+                            return count > 0 && !Data_Maybe.maybe(true)(Data_Set.isEmpty)(Data_Map_Internal.lookup(dictOrd)(a)(graph));
                         };
                     })(v.usages));
-                    var detectCycles = foldl(function (b) {
+                    var detectCycles = Data_Foldable.foldl(Data_Set.foldableSet)(function (b) {
                         return function (a) {
-                            var $62 = Data_Maybe.isJust(b);
-                            if ($62) {
+                            var $35 = Data_Maybe.isJust(b);
+                            if ($35) {
                                 return b;
                             };
                             return depthFirst({
@@ -161,10 +143,10 @@ var topoSort = function (dictOrd) {
                     throw new Error("Failed pattern match at PureScript.CST.ModuleGraph (line 79, column 9 - line 81, column 30): " + [ detectCycles.constructor.name ]);
                 };
                 if (v1 instanceof Data_Maybe.Just) {
-                    var reachable = Data_Maybe.fromMaybe(Data_Set.empty)(lookup1(v1.value0)(graph));
-                    var usages$prime = foldl(decrementImport)(v.usages)(reachable);
+                    var reachable = Data_Maybe.fromMaybe(Data_Set.empty)(Data_Map_Internal.lookup(dictOrd)(v1.value0)(graph));
+                    var usages$prime = Data_Foldable.foldl(Data_Set.foldableSet)(decrementImport)(v.usages)(reachable);
                     $copy_v = {
-                        roots: foldl(appendRoots(usages$prime))($$delete(v1.value0)(v.roots))(reachable),
+                        roots: Data_Foldable.foldl(Data_Set.foldableSet)(appendRoots(usages$prime))(Data_Set["delete"](dictOrd)(v1.value0)(v.roots))(reachable),
                         sorted: new Data_List_Types.Cons(v1.value0, v.sorted),
                         usages: usages$prime
                     };
@@ -177,7 +159,7 @@ var topoSort = function (dictOrd) {
             };
             return $tco_result;
         };
-        return map1(function (v) {
+        return Data_Functor.map(Data_Either.functorEither)(function (v) {
             return v.sorted;
         })(go({
             roots: startingModules,
@@ -186,19 +168,18 @@ var topoSort = function (dictOrd) {
         }));
     };
 };
-var topoSort1 = /* #__PURE__ */ topoSort(PureScript_CST_Types.ordModuleName);
 var moduleGraph = function (k) {
     var getImportName = function (v) {
         return v.module.name;
     };
     var go = function (v) {
-        return new Data_Tuple.Tuple(v.name.name, fromFoldable(map(getImportName)(v.imports)));
+        return new Data_Tuple.Tuple(v.name.name, Data_Set.fromFoldable(Data_Foldable.foldableArray)(PureScript_CST_Types.ordModuleName)(Data_Functor.map(Data_Functor.functorArray)(getImportName)(v.imports)));
     };
-    var $82 = map(function ($84) {
-        return go(k($84));
+    var $55 = Data_Functor.map(Data_Functor.functorArray)(function ($57) {
+        return go(k($57));
     });
-    return function ($83) {
-        return fromFoldable2($82($83));
+    return function ($56) {
+        return fromFoldable1($55($56));
     };
 };
 var sortModules = function (k) {
@@ -207,16 +188,16 @@ var sortModules = function (k) {
         var getModuleName = function (v) {
             return v.name.name;
         };
-        var knownModuleHeaders = fromFoldable3(map(function (a) {
+        var knownModuleHeaders = fromFoldable2(Data_Functor.map(Data_Functor.functorArray)(function (a) {
             return new Data_Tuple.Tuple(getModuleName(k(a)), a);
         })(moduleHeaders));
         var lookupModuleHeaders = (function () {
-            var $85 = Data_Array.mapMaybe(Data_Function.flip(lookup)(knownModuleHeaders));
-            return function ($86) {
-                return $85(toUnfoldable2($86));
+            var $58 = Data_Array.mapMaybe(Data_Function.flip(lookup)(knownModuleHeaders));
+            return function ($59) {
+                return $58(toUnfoldable($59));
             };
         })();
-        var v = topoSort1(graph);
+        var v = topoSort(PureScript_CST_Types.ordModuleName)(graph);
         if (v instanceof Data_Either.Left) {
             return new CycleDetected(lookupModuleHeaders(v.value0));
         };

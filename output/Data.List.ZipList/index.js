@@ -6,16 +6,15 @@ import * as Data_Monoid from "../Data.Monoid/index.js";
 import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Show from "../Data.Show/index.js";
 import * as Partial_Unsafe from "../Partial.Unsafe/index.js";
-var append1 = /* #__PURE__ */ Data_Semigroup.append(Data_List_Lazy_Types.semigroupList);
 var ZipList = function (x) {
     return x;
 };
 var traversableZipList = Data_List_Lazy_Types.traversableList;
 var showZipList = function (dictShow) {
-    var show = Data_Show.show(Data_List_Lazy_Types.showList(dictShow));
+    var showList = Data_List_Lazy_Types.showList(dictShow);
     return {
         show: function (v) {
-            return "(ZipList " + (show(v) + ")");
+            return "(ZipList " + (Data_Show.show(showList)(v) + ")");
         }
     };
 };
@@ -53,8 +52,8 @@ var zipListIsNotBind = function () {
     };
 };
 var applicativeZipList = {
-    pure: function ($21) {
-        return ZipList(Data_List_Lazy.repeat($21));
+    pure: function ($17) {
+        return ZipList(Data_List_Lazy.repeat($17));
     },
     Apply0: function () {
         return applyZipList;
@@ -63,7 +62,7 @@ var applicativeZipList = {
 var altZipList = {
     alt: function (v) {
         return function (v1) {
-            return append1(v)(Data_List_Lazy.drop(Data_List_Lazy.length(v))(v1));
+            return Data_Semigroup.append(Data_List_Lazy_Types.semigroupList)(v)(Data_List_Lazy.drop(Data_List_Lazy.length(v))(v1));
         };
     },
     Functor0: function () {

@@ -6,7 +6,6 @@ import * as Data_Maybe from "../Data.Maybe/index.js";
 import * as Data_Ord from "../Data.Ord/index.js";
 import * as Data_Ordering from "../Data.Ordering/index.js";
 import * as Foreign_Object from "../Foreign.Object/index.js";
-var eq = /* #__PURE__ */ Data_Eq.eq(Data_Ordering.eqOrdering);
 var verbJsonType = function (def) {
     return function (f) {
         return function (g) {
@@ -45,7 +44,7 @@ var ordJson = {
 var eqJson = {
     eq: function (j1) {
         return function (j2) {
-            return eq(Data_Ord.compare(ordJson)(j1)(j2))(Data_Ordering.EQ.value);
+            return Data_Eq.eq(Data_Ordering.eqOrdering)(Data_Ord.compare(ordJson)(j1)(j2))(Data_Ordering.EQ.value);
         };
     }
 };

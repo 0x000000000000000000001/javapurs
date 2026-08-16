@@ -52,10 +52,9 @@ var $lazy_applyEffect = /* #__PURE__ */ $runtime_lazy("applyEffect", "Effect", f
 });
 var functorEffect = /* #__PURE__ */ $lazy_functorEffect(20);
 var applyEffect = /* #__PURE__ */ $lazy_applyEffect(23);
-var lift2 = /* #__PURE__ */ Control_Apply.lift2(applyEffect);
 var semigroupEffect = function (dictSemigroup) {
     return {
-        append: lift2(Data_Semigroup.append(dictSemigroup))
+        append: Control_Apply.lift2(applyEffect)(Data_Semigroup.append(dictSemigroup))
     };
 };
 var monoidEffect = function (dictMonoid) {

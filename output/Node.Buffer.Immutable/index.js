@@ -8,9 +8,6 @@ import * as Effect from "../Effect/index.js";
 import * as Node_Buffer_Types from "../Node.Buffer.Types/index.js";
 import * as Node_Encoding from "../Node.Encoding/index.js";
 import * as Partial_Unsafe from "../Partial.Unsafe/index.js";
-var show = /* #__PURE__ */ Data_Show.show(Node_Buffer_Types.showBufferValueType);
-var mapFlipped = /* #__PURE__ */ Data_Functor.mapFlipped(Effect.functorEffect);
-var show1 = /* #__PURE__ */ Data_Show.show(Data_Show.showInt);
 var toString$prime = function (enc) {
     return function (start) {
         return function (end) {
@@ -47,7 +44,7 @@ var readString = function (enc) {
 var read = function (ty) {
     return function (off) {
         return function (buf) {
-            return $foreign.readImpl(show(ty), off, buf);
+            return $foreign.readImpl(Data_Show.show(Node_Buffer_Types.showBufferValueType)(ty), off, buf);
         };
     };
 };
@@ -97,7 +94,7 @@ var compareParts = function (src) {
             return function (targetEnd) {
                 return function (sourceStart) {
                     return function (sourceEnd) {
-                        return mapFlipped(function () {
+                        return Data_Functor.mapFlipped(Effect.functorEffect)(function () {
                             return $foreign.comparePartsImpl(src, target, targetStart, targetEnd, sourceStart, sourceEnd);
                         })(function (v) {
                             if (v === -1) {
@@ -109,7 +106,7 @@ var compareParts = function (src) {
                             if (v === 1) {
                                 return Data_Ordering.GT.value;
                             };
-                            return Partial_Unsafe.unsafeCrashWith("Impossible: Invalid value: " + show1(v));
+                            return Partial_Unsafe.unsafeCrashWith("Impossible: Invalid value: " + Data_Show.show(Data_Show.showInt)(v));
                         });
                     };
                 };

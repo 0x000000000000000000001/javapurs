@@ -15,8 +15,8 @@ var injectReflexive = /* #__PURE__ */ (function () {
 })();
 var injectLeft = /* #__PURE__ */ (function () {
     return {
-        inj: function ($7) {
-            return Data_Functor_Coproduct.Coproduct(Data_Either.Left.create($7));
+        inj: function ($6) {
+            return Data_Functor_Coproduct.Coproduct(Data_Either.Left.create($6));
         },
         prj: Data_Functor_Coproduct.coproduct(Data_Maybe.Just.create)(Data_Function["const"](Data_Maybe.Nothing.value))
     };
@@ -27,9 +27,9 @@ var inj = function (dict) {
 var injectRight = function (dictInject) {
     return {
         inj: (function () {
-            var $8 = inj(dictInject);
-            return function ($9) {
-                return Data_Functor_Coproduct.Coproduct(Data_Either.Right.create($8($9)));
+            var $7 = inj(dictInject);
+            return function ($8) {
+                return Data_Functor_Coproduct.Coproduct(Data_Either.Right.create($7($8)));
             };
         })(),
         prj: Data_Functor_Coproduct.coproduct(Data_Function["const"](Data_Maybe.Nothing.value))(prj(dictInject))

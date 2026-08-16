@@ -24,9 +24,9 @@ var inj = function (dict) {
 var injectRight = function (dictInject) {
     return {
         inj: (function () {
-            var $7 = inj(dictInject);
-            return function ($8) {
-                return Data_Either.Right.create($7($8));
+            var $6 = inj(dictInject);
+            return function ($7) {
+                return Data_Either.Right.create($6($7));
             };
         })(),
         prj: Data_Either.either(Data_Function["const"](Data_Maybe.Nothing.value))(prj(dictInject))

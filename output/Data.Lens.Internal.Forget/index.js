@@ -5,7 +5,6 @@ import * as Data_Monoid from "../Data.Monoid/index.js";
 import * as Data_Newtype from "../Data.Newtype/index.js";
 import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
-var alaF = /* #__PURE__ */ Data_Newtype.alaF()()()();
 var Forget = function (x) {
     return x;
 };
@@ -16,8 +15,8 @@ var profunctorForget = {
     dimap: function (f) {
         return function (v) {
             return function (v1) {
-                return function ($37) {
-                    return v1(f($37));
+                return function ($32) {
+                    return v1(f($32));
                 };
             };
         };
@@ -25,13 +24,13 @@ var profunctorForget = {
 };
 var strongForget = {
     first: function (v) {
-        return function ($38) {
-            return v(Data_Tuple.fst($38));
+        return function ($33) {
+            return v(Data_Tuple.fst($33));
         };
     },
     second: function (v) {
-        return function ($39) {
-            return v(Data_Tuple.snd($39));
+        return function ($34) {
+            return v(Data_Tuple.snd($34));
         };
     },
     Profunctor0: function () {
@@ -48,13 +47,13 @@ var monoidForget = function (dictMonoid) {
 };
 var cochoiceForget = {
     unleft: function (v) {
-        return function ($40) {
-            return v(Data_Either.Left.create($40));
+        return function ($35) {
+            return v(Data_Either.Left.create($35));
         };
     },
     unright: function (v) {
-        return function ($41) {
-            return v(Data_Either.Right.create($41));
+        return function ($36) {
+            return v(Data_Either.Right.create($36));
         };
     },
     Profunctor0: function () {
@@ -83,7 +82,7 @@ var wanderForget = function (dictMonoid) {
     return {
         wander: function (f) {
             return function (v) {
-                return alaF(Data_Const.Const)(f(applicativeConst))(v);
+                return Data_Newtype.alaF()()()()(Data_Const.Const)(f(applicativeConst))(v);
             };
         },
         Strong0: function () {

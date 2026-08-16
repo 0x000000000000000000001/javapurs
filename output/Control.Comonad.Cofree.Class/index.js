@@ -10,15 +10,13 @@ var unwrapCofree = function (dict) {
 };
 var comonadCofreeTracedT = function (dictFunctor) {
     return function (dictComonadCofree) {
-        var map = Data_Functor.map(dictComonadCofree.Functor0());
-        var unwrapCofree1 = unwrapCofree(dictComonadCofree);
         var Functor0 = dictComonadCofree.Functor0();
         var comonadTracedT = Control_Comonad_Traced_Trans.comonadTracedT(dictComonadCofree.Comonad1());
         return function (dictMonoid) {
             var comonadTracedT1 = comonadTracedT(dictMonoid);
             return {
                 unwrapCofree: function (v) {
-                    return map(Control_Comonad_Traced_Trans.TracedT)(unwrapCofree1(v));
+                    return Data_Functor.map(Functor0)(Control_Comonad_Traced_Trans.TracedT)(unwrapCofree(dictComonadCofree)(v));
                 },
                 Functor0: function () {
                     return Functor0;
@@ -32,15 +30,13 @@ var comonadCofreeTracedT = function (dictFunctor) {
 };
 var comonadCofreeStoreT = function (dictFunctor) {
     return function (dictComonadCofree) {
-        var map = Data_Functor.map(dictComonadCofree.Functor0());
-        var unwrapCofree1 = unwrapCofree(dictComonadCofree);
         var Functor0 = dictComonadCofree.Functor0();
         var comonadStoreT = Control_Comonad_Store_Trans.comonadStoreT(dictComonadCofree.Comonad1());
         return {
             unwrapCofree: function (v) {
-                return map(function (x) {
+                return Data_Functor.map(Functor0)(function (x) {
                     return new Data_Tuple.Tuple(x, v.value1);
-                })(unwrapCofree1(v.value0));
+                })(unwrapCofree(dictComonadCofree)(v.value0));
             },
             Functor0: function () {
                 return Functor0;
@@ -53,15 +49,13 @@ var comonadCofreeStoreT = function (dictFunctor) {
 };
 var comonadCofreeEnvT = function (dictFunctor) {
     return function (dictComonadCofree) {
-        var map = Data_Functor.map(dictComonadCofree.Functor0());
-        var unwrapCofree1 = unwrapCofree(dictComonadCofree);
         var Functor0 = dictComonadCofree.Functor0();
         var comonadEnvT = Control_Comonad_Env_Trans.comonadEnvT(dictComonadCofree.Comonad1());
         return {
             unwrapCofree: function (v) {
-                return map(function (x) {
+                return Data_Functor.map(Functor0)(function (x) {
                     return new Data_Tuple.Tuple(v.value0, x);
-                })(unwrapCofree1(v.value1));
+                })(unwrapCofree(dictComonadCofree)(v.value1));
             },
             Functor0: function () {
                 return Functor0;

@@ -100,7 +100,6 @@ var bottom = function (dict) {
     return dict.bottom;
 };
 var boundedRecordCons = function (dictIsSymbol) {
-    var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
     return function (dictBounded) {
         var top1 = top(dictBounded);
         var bottom1 = bottom(dictBounded);
@@ -108,22 +107,20 @@ var boundedRecordCons = function (dictIsSymbol) {
         return function () {
             return function () {
                 return function (dictBoundedRecord) {
-                    var topRecord1 = topRecord(dictBoundedRecord);
-                    var bottomRecord1 = bottomRecord(dictBoundedRecord);
                     var ordRecordCons = Data_Ord.ordRecordCons(dictBoundedRecord.OrdRecord0())()(dictIsSymbol)(Ord0);
                     return {
                         topRecord: function (v) {
                             return function (rowProxy) {
-                                var tail = topRecord1(Type_Proxy["Proxy"].value)(rowProxy);
-                                var key = reflectSymbol(Type_Proxy["Proxy"].value);
+                                var tail = topRecord(dictBoundedRecord)(Type_Proxy["Proxy"].value)(rowProxy);
+                                var key = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
                                 var insert = Record_Unsafe.unsafeSet(key);
                                 return insert(top1)(tail);
                             };
                         },
                         bottomRecord: function (v) {
                             return function (rowProxy) {
-                                var tail = bottomRecord1(Type_Proxy["Proxy"].value)(rowProxy);
-                                var key = reflectSymbol(Type_Proxy["Proxy"].value);
+                                var tail = bottomRecord(dictBoundedRecord)(Type_Proxy["Proxy"].value)(rowProxy);
+                                var key = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
                                 var insert = Record_Unsafe.unsafeSet(key);
                                 return insert(bottom1)(tail);
                             };

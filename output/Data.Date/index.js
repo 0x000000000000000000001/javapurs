@@ -17,37 +17,8 @@ import * as Data_Ord from "../Data.Ord/index.js";
 import * as Data_Ordering from "../Data.Ordering/index.js";
 import * as Data_Show from "../Data.Show/index.js";
 import * as Data_Time_Duration from "../Data.Time.Duration/index.js";
-var fromEnum = /* #__PURE__ */ Data_Enum.fromEnum(Data_Date_Component.boundedEnumMonth);
-var fromJust = /* #__PURE__ */ Data_Maybe.fromJust();
-var toEnum = /* #__PURE__ */ Data_Enum.toEnum(Data_Date_Component.boundedEnumWeekday);
-var show = /* #__PURE__ */ Data_Show.show(Data_Date_Component.showYear);
-var show1 = /* #__PURE__ */ Data_Show.show(Data_Date_Component.showMonth);
-var show2 = /* #__PURE__ */ Data_Show.show(Data_Date_Component.showDay);
-var fromEnum1 = /* #__PURE__ */ Data_Enum.fromEnum(Data_Date_Component.boundedEnumYear);
-var mod = /* #__PURE__ */ Data_EuclideanRing.mod(Data_EuclideanRing.euclideanRingInt);
-var fromJust1 = /* #__PURE__ */ Data_Maybe.fromJust();
-var toEnum1 = /* #__PURE__ */ Data_Enum.toEnum(Data_Date_Component.boundedEnumDay);
-var eq1 = /* #__PURE__ */ Data_Eq.eq(Data_Date_Component.eqYear);
-var eq2 = /* #__PURE__ */ Data_Eq.eq(Data_Date_Component.eqMonth);
-var eq3 = /* #__PURE__ */ Data_Eq.eq(Data_Date_Component.eqDay);
-var compare = /* #__PURE__ */ Data_Ord.compare(Data_Date_Component.ordYear);
-var compare1 = /* #__PURE__ */ Data_Ord.compare(Data_Date_Component.ordMonth);
-var compare2 = /* #__PURE__ */ Data_Ord.compare(Data_Date_Component.ordDay);
-var succ = /* #__PURE__ */ Data_Enum.succ(Data_Date_Component.enumMonth);
-var succ1 = /* #__PURE__ */ Data_Enum.succ(Data_Date_Component.enumDay);
-var greaterThan = /* #__PURE__ */ Data_Ord.greaterThan(/* #__PURE__ */ Data_Maybe.ordMaybe(Data_Date_Component.ordDay));
-var succ2 = /* #__PURE__ */ Data_Enum.succ(Data_Date_Component.enumYear);
-var toEnum2 = /* #__PURE__ */ Data_Enum.toEnum(Data_Date_Component.boundedEnumDay);
-var apply = /* #__PURE__ */ Control_Apply.apply(Data_Maybe.applyMaybe);
-var map = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
-var pure = /* #__PURE__ */ Control_Applicative.pure(Data_Maybe.applicativeMaybe);
-var pred = /* #__PURE__ */ Data_Enum.pred(Data_Date_Component.enumMonth);
-var pred1 = /* #__PURE__ */ Data_Enum.pred(Data_Date_Component.enumDay);
-var pred2 = /* #__PURE__ */ Data_Enum.pred(Data_Date_Component.enumYear);
-var toEnum3 = /* #__PURE__ */ Data_Enum.toEnum(Data_Date_Component.boundedEnumMonth);
-var fromEnum2 = /* #__PURE__ */ Data_Enum.fromEnum(Data_Date_Component.boundedEnumDay);
-var bindFlipped = /* #__PURE__ */ Control_Bind.bindFlipped(Data_Maybe.bindMaybe);
-var bind = /* #__PURE__ */ Control_Bind.bind(Data_Maybe.bindMaybe);
+var toEnum = /* #__PURE__ */ Data_Enum.toEnum(Data_Date_Component.boundedEnumDay);
+var ordMaybe = /* #__PURE__ */ Data_Maybe.ordMaybe(Data_Date_Component.ordDay);
 var $$Date = /* #__PURE__ */ (function () {
     function $$Date(value0, value1, value2) {
         this.value0 = value0;
@@ -67,30 +38,33 @@ var year = function (v) {
     return v.value0;
 };
 var weekday = function (v) {
-    var n = $foreign.calcWeekday(v.value0, fromEnum(v.value1), v.value2);
-    var $88 = n === 0;
-    if ($88) {
-        return fromJust(toEnum(7));
+    var n = $foreign.calcWeekday(v.value0, Data_Enum.fromEnum(Data_Date_Component.boundedEnumMonth)(v.value1), v.value2);
+    var $46 = n === 0;
+    if ($46) {
+        return Data_Maybe.fromJust()(Data_Enum.toEnum(Data_Date_Component.boundedEnumWeekday)(7));
     };
-    return fromJust(toEnum(n));
+    return Data_Maybe.fromJust()(Data_Enum.toEnum(Data_Date_Component.boundedEnumWeekday)(n));
 };
 var showDate = {
     show: function (v) {
-        return "(Date " + (show(v.value0) + (" " + (show1(v.value1) + (" " + (show2(v.value2) + ")")))));
+        return "(Date " + (Data_Show.show(Data_Date_Component.showYear)(v.value0) + (" " + (Data_Show.show(Data_Date_Component.showMonth)(v.value1) + (" " + (Data_Show.show(Data_Date_Component.showDay)(v.value2) + ")")))));
     }
 };
 var month = function (v) {
     return v.value1;
 };
 var isLeapYear = function (y) {
-    var y$prime = fromEnum1(y);
-    return mod(y$prime)(4) === 0 && (mod(y$prime)(400) === 0 || !(mod(y$prime)(100) === 0));
+    var y$prime = Data_Enum.fromEnum(Data_Date_Component.boundedEnumYear)(y);
+    return Data_EuclideanRing.mod(Data_EuclideanRing.euclideanRingInt)(y$prime)(4) === 0 && (Data_EuclideanRing.mod(Data_EuclideanRing.euclideanRingInt)(y$prime)(400) === 0 || !(Data_EuclideanRing.mod(Data_EuclideanRing.euclideanRingInt)(y$prime)(100) === 0));
 };
 var lastDayOfMonth = function (y) {
     return function (m) {
-        var unsafeDay = function ($156) {
-            return fromJust1(toEnum1($156));
-        };
+        var unsafeDay = (function () {
+            var $113 = Data_Maybe.fromJust();
+            return function ($114) {
+                return $113(toEnum($114));
+            };
+        })();
         if (m instanceof Data_Date_Component.January) {
             return unsafeDay(31);
         };
@@ -138,29 +112,28 @@ var lastDayOfMonth = function (y) {
 var eqDate = {
     eq: function (x) {
         return function (y) {
-            return eq1(x.value0)(y.value0) && eq2(x.value1)(y.value1) && eq3(x.value2)(y.value2);
+            return Data_Eq.eq(Data_Date_Component.eqYear)(x.value0)(y.value0) && Data_Eq.eq(Data_Date_Component.eqMonth)(x.value1)(y.value1) && Data_Eq.eq(Data_Date_Component.eqDay)(x.value2)(y.value2);
         };
     }
 };
-var eq4 = /* #__PURE__ */ Data_Eq.eq(eqDate);
 var ordDate = {
     compare: function (x) {
         return function (y) {
-            var v = compare(x.value0)(y.value0);
+            var v = Data_Ord.compare(Data_Date_Component.ordYear)(x.value0)(y.value0);
             if (v instanceof Data_Ordering.LT) {
                 return Data_Ordering.LT.value;
             };
             if (v instanceof Data_Ordering.GT) {
                 return Data_Ordering.GT.value;
             };
-            var v1 = compare1(x.value1)(y.value1);
+            var v1 = Data_Ord.compare(Data_Date_Component.ordMonth)(x.value1)(y.value1);
             if (v1 instanceof Data_Ordering.LT) {
                 return Data_Ordering.LT.value;
             };
             if (v1 instanceof Data_Ordering.GT) {
                 return Data_Ordering.GT.value;
             };
-            return compare2(x.value2)(y.value2);
+            return Data_Ord.compare(Data_Date_Component.ordDay)(x.value2)(y.value2);
         };
     },
     Eq0: function () {
@@ -169,77 +142,76 @@ var ordDate = {
 };
 var enumDate = {
     succ: function (v) {
-        var sm = succ(v.value1);
+        var sm = Data_Enum.succ(Data_Date_Component.enumMonth)(v.value1);
         var l = lastDayOfMonth(v.value0)(v.value1);
         var sd = (function () {
-            var v1 = succ1(v.value2);
-            var $120 = greaterThan(v1)(new Data_Maybe.Just(l));
-            if ($120) {
+            var v1 = Data_Enum.succ(Data_Date_Component.enumDay)(v.value2);
+            var $78 = Data_Ord.greaterThan(ordMaybe)(v1)(new Data_Maybe.Just(l));
+            if ($78) {
                 return Data_Maybe.Nothing.value;
             };
             return v1;
         })();
         var m$prime = (function () {
-            var $121 = Data_Maybe.isNothing(sd);
-            if ($121) {
+            var $79 = Data_Maybe.isNothing(sd);
+            if ($79) {
                 return Data_Maybe.fromMaybe(Data_Date_Component.January.value)(sm);
             };
             return v.value1;
         })();
         var y$prime = (function () {
-            var $122 = Data_Maybe.isNothing(sd) && Data_Maybe.isNothing(sm);
-            if ($122) {
-                return succ2(v.value0);
+            var $80 = Data_Maybe.isNothing(sd) && Data_Maybe.isNothing(sm);
+            if ($80) {
+                return Data_Enum.succ(Data_Date_Component.enumYear)(v.value0);
             };
             return new Data_Maybe.Just(v.value0);
         })();
         var d$prime = (function () {
-            var $123 = Data_Maybe.isNothing(sd);
-            if ($123) {
-                return toEnum2(1);
+            var $81 = Data_Maybe.isNothing(sd);
+            if ($81) {
+                return Data_Enum.toEnum(Data_Date_Component.boundedEnumDay)(1);
             };
             return sd;
         })();
-        return apply(apply(map($$Date.create)(y$prime))(pure(m$prime)))(d$prime);
+        return Control_Apply.apply(Data_Maybe.applyMaybe)(Control_Apply.apply(Data_Maybe.applyMaybe)(Data_Functor.map(Data_Maybe.functorMaybe)($$Date.create)(y$prime))(Control_Applicative.pure(Data_Maybe.applicativeMaybe)(m$prime)))(d$prime);
     },
     pred: function (v) {
-        var pm = pred(v.value1);
-        var pd = pred1(v.value2);
+        var pm = Data_Enum.pred(Data_Date_Component.enumMonth)(v.value1);
+        var pd = Data_Enum.pred(Data_Date_Component.enumDay)(v.value2);
         var y$prime = (function () {
-            var $128 = Data_Maybe.isNothing(pd) && Data_Maybe.isNothing(pm);
-            if ($128) {
-                return pred2(v.value0);
+            var $86 = Data_Maybe.isNothing(pd) && Data_Maybe.isNothing(pm);
+            if ($86) {
+                return Data_Enum.pred(Data_Date_Component.enumYear)(v.value0);
             };
             return new Data_Maybe.Just(v.value0);
         })();
         var m$prime = (function () {
-            var $129 = Data_Maybe.isNothing(pd);
-            if ($129) {
+            var $87 = Data_Maybe.isNothing(pd);
+            if ($87) {
                 return Data_Maybe.fromMaybe(Data_Date_Component.December.value)(pm);
             };
             return v.value1;
         })();
         var l = lastDayOfMonth(v.value0)(m$prime);
         var d$prime = (function () {
-            var $130 = Data_Maybe.isNothing(pd);
-            if ($130) {
+            var $88 = Data_Maybe.isNothing(pd);
+            if ($88) {
                 return new Data_Maybe.Just(l);
             };
             return pd;
         })();
-        return apply(apply(map($$Date.create)(y$prime))(pure(m$prime)))(d$prime);
+        return Control_Apply.apply(Data_Maybe.applyMaybe)(Control_Apply.apply(Data_Maybe.applyMaybe)(Data_Functor.map(Data_Maybe.functorMaybe)($$Date.create)(y$prime))(Control_Applicative.pure(Data_Maybe.applicativeMaybe)(m$prime)))(d$prime);
     },
     Ord0: function () {
         return ordDate;
     }
 };
-var pred3 = /* #__PURE__ */ Data_Enum.pred(enumDate);
-var succ3 = /* #__PURE__ */ Data_Enum.succ(enumDate);
+var pred = /* #__PURE__ */ Data_Enum.pred(enumDate);
 var diff = function (dictDuration) {
     var toDuration = Data_Time_Duration.toDuration(dictDuration);
     return function (v) {
         return function (v1) {
-            return toDuration($foreign.calcDiff(v.value0, fromEnum(v.value1), v.value2, v1.value0, fromEnum(v1.value1), v1.value2));
+            return toDuration($foreign.calcDiff(v.value0, Data_Enum.fromEnum(Data_Date_Component.boundedEnumMonth)(v.value1), v.value2, v1.value0, Data_Enum.fromEnum(Data_Date_Component.boundedEnumMonth)(v1.value1), v1.value2));
         };
     };
 };
@@ -252,11 +224,11 @@ var canonicalDate = function (y) {
             var mkDate = function (y$prime) {
                 return function (m$prime) {
                     return function (d$prime) {
-                        return new $$Date(y$prime, fromJust(toEnum3(m$prime)), d$prime);
+                        return new $$Date(y$prime, Data_Maybe.fromJust()(Data_Enum.toEnum(Data_Date_Component.boundedEnumMonth)(m$prime)), d$prime);
                     };
                 };
             };
-            return $foreign.canonicalDateImpl(mkDate, y, fromEnum(m), d);
+            return $foreign.canonicalDateImpl(mkDate, y, Data_Enum.fromEnum(Data_Date_Component.boundedEnumMonth)(m), d);
         };
     };
 };
@@ -264,8 +236,8 @@ var exactDate = function (y) {
     return function (m) {
         return function (d) {
             var dt = new $$Date(y, m, d);
-            var $146 = eq4(canonicalDate(y)(m)(d))(dt);
-            if ($146) {
+            var $104 = Data_Eq.eq(eqDate)(canonicalDate(y)(m)(d))(dt);
+            if ($104) {
                 return new Data_Maybe.Just(dt);
             };
             return Data_Maybe.Nothing.value;
@@ -288,21 +260,21 @@ var adjust = function (v) {
                 if (v1 === 0) {
                     return new Data_Maybe.Just(v2);
                 };
-                var j = v1 + fromEnum2(v2.value2) | 0;
+                var j = v1 + Data_Enum.fromEnum(Data_Date_Component.boundedEnumDay)(v2.value2) | 0;
                 var low = j < 1;
                 var l = lastDayOfMonth(v2.value0)((function () {
                     if (low) {
-                        return Data_Maybe.fromMaybe(Data_Date_Component.December.value)(pred(v2.value1));
+                        return Data_Maybe.fromMaybe(Data_Date_Component.December.value)(Data_Enum.pred(Data_Date_Component.enumMonth)(v2.value1));
                     };
                     return v2.value1;
                 })());
-                var hi = j > fromEnum2(l);
+                var hi = j > Data_Enum.fromEnum(Data_Date_Component.boundedEnumDay)(l);
                 var i$prime = (function () {
                     if (low) {
                         return j;
                     };
                     if (hi) {
-                        return (j - fromEnum2(l) | 0) - 1 | 0;
+                        return (j - Data_Enum.fromEnum(Data_Date_Component.boundedEnumDay)(l) | 0) - 1 | 0;
                     };
                     if (Data_Boolean.otherwise) {
                         return 0;
@@ -311,20 +283,20 @@ var adjust = function (v) {
                 })();
                 var dt$prime = (function () {
                     if (low) {
-                        return bindFlipped(pred3)(map($$Date.create(v2.value0)(v2.value1))(toEnum2(1)));
+                        return Control_Bind.bindFlipped(Data_Maybe.bindMaybe)(pred)(Data_Functor.map(Data_Maybe.functorMaybe)($$Date.create(v2.value0)(v2.value1))(Data_Enum.toEnum(Data_Date_Component.boundedEnumDay)(1)));
                     };
                     if (hi) {
-                        return succ3(new $$Date(v2.value0, v2.value1, l));
+                        return Data_Enum.succ(enumDate)(new $$Date(v2.value0, v2.value1, l));
                     };
                     if (Data_Boolean.otherwise) {
-                        return map($$Date.create(v2.value0)(v2.value1))(toEnum2(j));
+                        return Data_Functor.map(Data_Maybe.functorMaybe)($$Date.create(v2.value0)(v2.value1))(Data_Enum.toEnum(Data_Date_Component.boundedEnumDay)(j));
                     };
                     throw new Error("Failed pattern match at Data.Date (line 104, column 9 - line 106, column 48): " + [  ]);
                 })();
-                return bindFlipped(adj(i$prime))(dt$prime);
+                return Control_Bind.bindFlipped(Data_Maybe.bindMaybe)(adj(i$prime))(dt$prime);
             };
         };
-        return bind(Data_Int.fromNumber(v))(Data_Function.flip(adj)(date));
+        return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Int.fromNumber(v))(Data_Function.flip(adj)(date));
     };
 };
 export {

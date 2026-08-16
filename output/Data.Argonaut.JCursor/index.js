@@ -36,32 +36,12 @@ var $runtime_lazy = function (name, moduleName, init) {
         return val;
     };
 };
-var show = /* #__PURE__ */ Data_Show.show(Data_Show.showString);
-var show1 = /* #__PURE__ */ Data_Show.show(Data_Show.showInt);
-var show2 = /* #__PURE__ */ Data_Show.show(Data_Show.showUnit);
-var show3 = /* #__PURE__ */ Data_Show.show(Data_Show.showBoolean);
-var show4 = /* #__PURE__ */ Data_Show.show(Data_Show.showNumber);
-var show5 = /* #__PURE__ */ Data_Show.show(Data_Show.showString);
-var map = /* #__PURE__ */ Data_Functor.map(Data_List_Types.functorList);
-var bind = /* #__PURE__ */ Control_Bind.bind(Data_List_Types.bindList);
-var toUnfoldable = /* #__PURE__ */ Foreign_Object.toUnfoldable(Data_List_Types.unfoldableList);
-var fromFoldable = /* #__PURE__ */ Data_List.fromFoldable(Data_List_Types.foldableList);
-var fromFoldable1 = /* #__PURE__ */ Data_List.fromFoldable(Data_Foldable.foldableArray);
-var compare = /* #__PURE__ */ Data_Ord.compare(Data_Ord.ordString);
-var compare1 = /* #__PURE__ */ Data_Ord.compare(Data_Ord.ordInt);
-var append1 = /* #__PURE__ */ Data_Semigroup.append(Data_Semigroup.semigroupArray);
-var encodeJson = /* #__PURE__ */ Data_Argonaut_Encode_Class.encodeJson(Data_Argonaut_Encode_Class.encodeJsonJString);
-var encodeJson1 = /* #__PURE__ */ Data_Argonaut_Encode_Class.encodeJson(Data_Argonaut_Encode_Class.encodeJsonInt);
-var apply = /* #__PURE__ */ Control_Apply.apply(Data_Maybe.applyMaybe);
-var map1 = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
-var bind1 = /* #__PURE__ */ Control_Bind.bind(Data_Either.bindEither);
-var decodeJson = /* #__PURE__ */ Data_Argonaut_Decode_Class.decodeJson(/* #__PURE__ */ Data_Argonaut_Decode_Class.decodeArray(Data_Argonaut_Decode_Class.decodeJsonJson));
+var show = /* #__PURE__ */ Data_Show.show(Data_Show.showUnit);
+var show1 = /* #__PURE__ */ Data_Show.show(Data_Show.showBoolean);
+var show2 = /* #__PURE__ */ Data_Show.show(Data_Show.showNumber);
+var show3 = /* #__PURE__ */ Data_Show.show(Data_Show.showString);
+var decodeArray = /* #__PURE__ */ Data_Argonaut_Decode_Class.decodeArray(Data_Argonaut_Decode_Class.decodeJsonJson);
 var pure = /* #__PURE__ */ Control_Applicative.pure(Data_Maybe.applicativeMaybe);
-var replicate = /* #__PURE__ */ Data_Unfoldable.replicate(Data_Unfoldable.unfoldableArray);
-var bindFlipped = /* #__PURE__ */ Control_Bind.bindFlipped(Data_Maybe.bindMaybe);
-var bind2 = /* #__PURE__ */ Control_Bind.bind(Data_Maybe.bindMaybe);
-var foldl = /* #__PURE__ */ Data_Foldable.foldl(Data_List_Types.foldableList);
-var composeKleisliFlipped = /* #__PURE__ */ Control_Bind.composeKleisliFlipped(Data_Maybe.bindMaybe);
 var JsonPrim = function (x) {
     return x;
 };
@@ -102,15 +82,14 @@ var showJCursor = {
             return "JCursorTop";
         };
         if (v instanceof JField) {
-            return "(JField " + (show(v.value0) + (" " + (Data_Show.show(showJCursor)(v.value1) + ")")));
+            return "(JField " + (Data_Show.show(Data_Show.showString)(v.value0) + (" " + (Data_Show.show(showJCursor)(v.value1) + ")")));
         };
         if (v instanceof JIndex) {
-            return "(JIndex " + (show1(v.value0) + (" " + (Data_Show.show(showJCursor)(v.value1) + ")")));
+            return "(JIndex " + (Data_Show.show(Data_Show.showInt)(v.value0) + (" " + (Data_Show.show(showJCursor)(v.value1) + ")")));
         };
         throw new Error("Failed pattern match at Data.Argonaut.JCursor (line 26, column 1 - line 29, column 67): " + [ v.constructor.name ]);
     }
 };
-var show6 = /* #__PURE__ */ Data_Show.show(showJCursor);
 var semigroupJCursor = {
     append: function (v) {
         return function (v1) {
@@ -135,7 +114,7 @@ var runJsonPrim = function (v) {
 };
 var showJsonPrim = {
     show: function (p) {
-        return runJsonPrim(p)(show2)(show3)(show4)(show5);
+        return runJsonPrim(p)(show)(show1)(show2)(show3);
     }
 };
 var print = function (v) {
@@ -143,10 +122,10 @@ var print = function (v) {
         return "";
     };
     if (v instanceof JField) {
-        return "." + (v.value0 + show6(v.value1));
+        return "." + (v.value0 + Data_Show.show(showJCursor)(v.value1));
     };
     if (v instanceof JIndex) {
-        return "[" + (show1(v.value0) + ("]" + show6(v.value1)));
+        return "[" + (Data_Show.show(Data_Show.showInt)(v.value0) + ("]" + Data_Show.show(showJCursor)(v.value1)));
     };
     throw new Error("Failed pattern match at Data.Argonaut.JCursor (line 31, column 1 - line 31, column 27): " + [ v.constructor.name ]);
 };
@@ -198,11 +177,11 @@ var primBool = function (v) {
 var $lazy_toPrims = /* #__PURE__ */ $runtime_lazy("toPrims", "Data.Argonaut.JCursor", function () {
     var objFn = function (obj) {
         var f = function (v) {
-            return map(function (t) {
+            return Data_Functor.map(Data_List_Types.functorList)(function (t) {
                 return new Data_Tuple.Tuple(new JField(v.value0, Data_Tuple.fst(t)), Data_Tuple.snd(t));
             })($lazy_toPrims(184)(v.value1));
         };
-        return bind(toUnfoldable(obj))(f);
+        return Control_Bind.bind(Data_List_Types.bindList)(Foreign_Object.toUnfoldable(Data_List_Types.unfoldableList)(obj))(f);
     };
     var mkTop = function (p) {
         return Data_List.singleton(new Data_Tuple.Tuple(JCursorTop.value, p));
@@ -220,13 +199,13 @@ var $lazy_toPrims = /* #__PURE__ */ $runtime_lazy("toPrims", "Data.Argonaut.JCur
         return mkTop(primBool(b));
     };
     var arrFn$prime = function (v) {
-        return fromFoldable(map(function (t) {
+        return Data_List.fromFoldable(Data_List_Types.foldableList)(Data_Functor.map(Data_List_Types.functorList)(function (t) {
             return new Data_Tuple.Tuple(new JIndex(v.value0, Data_Tuple.fst(t)), Data_Tuple.snd(t));
         })($lazy_toPrims(178)(v.value1)));
     };
     var arrFn = function (arr) {
-        var zipped = Data_List.zipWith(Data_Tuple.Tuple.create)(Data_List.range(0)(Data_Array.length(arr) - 1 | 0))(fromFoldable1(arr));
-        return bind(zipped)(arrFn$prime);
+        var zipped = Data_List.zipWith(Data_Tuple.Tuple.create)(Data_List.range(0)(Data_Array.length(arr) - 1 | 0))(Data_List.fromFoldable(Data_Foldable.foldableArray)(arr));
+        return Control_Bind.bind(Data_List_Types.bindList)(zipped)(arrFn$prime);
     };
     return Data_Argonaut_Core.caseJson(nullFn)(boolFn)(numFn)(strFn)(arrFn)(objFn);
 });
@@ -280,7 +259,7 @@ var ordJCursor = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof JField && y instanceof JField) {
-                var v = compare(x.value0)(y.value0);
+                var v = Data_Ord.compare(Data_Ord.ordString)(x.value0)(y.value0);
                 if (v instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
@@ -296,7 +275,7 @@ var ordJCursor = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof JIndex && y instanceof JIndex) {
-                var v = compare1(x.value0)(y.value0);
+                var v = Data_Ord.compare(Data_Ord.ordInt)(x.value0)(y.value0);
                 if (v instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
@@ -319,16 +298,16 @@ var encodeJsonJCursor = {
                 return [  ];
             };
             if (v instanceof JField) {
-                return append1([ encodeJson(v.value0) ])(loop(v.value1));
+                return Data_Semigroup.append(Data_Semigroup.semigroupArray)([ Data_Argonaut_Encode_Class.encodeJson(Data_Argonaut_Encode_Class.encodeJsonJString)(v.value0) ])(loop(v.value1));
             };
             if (v instanceof JIndex) {
-                return append1([ encodeJson1(v.value0) ])(loop(v.value1));
+                return Data_Semigroup.append(Data_Semigroup.semigroupArray)([ Data_Argonaut_Encode_Class.encodeJson(Data_Argonaut_Encode_Class.encodeJsonInt)(v.value0) ])(loop(v.value1));
             };
             throw new Error("Failed pattern match at Data.Argonaut.JCursor (line 48, column 5 - line 48, column 25): " + [ v.constructor.name ]);
         };
-        var $186 = Data_Argonaut_Encode_Class.encodeJson(Data_Argonaut_Encode_Class.encodeJsonArray(Data_Argonaut_Encode_Class.encodeJsonJson));
-        return function ($187) {
-            return $186(loop($187));
+        var $155 = Data_Argonaut_Encode_Class.encodeJson(Data_Argonaut_Encode_Class.encodeJsonArray(Data_Argonaut_Encode_Class.encodeJsonJson));
+        return function ($156) {
+            return $155(loop($156));
         };
     })()
 };
@@ -377,54 +356,54 @@ var insideOut = function (v) {
 var decodeJsonJCursor = {
     decodeJson: function (j) {
         var goNum = function (c) {
-            var $188 = Data_Maybe.maybe(new Data_Either.Left(new Data_Argonaut_Decode_Error.TypeMismatch("Int")))((function () {
-                var $190 = Data_Function.flip(JIndex.create)(c);
-                return function ($191) {
-                    return Data_Either.Right.create($190($191));
+            var $157 = Data_Maybe.maybe(new Data_Either.Left(new Data_Argonaut_Decode_Error.TypeMismatch("Int")))((function () {
+                var $159 = Data_Function.flip(JIndex.create)(c);
+                return function ($160) {
+                    return Data_Either.Right.create($159($160));
                 };
             })());
-            return function ($189) {
-                return $188(Data_Int.fromNumber($189));
+            return function ($158) {
+                return $157(Data_Int.fromNumber($158));
             };
         };
         var loop = function (arr) {
-            return Data_Maybe.maybe(new Data_Either.Right(JCursorTop.value))(goLoop)(apply(map1(Data_Tuple.Tuple.create)(Data_Array.head(arr)))(Data_Array.tail(arr)));
+            return Data_Maybe.maybe(new Data_Either.Right(JCursorTop.value))(goLoop)(Control_Apply.apply(Data_Maybe.applyMaybe)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Tuple.Tuple.create)(Data_Array.head(arr)))(Data_Array.tail(arr)));
         };
         var goLoop = function (v) {
-            return bind1(loop(v.value1))(function (c) {
+            return Control_Bind.bind(Data_Either.bindEither)(loop(v.value1))(function (c) {
                 var fail = new Data_Either.Left(new Data_Argonaut_Decode_Error.Named("Int or String", new Data_Argonaut_Decode_Error.UnexpectedValue(v.value0)));
                 return Data_Argonaut_Core.caseJson(Data_Function["const"](fail))(Data_Function["const"](fail))(goNum(c))((function () {
-                    var $192 = Data_Function.flip(JField.create)(c);
-                    return function ($193) {
-                        return Data_Either.Right.create($192($193));
+                    var $161 = Data_Function.flip(JField.create)(c);
+                    return function ($162) {
+                        return Data_Either.Right.create($161($162));
                     };
                 })())(Data_Function["const"](fail))(Data_Function["const"](fail))(v.value0);
             });
         };
-        return bind1(decodeJson(j))(loop);
+        return Control_Bind.bind(Data_Either.bindEither)(Data_Argonaut_Decode_Class.decodeJson(decodeArray)(j))(loop);
     }
 };
 var cursorSet = function (v) {
     return function (v1) {
         if (v instanceof JCursorTop) {
-            var $194 = Data_Function["const"](v1);
-            return function ($195) {
-                return pure($194($195));
+            var $163 = Data_Function["const"](v1);
+            return function ($164) {
+                return pure($163($164));
             };
         };
         if (v instanceof JField) {
             var mergeObjs = function (m) {
-                return map1((function () {
-                    var $196 = Data_Function.flip(Foreign_Object.insert(v.value0))(m);
-                    return function ($197) {
-                        return Data_Argonaut_Core.fromObject($196($197));
+                return Data_Functor.map(Data_Maybe.functorMaybe)((function () {
+                    var $165 = Data_Function.flip(Foreign_Object.insert(v.value0))(m);
+                    return function ($166) {
+                        return Data_Argonaut_Core.fromObject($165($166));
                     };
                 })())(cursorSet(v.value1)(v1)(Data_Maybe.fromMaybe(inferEmpty(v.value1))(Foreign_Object.lookup(v.value0)(m))));
             };
-            var defaultObj = map1((function () {
-                var $198 = Foreign_Object.singleton(v.value0);
-                return function ($199) {
-                    return Data_Argonaut_Core.fromObject($198($199));
+            var defaultObj = Data_Functor.map(Data_Maybe.functorMaybe)((function () {
+                var $167 = Foreign_Object.singleton(v.value0);
+                return function ($168) {
+                    return Data_Argonaut_Core.fromObject($167($168));
                 };
             })())(cursorSet(v.value1)(v1)(inferEmpty(v.value1)));
             return Data_Argonaut_Core.caseJsonObject(defaultObj)(mergeObjs);
@@ -439,20 +418,20 @@ var cursorSet = function (v) {
                         var $tco_result;
                         function $tco_loop(xs, i$prime, v$prime) {
                             var len = Data_Array.length(xs);
-                            var $173 = i$prime < 0;
-                            if ($173) {
+                            var $142 = i$prime < 0;
+                            if ($142) {
                                 $tco_done = true;
                                 return Data_Maybe.Nothing.value;
                             };
-                            var $174 = i$prime >= len;
-                            if ($174) {
-                                $tco_var_xs = append1(xs)(replicate((i$prime - len | 0) + 1 | 0)(Data_Argonaut_Core.jsonNull));
+                            var $143 = i$prime >= len;
+                            if ($143) {
+                                $tco_var_xs = Data_Semigroup.append(Data_Semigroup.semigroupArray)(xs)(Data_Unfoldable.replicate(Data_Unfoldable.unfoldableArray)((i$prime - len | 0) + 1 | 0)(Data_Argonaut_Core.jsonNull));
                                 $tco_var_i$prime = i$prime;
                                 $copy_v$prime = v$prime;
                                 return;
                             };
                             $tco_done = true;
-                            return map1(Data_Argonaut_Core.fromArray)(Data_Array.updateAt(i$prime)(v$prime)(xs));
+                            return Data_Functor.map(Data_Maybe.functorMaybe)(Data_Argonaut_Core.fromArray)(Data_Array.updateAt(i$prime)(v$prime)(xs));
                         };
                         while (!$tco_done) {
                             $tco_result = $tco_loop($tco_var_xs, $tco_var_i$prime, $copy_v$prime);
@@ -462,9 +441,9 @@ var cursorSet = function (v) {
                 };
             };
             var mergeArrs = function (a) {
-                return bindFlipped(setArr(a)(v.value0))(cursorSet(v.value1)(v1)(Data_Maybe.fromMaybe(inferEmpty(v.value1))(Data_Array.index(a)(v.value0))));
+                return Control_Bind.bindFlipped(Data_Maybe.bindMaybe)(setArr(a)(v.value0))(cursorSet(v.value1)(v1)(Data_Maybe.fromMaybe(inferEmpty(v.value1))(Data_Array.index(a)(v.value0))));
             };
-            var defaultArr = map1(Data_Argonaut_Core.fromArray)(bindFlipped(Data_Function.flip(Data_Array.updateAt(v.value0))(replicate(v.value0 + 1 | 0)(Data_Argonaut_Core.jsonNull)))(cursorSet(v.value1)(v1)(inferEmpty(v.value1))));
+            var defaultArr = Data_Functor.map(Data_Maybe.functorMaybe)(Data_Argonaut_Core.fromArray)(Control_Bind.bindFlipped(Data_Maybe.bindMaybe)(Data_Function.flip(Data_Array.updateAt(v.value0))(Data_Unfoldable.replicate(Data_Unfoldable.unfoldableArray)(v.value0 + 1 | 0)(Data_Argonaut_Core.jsonNull)))(cursorSet(v.value1)(v1)(inferEmpty(v.value1))));
             return Data_Argonaut_Core.caseJsonArray(defaultArr)(mergeArrs);
         };
         throw new Error("Failed pattern match at Data.Argonaut.JCursor (line 119, column 1 - line 119, column 57): " + [ v.constructor.name, v1.constructor.name ]);
@@ -473,11 +452,11 @@ var cursorSet = function (v) {
 var fromPrims = function (lst) {
     var f = function (j) {
         return function (v) {
-            return bind2(j)(cursorSet(v.value0)(primToJson(v.value1)));
+            return Control_Bind.bind(Data_Maybe.bindMaybe)(j)(cursorSet(v.value0)(primToJson(v.value1)));
         };
     };
-    return foldl(f)(map1(function ($200) {
-        return inferEmpty(Data_Tuple.fst($200));
+    return Data_Foldable.foldl(Data_List_Types.foldableList)(f)(Data_Functor.map(Data_Maybe.functorMaybe)(function ($169) {
+        return inferEmpty(Data_Tuple.fst($169));
     })(Data_List.head(lst)))(lst);
 };
 var cursorGet = function (v) {
@@ -485,10 +464,10 @@ var cursorGet = function (v) {
         return Data_Maybe.Just.create;
     };
     if (v instanceof JField) {
-        return Data_Argonaut_Core.caseJsonObject(Data_Maybe.Nothing.value)(composeKleisliFlipped(cursorGet(v.value1))(Foreign_Object.lookup(v.value0)));
+        return Data_Argonaut_Core.caseJsonObject(Data_Maybe.Nothing.value)(Control_Bind.composeKleisliFlipped(Data_Maybe.bindMaybe)(cursorGet(v.value1))(Foreign_Object.lookup(v.value0)));
     };
     if (v instanceof JIndex) {
-        return Data_Argonaut_Core.caseJsonArray(Data_Maybe.Nothing.value)(composeKleisliFlipped(cursorGet(v.value1))(function (v1) {
+        return Data_Argonaut_Core.caseJsonArray(Data_Maybe.Nothing.value)(Control_Bind.composeKleisliFlipped(Data_Maybe.bindMaybe)(cursorGet(v.value1))(function (v1) {
             return Data_Array.index(v1)(v.value0);
         }));
     };

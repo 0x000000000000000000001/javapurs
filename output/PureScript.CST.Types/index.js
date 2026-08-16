@@ -1910,11 +1910,10 @@ var eqSourceStyle = {
         };
     }
 };
-var eq4 = /* #__PURE__ */ Data_Eq.eq(eqSourceStyle);
 var eqProper = Data_Eq.eqString;
 var eqOperator = Data_Eq.eqString;
 var eqModuleName = Data_Eq.eqString;
-var eq5 = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Maybe.eqMaybe(eqModuleName));
+var eqMaybe = /* #__PURE__ */ Data_Maybe.eqMaybe(eqModuleName);
 var eqLabel = Data_Eq.eqString;
 var eqIntValue = {
     eq: function (x) {
@@ -1932,7 +1931,6 @@ var eqIntValue = {
         };
     }
 };
-var eq6 = /* #__PURE__ */ Data_Eq.eq(eqIntValue);
 var eqToken = {
     eq: function (x) {
         return function (y) {
@@ -1955,19 +1953,19 @@ var eqToken = {
                 return true;
             };
             if (x instanceof TokLeftArrow && y instanceof TokLeftArrow) {
-                return eq4(x.value0)(y.value0);
+                return Data_Eq.eq(eqSourceStyle)(x.value0)(y.value0);
             };
             if (x instanceof TokRightArrow && y instanceof TokRightArrow) {
-                return eq4(x.value0)(y.value0);
+                return Data_Eq.eq(eqSourceStyle)(x.value0)(y.value0);
             };
             if (x instanceof TokRightFatArrow && y instanceof TokRightFatArrow) {
-                return eq4(x.value0)(y.value0);
+                return Data_Eq.eq(eqSourceStyle)(x.value0)(y.value0);
             };
             if (x instanceof TokDoubleColon && y instanceof TokDoubleColon) {
-                return eq4(x.value0)(y.value0);
+                return Data_Eq.eq(eqSourceStyle)(x.value0)(y.value0);
             };
             if (x instanceof TokForall && y instanceof TokForall) {
-                return eq4(x.value0)(y.value0);
+                return Data_Eq.eq(eqSourceStyle)(x.value0)(y.value0);
             };
             if (x instanceof TokEquals && y instanceof TokEquals) {
                 return true;
@@ -1994,19 +1992,19 @@ var eqToken = {
                 return true;
             };
             if (x instanceof TokLowerName && y instanceof TokLowerName) {
-                return eq5(x.value0)(y.value0) && x.value1 === y.value1;
+                return Data_Eq.eq(eqMaybe)(x.value0)(y.value0) && x.value1 === y.value1;
             };
             if (x instanceof TokUpperName && y instanceof TokUpperName) {
-                return eq5(x.value0)(y.value0) && x.value1 === y.value1;
+                return Data_Eq.eq(eqMaybe)(x.value0)(y.value0) && x.value1 === y.value1;
             };
             if (x instanceof TokOperator && y instanceof TokOperator) {
-                return eq5(x.value0)(y.value0) && x.value1 === y.value1;
+                return Data_Eq.eq(eqMaybe)(x.value0)(y.value0) && x.value1 === y.value1;
             };
             if (x instanceof TokSymbolName && y instanceof TokSymbolName) {
-                return eq5(x.value0)(y.value0) && x.value1 === y.value1;
+                return Data_Eq.eq(eqMaybe)(x.value0)(y.value0) && x.value1 === y.value1;
             };
             if (x instanceof TokSymbolArrow && y instanceof TokSymbolArrow) {
-                return eq4(x.value0)(y.value0);
+                return Data_Eq.eq(eqSourceStyle)(x.value0)(y.value0);
             };
             if (x instanceof TokHole && y instanceof TokHole) {
                 return x.value0 === y.value0;
@@ -2021,7 +2019,7 @@ var eqToken = {
                 return x.value0 === y.value0;
             };
             if (x instanceof TokInt && y instanceof TokInt) {
-                return x.value0 === y.value0 && eq6(x.value1)(y.value1);
+                return x.value0 === y.value0 && Data_Eq.eq(eqIntValue)(x.value1)(y.value1);
             };
             if (x instanceof TokNumber && y instanceof TokNumber) {
                 return x.value0 === y.value0 && x.value1 === y.value1;

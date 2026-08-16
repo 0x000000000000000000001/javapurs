@@ -4,7 +4,6 @@ import * as Control_Comonad_Store_Trans from "../Control.Comonad.Store.Trans/ind
 import * as Data_Functor from "../Data.Functor/index.js";
 import * as Data_Newtype from "../Data.Newtype/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(Data_Tuple.functorTuple);
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
 var store = function (f) {
     return function (x) {
@@ -12,7 +11,7 @@ var store = function (f) {
     };
 };
 var runStore = function (v) {
-    return Data_Tuple.swap(map(unwrap)(Data_Tuple.swap(v)));
+    return Data_Tuple.swap(Data_Functor.map(Data_Tuple.functorTuple)(unwrap)(Data_Tuple.swap(v)));
 };
 export {
     runStore,

@@ -11,19 +11,18 @@ var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var distributiveIdentity = {
     distribute: function (dictFunctor) {
-        var $35 = Data_Functor.map(dictFunctor)(unwrap);
-        return function ($36) {
-            return Data_Identity.Identity($35($36));
+        var $24 = Data_Functor.map(dictFunctor)(unwrap);
+        return function ($25) {
+            return Data_Identity.Identity($24($25));
         };
     },
     collect: function (dictFunctor) {
-        var map = Data_Functor.map(dictFunctor);
         return function (f) {
-            var $37 = map(function ($39) {
-                return unwrap1(f($39));
+            var $26 = Data_Functor.map(dictFunctor)(function ($28) {
+                return unwrap1(f($28));
             });
-            return function ($38) {
-                return Data_Identity.Identity($37($38));
+            return function ($27) {
+                return Data_Identity.Identity($26($27));
             };
         };
     },
@@ -36,22 +35,20 @@ var distribute = function (dict) {
 };
 var distributiveFunction = {
     distribute: function (dictFunctor) {
-        var map = Data_Functor.map(dictFunctor);
         return function (a) {
             return function (e) {
-                return map(function (v) {
+                return Data_Functor.map(dictFunctor)(function (v) {
                     return v(e);
                 })(a);
             };
         };
     },
     collect: function (dictFunctor) {
-        var map = Data_Functor.map(dictFunctor);
         return function (f) {
-            var $40 = distribute(distributiveFunction)(dictFunctor);
-            var $41 = map(f);
-            return function ($42) {
-                return $40($41($42));
+            var $29 = distribute(distributiveFunction)(dictFunctor);
+            var $30 = Data_Functor.map(dictFunctor)(f);
+            return function ($31) {
+                return $29($30($31));
             };
         };
     },
@@ -60,14 +57,14 @@ var distributiveFunction = {
     }
 };
 var cotraverse = function (dictDistributive) {
-    var map = Data_Functor.map(dictDistributive.Functor0());
+    var Functor0 = dictDistributive.Functor0();
     var distribute1 = distribute(dictDistributive);
     return function (dictFunctor) {
         var distribute2 = distribute1(dictFunctor);
         return function (f) {
-            var $43 = map(f);
-            return function ($44) {
-                return $43(distribute2($44));
+            var $32 = Data_Functor.map(Functor0)(f);
+            return function ($33) {
+                return $32(distribute2($33));
             };
         };
     };
@@ -76,26 +73,24 @@ var collectDefault = function (dictDistributive) {
     var distribute1 = distribute(dictDistributive);
     return function (dictFunctor) {
         var distribute2 = distribute1(dictFunctor);
-        var map = Data_Functor.map(dictFunctor);
         return function (f) {
-            var $45 = map(f);
-            return function ($46) {
-                return distribute2($45($46));
+            var $34 = Data_Functor.map(dictFunctor)(f);
+            return function ($35) {
+                return distribute2($34($35));
             };
         };
     };
 };
 var distributiveTuple = function (dictTypeEquals) {
-    var from = Type_Equality.from(dictTypeEquals);
     return {
         collect: function (dictFunctor) {
             return collectDefault(distributiveTuple(dictTypeEquals))(dictFunctor);
         },
         distribute: function (dictFunctor) {
-            var $47 = Data_Tuple.Tuple.create(from(Data_Unit.unit));
-            var $48 = Data_Functor.map(dictFunctor)(Data_Tuple.snd);
-            return function ($49) {
-                return $47($48($49));
+            var $36 = Data_Tuple.Tuple.create(Type_Equality.from(dictTypeEquals)(Data_Unit.unit));
+            var $37 = Data_Functor.map(dictFunctor)(Data_Tuple.snd);
+            return function ($38) {
+                return $36($37($38));
             };
         },
         Functor0: function () {
@@ -107,9 +102,8 @@ var collect = function (dict) {
     return dict.collect;
 };
 var distributeDefault = function (dictDistributive) {
-    var collect1 = collect(dictDistributive);
     return function (dictFunctor) {
-        return collect1(dictFunctor)(identity);
+        return collect(dictDistributive)(dictFunctor)(identity);
     };
 };
 export {

@@ -9,7 +9,6 @@ import * as Data_Maybe from "../Data.Maybe/index.js";
 import * as Data_Ordering from "../Data.Ordering/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as PureScript_CST_Types from "../PureScript.CST.Types/index.js";
-var find = /* #__PURE__ */ Data_Foldable.find(Data_List_Types.foldableList);
 var LytRoot = /* #__PURE__ */ (function () {
     function LytRoot() {
 
@@ -279,7 +278,6 @@ var eqLayoutDelim = {
         };
     }
 };
-var eq1 = /* #__PURE__ */ Data_Eq.eq(eqLayoutDelim);
 var insertLayout = function (v) {
     return function (nextPos) {
         return function (stack) {
@@ -318,8 +316,8 @@ var insertLayout = function (v) {
             };
             var insertStart = function (lyt) {
                 return function (v1) {
-                    var v2 = find(function ($307) {
-                        return isIndented(Data_Tuple.snd($307));
+                    var v2 = Data_Foldable.find(Data_List_Types.foldableList)(function ($299) {
+                        return isIndented(Data_Tuple.snd($299));
                     })(v1.value0);
                     if (v2 instanceof Data_Maybe.Just && nextPos.column <= v2.value0.value0.column) {
                         return v1;
@@ -362,8 +360,8 @@ var insertLayout = function (v) {
                             if (v1 instanceof Data_List_Types.Cons && p(v1.value0.value0)(v1.value0.value1)) {
                                 $tco_var_v1 = v1.value1;
                                 $copy_v2 = (function () {
-                                    var $120 = isIndented(v1.value0.value1);
-                                    if ($120) {
+                                    var $112 = isIndented(v1.value0.value1);
+                                    if ($112) {
                                         return Data_Array.snoc(v2)(new Data_Tuple.Tuple(lytToken(v.range.start)(new PureScript_CST_Types.TokLayoutEnd(v1.value0.value0.column)), v1.value1));
                                     };
                                     return v2;
@@ -400,7 +398,7 @@ var insertLayout = function (v) {
                         return pushStack(v.range.start)(LytTopDecl.value)(v2);
                     };
                     return popStack(function (v3) {
-                        return eq1(v3)(LytProperty.value);
+                        return Data_Eq.eq(eqLayoutDelim)(v3)(LytProperty.value);
                     })(v2);
                 };
                 if (v.value instanceof PureScript_CST_Types.TokLowerName && (v.value.value0 instanceof Data_Maybe.Nothing && v.value.value1 === "class")) {
@@ -409,7 +407,7 @@ var insertLayout = function (v) {
                         return pushStack(v.range.start)(LytTopDeclHead.value)(v2);
                     };
                     return popStack(function (v3) {
-                        return eq1(v3)(LytProperty.value);
+                        return Data_Eq.eq(eqLayoutDelim)(v3)(LytProperty.value);
                     })(v2);
                 };
                 if (v.value instanceof PureScript_CST_Types.TokLowerName && (v.value.value0 instanceof Data_Maybe.Nothing && v.value.value1 === "where")) {
@@ -449,7 +447,7 @@ var insertLayout = function (v) {
                         return insertToken(v)(insertEnd(v2.value0.value0.value0.column)(new Data_Tuple.Tuple(v2.value0.value1, v2.value1)));
                     };
                     return popStack(function (v3) {
-                        return eq1(v3)(LytProperty.value);
+                        return Data_Eq.eq(eqLayoutDelim)(v3)(LytProperty.value);
                     })(insertDefault(v1));
                 };
                 if (v.value instanceof PureScript_CST_Types.TokLowerName && (v.value.value0 instanceof Data_Maybe.Nothing && v.value.value1 === "let")) {
@@ -479,7 +477,7 @@ var insertLayout = function (v) {
                         return pushStack(nextPos)(LytCaseBinders.value)(insertStart(LytOf.value)(insertToken(v)(new Data_Tuple.Tuple(v2.value0.value1, v2.value1))));
                     };
                     return popStack(function (v3) {
-                        return eq1(v3)(LytProperty.value);
+                        return Data_Eq.eq(eqLayoutDelim)(v3)(LytProperty.value);
                     })(insertDefault(v2));
                 };
                 if (v.value instanceof PureScript_CST_Types.TokLowerName && (v.value.value0 instanceof Data_Maybe.Nothing && v.value.value1 === "if")) {
@@ -491,7 +489,7 @@ var insertLayout = function (v) {
                         return pushStack(v.range.start)(LytThen.value)(insertToken(v)(new Data_Tuple.Tuple(v2.value0.value1, v2.value1)));
                     };
                     return popStack(function (v3) {
-                        return eq1(v3)(LytProperty.value);
+                        return Data_Eq.eq(eqLayoutDelim)(v3)(LytProperty.value);
                     })(insertDefault(v1));
                 };
                 if (v.value instanceof PureScript_CST_Types.TokLowerName && (v.value.value0 instanceof Data_Maybe.Nothing && v.value.value1 === "else")) {
@@ -504,7 +502,7 @@ var insertLayout = function (v) {
                         return insertToken(v)(v3);
                     };
                     return popStack(function (v4) {
-                        return eq1(v4)(LytProperty.value);
+                        return Data_Eq.eq(eqLayoutDelim)(v4)(LytProperty.value);
                     })(insertToken(v)(insertSep(v3)));
                 };
                 if (v.value instanceof PureScript_CST_Types.TokForall) {
@@ -608,29 +606,29 @@ var insertLayout = function (v) {
                 };
                 if (v.value instanceof PureScript_CST_Types.TokRightParen) {
                     return insertToken(v)(popStack(function (v2) {
-                        return eq1(v2)(LytParen.value);
+                        return Data_Eq.eq(eqLayoutDelim)(v2)(LytParen.value);
                     })(collapse(indentedP)(v1)));
                 };
                 if (v.value instanceof PureScript_CST_Types.TokRightBrace) {
                     return insertToken(v)(popStack(function (v2) {
-                        return eq1(v2)(LytBrace.value);
+                        return Data_Eq.eq(eqLayoutDelim)(v2)(LytBrace.value);
                     })(popStack(function (v2) {
-                        return eq1(v2)(LytProperty.value);
+                        return Data_Eq.eq(eqLayoutDelim)(v2)(LytProperty.value);
                     })(collapse(indentedP)(v1))));
                 };
                 if (v.value instanceof PureScript_CST_Types.TokRightSquare) {
                     return insertToken(v)(popStack(function (v2) {
-                        return eq1(v2)(LytSquare.value);
+                        return Data_Eq.eq(eqLayoutDelim)(v2)(LytSquare.value);
                     })(collapse(indentedP)(v1)));
                 };
                 if (v.value instanceof PureScript_CST_Types.TokString) {
                     return popStack(function (v2) {
-                        return eq1(v2)(LytProperty.value);
+                        return Data_Eq.eq(eqLayoutDelim)(v2)(LytProperty.value);
                     })(insertDefault(v1));
                 };
                 if (v.value instanceof PureScript_CST_Types.TokLowerName && v.value.value0 instanceof Data_Maybe.Nothing) {
                     return popStack(function (v2) {
-                        return eq1(v2)(LytProperty.value);
+                        return Data_Eq.eq(eqLayoutDelim)(v2)(LytProperty.value);
                     })(insertDefault(v1));
                 };
                 if (v.value instanceof PureScript_CST_Types.TokOperator) {

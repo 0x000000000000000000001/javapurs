@@ -3,7 +3,6 @@ import * as Data_Either from "../Data.Either/index.js";
 import * as Data_Functor_Coproduct from "../Data.Functor.Coproduct/index.js";
 import * as Data_Newtype from "../Data.Newtype/index.js";
 import * as Data_Void from "../Data.Void/index.js";
-var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
 var in9 = function (v) {
     return Data_Functor_Coproduct.right(Data_Functor_Coproduct.right(Data_Functor_Coproduct.right(Data_Functor_Coproduct.right(Data_Functor_Coproduct.right(Data_Functor_Coproduct.right(Data_Functor_Coproduct.right(Data_Functor_Coproduct.right(Data_Functor_Coproduct.left(v)))))))));
 };
@@ -78,7 +77,7 @@ var coproduct9 = function (a) {
                                                                             return i(y.value0.value0.value0.value0.value0.value0.value0.value0.value0);
                                                                         };
                                                                         if (y.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Either.Right) {
-                                                                            return Data_Void.absurd(unwrap(y.value0.value0.value0.value0.value0.value0.value0.value0.value0));
+                                                                            return Data_Void.absurd(Data_Newtype.unwrap()(y.value0.value0.value0.value0.value0.value0.value0.value0.value0));
                                                                         };
                                                                         throw new Error("Failed pattern match at Data.Functor.Coproduct.Nested (line 248, column 41 - line 250, column 61): " + [ y.value0.value0.value0.value0.value0.value0.value0.value0.constructor.name ]);
                                                                     };
@@ -148,7 +147,7 @@ var coproduct8 = function (a) {
                                                                     return h(y.value0.value0.value0.value0.value0.value0.value0.value0);
                                                                 };
                                                                 if (y.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Either.Right) {
-                                                                    return Data_Void.absurd(unwrap(y.value0.value0.value0.value0.value0.value0.value0.value0));
+                                                                    return Data_Void.absurd(Data_Newtype.unwrap()(y.value0.value0.value0.value0.value0.value0.value0.value0));
                                                                 };
                                                                 throw new Error("Failed pattern match at Data.Functor.Coproduct.Nested (line 227, column 39 - line 229, column 59): " + [ y.value0.value0.value0.value0.value0.value0.value0.constructor.name ]);
                                                             };
@@ -210,7 +209,7 @@ var coproduct7 = function (a) {
                                                             return g(y.value0.value0.value0.value0.value0.value0.value0);
                                                         };
                                                         if (y.value0.value0.value0.value0.value0.value0 instanceof Data_Either.Right) {
-                                                            return Data_Void.absurd(unwrap(y.value0.value0.value0.value0.value0.value0.value0));
+                                                            return Data_Void.absurd(Data_Newtype.unwrap()(y.value0.value0.value0.value0.value0.value0.value0));
                                                         };
                                                         throw new Error("Failed pattern match at Data.Functor.Coproduct.Nested (line 208, column 37 - line 210, column 57): " + [ y.value0.value0.value0.value0.value0.value0.constructor.name ]);
                                                     };
@@ -264,7 +263,7 @@ var coproduct6 = function (a) {
                                                     return f(y.value0.value0.value0.value0.value0.value0);
                                                 };
                                                 if (y.value0.value0.value0.value0.value0 instanceof Data_Either.Right) {
-                                                    return Data_Void.absurd(unwrap(y.value0.value0.value0.value0.value0.value0));
+                                                    return Data_Void.absurd(Data_Newtype.unwrap()(y.value0.value0.value0.value0.value0.value0));
                                                 };
                                                 throw new Error("Failed pattern match at Data.Functor.Coproduct.Nested (line 191, column 35 - line 193, column 55): " + [ y.value0.value0.value0.value0.value0.constructor.name ]);
                                             };
@@ -310,7 +309,7 @@ var coproduct5 = function (a) {
                                             return e(y.value0.value0.value0.value0.value0);
                                         };
                                         if (y.value0.value0.value0.value0 instanceof Data_Either.Right) {
-                                            return Data_Void.absurd(unwrap(y.value0.value0.value0.value0.value0));
+                                            return Data_Void.absurd(Data_Newtype.unwrap()(y.value0.value0.value0.value0.value0));
                                         };
                                         throw new Error("Failed pattern match at Data.Functor.Coproduct.Nested (line 176, column 33 - line 178, column 53): " + [ y.value0.value0.value0.value0.constructor.name ]);
                                     };
@@ -348,7 +347,7 @@ var coproduct4 = function (a) {
                                     return d(y.value0.value0.value0.value0);
                                 };
                                 if (y.value0.value0.value0 instanceof Data_Either.Right) {
-                                    return Data_Void.absurd(unwrap(y.value0.value0.value0.value0));
+                                    return Data_Void.absurd(Data_Newtype.unwrap()(y.value0.value0.value0.value0));
                                 };
                                 throw new Error("Failed pattern match at Data.Functor.Coproduct.Nested (line 163, column 31 - line 165, column 51): " + [ y.value0.value0.value0.constructor.name ]);
                             };
@@ -378,7 +377,7 @@ var coproduct3 = function (a) {
                             return c(y.value0.value0.value0);
                         };
                         if (y.value0.value0 instanceof Data_Either.Right) {
-                            return Data_Void.absurd(unwrap(y.value0.value0.value0));
+                            return Data_Void.absurd(Data_Newtype.unwrap()(y.value0.value0.value0));
                         };
                         throw new Error("Failed pattern match at Data.Functor.Coproduct.Nested (line 152, column 29 - line 154, column 49): " + [ y.value0.value0.constructor.name ]);
                     };
@@ -400,7 +399,7 @@ var coproduct2 = function (a) {
                     return b(y.value0.value0);
                 };
                 if (y.value0 instanceof Data_Either.Right) {
-                    return Data_Void.absurd(unwrap(y.value0.value0));
+                    return Data_Void.absurd(Data_Newtype.unwrap()(y.value0.value0));
                 };
                 throw new Error("Failed pattern match at Data.Functor.Coproduct.Nested (line 143, column 27 - line 145, column 47): " + [ y.value0.constructor.name ]);
             };
@@ -459,7 +458,7 @@ var coproduct10 = function (a) {
                                                                                     return j(y.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0);
                                                                                 };
                                                                                 if (y.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Either.Right) {
-                                                                                    return Data_Void.absurd(unwrap(y.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0));
+                                                                                    return Data_Void.absurd(Data_Newtype.unwrap()(y.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0));
                                                                                 };
                                                                                 throw new Error("Failed pattern match at Data.Functor.Coproduct.Nested (line 271, column 43 - line 273, column 65): " + [ y.value0.value0.value0.value0.value0.value0.value0.value0.value0.constructor.name ]);
                                                                             };
@@ -496,7 +495,7 @@ var coproduct1 = function (y) {
         return y.value0;
     };
     if (y instanceof Data_Either.Right) {
-        return Data_Void.absurd(unwrap(y.value0));
+        return Data_Void.absurd(Data_Newtype.unwrap()(y.value0));
     };
     throw new Error("Failed pattern match at Data.Functor.Coproduct.Nested (line 136, column 16 - line 138, column 45): " + [ y.constructor.name ]);
 };

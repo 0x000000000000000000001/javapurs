@@ -9,15 +9,13 @@ var parTraverse_ = function (dictParallel) {
     var sequential = Control_Parallel_Class.sequential(dictParallel);
     var parallel = Control_Parallel_Class.parallel(dictParallel);
     return function (dictApplicative) {
-        var traverse_ = Data_Foldable.traverse_(dictApplicative);
         return function (dictFoldable) {
-            var traverse_1 = traverse_(dictFoldable);
             return function (f) {
-                var $51 = traverse_1(function ($53) {
-                    return parallel(f($53));
+                var $33 = Data_Foldable.traverse_(dictApplicative)(dictFoldable)(function ($35) {
+                    return parallel(f($35));
                 });
-                return function ($52) {
-                    return sequential($51($52));
+                return function ($34) {
+                    return sequential($33($34));
                 };
             };
         };
@@ -28,33 +26,28 @@ var parTraverse = function (dictParallel) {
     var parallel = Control_Parallel_Class.parallel(dictParallel);
     return function (dictApplicative) {
         return function (dictTraversable) {
-            var traverse = Data_Traversable.traverse(dictTraversable)(dictApplicative);
             return function (f) {
-                var $54 = traverse(function ($56) {
-                    return parallel(f($56));
+                var $36 = Data_Traversable.traverse(dictTraversable)(dictApplicative)(function ($38) {
+                    return parallel(f($38));
                 });
-                return function ($55) {
-                    return sequential($54($55));
+                return function ($37) {
+                    return sequential($36($37));
                 };
             };
         };
     };
 };
 var parSequence_ = function (dictParallel) {
-    var parTraverse_1 = parTraverse_(dictParallel);
     return function (dictApplicative) {
-        var parTraverse_2 = parTraverse_1(dictApplicative);
         return function (dictFoldable) {
-            return parTraverse_2(dictFoldable)(identity);
+            return parTraverse_(dictParallel)(dictApplicative)(dictFoldable)(identity);
         };
     };
 };
 var parSequence = function (dictParallel) {
-    var parTraverse1 = parTraverse(dictParallel);
     return function (dictApplicative) {
-        var parTraverse2 = parTraverse1(dictApplicative);
         return function (dictTraversable) {
-            return parTraverse2(dictTraversable)(identity);
+            return parTraverse(dictParallel)(dictApplicative)(dictTraversable)(identity);
         };
     };
 };
@@ -64,14 +57,13 @@ var parOneOfMap = function (dictParallel) {
     return function (dictAlternative) {
         var Plus1 = dictAlternative.Plus1();
         return function (dictFoldable) {
-            var oneOfMap = Data_Foldable.oneOfMap(dictFoldable)(Plus1);
             return function (dictFunctor) {
                 return function (f) {
-                    var $57 = oneOfMap(function ($59) {
-                        return parallel(f($59));
+                    var $39 = Data_Foldable.oneOfMap(dictFoldable)(Plus1)(function ($41) {
+                        return parallel(f($41));
                     });
-                    return function ($58) {
-                        return sequential($57($58));
+                    return function ($40) {
+                        return sequential($39($40));
                     };
                 };
             };
@@ -84,23 +76,20 @@ var parOneOf = function (dictParallel) {
     return function (dictAlternative) {
         var Plus1 = dictAlternative.Plus1();
         return function (dictFoldable) {
-            var oneOfMap = Data_Foldable.oneOfMap(dictFoldable)(Plus1);
             return function (dictFunctor) {
-                var $60 = oneOfMap(parallel);
-                return function ($61) {
-                    return sequential($60($61));
+                var $42 = Data_Foldable.oneOfMap(dictFoldable)(Plus1)(parallel);
+                return function ($43) {
+                    return sequential($42($43));
                 };
             };
         };
     };
 };
 var parApply = function (dictParallel) {
-    var sequential = Control_Parallel_Class.sequential(dictParallel);
-    var apply = Control_Apply.apply(dictParallel.Apply1());
-    var parallel = Control_Parallel_Class.parallel(dictParallel);
+    var Apply1 = dictParallel.Apply1();
     return function (mf) {
         return function (ma) {
-            return sequential(apply(parallel(mf))(parallel(ma)));
+            return Control_Parallel_Class.sequential(dictParallel)(Control_Apply.apply(Apply1)(Control_Parallel_Class.parallel(dictParallel)(mf))(Control_Parallel_Class.parallel(dictParallel)(ma)));
         };
     };
 };

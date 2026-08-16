@@ -24,8 +24,8 @@ var StateT = function (x) {
 };
 var withStateT = function (f) {
     return function (v) {
-        return function ($201) {
-            return v(f($201));
+        return function ($181) {
+            return v(f($181));
         };
     };
 };
@@ -39,11 +39,11 @@ var newtypeStateT = {
 };
 var monadTransStateT = {
     lift: function (dictMonad) {
-        var bind = Control_Bind.bind(dictMonad.Bind1());
+        var Bind1 = dictMonad.Bind1();
         var pure = Control_Applicative.pure(dictMonad.Applicative0());
         return function (m) {
             return function (s) {
-                return bind(m)(function (x) {
+                return Control_Bind.bind(Bind1)(m)(function (x) {
                     return pure(new Data_Tuple.Tuple(x, s));
                 });
             };
@@ -51,11 +51,10 @@ var monadTransStateT = {
     }
 };
 var lift = /* #__PURE__ */ Control_Monad_Trans_Class.lift(monadTransStateT);
-var lift1 = /* #__PURE__ */ Control_Monad_Trans_Class.lift(monadTransStateT);
 var mapStateT = function (f) {
     return function (v) {
-        return function ($202) {
-            return f(v($202));
+        return function ($182) {
+            return f(v($182));
         };
     };
 };
@@ -68,12 +67,11 @@ var lazyStateT = {
     }
 };
 var functorStateT = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return {
         map: function (f) {
             return function (v) {
                 return function (s) {
-                    return map(function (v1) {
+                    return Data_Functor.map(dictFunctor)(function (v1) {
                         return new Data_Tuple.Tuple(f(v1.value0), v1.value1);
                     })(v(s));
                 };
@@ -82,18 +80,16 @@ var functorStateT = function (dictFunctor) {
     };
 };
 var execStateT = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return function (v) {
         return function (s) {
-            return map(Data_Tuple.snd)(v(s));
+            return Data_Functor.map(dictFunctor)(Data_Tuple.snd)(v(s));
         };
     };
 };
 var evalStateT = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return function (v) {
         return function (s) {
-            return map(Data_Tuple.fst)(v(s));
+            return Data_Functor.map(dictFunctor)(Data_Tuple.fst)(v(s));
         };
     };
 };
@@ -108,12 +104,12 @@ var monadStateT = function (dictMonad) {
     };
 };
 var bindStateT = function (dictMonad) {
-    var bind = Control_Bind.bind(dictMonad.Bind1());
+    var Bind1 = dictMonad.Bind1();
     return {
         bind: function (v) {
             return function (f) {
                 return function (s) {
-                    return bind(v(s))(function (v1) {
+                    return Control_Bind.bind(Bind1)(v(s))(function (v1) {
                         var v3 = f(v1.value0);
                         return v3(v1.value1);
                     });
@@ -148,18 +144,17 @@ var applicativeStateT = function (dictMonad) {
     };
 };
 var semigroupStateT = function (dictMonad) {
-    var lift2 = Control_Apply.lift2(applyStateT(dictMonad));
+    var applyStateT1 = applyStateT(dictMonad);
     return function (dictSemigroup) {
         return {
-            append: lift2(Data_Semigroup.append(dictSemigroup))
+            append: Control_Apply.lift2(applyStateT1)(Data_Semigroup.append(dictSemigroup))
         };
     };
 };
 var monadAskStateT = function (dictMonadAsk) {
-    var Monad0 = dictMonadAsk.Monad0();
-    var monadStateT1 = monadStateT(Monad0);
+    var monadStateT1 = monadStateT(dictMonadAsk.Monad0());
     return {
-        ask: lift(Monad0)(Control_Monad_Reader_Class.ask(dictMonadAsk)),
+        ask: Control_Monad_Trans_Class.lift(monadTransStateT)(dictMonadAsk.Monad0())(Control_Monad_Reader_Class.ask(dictMonadAsk)),
         Monad0: function () {
             return monadStateT1;
         }
@@ -169,9 +164,9 @@ var monadReaderStateT = function (dictMonadReader) {
     var monadAskStateT1 = monadAskStateT(dictMonadReader.MonadAsk0());
     return {
         local: (function () {
-            var $203 = Control_Monad_Reader_Class.local(dictMonadReader);
-            return function ($204) {
-                return mapStateT($203($204));
+            var $183 = Control_Monad_Reader_Class.local(dictMonadReader);
+            return function ($184) {
+                return mapStateT($183($184));
             };
         })(),
         MonadAsk0: function () {
@@ -180,12 +175,11 @@ var monadReaderStateT = function (dictMonadReader) {
     };
 };
 var monadContStateT = function (dictMonadCont) {
-    var callCC = Control_Monad_Cont_Class.callCC(dictMonadCont);
     var monadStateT1 = monadStateT(dictMonadCont.Monad0());
     return {
         callCC: function (f) {
             return function (s) {
-                return callCC(function (c) {
+                return Control_Monad_Cont_Class.callCC(dictMonadCont)(function (c) {
                     var v = f(function (a) {
                         return function (s$prime) {
                             return c(new Data_Tuple.Tuple(a, s$prime));
@@ -205,10 +199,10 @@ var monadEffectState = function (dictMonadEffect) {
     var monadStateT1 = monadStateT(Monad0);
     return {
         liftEffect: (function () {
-            var $205 = lift1(Monad0);
-            var $206 = Effect_Class.liftEffect(dictMonadEffect);
-            return function ($207) {
-                return $205($206($207));
+            var $185 = lift(Monad0);
+            var $186 = Effect_Class.liftEffect(dictMonadEffect);
+            return function ($187) {
+                return $185($186($187));
             };
         })(),
         Monad0: function () {
@@ -218,17 +212,16 @@ var monadEffectState = function (dictMonadEffect) {
 };
 var monadRecStateT = function (dictMonadRec) {
     var Monad0 = dictMonadRec.Monad0();
-    var bind = Control_Bind.bind(Monad0.Bind1());
-    var pure = Control_Applicative.pure(Monad0.Applicative0());
-    var tailRecM = Control_Monad_Rec_Class.tailRecM(dictMonadRec);
+    var Bind1 = Monad0.Bind1();
+    var Applicative0 = Monad0.Applicative0();
     var monadStateT1 = monadStateT(Monad0);
     return {
         tailRecM: function (f) {
             return function (a) {
                 var f$prime = function (v) {
                     var v1 = f(v.value0);
-                    return bind(v1(v.value1))(function (v2) {
-                        return pure((function () {
+                    return Control_Bind.bind(Bind1)(v1(v.value1))(function (v2) {
+                        return Control_Applicative.pure(Applicative0)((function () {
                             if (v2.value0 instanceof Control_Monad_Rec_Class.Loop) {
                                 return new Control_Monad_Rec_Class.Loop(new Data_Tuple.Tuple(v2.value0.value0, v2.value1));
                             };
@@ -240,7 +233,7 @@ var monadRecStateT = function (dictMonadRec) {
                     });
                 };
                 return function (s) {
-                    return tailRecM(f$prime)(new Data_Tuple.Tuple(a, s));
+                    return Control_Monad_Rec_Class.tailRecM(dictMonadRec)(f$prime)(new Data_Tuple.Tuple(a, s));
                 };
             };
         },
@@ -254,8 +247,8 @@ var monadStateStateT = function (dictMonad) {
     var monadStateT1 = monadStateT(dictMonad);
     return {
         state: function (f) {
-            return function ($208) {
-                return pure(f($208));
+            return function ($188) {
+                return pure(f($188));
             };
         },
         Monad0: function () {
@@ -269,10 +262,10 @@ var monadTellStateT = function (dictMonadTell) {
     var monadStateT1 = monadStateT(Monad1);
     return {
         tell: (function () {
-            var $209 = lift1(Monad1);
-            var $210 = Control_Monad_Writer_Class.tell(dictMonadTell);
-            return function ($211) {
-                return $209($210($211));
+            var $189 = lift(Monad1);
+            var $190 = Control_Monad_Writer_Class.tell(dictMonadTell);
+            return function ($191) {
+                return $189($190($191));
             };
         })(),
         Semigroup0: function () {
@@ -286,25 +279,23 @@ var monadTellStateT = function (dictMonadTell) {
 var monadWriterStateT = function (dictMonadWriter) {
     var MonadTell1 = dictMonadWriter.MonadTell1();
     var Monad1 = MonadTell1.Monad1();
-    var bind = Control_Bind.bind(Monad1.Bind1());
-    var listen = Control_Monad_Writer_Class.listen(dictMonadWriter);
+    var Bind1 = Monad1.Bind1();
     var Applicative0 = Monad1.Applicative0();
     var pure = Control_Applicative.pure(Applicative0);
-    var pass = Control_Monad_Writer_Class.pass(dictMonadWriter);
     var pure1 = Control_Applicative.pure(Applicative0);
     var Monoid0 = dictMonadWriter.Monoid0();
     var monadTellStateT1 = monadTellStateT(MonadTell1);
     return {
         listen: function (m) {
             return function (s) {
-                return bind(listen(m(s)))(function (v) {
+                return Control_Bind.bind(Bind1)(Control_Monad_Writer_Class.listen(dictMonadWriter)(m(s)))(function (v) {
                     return pure(new Data_Tuple.Tuple(new Data_Tuple.Tuple(v.value0.value0, v.value1), v.value0.value1));
                 });
             };
         },
         pass: function (m) {
             return function (s) {
-                return pass(bind(m(s))(function (v) {
+                return Control_Monad_Writer_Class.pass(dictMonadWriter)(Control_Bind.bind(Bind1)(m(s))(function (v) {
                     return pure1(new Data_Tuple.Tuple(new Data_Tuple.Tuple(v.value0.value0, v.value1), v.value0.value1));
                 }));
             };
@@ -319,12 +310,10 @@ var monadWriterStateT = function (dictMonadWriter) {
 };
 var monadThrowStateT = function (dictMonadThrow) {
     var Monad0 = dictMonadThrow.Monad0();
-    var lift2 = lift(Monad0);
-    var throwError = Control_Monad_Error_Class.throwError(dictMonadThrow);
-    var monadStateT1 = monadStateT(Monad0);
+    var monadStateT1 = monadStateT(dictMonadThrow.Monad0());
     return {
         throwError: function (e) {
-            return lift2(throwError(e));
+            return Control_Monad_Trans_Class.lift(monadTransStateT)(Monad0)(Control_Monad_Error_Class.throwError(dictMonadThrow)(e));
         },
         Monad0: function () {
             return monadStateT1;
@@ -332,13 +321,12 @@ var monadThrowStateT = function (dictMonadThrow) {
     };
 };
 var monadErrorStateT = function (dictMonadError) {
-    var catchError = Control_Monad_Error_Class.catchError(dictMonadError);
     var monadThrowStateT1 = monadThrowStateT(dictMonadError.MonadThrow0());
     return {
         catchError: function (v) {
             return function (h) {
                 return function (s) {
-                    return catchError(v(s))(function (e) {
+                    return Control_Monad_Error_Class.catchError(dictMonadError)(v(s))(function (e) {
                         var v1 = h(e);
                         return v1(s);
                     });
@@ -355,10 +343,10 @@ var monadSTStateT = function (dictMonadST) {
     var monadStateT1 = monadStateT(Monad0);
     return {
         liftST: (function () {
-            var $212 = lift1(Monad0);
-            var $213 = Control_Monad_ST_Class.liftST(dictMonadST);
-            return function ($214) {
-                return $212($213($214));
+            var $192 = lift(Monad0);
+            var $193 = Control_Monad_ST_Class.liftST(dictMonadST);
+            return function ($194) {
+                return $192($193($194));
             };
         })(),
         Monad0: function () {
@@ -367,12 +355,12 @@ var monadSTStateT = function (dictMonadST) {
     };
 };
 var monoidStateT = function (dictMonad) {
-    var pure = Control_Applicative.pure(applicativeStateT(dictMonad));
+    var applicativeStateT1 = applicativeStateT(dictMonad);
     var semigroupStateT1 = semigroupStateT(dictMonad);
     return function (dictMonoid) {
         var semigroupStateT2 = semigroupStateT1(dictMonoid.Semigroup0());
         return {
-            mempty: pure(Data_Monoid.mempty(dictMonoid)),
+            mempty: Control_Applicative.pure(applicativeStateT1)(Data_Monoid.mempty(dictMonoid)),
             Semigroup0: function () {
                 return semigroupStateT2;
             }
@@ -381,13 +369,12 @@ var monoidStateT = function (dictMonad) {
 };
 var altStateT = function (dictMonad) {
     return function (dictAlt) {
-        var alt = Control_Alt.alt(dictAlt);
         var functorStateT1 = functorStateT(dictAlt.Functor0());
         return {
             alt: function (v) {
                 return function (v1) {
                     return function (s) {
-                        return alt(v(s))(v1(s));
+                        return Control_Alt.alt(dictAlt)(v(s))(v1(s));
                     };
                 };
             },

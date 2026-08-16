@@ -5,20 +5,18 @@ var recip = function (dict) {
     return dict.recip;
 };
 var rightDiv = function (dictDivisionRing) {
-    var mul = Data_Semiring.mul((dictDivisionRing.Ring0()).Semiring0());
-    var recip1 = recip(dictDivisionRing);
+    var Semiring0 = (dictDivisionRing.Ring0()).Semiring0();
     return function (a) {
         return function (b) {
-            return mul(a)(recip1(b));
+            return Data_Semiring.mul(Semiring0)(a)(recip(dictDivisionRing)(b));
         };
     };
 };
 var leftDiv = function (dictDivisionRing) {
-    var mul = Data_Semiring.mul((dictDivisionRing.Ring0()).Semiring0());
-    var recip1 = recip(dictDivisionRing);
+    var Semiring0 = (dictDivisionRing.Ring0()).Semiring0();
     return function (a) {
         return function (b) {
-            return mul(recip1(b))(a);
+            return Data_Semiring.mul(Semiring0)(recip(dictDivisionRing)(b))(a);
         };
     };
 };

@@ -3,8 +3,6 @@ import * as Control_Category from "../Control.Category/index.js";
 import * as Data_Bifunctor from "../Data.Bifunctor/index.js";
 import * as Data_Function from "../Data.Function/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
-var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var identity2 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var biapplyTuple = {
     biapply: function (v) {
         return function (v1) {
@@ -19,45 +17,41 @@ var biapply = function (dict) {
     return dict.biapply;
 };
 var biapplyFirst = function (dictBiapply) {
-    var biapply1 = biapply(dictBiapply);
-    var bimap = Data_Bifunctor.bimap(dictBiapply.Bifunctor0());
+    var Bifunctor0 = dictBiapply.Bifunctor0();
     return function (a) {
         return function (b) {
-            return biapply1(bimap(Data_Function["const"](identity1))(Data_Function["const"](identity2))(a))(b);
+            return biapply(dictBiapply)(Data_Bifunctor.bimap(Bifunctor0)(Data_Function["const"](Control_Category.identity(Control_Category.categoryFn)))(Data_Function["const"](Control_Category.identity(Control_Category.categoryFn)))(a))(b);
         };
     };
 };
 var biapplySecond = function (dictBiapply) {
-    var biapply1 = biapply(dictBiapply);
-    var bimap = Data_Bifunctor.bimap(dictBiapply.Bifunctor0());
+    var Bifunctor0 = dictBiapply.Bifunctor0();
     return function (a) {
         return function (b) {
-            return biapply1(bimap(Data_Function["const"])(Data_Function["const"])(a))(b);
+            return biapply(dictBiapply)(Data_Bifunctor.bimap(Bifunctor0)(Data_Function["const"])(Data_Function["const"])(a))(b);
         };
     };
 };
 var bilift2 = function (dictBiapply) {
-    var biapply1 = biapply(dictBiapply);
-    var bimap = Data_Bifunctor.bimap(dictBiapply.Bifunctor0());
+    var Bifunctor0 = dictBiapply.Bifunctor0();
     return function (f) {
         return function (g) {
             return function (a) {
                 return function (b) {
-                    return biapply1(bimap(f)(g)(a))(b);
+                    return biapply(dictBiapply)(Data_Bifunctor.bimap(Bifunctor0)(f)(g)(a))(b);
                 };
             };
         };
     };
 };
 var bilift3 = function (dictBiapply) {
-    var biapply1 = biapply(dictBiapply);
-    var bimap = Data_Bifunctor.bimap(dictBiapply.Bifunctor0());
+    var Bifunctor0 = dictBiapply.Bifunctor0();
     return function (f) {
         return function (g) {
             return function (a) {
                 return function (b) {
                     return function (c) {
-                        return biapply1(biapply1(bimap(f)(g)(a))(b))(c);
+                        return biapply(dictBiapply)(biapply(dictBiapply)(Data_Bifunctor.bimap(Bifunctor0)(f)(g)(a))(b))(c);
                     };
                 };
             };

@@ -18,9 +18,6 @@ import * as PureScript_CST_Print from "../PureScript.CST.Print/index.js";
 import * as PureScript_CST_Range from "../PureScript.CST.Range/index.js";
 import * as PureScript_CST_Range_TokenList from "../PureScript.CST.Range.TokenList/index.js";
 import * as Unsafe_Coerce from "../Unsafe.Coerce/index.js";
-var foldMap = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableArray)(Data_Monoid.monoidString);
-var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
-var bind = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser);
 var pure = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
 var ParseSucceeded = /* #__PURE__ */ (function () {
     function ParseSucceeded(value0) {
@@ -66,9 +63,9 @@ var toRecoveredParserResult = function (v) {
         throw new Error("Failed pattern match at PureScript.CST (line 42, column 1 - line 45, column 29): " + [ v.constructor.name ]);
     };
     if (v instanceof Data_Either.Right) {
-        var $21 = Data_Array_NonEmpty.fromArray(v.value0.value1);
-        if ($21 instanceof Data_Maybe.Just) {
-            return new ParseSucceededWithErrors(v.value0.value0, $21.value0);
+        var $14 = Data_Array_NonEmpty.fromArray(v.value0.value1);
+        if ($14 instanceof Data_Maybe.Just) {
+            return new ParseSucceededWithErrors(v.value0.value0, $14.value0);
         };
         return v1(true);
     };
@@ -76,21 +73,21 @@ var toRecoveredParserResult = function (v) {
 };
 var toRecovered = Unsafe_Coerce.unsafeCoerce;
 var runRecoveredParser = function (p) {
-    var $31 = Data_Function.flip(PureScript_CST_Parser_Monad.runParser)(p);
-    return function ($32) {
-        return toRecoveredParserResult($31($32));
+    var $24 = Data_Function.flip(PureScript_CST_Parser_Monad.runParser)(p);
+    return function ($25) {
+        return toRecoveredParserResult($24($25));
     };
 };
 var printModule = function (dictTokensOf) {
-    var tokensOf = PureScript_CST_Range.tokensOf(PureScript_CST_Range.tokensOfModule(dictTokensOf));
+    var tokensOfModule = PureScript_CST_Range.tokensOfModule(dictTokensOf);
     return function (mod) {
-        return foldMap(PureScript_CST_Print.printSourceToken)(PureScript_CST_Range_TokenList.toArray(tokensOf(mod))) + foldMap(PureScript_CST_Print.printComment(PureScript_CST_Print.printLineFeed))((unwrap((unwrap(mod)).body)).trailingComments);
+        return Data_Foldable.foldMap(Data_Foldable.foldableArray)(Data_Monoid.monoidString)(PureScript_CST_Print.printSourceToken)(PureScript_CST_Range_TokenList.toArray(PureScript_CST_Range.tokensOf(tokensOfModule)(mod))) + Data_Foldable.foldMap(Data_Foldable.foldableArray)(Data_Monoid.monoidString)(PureScript_CST_Print.printComment(PureScript_CST_Print.printLineFeed))((Data_Newtype.unwrap()((Data_Newtype.unwrap()(mod)).body)).trailingComments);
     };
 };
 var parseType = /* #__PURE__ */ (function () {
-    var $33 = runRecoveredParser(PureScript_CST_Parser.parseType);
-    return function ($34) {
-        return $33(PureScript_CST_Lexer.lex($34));
+    var $26 = runRecoveredParser(PureScript_CST_Parser.parseType);
+    return function ($27) {
+        return $26(PureScript_CST_Lexer.lex($27));
     };
 })();
 var parsePartialModule = function (src) {
@@ -100,7 +97,7 @@ var parsePartialModule = function (src) {
             var res = {
                 header: v.value0,
                 full: Data_Lazy.defer(function (v1) {
-                    return toRecoveredParserResult(PureScript_CST_Parser_Monad.fromParserResult(PureScript_CST_Parser_Monad["runParser$prime"](v.value1)(bind(PureScript_CST_Parser.parseModuleBody)(function (body) {
+                    return toRecoveredParserResult(PureScript_CST_Parser_Monad.fromParserResult(PureScript_CST_Parser_Monad["runParser$prime"](v.value1)(Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser.parseModuleBody)(function (body) {
                         return pure({
                             header: v.value0,
                             body: body
@@ -117,33 +114,33 @@ var parsePartialModule = function (src) {
     })());
 };
 var parseModule = /* #__PURE__ */ (function () {
-    var $35 = runRecoveredParser(PureScript_CST_Parser.parseModule);
-    return function ($36) {
-        return $35(PureScript_CST_Lexer.lexModule($36));
+    var $28 = runRecoveredParser(PureScript_CST_Parser.parseModule);
+    return function ($29) {
+        return $28(PureScript_CST_Lexer.lexModule($29));
     };
 })();
 var parseImportDecl = /* #__PURE__ */ (function () {
-    var $37 = runRecoveredParser(PureScript_CST_Parser.parseImportDecl);
-    return function ($38) {
-        return $37(PureScript_CST_Lexer.lex($38));
+    var $30 = runRecoveredParser(PureScript_CST_Parser.parseImportDecl);
+    return function ($31) {
+        return $30(PureScript_CST_Lexer.lex($31));
     };
 })();
 var parseExpr = /* #__PURE__ */ (function () {
-    var $39 = runRecoveredParser(PureScript_CST_Parser.parseExpr);
-    return function ($40) {
-        return $39(PureScript_CST_Lexer.lex($40));
+    var $32 = runRecoveredParser(PureScript_CST_Parser.parseExpr);
+    return function ($33) {
+        return $32(PureScript_CST_Lexer.lex($33));
     };
 })();
 var parseDecl = /* #__PURE__ */ (function () {
-    var $41 = runRecoveredParser(PureScript_CST_Parser.parseDecl);
-    return function ($42) {
-        return $41(PureScript_CST_Lexer.lex($42));
+    var $34 = runRecoveredParser(PureScript_CST_Parser.parseDecl);
+    return function ($35) {
+        return $34(PureScript_CST_Lexer.lex($35));
     };
 })();
 var parseBinder = /* #__PURE__ */ (function () {
-    var $43 = runRecoveredParser(PureScript_CST_Parser.parseBinder);
-    return function ($44) {
-        return $43(PureScript_CST_Lexer.lex($44));
+    var $36 = runRecoveredParser(PureScript_CST_Parser.parseBinder);
+    return function ($37) {
+        return $36(PureScript_CST_Lexer.lex($37));
     };
 })();
 export {

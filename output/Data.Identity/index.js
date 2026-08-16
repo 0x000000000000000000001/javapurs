@@ -7,10 +7,9 @@ var Identity = function (x) {
     return x;
 };
 var showIdentity = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
-            return "(Identity " + (show(v) + ")");
+            return "(Identity " + (Data_Show.show(dictShow)(v) + ")");
         }
     };
 };

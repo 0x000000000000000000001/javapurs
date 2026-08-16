@@ -15,15 +15,10 @@ import * as Data_String_CodeUnits from "../Data.String.CodeUnits/index.js";
 import * as Data_String_Common from "../Data.String.Common/index.js";
 var fromJust = /* #__PURE__ */ Data_Maybe.fromJust();
 var fromJust1 = /* #__PURE__ */ Data_Maybe.fromJust();
-var toEnum = /* #__PURE__ */ Data_Enum.toEnum(Data_Enum.boundedEnumChar);
-var eq = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Maybe.eqMaybe(Data_Eq.eqChar));
-var apply = /* #__PURE__ */ Control_Apply.apply(Data_Maybe.applyMaybe);
-var map = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
+var eqMaybe = /* #__PURE__ */ Data_Maybe.eqMaybe(Data_Eq.eqChar);
 var eqRec = /* #__PURE__ */ Data_Eq.eqRec();
 var eqRowCons = /* #__PURE__ */ Data_Eq.eqRowCons(Data_Eq.eqRowNil)();
-var compare = /* #__PURE__ */ Data_Ord.compare(/* #__PURE__ */ Data_Ord.ordArray(Data_Ord.ordBoolean));
-var append1 = /* #__PURE__ */ Data_Semigroup.append(Data_Semigroup.semigroupArray);
-var map1 = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorArray);
+var ordArray = /* #__PURE__ */ Data_Ord.ordArray(Data_Ord.ordBoolean);
 var Perm = function (x) {
     return x;
 };
@@ -65,7 +60,6 @@ var semiringPerm = {
         x: true
     }
 };
-var add1 = /* #__PURE__ */ Data_Semiring.add(semiringPerm);
 var read = {
     r: true,
     w: false,
@@ -90,18 +84,18 @@ var permToInt = function (v) {
     })() | 0;
 };
 var permToString = /* #__PURE__ */ (function () {
-    var $130 = Data_Show.show(Data_Show.showInt);
-    return function ($131) {
-        return $130(permToInt($131));
+    var $114 = Data_Show.show(Data_Show.showInt);
+    return function ($115) {
+        return $114(permToInt($115));
     };
 })();
 var permsToString = function (v) {
     return "0" + (permToString(v.u) + (permToString(v.g) + permToString(v.o)));
 };
 var permsToInt = /* #__PURE__ */ (function () {
-    var $132 = Data_Int.fromStringAs(Data_Int.octal);
-    return function ($133) {
-        return fromJust($132(permsToString($133)));
+    var $116 = Data_Int.fromStringAs(Data_Int.octal);
+    return function ($117) {
+        return fromJust($116(permsToString($117)));
     };
 })();
 var none = /* #__PURE__ */ Data_Semiring.zero(semiringPerm);
@@ -143,27 +137,27 @@ var permFromChar = function (c) {
         return new Data_Maybe.Just(write);
     };
     if (c === "3") {
-        return new Data_Maybe.Just(add1(write)(execute));
+        return new Data_Maybe.Just(Data_Semiring.add(semiringPerm)(write)(execute));
     };
     if (c === "4") {
         return new Data_Maybe.Just(read);
     };
     if (c === "5") {
-        return new Data_Maybe.Just(add1(read)(execute));
+        return new Data_Maybe.Just(Data_Semiring.add(semiringPerm)(read)(execute));
     };
     if (c === "6") {
-        return new Data_Maybe.Just(add1(read)(write));
+        return new Data_Maybe.Just(Data_Semiring.add(semiringPerm)(read)(write));
     };
     if (c === "7") {
-        return new Data_Maybe.Just(add1(add1(read)(write))(execute));
+        return new Data_Maybe.Just(Data_Semiring.add(semiringPerm)(Data_Semiring.add(semiringPerm)(read)(write))(execute));
     };
     return Data_Maybe.Nothing.value;
 };
 var permsFromString = /* #__PURE__ */ (function () {
-    var zeroChar = fromJust1(toEnum(48));
+    var zeroChar = fromJust1(Data_Enum.toEnum(Data_Enum.boundedEnumChar)(48));
     var dropPrefix = function (x) {
         return function (xs) {
-            if (eq(Data_String_CodeUnits.charAt(0)(xs))(new Data_Maybe.Just(x))) {
+            if (Data_Eq.eq(eqMaybe)(Data_String_CodeUnits.charAt(0)(xs))(new Data_Maybe.Just(x))) {
                 return Data_String_CodePoints.drop(1)(xs);
             };
             if (Data_Boolean.otherwise) {
@@ -174,13 +168,13 @@ var permsFromString = /* #__PURE__ */ (function () {
     };
     var _perms = function (v) {
         if (v.length === 3) {
-            return apply(apply(map(mkPerms)(permFromChar(v[0])))(permFromChar(v[1])))(permFromChar(v[2]));
+            return Control_Apply.apply(Data_Maybe.applyMaybe)(Control_Apply.apply(Data_Maybe.applyMaybe)(Data_Functor.map(Data_Maybe.functorMaybe)(mkPerms)(permFromChar(v[0])))(permFromChar(v[1])))(permFromChar(v[2]));
         };
         return Data_Maybe.Nothing.value;
     };
-    var $134 = dropPrefix(zeroChar);
-    return function ($135) {
-        return _perms(Data_String_CodeUnits.toCharArray($134($135)));
+    var $118 = dropPrefix(zeroChar);
+    return function ($119) {
+        return _perms(Data_String_CodeUnits.toCharArray($118($119)));
     };
 })();
 var eqPerm = /* #__PURE__ */ eqRec(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ eqRowCons({
@@ -196,7 +190,6 @@ var eqPerm = /* #__PURE__ */ eqRec(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE_
         return "r";
     }
 })(Data_Eq.eqBoolean));
-var eq1 = /* #__PURE__ */ Data_Eq.eq(eqPerm);
 var eqPerms = /* #__PURE__ */ eqRec(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ eqRowCons({
     reflectSymbol: function () {
         return "u";
@@ -213,18 +206,18 @@ var eqPerms = /* #__PURE__ */ eqRec(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE
 var ordPerm = {
     compare: function (v) {
         return function (v1) {
-            return compare([ v.r, v.w, v.x ])([ v1.r, v1.w, v1.x ]);
+            return Data_Ord.compare(ordArray)([ v.r, v.w, v.x ])([ v1.r, v1.w, v1.x ]);
         };
     },
     Eq0: function () {
         return eqPerm;
     }
 };
-var compare1 = /* #__PURE__ */ Data_Ord.compare(/* #__PURE__ */ Data_Ord.ordArray(ordPerm));
+var ordArray1 = /* #__PURE__ */ Data_Ord.ordArray(ordPerm);
 var ordPerms = {
     compare: function (v) {
         return function (v1) {
-            return compare1([ v.u, v.g, v.o ])([ v1.u, v1.g, v1.o ]);
+            return Data_Ord.compare(ordArray1)([ v.u, v.g, v.o ])([ v1.u, v1.g, v1.o ]);
         };
     },
     Eq0: function () {
@@ -236,18 +229,18 @@ var permsAll = /* #__PURE__ */ mkPerms(all)(all)(all);
 var permsReadWrite = /* #__PURE__ */ mkPerms(all)(all)(none);
 var showPerm = {
     show: function (v) {
-        if (eq1(v)(none)) {
+        if (Data_Eq.eq(eqPerm)(v)(none)) {
             return "none";
         };
-        if (eq1(v)(all)) {
+        if (Data_Eq.eq(eqPerm)(v)(all)) {
             return "all";
         };
-        var ps = append1((function () {
+        var ps = Data_Semigroup.append(Data_Semigroup.semigroupArray)((function () {
             if (v.r) {
                 return [ "read" ];
             };
             return [  ];
-        })())(append1((function () {
+        })())(Data_Semigroup.append(Data_Semigroup.semigroupArray)((function () {
             if (v.w) {
                 return [ "write" ];
             };
@@ -261,18 +254,17 @@ var showPerm = {
         return Data_String_Common.joinWith(" + ")(ps);
     }
 };
-var show = /* #__PURE__ */ Data_Show.show(showPerm);
 var showPerms = {
     show: function (v) {
         var f = function (perm) {
-            var str = show(perm);
-            var $126 = Data_Maybe.isNothing(Data_String_CodePoints.indexOf(" ")(str));
-            if ($126) {
+            var str = Data_Show.show(showPerm)(perm);
+            var $110 = Data_Maybe.isNothing(Data_String_CodePoints.indexOf(" ")(str));
+            if ($110) {
                 return str;
             };
             return "(" + (str + ")");
         };
-        return "mkPerms " + Data_String_Common.joinWith(" ")(map1(f)([ v.u, v.g, v.o ]));
+        return "mkPerms " + Data_String_Common.joinWith(" ")(Data_Functor.map(Data_Functor.functorArray)(f)([ v.u, v.g, v.o ]));
     }
 };
 export {

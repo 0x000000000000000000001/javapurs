@@ -18,11 +18,6 @@ import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Dodo_Internal from "../Dodo.Internal/index.js";
 import * as Dodo_Internal_Buffer from "../Dodo.Internal.Buffer/index.js";
 var mempty = /* #__PURE__ */ Data_Monoid.mempty(Dodo_Internal.monoidDoc);
-var append1 = /* #__PURE__ */ Data_Semigroup.append(Dodo_Internal.semigroupDoc);
-var max = /* #__PURE__ */ Data_Ord.max(Data_Ord.ordInt);
-var max1 = /* #__PURE__ */ Data_Ord.max(Data_Ord.ordNumber);
-var min = /* #__PURE__ */ Data_Ord.min(Data_Ord.ordNumber);
-var power = /* #__PURE__ */ Data_Monoid.power(Data_Monoid.monoidString);
 var pure = /* #__PURE__ */ Control_Applicative.pure(Data_List_Types.applicativeList);
 var Printer = function (x) {
     return x;
@@ -205,17 +200,15 @@ var fourSpaces = {
     indentWidth: 4
 };
 var foldWith = function (dictFoldable) {
-    var foldr = Data_Foldable.foldr(dictFoldable);
     return function (f) {
-        return foldr(Dodo_Internal.bothNotEmpty(f))(mempty);
+        return Data_Foldable.foldr(dictFoldable)(Dodo_Internal.bothNotEmpty(f))(mempty);
     };
 };
 var foldWithSeparator = function (dictFoldable) {
-    var foldWith1 = foldWith(dictFoldable);
     return function (separator) {
-        return foldWith1(function (a) {
+        return foldWith(dictFoldable)(function (a) {
             return function (b) {
-                return append1(a)(append1(separator)(b));
+                return Data_Semigroup.append(Dodo_Internal.semigroupDoc)(a)(Data_Semigroup.append(Dodo_Internal.semigroupDoc)(separator)(b));
             };
         });
     };
@@ -243,12 +236,11 @@ var flexAlt = /* #__PURE__ */ (function () {
     return Dodo_Internal.FlexAlt.create;
 })();
 var encloseWithSeparator = function (dictFoldable) {
-    var foldWithSeparator1 = foldWithSeparator(dictFoldable);
     return function (open) {
         return function (close) {
             return function (separator) {
                 return function (inner) {
-                    return append1(open)(append1(foldWithSeparator1(separator)(inner))(close));
+                    return Data_Semigroup.append(Dodo_Internal.semigroupDoc)(open)(Data_Semigroup.append(Dodo_Internal.semigroupDoc)(foldWithSeparator(dictFoldable)(separator)(inner))(close));
                 };
             };
         };
@@ -262,7 +254,7 @@ var encloseEmptyAlt = function (open) {
                     return $$default;
                 };
                 if (Data_Boolean.otherwise) {
-                    return append1(open)(append1(inner)(close));
+                    return Data_Semigroup.append(Dodo_Internal.semigroupDoc)(open)(Data_Semigroup.append(Dodo_Internal.semigroupDoc)(inner)(close));
                 };
                 throw new Error("Failed pattern match at Dodo (line 176, column 1 - line 176, column 71): " + [ open.constructor.name, close.constructor.name, $$default.constructor.name, inner.constructor.name ]);
             };
@@ -272,13 +264,13 @@ var encloseEmptyAlt = function (open) {
 var enclose = function (open) {
     return function (close) {
         return function (inner) {
-            return append1(open)(append1(inner)(close));
+            return Data_Semigroup.append(Dodo_Internal.semigroupDoc)(open)(Data_Semigroup.append(Dodo_Internal.semigroupDoc)(inner)(close));
         };
     };
 };
 var calcRibbonWidth = function (v) {
     return function (n) {
-        return max(0)(Data_Int.ceil(v.ribbonRatio * Data_Int.toNumber(v.pageWidth - n | 0)));
+        return Data_Ord.max(Data_Ord.ordInt)(0)(Data_Int.ceil(v.ribbonRatio * Data_Int.toNumber(v.pageWidth - n | 0)));
     };
 };
 var storeOptions = function (prevIndent) {
@@ -314,7 +306,7 @@ var print = function (v) {
             pageWidth: opts.pageWidth,
             indentUnit: opts.indentUnit,
             indentWidth: opts.indentWidth,
-            ribbonRatio: max1(0.0)(min(1.0)(opts.ribbonRatio))
+            ribbonRatio: Data_Ord.max(Data_Ord.ordNumber)(0.0)(Data_Ord.min(Data_Ord.ordNumber)(1.0)(opts.ribbonRatio))
         };
         var initState = {
             position: {
@@ -492,7 +484,7 @@ var print = function (v) {
                                             nextIndent: state.position.nextIndent + stack.value0.value0.value0 | 0,
                                             ribbonWidth: calcRibbonWidth(state.options)(state.position.nextIndent + stack.value0.value0.value0 | 0)
                                         },
-                                        indentSpaces: state.indentSpaces + power(" ")(stack.value0.value0.value0)
+                                        indentSpaces: state.indentSpaces + Data_Monoid.power(Data_Monoid.monoidString)(" ")(stack.value0.value0.value0)
                                     };
                                     return;
                                 };
@@ -511,7 +503,7 @@ var print = function (v) {
                                             ribbonWidth: state.position.ribbonWidth,
                                             nextIndent: state.position.nextIndent + stack.value0.value0.value0 | 0
                                         },
-                                        indentSpaces: state.indentSpaces + power(" ")(stack.value0.value0.value0)
+                                        indentSpaces: state.indentSpaces + Data_Monoid.power(Data_Monoid.monoidString)(" ")(stack.value0.value0.value0)
                                     };
                                     return;
                                 };
@@ -689,9 +681,9 @@ var print = function (v) {
                 return $tco_result;
             };
         };
-        var $135 = Data_Function.flip(go)(initState);
-        return function ($136) {
-            return $135(pure(Doc.create($136)));
+        var $114 = Data_Function.flip(go)(initState);
+        return function ($115) {
+            return $114(pure(Doc.create($115)));
         };
     };
 };
@@ -702,7 +694,7 @@ var softBreak = /* #__PURE__ */ flexAlt(mempty)($$break);
 var spaceBreak = /* #__PURE__ */ flexAlt(space)($$break);
 var appendSpaceBreak = /* #__PURE__ */ Dodo_Internal.bothNotEmpty(function (a) {
     return function (b) {
-        return append1(a)(flexGroup(append1(spaceBreak)(b)));
+        return Data_Semigroup.append(Dodo_Internal.semigroupDoc)(a)(flexGroup(Data_Semigroup.append(Dodo_Internal.semigroupDoc)(spaceBreak)(b)));
     };
 });
 var paragraph = function (dictFoldable) {
@@ -710,16 +702,16 @@ var paragraph = function (dictFoldable) {
 };
 var textParagraph = /* #__PURE__ */ (function () {
     var spaceRegex = Data_String_Regex_Unsafe.unsafeRegex("[\\s\\n]+")(Data_String_Regex_Flags.global);
-    var $137 = paragraph(Data_Foldable.foldableArray);
-    var $138 = Data_Functor.map(Data_Functor.functorArray)(text);
-    var $139 = Data_String_Regex.split(spaceRegex);
-    return function ($140) {
-        return $137($138($139(Data_String_Common.trim($140))));
+    var $116 = paragraph(Data_Foldable.foldableArray);
+    var $117 = Data_Functor.map(Data_Functor.functorArray)(text);
+    var $118 = Data_String_Regex.split(spaceRegex);
+    return function ($119) {
+        return $116($117($118(Data_String_Common.trim($119))));
     };
 })();
 var appendSpace = /* #__PURE__ */ Dodo_Internal.bothNotEmpty(function (a) {
     return function (b) {
-        return append1(a)(append1(space)(b));
+        return Data_Semigroup.append(Dodo_Internal.semigroupDoc)(a)(Data_Semigroup.append(Dodo_Internal.semigroupDoc)(space)(b));
     };
 });
 var words = function (dictFoldable) {
@@ -727,14 +719,14 @@ var words = function (dictFoldable) {
 };
 var appendBreak = /* #__PURE__ */ Dodo_Internal.bothNotEmpty(function (a) {
     return function (b) {
-        return append1(a)(append1($$break)(b));
+        return Data_Semigroup.append(Dodo_Internal.semigroupDoc)(a)(Data_Semigroup.append(Dodo_Internal.semigroupDoc)($$break)(b));
     };
 });
 var lines = function (dictFoldable) {
     return Data_Foldable.foldr(dictFoldable)(appendBreak)(Dodo_Internal.Empty.value);
 };
-var annotate = function ($141) {
-    return Dodo_Internal.notEmpty(Dodo_Internal.Annotate.create($141));
+var annotate = function ($120) {
+    return Dodo_Internal.notEmpty(Dodo_Internal.Annotate.create($120));
 };
 var align = function (n) {
     return function (doc) {

@@ -7,19 +7,17 @@ var Join = function (x) {
     return x;
 };
 var showJoin = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
-            return "(Join " + (show(v) + ")");
+            return "(Join " + (Data_Show.show(dictShow)(v) + ")");
         }
     };
 };
 var semigroupJoin = function (dictSemigroupoid) {
-    var compose = Control_Semigroupoid.compose(dictSemigroupoid);
     return {
         append: function (v) {
             return function (v1) {
-                return compose(v)(v1);
+                return Control_Semigroupoid.compose(dictSemigroupoid)(v)(v1);
             };
         }
     };
@@ -42,12 +40,11 @@ var monoidJoin = function (dictCategory) {
     };
 };
 var invariantJoin = function (dictProfunctor) {
-    var dimap = Data_Profunctor.dimap(dictProfunctor);
     return {
         imap: function (f) {
             return function (g) {
                 return function (v) {
-                    return dimap(g)(f)(v);
+                    return Data_Profunctor.dimap(dictProfunctor)(g)(f)(v);
                 };
             };
         }

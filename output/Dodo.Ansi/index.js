@@ -8,9 +8,6 @@ import * as Data_List_NonEmpty from "../Data.List.NonEmpty/index.js";
 import * as Data_List_Types from "../Data.List.Types/index.js";
 import * as Data_Maybe from "../Data.Maybe/index.js";
 import * as Dodo from "../Dodo/index.js";
-var pure = /* #__PURE__ */ Control_Applicative.pure(Data_List_Types.applicativeNonEmptyList);
-var eq = /* #__PURE__ */ Data_Eq.eq(Ansi_Codes.eqRenderingMode);
-var notEq = /* #__PURE__ */ Data_Eq.notEq(Ansi_Codes.eqGraphicsParam);
 var AnsiBuffer = function (x) {
     return x;
 };
@@ -81,7 +78,7 @@ var ansiGraphics = /* #__PURE__ */ (function () {
             };
         };
     };
-    var resetCode = Ansi_Codes.escapeCodeToString(new Ansi_Codes.Graphics(pure(Ansi_Codes.Reset.value)));
+    var resetCode = Ansi_Codes.escapeCodeToString(new Ansi_Codes.Graphics(Control_Applicative.pure(Data_List_Types.applicativeNonEmptyList)(Ansi_Codes.Reset.value)));
     var graphicsConflict = function (v) {
         return function (v1) {
             if (v instanceof Ansi_Codes.Reset && v1 instanceof Ansi_Codes.Reset) {
@@ -94,22 +91,22 @@ var ansiGraphics = /* #__PURE__ */ (function () {
                 return true;
             };
             if (v instanceof Ansi_Codes.PMode && v1 instanceof Ansi_Codes.PMode) {
-                return eq(v.value0)(v1.value0);
+                return Data_Eq.eq(Ansi_Codes.eqRenderingMode)(v.value0)(v1.value0);
             };
             return false;
         };
     };
     var getPendingGraphics = (function () {
-        var $50 = Data_Functor.map(Data_Maybe.functorMaybe)(Data_List_NonEmpty.cons(Ansi_Codes.Reset.value));
-        return function ($51) {
-            return $50(Data_List_NonEmpty.fromList($51));
+        var $43 = Data_Functor.map(Data_Maybe.functorMaybe)(Data_List_NonEmpty.cons(Ansi_Codes.Reset.value));
+        return function ($44) {
+            return $43(Data_List_NonEmpty.fromList($44));
         };
     })();
     var writeBreak = function (v) {
         var pending = getPendingGraphics(v.current);
         var resetOrEmpty = (function () {
-            var $42 = Data_Maybe.isNothing(pending) && Data_List["null"](v.previous);
-            if ($42) {
+            var $35 = Data_Maybe.isNothing(pending) && Data_List["null"](v.previous);
+            if ($35) {
                 return "";
             };
             return resetCode;
@@ -122,12 +119,12 @@ var ansiGraphics = /* #__PURE__ */ (function () {
         };
     };
     var getCurrentGraphics = (function () {
-        var $52 = Data_List.nubByEq(graphicsConflict);
-        var $53 = Data_List.takeWhile(function (v) {
-            return notEq(v)(Ansi_Codes.Reset.value);
+        var $45 = Data_List.nubByEq(graphicsConflict);
+        var $46 = Data_List.takeWhile(function (v) {
+            return Data_Eq.notEq(Ansi_Codes.eqGraphicsParam)(v)(Ansi_Codes.Reset.value);
         });
-        return function ($54) {
-            return Data_List.reverse($52($53($54)));
+        return function ($47) {
+            return Data_List.reverse($45($46($47)));
         };
     })();
     var leaveAnnotation = function (v) {
@@ -136,7 +133,7 @@ var ansiGraphics = /* #__PURE__ */ (function () {
                 var current = getCurrentGraphics(as);
                 return {
                     output: v1.output,
-                    pending: new Data_Maybe.Just(Data_Maybe.fromMaybe(pure(Ansi_Codes.Reset.value))(getPendingGraphics(current))),
+                    pending: new Data_Maybe.Just(Data_Maybe.fromMaybe(Control_Applicative.pure(Data_List_Types.applicativeNonEmptyList)(Ansi_Codes.Reset.value))(getPendingGraphics(current))),
                     current: current,
                     previous: v1.current
                 };

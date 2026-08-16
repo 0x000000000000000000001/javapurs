@@ -3,7 +3,6 @@ import * as $foreign from "./foreign.js";
 import * as Data_Either from "../Data.Either/index.js";
 import * as Data_Functor from "../Data.Functor/index.js";
 import * as Effect_Uncurried from "../Effect.Uncurried/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorArray);
 var EventHandle = /* #__PURE__ */ (function () {
     function EventHandle(value0, value1) {
         this.value0 = value0;
@@ -125,7 +124,7 @@ var listenerCount = function (emitter) {
 };
 var getMaxListeners = /* #__PURE__ */ Effect_Uncurried.runEffectFn1($foreign.getMaxListenersImpl);
 var eventNames = function (ee) {
-    return map(function (x) {
+    return Data_Functor.map(Data_Functor.functorArray)(function (x) {
         return $foreign.symbolOrStr(Data_Either.Left.create, Data_Either.Right.create, x);
     })($foreign.eventNamesImpl(ee));
 };

@@ -25,24 +25,7 @@ import * as Data_Show from "../Data.Show/index.js";
 import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Unfoldable from "../Data.Unfoldable/index.js";
-var apply = /* #__PURE__ */ Control_Apply.apply(Data_Lazy.applyLazy);
-var map = /* #__PURE__ */ Data_Functor.map(Data_Lazy.functorLazy);
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
-var sequence = /* #__PURE__ */ Data_Traversable.sequence(Data_List_Lazy_Types.traversableList);
-var foldr = /* #__PURE__ */ Data_Foldable.foldr(Data_List_Lazy_Types.foldableList);
-var map1 = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
-var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
-var tailRecM2 = /* #__PURE__ */ Control_Monad_Rec_Class.tailRecM2(Control_Monad_Rec_Class.monadRecMaybe);
-var defer = /* #__PURE__ */ Control_Lazy.defer(Data_List_Lazy_Types.lazyList);
-var foldl = /* #__PURE__ */ Data_Foldable.foldl(Data_List_Lazy_Types.foldableList);
-var fix = /* #__PURE__ */ Control_Lazy.fix(Data_List_Lazy_Types.lazyList);
-var unfoldr = /* #__PURE__ */ Data_Unfoldable.unfoldr(Data_List_Lazy_Types.unfoldableList);
-var map2 = /* #__PURE__ */ Data_Functor.map(Data_List_Lazy_Types.functorList);
-var bind = /* #__PURE__ */ Control_Bind.bind(Data_Maybe.bindMaybe);
-var pure = /* #__PURE__ */ Control_Applicative.pure(Data_Maybe.applicativeMaybe);
-var any = /* #__PURE__ */ Data_Foldable.any(Data_List_Lazy_Types.foldableList)(Data_HeytingAlgebra.heytingAlgebraBoolean);
-var append1 = /* #__PURE__ */ Data_Semigroup.append(Data_List_Lazy_Types.semigroupList);
-var bind1 = /* #__PURE__ */ Control_Bind.bind(Data_List_Lazy_Types.bindList);
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var Pattern = function (x) {
     return x;
@@ -64,16 +47,15 @@ var zipWith = function (f) {
                     throw new Error("Failed pattern match at Data.List.Lazy (line 705, column 3 - line 705, column 35): " + [ v.constructor.name, v1.constructor.name ]);
                 };
             };
-            return apply(map(go)(unwrap(xs)))(unwrap(ys));
+            return Control_Apply.apply(Data_Lazy.applyLazy)(Data_Functor.map(Data_Lazy.functorLazy)(go)(Data_Newtype.unwrap()(xs)))(Data_Newtype.unwrap()(ys));
         };
     };
 };
 var zipWithA = function (dictApplicative) {
-    var sequence1 = sequence(dictApplicative);
     return function (f) {
         return function (xs) {
             return function (ys) {
-                return sequence1(zipWith(f)(xs)(ys));
+                return Data_Traversable.sequence(Data_List_Lazy_Types.traversableList)(dictApplicative)(zipWith(f)(xs)(ys));
             };
         };
     };
@@ -98,12 +80,12 @@ var updateAt = function (n) {
                     throw new Error("Failed pattern match at Data.List.Lazy (line 361, column 3 - line 361, column 17): " + [ v.constructor.name, v1.constructor.name ]);
                 };
             };
-            return map(go(n))(unwrap(xs));
+            return Data_Functor.map(Data_Lazy.functorLazy)(go(n))(Data_Newtype.unwrap()(xs));
         };
     };
 };
 var unzip = /* #__PURE__ */ (function () {
-    return foldr(function (v) {
+    return Data_Foldable.foldr(Data_List_Lazy_Types.foldableList)(function (v) {
         return function (v1) {
             return new Data_Tuple.Tuple(Data_List_Lazy_Types.cons(v.value0)(v1.value0), Data_List_Lazy_Types.cons(v.value1)(v1.value1));
         };
@@ -124,7 +106,7 @@ var uncons = function (xs) {
 };
 var toUnfoldable = function (dictUnfoldable) {
     return Data_Unfoldable.unfoldr(dictUnfoldable)(function (xs) {
-        return map1(function (rec) {
+        return Data_Functor.map(Data_Maybe.functorMaybe)(function (rec) {
             return new Data_Tuple.Tuple(rec.head, rec.tail);
         })(uncons(xs));
     });
@@ -136,9 +118,9 @@ var takeWhile = function (p) {
         };
         return Data_List_Lazy_Types.Nil.value;
     };
-    var $334 = map(go);
-    return function ($335) {
-        return Data_List_Lazy_Types.List($334(unwrap1($335)));
+    var $286 = Data_Functor.map(Data_Lazy.functorLazy)(go);
+    return function ($287) {
+        return Data_List_Lazy_Types.List($286(unwrap($287)));
     };
 };
 var take = function (n) {
@@ -153,22 +135,21 @@ var take = function (n) {
             throw new Error("Failed pattern match at Data.List.Lazy (line 505, column 3 - line 505, column 32): " + [ v.constructor.name, v1.constructor.name ]);
         };
     };
-    var $205 = n <= 0;
-    if ($205) {
+    var $157 = n <= 0;
+    if ($157) {
         return Data_Function["const"](Data_List_Lazy_Types.nil);
     };
-    var $336 = map(go(n));
-    return function ($337) {
-        return Data_List_Lazy_Types.List($336(unwrap1($337)));
+    var $288 = Data_Functor.map(Data_Lazy.functorLazy)(go(n));
+    return function ($289) {
+        return Data_List_Lazy_Types.List($288(unwrap($289)));
     };
 };
 var tail = function (xs) {
-    return map1(function (v) {
+    return Data_Functor.map(Data_Maybe.functorMaybe)(function (v) {
         return v.tail;
     })(uncons(xs));
 };
 var stripPrefix = function (dictEq) {
-    var eq = Data_Eq.eq(dictEq);
     return function (v) {
         return function (s) {
             var go = function (prefix) {
@@ -179,7 +160,7 @@ var stripPrefix = function (dictEq) {
                     };
                     if (v1 instanceof Data_List_Lazy_Types.Cons) {
                         var v2 = Data_List_Lazy_Types.step(input);
-                        if (v2 instanceof Data_List_Lazy_Types.Cons && eq(v1.value0)(v2.value0)) {
+                        if (v2 instanceof Data_List_Lazy_Types.Cons && Data_Eq.eq(dictEq)(v1.value0)(v2.value0)) {
                             return new Data_Maybe.Just(new Control_Monad_Rec_Class.Loop({
                                 a: v1.value1,
                                 b: v2.value1
@@ -190,7 +171,7 @@ var stripPrefix = function (dictEq) {
                     throw new Error("Failed pattern match at Data.List.Lazy (line 487, column 21 - line 491, column 19): " + [ v1.constructor.name ]);
                 };
             };
-            return tailRecM2(go)(v)(s);
+            return Control_Monad_Rec_Class.tailRecM2(Control_Monad_Rec_Class.monadRecMaybe)(go)(v)(s);
         };
     };
 };
@@ -212,17 +193,17 @@ var span = function (p) {
 };
 var snoc = function (xs) {
     return function (x) {
-        return foldr(Data_List_Lazy_Types.cons)(Data_List_Lazy_Types.cons(x)(Data_List_Lazy_Types.nil))(xs);
+        return Data_Foldable.foldr(Data_List_Lazy_Types.foldableList)(Data_List_Lazy_Types.cons)(Data_List_Lazy_Types.cons(x)(Data_List_Lazy_Types.nil))(xs);
     };
 };
 var singleton = function (a) {
     return Data_List_Lazy_Types.cons(a)(Data_List_Lazy_Types.nil);
 };
 var showPattern = function (dictShow) {
-    var show = Data_Show.show(Data_List_Lazy_Types.showList(dictShow));
+    var showList = Data_List_Lazy_Types.showList(dictShow);
     return {
         show: function (v) {
-            return "(Pattern " + (show(v) + ")");
+            return "(Pattern " + (Data_Show.show(showList)(v) + ")");
         }
     };
 };
@@ -239,27 +220,27 @@ var scanlLazy = function (f) {
                 };
                 throw new Error("Failed pattern match at Data.List.Lazy (line 776, column 5 - line 776, column 27): " + [ v.constructor.name ]);
             };
-            return map(go)(unwrap(xs));
+            return Data_Functor.map(Data_Lazy.functorLazy)(go)(Data_Newtype.unwrap()(xs));
         };
     };
 };
 var reverse = function (xs) {
-    return defer(function (v) {
-        return foldl(Data_Function.flip(Data_List_Lazy_Types.cons))(Data_List_Lazy_Types.nil)(xs);
+    return Control_Lazy.defer(Data_List_Lazy_Types.lazyList)(function (v) {
+        return Data_Foldable.foldl(Data_List_Lazy_Types.foldableList)(Data_Function.flip(Data_List_Lazy_Types.cons))(Data_List_Lazy_Types.nil)(xs);
     });
 };
 var replicateM = function (dictMonad) {
-    var pure1 = Control_Applicative.pure(dictMonad.Applicative0());
-    var bind2 = Control_Bind.bind(dictMonad.Bind1());
+    var Applicative0 = dictMonad.Applicative0();
+    var Bind1 = dictMonad.Bind1();
     return function (n) {
         return function (m) {
             if (n < 1) {
-                return pure1(Data_List_Lazy_Types.nil);
+                return Control_Applicative.pure(Applicative0)(Data_List_Lazy_Types.nil);
             };
             if (Data_Boolean.otherwise) {
-                return bind2(m)(function (a) {
-                    return bind2(replicateM(dictMonad)(n - 1 | 0)(m))(function (as) {
-                        return pure1(Data_List_Lazy_Types.cons(a)(as));
+                return Control_Bind.bind(Bind1)(m)(function (a) {
+                    return Control_Bind.bind(Bind1)(replicateM(dictMonad)(n - 1 | 0)(m))(function (as) {
+                        return Control_Applicative.pure(Applicative0)(Data_List_Lazy_Types.cons(a)(as));
                     });
                 });
             };
@@ -268,7 +249,7 @@ var replicateM = function (dictMonad) {
     };
 };
 var repeat = function (x) {
-    return fix(function (xs) {
+    return Control_Lazy.fix(Data_List_Lazy_Types.lazyList)(function (xs) {
         return Data_List_Lazy_Types.cons(x)(xs);
     });
 };
@@ -289,7 +270,7 @@ var range = function (start) {
                 };
                 throw new Error("Failed pattern match at Data.List.Lazy (line 151, column 13 - line 152, column 38): " + [ x.constructor.name ]);
             };
-            return unfoldr(g)(start);
+            return Data_Unfoldable.unfoldr(Data_List_Lazy_Types.unfoldableList)(g)(start);
         };
         if (Data_Boolean.otherwise) {
             var f = function (x) {
@@ -301,7 +282,7 @@ var range = function (start) {
                 };
                 throw new Error("Failed pattern match at Data.List.Lazy (line 156, column 5 - line 157, column 30): " + [ x.constructor.name ]);
             };
-            return unfoldr(f)(start);
+            return Data_Unfoldable.unfoldr(Data_List_Lazy_Types.unfoldableList)(f)(start);
         };
         throw new Error("Failed pattern match at Data.List.Lazy (line 148, column 1 - line 148, column 32): " + [ start.constructor.name, end.constructor.name ]);
     };
@@ -309,8 +290,8 @@ var range = function (start) {
 var partition = function (f) {
     var go = function (x) {
         return function (v) {
-            var $233 = f(x);
-            if ($233) {
+            var $185 = f(x);
+            if ($185) {
                 return {
                     yes: Data_List_Lazy_Types.cons(x)(v.yes),
                     no: v.no
@@ -322,13 +303,13 @@ var partition = function (f) {
             };
         };
     };
-    return foldr(go)({
+    return Data_Foldable.foldr(Data_List_Lazy_Types.foldableList)(go)({
         yes: Data_List_Lazy_Types.nil,
         no: Data_List_Lazy_Types.nil
     });
 };
-var $$null = function ($338) {
-    return Data_Maybe.isNothing(uncons($338));
+var $$null = function ($290) {
+    return Data_Maybe.isNothing(uncons($290));
 };
 var nubBy = function (p) {
     var goStep = function (v) {
@@ -348,7 +329,7 @@ var nubBy = function (p) {
     };
     var go = function (s) {
         return function (v) {
-            return map(goStep(s))(v);
+            return Data_Functor.map(Data_Lazy.functorLazy)(goStep(s))(v);
         };
     };
     return go(Data_List_Internal.emptySet);
@@ -389,33 +370,32 @@ var mapMaybe = function (f) {
         };
         return $tco_result;
     };
-    var $339 = map(go);
-    return function ($340) {
-        return Data_List_Lazy_Types.List($339(unwrap1($340)));
+    var $291 = Data_Functor.map(Data_Lazy.functorLazy)(go);
+    return function ($292) {
+        return Data_List_Lazy_Types.List($291(unwrap($292)));
     };
 };
 var some = function (dictAlternative) {
-    var apply1 = Control_Apply.apply((dictAlternative.Applicative0()).Apply0());
-    var map3 = Data_Functor.map(((dictAlternative.Plus1()).Alt0()).Functor0());
+    var Apply0 = (dictAlternative.Applicative0()).Apply0();
+    var Functor0 = ((dictAlternative.Plus1()).Alt0()).Functor0();
     return function (dictLazy) {
-        var defer1 = Control_Lazy.defer(dictLazy);
         return function (v) {
-            return apply1(map3(Data_List_Lazy_Types.cons)(v))(defer1(function (v1) {
+            return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(Data_List_Lazy_Types.cons)(v))(Control_Lazy.defer(dictLazy)(function (v1) {
                 return many(dictAlternative)(dictLazy)(v);
             }));
         };
     };
 };
 var many = function (dictAlternative) {
-    var alt = Control_Alt.alt((dictAlternative.Plus1()).Alt0());
-    var pure1 = Control_Applicative.pure(dictAlternative.Applicative0());
+    var Alt0 = (dictAlternative.Plus1()).Alt0();
+    var Applicative0 = dictAlternative.Applicative0();
     return function (dictLazy) {
         return function (v) {
-            return alt(some(dictAlternative)(dictLazy)(v))(pure1(Data_List_Lazy_Types.nil));
+            return Control_Alt.alt(Alt0)(some(dictAlternative)(dictLazy)(v))(Control_Applicative.pure(Applicative0)(Data_List_Lazy_Types.nil));
         };
     };
 };
-var length = /* #__PURE__ */ foldl(function (l) {
+var length = /* #__PURE__ */ Data_Foldable.foldl(Data_List_Lazy_Types.foldableList)(function (l) {
     return function (v) {
         return l + 1 | 0;
     };
@@ -443,14 +423,14 @@ var last = /* #__PURE__ */ (function () {
         };
         return $tco_result;
     };
-    return function ($341) {
-        return go(Data_List_Lazy_Types.step($341));
+    return function ($293) {
+        return go(Data_List_Lazy_Types.step($293));
     };
 })();
 var iterate = function (f) {
     return function (x) {
-        return fix(function (xs) {
-            return Data_List_Lazy_Types.cons(x)(map2(f)(xs));
+        return Control_Lazy.fix(Data_List_Lazy_Types.lazyList)(function (xs) {
+            return Data_List_Lazy_Types.cons(x)(Data_Functor.map(Data_List_Lazy_Types.functorList)(f)(xs));
         });
     };
 };
@@ -469,7 +449,7 @@ var insertAt = function (v) {
                 };
                 throw new Error("Failed pattern match at Data.List.Lazy (line 340, column 3 - line 340, column 22): " + [ v3.constructor.name ]);
             };
-            return map(go)(unwrap(v2));
+            return Data_Functor.map(Data_Lazy.functorLazy)(go)(Data_Newtype.unwrap()(v2));
         };
     };
 };
@@ -480,13 +460,13 @@ var init = /* #__PURE__ */ (function () {
                 return new Data_Maybe.Just(Data_List_Lazy_Types.nil);
             };
             if (Data_Boolean.otherwise) {
-                return map1(Data_List_Lazy_Types.cons(v.value0))(go(Data_List_Lazy_Types.step(v.value1)));
+                return Data_Functor.map(Data_Maybe.functorMaybe)(Data_List_Lazy_Types.cons(v.value0))(go(Data_List_Lazy_Types.step(v.value1)));
             };
         };
         return Data_Maybe.Nothing.value;
     };
-    return function ($342) {
-        return go(Data_List_Lazy_Types.step($342));
+    return function ($294) {
+        return go(Data_List_Lazy_Types.step($294));
     };
 })();
 var index = function (xs) {
@@ -520,7 +500,7 @@ var index = function (xs) {
     return go(Data_List_Lazy_Types.step(xs));
 };
 var head = function (xs) {
-    return map1(function (v) {
+    return Data_Functor.map(Data_Maybe.functorMaybe)(function (v) {
         return v.head;
     })(uncons(xs));
 };
@@ -554,18 +534,18 @@ var groupBy = function (eq) {
         };
         throw new Error("Failed pattern match at Data.List.Lazy (line 576, column 3 - line 576, column 15): " + [ v.constructor.name ]);
     };
-    var $343 = map(go);
-    return function ($344) {
-        return Data_List_Lazy_Types.List($343(unwrap1($344)));
+    var $295 = Data_Functor.map(Data_Lazy.functorLazy)(go);
+    return function ($296) {
+        return Data_List_Lazy_Types.List($295(unwrap($296)));
     };
 };
 var group = function (dictEq) {
     return groupBy(Data_Eq.eq(dictEq));
 };
 var fromStep = /* #__PURE__ */ (function () {
-    var $345 = Control_Applicative.pure(Data_Lazy.applicativeLazy);
-    return function ($346) {
-        return Data_List_Lazy_Types.List($345($346));
+    var $297 = Control_Applicative.pure(Data_Lazy.applicativeLazy);
+    return function ($298) {
+        return Data_List_Lazy_Types.List($297($298));
     };
 })();
 var insertBy = function (cmp) {
@@ -584,7 +564,7 @@ var insertBy = function (cmp) {
                 };
                 throw new Error("Failed pattern match at Data.List.Lazy (line 238, column 3 - line 238, column 22): " + [ v.constructor.name ]);
             };
-            return map(go)(unwrap(xs));
+            return Data_Functor.map(Data_Lazy.functorLazy)(go)(Data_Newtype.unwrap()(xs));
         };
     };
 };
@@ -595,13 +575,12 @@ var fromFoldable = function (dictFoldable) {
     return Data_Foldable.foldr(dictFoldable)(Data_List_Lazy_Types.cons)(Data_List_Lazy_Types.nil);
 };
 var foldrLazy = function (dictLazy) {
-    var defer1 = Control_Lazy.defer(dictLazy);
     return function (op) {
         return function (z) {
             var go = function (xs) {
                 var v = Data_List_Lazy_Types.step(xs);
                 if (v instanceof Data_List_Lazy_Types.Cons) {
-                    return defer1(function (v1) {
+                    return Control_Lazy.defer(dictLazy)(function (v1) {
                         return op(v.value0)(go(v.value1));
                     });
                 };
@@ -615,17 +594,17 @@ var foldrLazy = function (dictLazy) {
     };
 };
 var foldM = function (dictMonad) {
-    var pure1 = Control_Applicative.pure(dictMonad.Applicative0());
-    var bind2 = Control_Bind.bind(dictMonad.Bind1());
+    var Applicative0 = dictMonad.Applicative0();
+    var Bind1 = dictMonad.Bind1();
     return function (f) {
         return function (b) {
             return function (xs) {
                 var v = uncons(xs);
                 if (v instanceof Data_Maybe.Nothing) {
-                    return pure1(b);
+                    return Control_Applicative.pure(Applicative0)(b);
                 };
                 if (v instanceof Data_Maybe.Just) {
-                    return bind2(f(b)(v.value0.head))(function (b$prime) {
+                    return Control_Bind.bind(Bind1)(f(b)(v.value0.head))(function (b$prime) {
                         return foldM(dictMonad)(f)(b$prime)(v.value0.tail);
                     });
                 };
@@ -637,10 +616,10 @@ var foldM = function (dictMonad) {
 var findIndex = function (fn) {
     var go = function (n) {
         return function (list) {
-            return bind(uncons(list))(function (o) {
-                var $294 = fn(o.head);
-                if ($294) {
-                    return pure(n);
+            return Control_Bind.bind(Data_Maybe.bindMaybe)(uncons(list))(function (o) {
+                var $246 = fn(o.head);
+                if ($246) {
+                    return Control_Applicative.pure(Data_Maybe.applicativeMaybe)(n);
                 };
                 return go(n + 1 | 0)(o.tail);
             });
@@ -650,24 +629,24 @@ var findIndex = function (fn) {
 };
 var findLastIndex = function (fn) {
     return function (xs) {
-        return map1(function (v) {
+        return Data_Functor.map(Data_Maybe.functorMaybe)(function (v) {
             return (length(xs) - 1 | 0) - v | 0;
         })(findIndex(fn)(reverse(xs)));
     };
 };
 var filterM = function (dictMonad) {
-    var pure1 = Control_Applicative.pure(dictMonad.Applicative0());
-    var bind2 = Control_Bind.bind(dictMonad.Bind1());
+    var Applicative0 = dictMonad.Applicative0();
+    var Bind1 = dictMonad.Bind1();
     return function (p) {
         return function (list) {
             var v = uncons(list);
             if (v instanceof Data_Maybe.Nothing) {
-                return pure1(Data_List_Lazy_Types.nil);
+                return Control_Applicative.pure(Applicative0)(Data_List_Lazy_Types.nil);
             };
             if (v instanceof Data_Maybe.Just) {
-                return bind2(p(v.value0.head))(function (b) {
-                    return bind2(filterM(dictMonad)(p)(v.value0.tail))(function (xs$prime) {
-                        return pure1((function () {
+                return Control_Bind.bind(Bind1)(p(v.value0.head))(function (b) {
+                    return Control_Bind.bind(Bind1)(filterM(dictMonad)(p)(v.value0.tail))(function (xs$prime) {
+                        return Control_Applicative.pure(Applicative0)((function () {
                             if (b) {
                                 return Data_List_Lazy_Types.cons(v.value0.head)(xs$prime);
                             };
@@ -706,16 +685,16 @@ var filter = function (p) {
         };
         return $tco_result;
     };
-    var $347 = map(go);
-    return function ($348) {
-        return Data_List_Lazy_Types.List($347(unwrap1($348)));
+    var $299 = Data_Functor.map(Data_Lazy.functorLazy)(go);
+    return function ($300) {
+        return Data_List_Lazy_Types.List($299(unwrap($300)));
     };
 };
 var intersectBy = function (eq) {
     return function (xs) {
         return function (ys) {
             return filter(function (x) {
-                return any(eq(x))(ys);
+                return Data_Foldable.any(Data_List_Lazy_Types.foldableList)(Data_HeytingAlgebra.heytingAlgebraBoolean)(eq(x))(ys);
             })(xs);
         };
     };
@@ -735,31 +714,31 @@ var nubByEq = function (eq) {
         };
         throw new Error("Failed pattern match at Data.List.Lazy (line 633, column 3 - line 633, column 15): " + [ v.constructor.name ]);
     };
-    var $349 = map(go);
-    return function ($350) {
-        return Data_List_Lazy_Types.List($349(unwrap1($350)));
+    var $301 = Data_Functor.map(Data_Lazy.functorLazy)(go);
+    return function ($302) {
+        return Data_List_Lazy_Types.List($301(unwrap($302)));
     };
 };
 var nubEq = function (dictEq) {
     return nubByEq(Data_Eq.eq(dictEq));
 };
 var eqPattern = function (dictEq) {
-    var eq = Data_Eq.eq(Data_List_Lazy_Types.eqList(dictEq));
+    var eqList = Data_List_Lazy_Types.eqList(dictEq);
     return {
         eq: function (x) {
             return function (y) {
-                return eq(x)(y);
+                return Data_Eq.eq(eqList)(x)(y);
             };
         }
     };
 };
 var ordPattern = function (dictOrd) {
-    var compare = Data_Ord.compare(Data_List_Lazy_Types.ordList(dictOrd));
+    var ordList = Data_List_Lazy_Types.ordList(dictOrd);
     var eqPattern1 = eqPattern(dictOrd.Eq0());
     return {
         compare: function (x) {
             return function (y) {
-                return compare(x)(y);
+                return Data_Ord.compare(ordList)(x)(y);
             };
         },
         Eq0: function () {
@@ -768,18 +747,16 @@ var ordPattern = function (dictOrd) {
     };
 };
 var elemLastIndex = function (dictEq) {
-    var eq = Data_Eq.eq(dictEq);
     return function (x) {
         return findLastIndex(function (v) {
-            return eq(v)(x);
+            return Data_Eq.eq(dictEq)(v)(x);
         });
     };
 };
 var elemIndex = function (dictEq) {
-    var eq = Data_Eq.eq(dictEq);
     return function (x) {
         return findIndex(function (v) {
-            return eq(v)(x);
+            return Data_Eq.eq(dictEq)(v)(x);
         });
     };
 };
@@ -800,8 +777,8 @@ var dropWhile = function (p) {
         };
         return $tco_result;
     };
-    return function ($351) {
-        return go(Data_List_Lazy_Types.step($351));
+    return function ($303) {
+        return go(Data_List_Lazy_Types.step($303));
     };
 };
 var drop = function (n) {
@@ -832,9 +809,9 @@ var drop = function (n) {
             return $tco_result;
         };
     };
-    var $352 = map(go(n));
-    return function ($353) {
-        return Data_List_Lazy_Types.List($352(unwrap1($353)));
+    var $304 = Data_Functor.map(Data_Lazy.functorLazy)(go(n));
+    return function ($305) {
+        return Data_List_Lazy_Types.List($304(unwrap($305)));
     };
 };
 var slice = function (start) {
@@ -861,14 +838,14 @@ var deleteBy = function (eq) {
                 };
                 throw new Error("Failed pattern match at Data.List.Lazy (line 662, column 3 - line 662, column 15): " + [ v.constructor.name ]);
             };
-            return map(go)(unwrap(xs));
+            return Data_Functor.map(Data_Lazy.functorLazy)(go)(Data_Newtype.unwrap()(xs));
         };
     };
 };
 var unionBy = function (eq) {
     return function (xs) {
         return function (ys) {
-            return append1(xs)(foldl(Data_Function.flip(deleteBy(eq)))(nubByEq(eq)(ys))(xs));
+            return Data_Semigroup.append(Data_List_Lazy_Types.semigroupList)(xs)(Data_Foldable.foldl(Data_List_Lazy_Types.foldableList)(Data_Function.flip(deleteBy(eq)))(nubByEq(eq)(ys))(xs));
         };
     };
 };
@@ -891,23 +868,23 @@ var deleteAt = function (n) {
                 throw new Error("Failed pattern match at Data.List.Lazy (line 350, column 3 - line 350, column 17): " + [ v.constructor.name, v1.constructor.name ]);
             };
         };
-        return map(go(n))(unwrap(xs));
+        return Data_Functor.map(Data_Lazy.functorLazy)(go(n))(Data_Newtype.unwrap()(xs));
     };
 };
 var $$delete = function (dictEq) {
     return deleteBy(Data_Eq.eq(dictEq));
 };
 var difference = function (dictEq) {
-    return foldl(Data_Function.flip($$delete(dictEq)));
+    return Data_Foldable.foldl(Data_List_Lazy_Types.foldableList)(Data_Function.flip($$delete(dictEq)));
 };
 var cycle = function (xs) {
-    return fix(function (ys) {
-        return append1(xs)(ys);
+    return Control_Lazy.fix(Data_List_Lazy_Types.lazyList)(function (ys) {
+        return Data_Semigroup.append(Data_List_Lazy_Types.semigroupList)(xs)(ys);
     });
 };
 var concatMap = /* #__PURE__ */ Data_Function.flip(/* #__PURE__ */ Control_Bind.bind(Data_List_Lazy_Types.bindList));
 var concat = function (v) {
-    return bind1(v)(identity);
+    return Control_Bind.bind(Data_List_Lazy_Types.bindList)(v)(identity);
 };
 var catMaybes = /* #__PURE__ */ mapMaybe(/* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn));
 var alterAt = function (n) {
@@ -934,14 +911,14 @@ var alterAt = function (n) {
                     throw new Error("Failed pattern match at Data.List.Lazy (line 381, column 3 - line 381, column 17): " + [ v.constructor.name, v1.constructor.name ]);
                 };
             };
-            return map(go(n))(unwrap(xs));
+            return Data_Functor.map(Data_Lazy.functorLazy)(go(n))(Data_Newtype.unwrap()(xs));
         };
     };
 };
 var modifyAt = function (n) {
     return function (f) {
-        return alterAt(n)(function ($354) {
-            return Data_Maybe.Just.create(f($354));
+        return alterAt(n)(function ($306) {
+            return Data_Maybe.Just.create(f($306));
         });
     };
 };

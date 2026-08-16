@@ -20,52 +20,44 @@ import * as Data_TraversableWithIndex from "../Data.TraversableWithIndex/index.j
 import * as Data_Tuple from "../Data.Tuple/index.js";
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var _Newtype = /* #__PURE__ */ Data_Lens_Iso_Newtype["_Newtype"]()()(Data_Profunctor.profunctorFn);
-var first = /* #__PURE__ */ Data_Profunctor_Strong.first(Data_Profunctor_Strong.strongFn);
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
 var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
 var unwrap2 = /* #__PURE__ */ Data_Newtype.unwrap();
-var applicativeStateT = /* #__PURE__ */ Control_Monad_State_Trans.applicativeStateT(Data_Identity.monadIdentity);
-var applicativeCompose = /* #__PURE__ */ Data_Functor_Compose.applicativeCompose(applicativeStateT);
+var applicativeCompose = /* #__PURE__ */ Data_Functor_Compose.applicativeCompose(/* #__PURE__ */ Control_Monad_State_Trans.applicativeStateT(Data_Identity.monadIdentity));
 var applyStateT = /* #__PURE__ */ Control_Monad_State_Trans.applyStateT(Data_Identity.monadIdentity);
-var applyFirst = /* #__PURE__ */ Control_Apply.applyFirst(applyStateT);
-var apply = /* #__PURE__ */ Control_Apply.apply(applyStateT);
-var map = /* #__PURE__ */ Data_Functor.map(/* #__PURE__ */ Control_Monad_State_Trans.functorStateT(Data_Identity.functorIdentity));
+var functorStateT = /* #__PURE__ */ Control_Monad_State_Trans.functorStateT(Data_Identity.functorIdentity);
+var get = /* #__PURE__ */ Control_Monad_State_Class.get(/* #__PURE__ */ Control_Monad_State_Trans.monadStateStateT(Data_Identity.monadIdentity));
+var applicativeStateT = /* #__PURE__ */ Control_Monad_State_Trans.applicativeStateT(Data_Identity.monadIdentity);
 var monadStateStateT = /* #__PURE__ */ Control_Monad_State_Trans.monadStateStateT(Data_Identity.monadIdentity);
-var get = /* #__PURE__ */ Control_Monad_State_Class.get(monadStateStateT);
-var pure = /* #__PURE__ */ Control_Applicative.pure(applicativeStateT);
-var modify = /* #__PURE__ */ Control_Monad_State_Class.modify(monadStateStateT);
 var unIndex = function (dictProfunctor) {
-    var dimap = Data_Profunctor.dimap(dictProfunctor);
     return function (l) {
-        var $43 = dimap(Data_Tuple.snd)(identity);
-        return function ($44) {
-            return l(Data_Lens_Internal_Indexed.Indexed($43($44)));
+        var $32 = Data_Profunctor.dimap(dictProfunctor)(Data_Tuple.snd)(identity);
+        return function ($33) {
+            return l(Data_Lens_Internal_Indexed.Indexed($32($33)));
         };
     };
 };
 var reindexed = function (dictProfunctor) {
-    var lcmap = Data_Profunctor.lcmap(dictProfunctor);
     return function (ij) {
         return function (v) {
-            var $45 = Data_Lens_Setter.over(_Newtype)(lcmap(first(ij)));
-            return function ($46) {
-                return v($45($46));
+            var $34 = Data_Lens_Setter.over(_Newtype)(Data_Profunctor.lcmap(dictProfunctor)(Data_Profunctor_Strong.first(Data_Profunctor_Strong.strongFn)(ij)));
+            return function ($35) {
+                return v($34($35));
             };
         };
     };
 };
 var iwander = function (itr) {
     return function (dictWander) {
-        var $47 = Data_Lens_Internal_Wander.wander(dictWander)(function (dictApplicative) {
-            var itr1 = itr(dictApplicative);
+        var $36 = Data_Lens_Internal_Wander.wander(dictWander)(function (dictApplicative) {
             return function (f) {
                 return function (s) {
-                    return itr1(Data_Tuple.curry(f))(s);
+                    return itr(dictApplicative)(Data_Tuple.curry(f))(s);
                 };
             };
         });
-        return function ($48) {
-            return $47(unwrap($48));
+        return function ($37) {
+            return $36(unwrap($37));
         };
     };
 };
@@ -76,7 +68,7 @@ var positions = function (tr) {
             return function (f) {
                 return function (s) {
                     return Data_Function.flip(Control_Monad_State.evalState)(0)(unwrap1(Data_Function.flip(unwrap2)(s)(tr1(function (a) {
-                        return applyFirst(apply(map(f)(get))(pure(a)))(modify(function (v) {
+                        return Control_Apply.applyFirst(applyStateT)(Control_Apply.apply(applyStateT)(Data_Functor.map(functorStateT)(f)(get))(Control_Applicative.pure(applicativeStateT)(a)))(Control_Monad_State_Class.modify(monadStateStateT)(function (v) {
                             return v + 1 | 0;
                         }));
                     }))));
@@ -94,11 +86,10 @@ var itraversed = function (dictTraversableWithIndex) {
     };
 };
 var asIndex = function (dictProfunctor) {
-    var dimap = Data_Profunctor.dimap(dictProfunctor);
     return function (l) {
-        var $49 = dimap(Data_Tuple.fst)(identity);
-        return function ($50) {
-            return l(Data_Lens_Internal_Indexed.Indexed($49($50)));
+        var $38 = Data_Profunctor.dimap(dictProfunctor)(Data_Tuple.fst)(identity);
+        return function ($39) {
+            return l(Data_Lens_Internal_Indexed.Indexed($38($39)));
         };
     };
 };

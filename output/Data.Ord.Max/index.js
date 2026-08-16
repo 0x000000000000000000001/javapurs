@@ -6,19 +6,17 @@ var Max = function (x) {
     return x;
 };
 var showMax = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
-            return "(Max " + (show(v) + ")");
+            return "(Max " + (Data_Show.show(dictShow)(v) + ")");
         }
     };
 };
 var semigroupMax = function (dictOrd) {
-    var max = Data_Ord.max(dictOrd);
     return {
         append: function (v) {
             return function (v1) {
-                return max(v)(v1);
+                return Data_Ord.max(dictOrd)(v)(v1);
             };
         }
     };
@@ -41,12 +39,11 @@ var eqMax = function (dictEq) {
     return dictEq;
 };
 var ordMax = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     var eqMax1 = eqMax(dictOrd.Eq0());
     return {
         compare: function (v) {
             return function (v1) {
-                return compare(v)(v1);
+                return Data_Ord.compare(dictOrd)(v)(v1);
             };
         },
         Eq0: function () {

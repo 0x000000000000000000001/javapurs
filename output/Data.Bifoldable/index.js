@@ -14,47 +14,44 @@ import * as Data_Newtype from "../Data.Newtype/index.js";
 import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
-var monoidEndo = /* #__PURE__ */ Data_Monoid_Endo.monoidEndo(Control_Category.categoryFn);
-var monoidDual = /* #__PURE__ */ Data_Monoid_Dual.monoidDual(monoidEndo);
 var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
+var monoidDual = /* #__PURE__ */ Data_Monoid_Dual.monoidDual(/* #__PURE__ */ Data_Monoid_Endo.monoidEndo(Control_Category.categoryFn));
+var monoidEndo = /* #__PURE__ */ Data_Monoid_Endo.monoidEndo(Control_Category.categoryFn);
+var identity2 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
+var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
 var bifoldr = function (dict) {
     return dict.bifoldr;
 };
 var bitraverse_ = function (dictBifoldable) {
-    var bifoldr1 = bifoldr(dictBifoldable);
     return function (dictApplicative) {
-        var applySecond = Control_Apply.applySecond(dictApplicative.Apply0());
-        var pure = Control_Applicative.pure(dictApplicative);
+        var Apply0 = dictApplicative.Apply0();
+        var applySecond = Control_Apply.applySecond(Apply0);
+        var applySecond1 = Control_Apply.applySecond(Apply0);
         return function (f) {
             return function (g) {
-                return bifoldr1(function ($209) {
-                    return applySecond(f($209));
-                })(function ($210) {
-                    return applySecond(g($210));
-                })(pure(Data_Unit.unit));
+                return bifoldr(dictBifoldable)(function ($173) {
+                    return applySecond(f($173));
+                })(function ($174) {
+                    return applySecond1(g($174));
+                })(Control_Applicative.pure(dictApplicative)(Data_Unit.unit));
             };
         };
     };
 };
 var bifor_ = function (dictBifoldable) {
-    var bitraverse_1 = bitraverse_(dictBifoldable);
     return function (dictApplicative) {
-        var bitraverse_2 = bitraverse_1(dictApplicative);
         return function (t) {
             return function (f) {
                 return function (g) {
-                    return bitraverse_2(f)(g)(t);
+                    return bitraverse_(dictBifoldable)(dictApplicative)(f)(g)(t);
                 };
             };
         };
     };
 };
 var bisequence_ = function (dictBifoldable) {
-    var bitraverse_1 = bitraverse_(dictBifoldable);
     return function (dictApplicative) {
-        return bitraverse_1(dictApplicative)(identity)(identity);
+        return bitraverse_(dictBifoldable)(dictApplicative)(identity)(identity1);
     };
 };
 var bifoldl = function (dict) {
@@ -62,11 +59,11 @@ var bifoldl = function (dict) {
 };
 var bifoldableTuple = {
     bifoldMap: function (dictMonoid) {
-        var append = Data_Semigroup.append(dictMonoid.Semigroup0());
+        var Semigroup0 = dictMonoid.Semigroup0();
         return function (f) {
             return function (g) {
                 return function (v) {
-                    return append(f(v.value0))(g(v.value1));
+                    return Data_Semigroup.append(Semigroup0)(f(v.value0))(g(v.value1));
                 };
             };
         };
@@ -91,15 +88,12 @@ var bifoldableTuple = {
     }
 };
 var bifoldableJoker = function (dictFoldable) {
-    var foldr = Data_Foldable.foldr(dictFoldable);
-    var foldl = Data_Foldable.foldl(dictFoldable);
-    var foldMap = Data_Foldable.foldMap(dictFoldable);
     return {
         bifoldr: function (v) {
             return function (r) {
                 return function (u) {
                     return function (v1) {
-                        return foldr(r)(u)(v1);
+                        return Data_Foldable.foldr(dictFoldable)(r)(u)(v1);
                     };
                 };
             };
@@ -108,17 +102,16 @@ var bifoldableJoker = function (dictFoldable) {
             return function (r) {
                 return function (u) {
                     return function (v1) {
-                        return foldl(r)(u)(v1);
+                        return Data_Foldable.foldl(dictFoldable)(r)(u)(v1);
                     };
                 };
             };
         },
         bifoldMap: function (dictMonoid) {
-            var foldMap1 = foldMap(dictMonoid);
             return function (v) {
                 return function (r) {
                     return function (v1) {
-                        return foldMap1(r)(v1);
+                        return Data_Foldable.foldMap(dictFoldable)(dictMonoid)(r)(v1);
                     };
                 };
             };
@@ -202,15 +195,12 @@ var bifoldableConst = {
     }
 };
 var bifoldableClown = function (dictFoldable) {
-    var foldr = Data_Foldable.foldr(dictFoldable);
-    var foldl = Data_Foldable.foldl(dictFoldable);
-    var foldMap = Data_Foldable.foldMap(dictFoldable);
     return {
         bifoldr: function (l) {
             return function (v) {
                 return function (u) {
                     return function (v1) {
-                        return foldr(l)(u)(v1);
+                        return Data_Foldable.foldr(dictFoldable)(l)(u)(v1);
                     };
                 };
             };
@@ -219,17 +209,16 @@ var bifoldableClown = function (dictFoldable) {
             return function (v) {
                 return function (u) {
                     return function (v1) {
-                        return foldl(l)(u)(v1);
+                        return Data_Foldable.foldl(dictFoldable)(l)(u)(v1);
                     };
                 };
             };
         },
         bifoldMap: function (dictMonoid) {
-            var foldMap1 = foldMap(dictMonoid);
             return function (l) {
                 return function (v) {
                     return function (v1) {
-                        return foldMap1(l)(v1);
+                        return Data_Foldable.foldMap(dictFoldable)(dictMonoid)(l)(v1);
                     };
                 };
             };
@@ -237,35 +226,33 @@ var bifoldableClown = function (dictFoldable) {
     };
 };
 var bifoldMapDefaultR = function (dictBifoldable) {
-    var bifoldr1 = bifoldr(dictBifoldable);
     return function (dictMonoid) {
         var append = Data_Semigroup.append(dictMonoid.Semigroup0());
         var mempty = Data_Monoid.mempty(dictMonoid);
         return function (f) {
             return function (g) {
-                return bifoldr1(function ($211) {
-                    return append(f($211));
-                })(function ($212) {
-                    return append(g($212));
+                return bifoldr(dictBifoldable)(function ($175) {
+                    return append(f($175));
+                })(function ($176) {
+                    return append(g($176));
                 })(mempty);
             };
         };
     };
 };
 var bifoldMapDefaultL = function (dictBifoldable) {
-    var bifoldl1 = bifoldl(dictBifoldable);
     return function (dictMonoid) {
-        var append = Data_Semigroup.append(dictMonoid.Semigroup0());
+        var Semigroup0 = dictMonoid.Semigroup0();
         var mempty = Data_Monoid.mempty(dictMonoid);
         return function (f) {
             return function (g) {
-                return bifoldl1(function (m) {
+                return bifoldl(dictBifoldable)(function (m) {
                     return function (a) {
-                        return append(m)(f(a));
+                        return Data_Semigroup.append(Semigroup0)(m)(f(a));
                     };
                 })(function (m) {
                     return function (b) {
-                        return append(m)(g(b));
+                        return Data_Semigroup.append(Semigroup0)(m)(g(b));
                     };
                 })(mempty);
             };
@@ -276,15 +263,12 @@ var bifoldMap = function (dict) {
     return dict.bifoldMap;
 };
 var bifoldableFlip = function (dictBifoldable) {
-    var bifoldr1 = bifoldr(dictBifoldable);
-    var bifoldl1 = bifoldl(dictBifoldable);
-    var bifoldMap1 = bifoldMap(dictBifoldable);
     return {
         bifoldr: function (r) {
             return function (l) {
                 return function (u) {
                     return function (v) {
-                        return bifoldr1(l)(r)(u)(v);
+                        return bifoldr(dictBifoldable)(l)(r)(u)(v);
                     };
                 };
             };
@@ -293,17 +277,16 @@ var bifoldableFlip = function (dictBifoldable) {
             return function (l) {
                 return function (u) {
                     return function (v) {
-                        return bifoldl1(l)(r)(u)(v);
+                        return bifoldl(dictBifoldable)(l)(r)(u)(v);
                     };
                 };
             };
         },
         bifoldMap: function (dictMonoid) {
-            var bifoldMap2 = bifoldMap1(dictMonoid);
             return function (r) {
                 return function (l) {
                     return function (v) {
-                        return bifoldMap2(l)(r)(v);
+                        return bifoldMap(dictBifoldable)(dictMonoid)(l)(r)(v);
                     };
                 };
             };
@@ -311,20 +294,19 @@ var bifoldableFlip = function (dictBifoldable) {
     };
 };
 var bifoldlDefault = function (dictBifoldable) {
-    var bifoldMap1 = bifoldMap(dictBifoldable)(monoidDual);
     return function (f) {
         return function (g) {
             return function (z) {
                 return function (p) {
-                    return unwrap(unwrap(bifoldMap1((function () {
-                        var $213 = Data_Function.flip(f);
-                        return function ($214) {
-                            return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($213($214)));
+                    return Data_Newtype.unwrap()(Data_Newtype.unwrap()(bifoldMap(dictBifoldable)(monoidDual)((function () {
+                        var $177 = Data_Function.flip(f);
+                        return function ($178) {
+                            return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($177($178)));
                         };
                     })())((function () {
-                        var $215 = Data_Function.flip(g);
-                        return function ($216) {
-                            return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($215($216)));
+                        var $179 = Data_Function.flip(g);
+                        return function ($180) {
+                            return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($179($180)));
                         };
                     })())(p)))(z);
                 };
@@ -333,15 +315,14 @@ var bifoldlDefault = function (dictBifoldable) {
     };
 };
 var bifoldrDefault = function (dictBifoldable) {
-    var bifoldMap1 = bifoldMap(dictBifoldable)(monoidEndo);
     return function (f) {
         return function (g) {
             return function (z) {
                 return function (p) {
-                    return unwrap(bifoldMap1(function ($217) {
-                        return Data_Monoid_Endo.Endo(f($217));
-                    })(function ($218) {
-                        return Data_Monoid_Endo.Endo(g($218));
+                    return Data_Newtype.unwrap()(bifoldMap(dictBifoldable)(monoidEndo)(function ($181) {
+                        return Data_Monoid_Endo.Endo(f($181));
+                    })(function ($182) {
+                        return Data_Monoid_Endo.Endo(g($182));
                     })(p))(z);
                 };
             };
@@ -349,9 +330,7 @@ var bifoldrDefault = function (dictBifoldable) {
     };
 };
 var bifoldableProduct2 = function (dictBifoldable) {
-    var bifoldMap1 = bifoldMap(dictBifoldable);
     return function (dictBifoldable1) {
-        var bifoldMap2 = bifoldMap(dictBifoldable1);
         return {
             bifoldr: function (l) {
                 return function (r) {
@@ -372,13 +351,11 @@ var bifoldableProduct2 = function (dictBifoldable) {
                 };
             },
             bifoldMap: function (dictMonoid) {
-                var append = Data_Semigroup.append(dictMonoid.Semigroup0());
-                var bifoldMap3 = bifoldMap1(dictMonoid);
-                var bifoldMap4 = bifoldMap2(dictMonoid);
+                var Semigroup0 = dictMonoid.Semigroup0();
                 return function (l) {
                     return function (r) {
                         return function (v) {
-                            return append(bifoldMap3(l)(r)(v.value0))(bifoldMap4(l)(r)(v.value1));
+                            return Data_Semigroup.append(Semigroup0)(bifoldMap(dictBifoldable)(dictMonoid)(l)(r)(v.value0))(bifoldMap(dictBifoldable1)(dictMonoid)(l)(r)(v.value1));
                         };
                     };
                 };
@@ -387,42 +364,39 @@ var bifoldableProduct2 = function (dictBifoldable) {
     };
 };
 var bifold = function (dictBifoldable) {
-    var bifoldMap1 = bifoldMap(dictBifoldable);
     return function (dictMonoid) {
-        return bifoldMap1(dictMonoid)(identity1)(identity1);
+        return bifoldMap(dictBifoldable)(dictMonoid)(identity2)(identity2);
     };
 };
 var biany = function (dictBifoldable) {
-    var bifoldMap1 = bifoldMap(dictBifoldable);
     return function (dictBooleanAlgebra) {
-        var bifoldMap2 = bifoldMap1(Data_Monoid_Disj.monoidDisj(dictBooleanAlgebra.HeytingAlgebra0()));
+        var monoidDisj = Data_Monoid_Disj.monoidDisj(dictBooleanAlgebra.HeytingAlgebra0());
         return function (p) {
             return function (q) {
-                var $219 = bifoldMap2(function ($221) {
-                    return Data_Monoid_Disj.Disj(p($221));
-                })(function ($222) {
-                    return Data_Monoid_Disj.Disj(q($222));
+                var $183 = bifoldMap(dictBifoldable)(monoidDisj)(function ($185) {
+                    return Data_Monoid_Disj.Disj(p($185));
+                })(function ($186) {
+                    return Data_Monoid_Disj.Disj(q($186));
                 });
-                return function ($220) {
-                    return unwrap1($219($220));
+                return function ($184) {
+                    return unwrap($183($184));
                 };
             };
         };
     };
 };
 var biall = function (dictBifoldable) {
-    var bifoldMap1 = bifoldMap(dictBifoldable);
     return function (dictBooleanAlgebra) {
-        var bifoldMap2 = bifoldMap1(Data_Monoid_Conj.monoidConj(dictBooleanAlgebra.HeytingAlgebra0()));
+        var monoidConj = Data_Monoid_Conj.monoidConj(dictBooleanAlgebra.HeytingAlgebra0());
         return function (p) {
             return function (q) {
-                var $223 = bifoldMap2(function ($225) {
-                    return Data_Monoid_Conj.Conj(p($225));
-                })(function ($226) {
-                    return Data_Monoid_Conj.Conj(q($226));
+                var $187 = bifoldMap(dictBifoldable)(monoidConj)(function ($189) {
+                    return Data_Monoid_Conj.Conj(p($189));
+                })(function ($190) {
+                    return Data_Monoid_Conj.Conj(q($190));
                 });
-                return function ($224) {
-                    return unwrap1($223($224));
+                return function ($188) {
+                    return unwrap($187($188));
                 };
             };
         };

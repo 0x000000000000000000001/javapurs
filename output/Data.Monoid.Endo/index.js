@@ -6,19 +6,17 @@ var Endo = function (x) {
     return x;
 };
 var showEndo = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
-            return "(Endo " + (show(v) + ")");
+            return "(Endo " + (Data_Show.show(dictShow)(v) + ")");
         }
     };
 };
 var semigroupEndo = function (dictSemigroupoid) {
-    var compose = Control_Semigroupoid.compose(dictSemigroupoid);
     return {
         append: function (v) {
             return function (v1) {
-                return compose(v)(v1);
+                return Control_Semigroupoid.compose(dictSemigroupoid)(v)(v1);
             };
         }
     };

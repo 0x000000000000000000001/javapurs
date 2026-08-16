@@ -34,25 +34,21 @@ var $runtime_lazy = function (name, moduleName, init) {
         return val;
     };
 };
-var pure = /* #__PURE__ */ Control_Applicative.pure(Effect.applicativeEffect);
 var tailRecM = /* #__PURE__ */ Control_Monad_Rec_Class.tailRecM(Control_Monad_Rec_Class.monadRecEffect);
 var join = /* #__PURE__ */ Control_Bind.join(Effect.bindEffect);
-var bindFlipped = /* #__PURE__ */ Control_Bind.bindFlipped(Effect.bindEffect);
 var liftST = /* #__PURE__ */ Control_Monad_ST_Class.liftST(Control_Monad_ST_Class.monadSTEffect);
 var mempty = /* #__PURE__ */ Data_Monoid.mempty(/* #__PURE__ */ Effect.monoidEffect(Data_Monoid.monoidUnit));
 var liftST1 = /* #__PURE__ */ Control_Monad_ST_Class.liftST(Control_Monad_ST_Class.monadSTEffect);
 var $$void = /* #__PURE__ */ Data_Functor["void"](Effect.functorEffect);
 var liftST2 = /* #__PURE__ */ Control_Monad_ST_Class.liftST(Control_Monad_ST_Class.monadSTEffect);
-var applySecond = /* #__PURE__ */ Control_Apply.applySecond(Effect.applyEffect);
-var map = /* #__PURE__ */ Data_Functor.map(Effect.functorEffect);
-var pure2 = /* #__PURE__ */ Control_Applicative.pure(Control_Applicative.applicativeArray);
+var pure1 = /* #__PURE__ */ Control_Applicative.pure(Control_Applicative.applicativeArray);
 var write = function (dictMonadAff) {
     var liftAff = Effect_Aff_Class.liftAff(dictMonadAff);
     return function (w) {
         return function (bs) {
             return liftAff(Effect_Aff.makeAff(function (complete) {
                 return function __do() {
-                    var removeDrain = Effect_Ref["new"](pure(Data_Unit.unit))();
+                    var removeDrain = Effect_Ref["new"](Control_Applicative.pure(Effect.applicativeEffect)(Data_Unit.unit))();
                     var oneWrite = function (i$prime) {
                         return Data_Function.flip(tailRecM)(i$prime)(function (i) {
                             var v = Data_Array.index(bs)(i);
@@ -66,7 +62,7 @@ var write = function (dictMonadAff) {
                                 return function __do() {
                                     var nobackpressure = Node_Stream["write$prime"](w)(v.value0)(function (v1) {
                                         if (v1 instanceof Data_Maybe.Nothing) {
-                                            return pure(Data_Unit.unit);
+                                            return Control_Applicative.pure(Effect.applicativeEffect)(Data_Unit.unit);
                                         };
                                         if (v1 instanceof Data_Maybe.Just) {
                                             return complete(new Data_Either.Left(v1.value0));
@@ -94,7 +90,7 @@ var write = function (dictMonadAff) {
 var toStringUTF8 = function (dictMonadEffect) {
     var liftEffect = Effect_Class.liftEffect(dictMonadEffect);
     return function (bs) {
-        return liftEffect(bindFlipped(Node_Buffer.toString(Node_Encoding.UTF8.value))(Node_Buffer.concat(bs)));
+        return liftEffect(Control_Bind.bindFlipped(Effect.bindEffect)(Node_Buffer.toString(Node_Encoding.UTF8.value))(Node_Buffer.concat(bs)));
     };
 };
 var readableToBuffers = function (dictMonadAff) {
@@ -140,21 +136,19 @@ var readableToBuffers = function (dictMonadAff) {
 };
 var readableToString = function (dictMonadAff) {
     var MonadEffect0 = dictMonadAff.MonadEffect0();
-    var bind1 = Control_Bind.bind((MonadEffect0.Monad0()).Bind1());
-    var readableToBuffers1 = readableToBuffers(dictMonadAff);
+    var Bind1 = (MonadEffect0.Monad0()).Bind1();
     var liftEffect = Effect_Class.liftEffect(MonadEffect0);
     return function (r) {
         return function (enc) {
-            return bind1(readableToBuffers1(r))(function (bufs) {
-                return liftEffect(bindFlipped(Node_Buffer.toString(enc))(Node_Buffer.concat(bufs)));
+            return Control_Bind.bind(Bind1)(readableToBuffers(dictMonadAff)(r))(function (bufs) {
+                return liftEffect(Control_Bind.bindFlipped(Effect.bindEffect)(Node_Buffer.toString(enc))(Node_Buffer.concat(bufs)));
             });
         };
     };
 };
 var readableToStringUtf8 = function (dictMonadAff) {
-    var readableToString1 = readableToString(dictMonadAff);
     return function (r) {
-        return readableToString1(r)(Node_Encoding.UTF8.value);
+        return readableToString(dictMonadAff)(r)(Node_Encoding.UTF8.value);
     };
 };
 var readSome = function (dictMonadAff) {
@@ -213,8 +207,8 @@ var readSome = function (dictMonadAff) {
                         })();
                         var ret1 = liftST1(Data_Array_ST.unsafeFreeze(bufs))();
                         var readagain = Node_Stream.readable(r)();
-                        var $67 = readagain && Data_Array.length(ret1) === 0;
-                        if ($67) {
+                        var $50 = readagain && Data_Array.length(ret1) === 0;
+                        if ($50) {
                             var removeReadable = Node_EventEmitter.once(Node_Stream.readableH)(function __do() {
                                 (function () {
                                     while (!(function __do() {
@@ -273,16 +267,16 @@ var readN = function (dictMonadAff) {
     return function (r) {
         return function (n) {
             return liftAff(Effect_Aff.makeAff(function (complete) {
-                var $70 = n < 0;
-                if ($70) {
-                    return applySecond(complete(new Data_Either.Left(Effect_Exception.error("read bytes must be > 0"))))(pure(Effect_Aff.nonCanceler));
+                var $53 = n < 0;
+                if ($53) {
+                    return Control_Apply.applySecond(Effect.applyEffect)(complete(new Data_Either.Left(Effect_Exception.error("read bytes must be > 0"))))(Control_Applicative.pure(Effect.applicativeEffect)(Effect_Aff.nonCanceler));
                 };
                 return function __do() {
                     var isReadable = Node_Stream.readable(r)();
                     if (isReadable) {
                         var redRef = Effect_Ref["new"](0)();
                         var bufs = liftST(Data_Array_ST["new"])();
-                        var removeReadable = Effect_Ref["new"](pure(Data_Unit.unit))();
+                        var removeReadable = Effect_Ref["new"](Control_Applicative.pure(Effect.applicativeEffect)(Data_Unit.unit))();
                         var removeError = Node_EventEmitter.once(Node_Stream.errorH)(function (err) {
                             return function __do() {
                                 join(Effect_Ref.read(removeReadable))();
@@ -322,8 +316,8 @@ var readN = function (dictMonadAff) {
                                             var red$prime = Effect_Ref.modify(function (v1) {
                                                 return v1 + s | 0;
                                             })(redRef)();
-                                            var $73 = red$prime >= n;
-                                            if ($73) {
+                                            var $56 = red$prime >= n;
+                                            if ($56) {
                                                 return true;
                                             };
                                             return false;
@@ -335,8 +329,8 @@ var readN = function (dictMonadAff) {
                                     return {};
                                 })();
                                 var red = Effect_Ref.read(redRef)();
-                                var $75 = red >= n;
-                                if ($75) {
+                                var $58 = red >= n;
+                                if ($58) {
                                     removeError();
                                     removeClose();
                                     removeEnd();
@@ -394,7 +388,7 @@ var readAll = function (dictMonadAff) {
                 var isReadable = Node_Stream.readable(r)();
                 if (isReadable) {
                     var bufs = liftST(Data_Array_ST["new"])();
-                    var removeReadable = Effect_Ref["new"](pure(Data_Unit.unit))();
+                    var removeReadable = Effect_Ref["new"](Control_Applicative.pure(Effect.applicativeEffect)(Data_Unit.unit))();
                     var removeError = Node_EventEmitter.once(Node_Stream.errorH)(function (err) {
                         return function __do() {
                             join(Effect_Ref.read(removeReadable))();
@@ -483,7 +477,7 @@ var readAll = function (dictMonadAff) {
 var fromStringUTF8 = function (dictMonadEffect) {
     var liftEffect = Effect_Class.liftEffect(dictMonadEffect);
     return function (s) {
-        return liftEffect(map(pure2)(Node_Buffer.fromString(s)(Node_Encoding.UTF8.value)));
+        return liftEffect(Data_Functor.map(Effect.functorEffect)(pure1)(Node_Buffer.fromString(s)(Node_Encoding.UTF8.value)));
     };
 };
 var end = function (dictMonadAff) {

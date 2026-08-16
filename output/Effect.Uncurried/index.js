@@ -4,7 +4,7 @@ import * as Data_Monoid from "../Data.Monoid/index.js";
 import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Effect from "../Effect/index.js";
 var semigroupEffectFn9 = function (dictSemigroup) {
-    var append = Data_Semigroup.append(Effect.semigroupEffect(dictSemigroup));
+    var semigroupEffect = Effect.semigroupEffect(dictSemigroup);
     return {
         append: function (f1) {
             return function (f2) {
@@ -17,7 +17,7 @@ var semigroupEffectFn9 = function (dictSemigroup) {
                                         return function (g) {
                                             return function (h) {
                                                 return function (i) {
-                                                    return append($foreign.runEffectFn9(f1)(a)(b)(c)(d)(e)(f)(g)(h)(i))($foreign.runEffectFn9(f2)(a)(b)(c)(d)(e)(f)(g)(h)(i));
+                                                    return Data_Semigroup.append(semigroupEffect)($foreign.runEffectFn9(f1)(a)(b)(c)(d)(e)(f)(g)(h)(i))($foreign.runEffectFn9(f2)(a)(b)(c)(d)(e)(f)(g)(h)(i));
                                                 };
                                             };
                                         };
@@ -32,7 +32,7 @@ var semigroupEffectFn9 = function (dictSemigroup) {
     };
 };
 var semigroupEffectFn8 = function (dictSemigroup) {
-    var append = Data_Semigroup.append(Effect.semigroupEffect(dictSemigroup));
+    var semigroupEffect = Effect.semigroupEffect(dictSemigroup);
     return {
         append: function (f1) {
             return function (f2) {
@@ -44,7 +44,7 @@ var semigroupEffectFn8 = function (dictSemigroup) {
                                     return function (f) {
                                         return function (g) {
                                             return function (h) {
-                                                return append($foreign.runEffectFn8(f1)(a)(b)(c)(d)(e)(f)(g)(h))($foreign.runEffectFn8(f2)(a)(b)(c)(d)(e)(f)(g)(h));
+                                                return Data_Semigroup.append(semigroupEffect)($foreign.runEffectFn8(f1)(a)(b)(c)(d)(e)(f)(g)(h))($foreign.runEffectFn8(f2)(a)(b)(c)(d)(e)(f)(g)(h));
                                             };
                                         };
                                     };
@@ -58,7 +58,7 @@ var semigroupEffectFn8 = function (dictSemigroup) {
     };
 };
 var semigroupEffectFn7 = function (dictSemigroup) {
-    var append = Data_Semigroup.append(Effect.semigroupEffect(dictSemigroup));
+    var semigroupEffect = Effect.semigroupEffect(dictSemigroup);
     return {
         append: function (f1) {
             return function (f2) {
@@ -69,7 +69,7 @@ var semigroupEffectFn7 = function (dictSemigroup) {
                                 return function (e) {
                                     return function (f) {
                                         return function (g) {
-                                            return append($foreign.runEffectFn7(f1)(a)(b)(c)(d)(e)(f)(g))($foreign.runEffectFn7(f2)(a)(b)(c)(d)(e)(f)(g));
+                                            return Data_Semigroup.append(semigroupEffect)($foreign.runEffectFn7(f1)(a)(b)(c)(d)(e)(f)(g))($foreign.runEffectFn7(f2)(a)(b)(c)(d)(e)(f)(g));
                                         };
                                     };
                                 };
@@ -82,7 +82,7 @@ var semigroupEffectFn7 = function (dictSemigroup) {
     };
 };
 var semigroupEffectFn6 = function (dictSemigroup) {
-    var append = Data_Semigroup.append(Effect.semigroupEffect(dictSemigroup));
+    var semigroupEffect = Effect.semigroupEffect(dictSemigroup);
     return {
         append: function (f1) {
             return function (f2) {
@@ -92,7 +92,7 @@ var semigroupEffectFn6 = function (dictSemigroup) {
                             return function (d) {
                                 return function (e) {
                                     return function (f) {
-                                        return append($foreign.runEffectFn6(f1)(a)(b)(c)(d)(e)(f))($foreign.runEffectFn6(f2)(a)(b)(c)(d)(e)(f));
+                                        return Data_Semigroup.append(semigroupEffect)($foreign.runEffectFn6(f1)(a)(b)(c)(d)(e)(f))($foreign.runEffectFn6(f2)(a)(b)(c)(d)(e)(f));
                                     };
                                 };
                             };
@@ -104,7 +104,7 @@ var semigroupEffectFn6 = function (dictSemigroup) {
     };
 };
 var semigroupEffectFn5 = function (dictSemigroup) {
-    var append = Data_Semigroup.append(Effect.semigroupEffect(dictSemigroup));
+    var semigroupEffect = Effect.semigroupEffect(dictSemigroup);
     return {
         append: function (f1) {
             return function (f2) {
@@ -113,7 +113,7 @@ var semigroupEffectFn5 = function (dictSemigroup) {
                         return function (c) {
                             return function (d) {
                                 return function (e) {
-                                    return append($foreign.runEffectFn5(f1)(a)(b)(c)(d)(e))($foreign.runEffectFn5(f2)(a)(b)(c)(d)(e));
+                                    return Data_Semigroup.append(semigroupEffect)($foreign.runEffectFn5(f1)(a)(b)(c)(d)(e))($foreign.runEffectFn5(f2)(a)(b)(c)(d)(e));
                                 };
                             };
                         };
@@ -124,7 +124,7 @@ var semigroupEffectFn5 = function (dictSemigroup) {
     };
 };
 var semigroupEffectFn4 = function (dictSemigroup) {
-    var append = Data_Semigroup.append(Effect.semigroupEffect(dictSemigroup));
+    var semigroupEffect = Effect.semigroupEffect(dictSemigroup);
     return {
         append: function (f1) {
             return function (f2) {
@@ -132,7 +132,7 @@ var semigroupEffectFn4 = function (dictSemigroup) {
                     return function (b) {
                         return function (c) {
                             return function (d) {
-                                return append($foreign.runEffectFn4(f1)(a)(b)(c)(d))($foreign.runEffectFn4(f2)(a)(b)(c)(d));
+                                return Data_Semigroup.append(semigroupEffect)($foreign.runEffectFn4(f1)(a)(b)(c)(d))($foreign.runEffectFn4(f2)(a)(b)(c)(d));
                             };
                         };
                     };
@@ -142,14 +142,14 @@ var semigroupEffectFn4 = function (dictSemigroup) {
     };
 };
 var semigroupEffectFn3 = function (dictSemigroup) {
-    var append = Data_Semigroup.append(Effect.semigroupEffect(dictSemigroup));
+    var semigroupEffect = Effect.semigroupEffect(dictSemigroup);
     return {
         append: function (f1) {
             return function (f2) {
                 return $foreign.mkEffectFn3(function (a) {
                     return function (b) {
                         return function (c) {
-                            return append($foreign.runEffectFn3(f1)(a)(b)(c))($foreign.runEffectFn3(f2)(a)(b)(c));
+                            return Data_Semigroup.append(semigroupEffect)($foreign.runEffectFn3(f1)(a)(b)(c))($foreign.runEffectFn3(f2)(a)(b)(c));
                         };
                     };
                 });
@@ -158,13 +158,13 @@ var semigroupEffectFn3 = function (dictSemigroup) {
     };
 };
 var semigroupEffectFn2 = function (dictSemigroup) {
-    var append = Data_Semigroup.append(Effect.semigroupEffect(dictSemigroup));
+    var semigroupEffect = Effect.semigroupEffect(dictSemigroup);
     return {
         append: function (f1) {
             return function (f2) {
                 return $foreign.mkEffectFn2(function (a) {
                     return function (b) {
-                        return append($foreign.runEffectFn2(f1)(a)(b))($foreign.runEffectFn2(f2)(a)(b));
+                        return Data_Semigroup.append(semigroupEffect)($foreign.runEffectFn2(f1)(a)(b))($foreign.runEffectFn2(f2)(a)(b));
                     };
                 });
             };
@@ -172,7 +172,7 @@ var semigroupEffectFn2 = function (dictSemigroup) {
     };
 };
 var semigroupEffectFn10 = function (dictSemigroup) {
-    var append = Data_Semigroup.append(Effect.semigroupEffect(dictSemigroup));
+    var semigroupEffect = Effect.semigroupEffect(dictSemigroup);
     return {
         append: function (f1) {
             return function (f2) {
@@ -186,7 +186,7 @@ var semigroupEffectFn10 = function (dictSemigroup) {
                                             return function (h) {
                                                 return function (i) {
                                                     return function (j) {
-                                                        return append($foreign.runEffectFn10(f1)(a)(b)(c)(d)(e)(f)(g)(h)(i)(j))($foreign.runEffectFn10(f2)(a)(b)(c)(d)(e)(f)(g)(h)(i)(j));
+                                                        return Data_Semigroup.append(semigroupEffect)($foreign.runEffectFn10(f1)(a)(b)(c)(d)(e)(f)(g)(h)(i)(j))($foreign.runEffectFn10(f2)(a)(b)(c)(d)(e)(f)(g)(h)(i)(j));
                                                     };
                                                 };
                                             };
@@ -202,12 +202,12 @@ var semigroupEffectFn10 = function (dictSemigroup) {
     };
 };
 var semigroupEffectFn1 = function (dictSemigroup) {
-    var append = Data_Semigroup.append(Effect.semigroupEffect(dictSemigroup));
+    var semigroupEffect = Effect.semigroupEffect(dictSemigroup);
     return {
         append: function (f1) {
             return function (f2) {
                 return $foreign.mkEffectFn1(function (a) {
-                    return append($foreign.runEffectFn1(f1)(a))($foreign.runEffectFn1(f2)(a));
+                    return Data_Semigroup.append(semigroupEffect)($foreign.runEffectFn1(f1)(a))($foreign.runEffectFn1(f2)(a));
                 });
             };
         }

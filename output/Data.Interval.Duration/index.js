@@ -84,10 +84,10 @@ var showDurationComponent = {
         throw new Error("Failed pattern match at Data.Interval.Duration (line 38, column 1 - line 45, column 21): " + [ v.constructor.name ]);
     }
 };
-var show = /* #__PURE__ */ Data_Show.show(/* #__PURE__ */ Data_Map_Internal.showMap(showDurationComponent)(Data_Show.showNumber));
+var showMap = /* #__PURE__ */ Data_Map_Internal.showMap(showDurationComponent)(Data_Show.showNumber);
 var showDuration = {
     show: function (v) {
-        return "(Duration " + (show(v) + ")");
+        return "(Duration " + (Data_Show.show(showMap)(v) + ")");
     }
 };
 var newtypeDuration = {
@@ -123,7 +123,7 @@ var eqDurationComponent = {
         };
     }
 };
-var eq = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_Map_Internal.eqMap(eqDurationComponent)(Data_Eq.eqNumber));
+var eqMap = /* #__PURE__ */ Data_Map_Internal.eqMap(eqDurationComponent)(Data_Eq.eqNumber);
 var ordDurationComponent = {
     compare: function (x) {
         return function (y) {
@@ -191,12 +191,11 @@ var ordDurationComponent = {
         return eqDurationComponent;
     }
 };
-var unionWith = /* #__PURE__ */ Data_Map_Internal.unionWith(ordDurationComponent);
-var compare = /* #__PURE__ */ Data_Ord.compare(/* #__PURE__ */ Data_Map_Internal.ordMap(ordDurationComponent)(Data_Ord.ordNumber));
+var ordMap = /* #__PURE__ */ Data_Map_Internal.ordMap(ordDurationComponent)(Data_Ord.ordNumber);
 var semigroupDuration = {
     append: function (v) {
         return function (v1) {
-            return unionWith(add)(v)(v1);
+            return Data_Map_Internal.unionWith(ordDurationComponent)(add)(v)(v1);
         };
     }
 };
@@ -209,14 +208,14 @@ var monoidDuration = {
 var eqDuration = {
     eq: function (x) {
         return function (y) {
-            return eq(x)(y);
+            return Data_Eq.eq(eqMap)(x)(y);
         };
     }
 };
 var ordDuration = {
     compare: function (x) {
         return function (y) {
-            return compare(x)(y);
+            return Data_Ord.compare(ordMap)(x)(y);
         };
     },
     Eq0: function () {
@@ -232,11 +231,11 @@ var hour = /* #__PURE__ */ (function () {
     return durationFromComponent(Hour.value);
 })();
 var millisecond = /* #__PURE__ */ (function () {
-    var $43 = durationFromComponent(Second.value);
-    return function ($44) {
-        return $43((function (v) {
+    var $36 = durationFromComponent(Second.value);
+    return function ($37) {
+        return $36((function (v) {
             return v / 1000.0;
-        })($44));
+        })($37));
     };
 })();
 var minute = /* #__PURE__ */ (function () {

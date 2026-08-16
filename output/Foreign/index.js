@@ -16,12 +16,8 @@ import * as Data_Ordering from "../Data.Ordering/index.js";
 import * as Data_Show from "../Data.Show/index.js";
 import * as Data_String_CodeUnits from "../Data.String.CodeUnits/index.js";
 import * as Unsafe_Coerce from "../Unsafe.Coerce/index.js";
-var show = /* #__PURE__ */ Data_Show.show(Data_Show.showString);
-var show1 = /* #__PURE__ */ Data_Show.show(Data_Show.showInt);
 var pure = /* #__PURE__ */ Control_Applicative.pure(Data_Either.applicativeEither);
 var pure1 = /* #__PURE__ */ Control_Applicative.pure(Data_Either.applicativeEither);
-var compare = /* #__PURE__ */ Data_Ord.compare(Data_Ord.ordString);
-var compare1 = /* #__PURE__ */ Data_Ord.compare(Data_Ord.ordInt);
 var ForeignError = /* #__PURE__ */ (function () {
     function ForeignError(value0) {
         this.value0 = value0;
@@ -72,16 +68,16 @@ var unsafeFromForeign = Unsafe_Coerce.unsafeCoerce;
 var showForeignError = {
     show: function (v) {
         if (v instanceof ForeignError) {
-            return "(ForeignError " + (show(v.value0) + ")");
+            return "(ForeignError " + (Data_Show.show(Data_Show.showString)(v.value0) + ")");
         };
         if (v instanceof ErrorAtIndex) {
-            return "(ErrorAtIndex " + (show1(v.value0) + (" " + (Data_Show.show(showForeignError)(v.value1) + ")")));
+            return "(ErrorAtIndex " + (Data_Show.show(Data_Show.showInt)(v.value0) + (" " + (Data_Show.show(showForeignError)(v.value1) + ")")));
         };
         if (v instanceof ErrorAtProperty) {
-            return "(ErrorAtProperty " + (show(v.value0) + (" " + (Data_Show.show(showForeignError)(v.value1) + ")")));
+            return "(ErrorAtProperty " + (Data_Show.show(Data_Show.showString)(v.value0) + (" " + (Data_Show.show(showForeignError)(v.value1) + ")")));
         };
         if (v instanceof TypeMismatch) {
-            return "(TypeMismatch " + (show(v.value0) + (" " + (show(v.value1) + ")")));
+            return "(TypeMismatch " + (Data_Show.show(Data_Show.showString)(v.value0) + (" " + (Data_Show.show(Data_Show.showString)(v.value1) + ")")));
         };
         throw new Error("Failed pattern match at Foreign (line 69, column 1 - line 73, column 89): " + [ v.constructor.name ]);
     }
@@ -91,10 +87,10 @@ var renderForeignError = function (v) {
         return v.value0;
     };
     if (v instanceof ErrorAtIndex) {
-        return "Error at array index " + (show1(v.value0) + (": " + renderForeignError(v.value1)));
+        return "Error at array index " + (Data_Show.show(Data_Show.showInt)(v.value0) + (": " + renderForeignError(v.value1)));
     };
     if (v instanceof ErrorAtProperty) {
-        return "Error at property " + (show(v.value0) + (": " + renderForeignError(v.value1)));
+        return "Error at property " + (Data_Show.show(Data_Show.showString)(v.value0) + (": " + renderForeignError(v.value1)));
     };
     if (v instanceof TypeMismatch) {
         return "Type mismatch: expected " + (v.value0 + (", found " + v.value1));
@@ -102,45 +98,45 @@ var renderForeignError = function (v) {
     throw new Error("Failed pattern match at Foreign (line 78, column 1 - line 78, column 45): " + [ v.constructor.name ]);
 };
 var readUndefined = function (dictMonad) {
-    var pure2 = Control_Applicative.pure(Control_Monad_Except_Trans.applicativeExceptT(dictMonad));
+    var applicativeExceptT = Control_Monad_Except_Trans.applicativeExceptT(dictMonad);
     return function (value) {
         if ($foreign.isUndefined(value)) {
-            return pure2(Data_Maybe.Nothing.value);
+            return Control_Applicative.pure(applicativeExceptT)(Data_Maybe.Nothing.value);
         };
         if (Data_Boolean.otherwise) {
-            return pure2(new Data_Maybe.Just(value));
+            return Control_Applicative.pure(applicativeExceptT)(new Data_Maybe.Just(value));
         };
         throw new Error("Failed pattern match at Foreign (line 174, column 1 - line 174, column 103): " + [ value.constructor.name ]);
     };
 };
 var readNullOrUndefined = function (dictMonad) {
-    var pure2 = Control_Applicative.pure(Control_Monad_Except_Trans.applicativeExceptT(dictMonad));
+    var applicativeExceptT = Control_Monad_Except_Trans.applicativeExceptT(dictMonad);
     return function (value) {
         if ($foreign.isNull(value) || $foreign.isUndefined(value)) {
-            return pure2(Data_Maybe.Nothing.value);
+            return Control_Applicative.pure(applicativeExceptT)(Data_Maybe.Nothing.value);
         };
         if (Data_Boolean.otherwise) {
-            return pure2(new Data_Maybe.Just(value));
+            return Control_Applicative.pure(applicativeExceptT)(new Data_Maybe.Just(value));
         };
         throw new Error("Failed pattern match at Foreign (line 179, column 1 - line 179, column 109): " + [ value.constructor.name ]);
     };
 };
 var readNull = function (dictMonad) {
-    var pure2 = Control_Applicative.pure(Control_Monad_Except_Trans.applicativeExceptT(dictMonad));
+    var applicativeExceptT = Control_Monad_Except_Trans.applicativeExceptT(dictMonad);
     return function (value) {
         if ($foreign.isNull(value)) {
-            return pure2(Data_Maybe.Nothing.value);
+            return Control_Applicative.pure(applicativeExceptT)(Data_Maybe.Nothing.value);
         };
         if (Data_Boolean.otherwise) {
-            return pure2(new Data_Maybe.Just(value));
+            return Control_Applicative.pure(applicativeExceptT)(new Data_Maybe.Just(value));
         };
         throw new Error("Failed pattern match at Foreign (line 169, column 1 - line 169, column 98): " + [ value.constructor.name ]);
     };
 };
 var fail = function (dictMonad) {
-    var $154 = Control_Monad_Error_Class.throwError(Control_Monad_Except_Trans.monadThrowExceptT(dictMonad));
-    return function ($155) {
-        return $154(Data_List_NonEmpty.singleton($155));
+    var $135 = Control_Monad_Error_Class.throwError(Control_Monad_Except_Trans.monadThrowExceptT(dictMonad));
+    return function ($136) {
+        return $135(Data_List_NonEmpty.singleton($136));
     };
 };
 var readArray = function (dictMonad) {
@@ -157,12 +153,12 @@ var readArray = function (dictMonad) {
     };
 };
 var unsafeReadTagged = function (dictMonad) {
-    var pure2 = Control_Applicative.pure(Control_Monad_Except_Trans.applicativeExceptT(dictMonad));
+    var applicativeExceptT = Control_Monad_Except_Trans.applicativeExceptT(dictMonad);
     var fail1 = fail(dictMonad);
     return function (tag) {
         return function (value) {
             if ($foreign.tagOf(value) === tag) {
-                return pure2(unsafeFromForeign(value));
+                return Control_Applicative.pure(applicativeExceptT)(unsafeFromForeign(value));
             };
             if (Data_Boolean.otherwise) {
                 return fail1(new TypeMismatch(tag, $foreign.tagOf(value)));
@@ -179,16 +175,15 @@ var readNumber = function (dictMonad) {
 };
 var readInt = function (dictMonad) {
     var map = Data_Functor.map(((dictMonad.Bind1()).Apply0()).Functor0());
-    var readNumber1 = readNumber(dictMonad);
     return function (value) {
         var error = new Data_Either.Left(Data_List_NonEmpty.singleton(new TypeMismatch("Int", $foreign.tagOf(value))));
         var fromNumber = (function () {
-            var $156 = Data_Maybe.maybe(error)(pure);
-            return function ($157) {
-                return $156(Data_Int.fromNumber($157));
+            var $137 = Data_Maybe.maybe(error)(pure);
+            return function ($138) {
+                return $137(Data_Int.fromNumber($138));
             };
         })();
-        return Control_Monad_Except_Trans.mapExceptT(map(Data_Either.either(Data_Function["const"](error))(fromNumber)))(readNumber1(value));
+        return Control_Monad_Except_Trans.mapExceptT(map(Data_Either.either(Data_Function["const"](error))(fromNumber)))(readNumber(dictMonad)(value));
     };
 };
 var readString = function (dictMonad) {
@@ -196,16 +191,15 @@ var readString = function (dictMonad) {
 };
 var readChar = function (dictMonad) {
     var map = Data_Functor.map(((dictMonad.Bind1()).Apply0()).Functor0());
-    var readString1 = readString(dictMonad);
     return function (value) {
         var error = new Data_Either.Left(Data_List_NonEmpty.singleton(new TypeMismatch("Char", $foreign.tagOf(value))));
         var fromString = (function () {
-            var $158 = Data_Maybe.maybe(error)(pure1);
-            return function ($159) {
-                return $158(Data_String_CodeUnits.toChar($159));
+            var $139 = Data_Maybe.maybe(error)(pure1);
+            return function ($140) {
+                return $139(Data_String_CodeUnits.toChar($140));
             };
         })();
-        return Control_Monad_Except_Trans.mapExceptT(map(Data_Either.either(Data_Function["const"](error))(fromString)))(readString1(value));
+        return Control_Monad_Except_Trans.mapExceptT(map(Data_Either.either(Data_Function["const"](error))(fromString)))(readString(dictMonad)(value));
     };
 };
 var eqForeignError = {
@@ -231,7 +225,7 @@ var ordForeignError = {
     compare: function (x) {
         return function (y) {
             if (x instanceof ForeignError && y instanceof ForeignError) {
-                return compare(x.value0)(y.value0);
+                return Data_Ord.compare(Data_Ord.ordString)(x.value0)(y.value0);
             };
             if (x instanceof ForeignError) {
                 return Data_Ordering.LT.value;
@@ -240,14 +234,14 @@ var ordForeignError = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof TypeMismatch && y instanceof TypeMismatch) {
-                var v = compare(x.value0)(y.value0);
+                var v = Data_Ord.compare(Data_Ord.ordString)(x.value0)(y.value0);
                 if (v instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
                 if (v instanceof Data_Ordering.GT) {
                     return Data_Ordering.GT.value;
                 };
-                return compare(x.value1)(y.value1);
+                return Data_Ord.compare(Data_Ord.ordString)(x.value1)(y.value1);
             };
             if (x instanceof TypeMismatch) {
                 return Data_Ordering.LT.value;
@@ -256,7 +250,7 @@ var ordForeignError = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof ErrorAtIndex && y instanceof ErrorAtIndex) {
-                var v = compare1(x.value0)(y.value0);
+                var v = Data_Ord.compare(Data_Ord.ordInt)(x.value0)(y.value0);
                 if (v instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
@@ -272,7 +266,7 @@ var ordForeignError = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof ErrorAtProperty && y instanceof ErrorAtProperty) {
-                var v = compare(x.value0)(y.value0);
+                var v = Data_Ord.compare(Data_Ord.ordString)(x.value0)(y.value0);
                 if (v instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };

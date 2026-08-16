@@ -35,24 +35,21 @@ var ringRecordNil = {
     }
 };
 var ringRecordCons = function (dictIsSymbol) {
-    var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
     var semiringRecordCons = Data_Semiring.semiringRecordCons(dictIsSymbol)();
     return function () {
         return function (dictRingRecord) {
-            var subRecord1 = subRecord(dictRingRecord);
             var semiringRecordCons1 = semiringRecordCons(dictRingRecord.SemiringRecord0());
             return function (dictRing) {
-                var sub1 = sub(dictRing);
                 var semiringRecordCons2 = semiringRecordCons1(dictRing.Semiring0());
                 return {
                     subRecord: function (v) {
                         return function (ra) {
                             return function (rb) {
-                                var tail = subRecord1(Type_Proxy["Proxy"].value)(ra)(rb);
-                                var key = reflectSymbol(Type_Proxy["Proxy"].value);
+                                var tail = subRecord(dictRingRecord)(Type_Proxy["Proxy"].value)(ra)(rb);
+                                var key = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
                                 var insert = Record_Unsafe.unsafeSet(key);
                                 var get = Record_Unsafe.unsafeGet(key);
-                                return insert(sub1(get(ra))(get(rb)))(tail);
+                                return insert(sub(dictRing)(get(ra))(get(rb)))(tail);
                             };
                         };
                     },
@@ -98,13 +95,12 @@ var ringInt = {
     }
 };
 var ringFn = function (dictRing) {
-    var sub1 = sub(dictRing);
     var semiringFn = Data_Semiring.semiringFn(dictRing.Semiring0());
     return {
         sub: function (f) {
             return function (g) {
                 return function (x) {
-                    return sub1(f(x))(g(x));
+                    return sub(dictRing)(f(x))(g(x));
                 };
             };
         },
@@ -114,10 +110,9 @@ var ringFn = function (dictRing) {
     };
 };
 var negate = function (dictRing) {
-    var sub1 = sub(dictRing);
-    var zero = Data_Semiring.zero(dictRing.Semiring0());
+    var Semiring0 = dictRing.Semiring0();
     return function (a) {
-        return sub1(zero)(a);
+        return sub(dictRing)(Data_Semiring.zero(Semiring0))(a);
     };
 };
 export {

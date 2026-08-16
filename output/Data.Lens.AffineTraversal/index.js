@@ -9,24 +9,20 @@ import * as Data_Profunctor from "../Data.Profunctor/index.js";
 import * as Data_Profunctor_Choice from "../Data.Profunctor.Choice/index.js";
 import * as Data_Profunctor_Strong from "../Data.Profunctor.Strong/index.js";
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var fanout = /* #__PURE__ */ Data_Profunctor_Strong.fanout(Control_Semigroupoid.semigroupoidFn)(Data_Profunctor_Strong.strongFn);
 var withAffineTraversal = function (l) {
     return function (f) {
-        var v = l(new Data_Lens_Internal_Stall.Stall(Data_Function["const"](identity), Data_Either.Right.create));
+        var v = l(new Data_Lens_Internal_Stall.Stall(Data_Function["const"](Control_Category.identity(Control_Category.categoryFn)), Data_Either.Right.create));
         return f(v.value0)(v.value1);
     };
 };
 var affineTraversal$prime = function (to) {
     return function (dictStrong) {
-        var second = Data_Profunctor_Strong.second(dictStrong);
         return function (dictChoice) {
-            var dimap = Data_Profunctor.dimap(dictChoice.Profunctor0());
-            var right = Data_Profunctor_Choice.right(dictChoice);
+            var Profunctor0 = dictChoice.Profunctor0();
             return function (pab) {
-                return dimap(to)(function (v) {
-                    return Data_Either.either(identity1)(v.value0)(v.value1);
-                })(second(right(pab)));
+                return Data_Profunctor.dimap(Profunctor0)(to)(function (v) {
+                    return Data_Either.either(identity)(v.value0)(v.value1);
+                })(Data_Profunctor_Strong.second(dictStrong)(Data_Profunctor_Choice.right(dictChoice)(pab)));
             };
         };
     };
@@ -35,7 +31,7 @@ var affineTraversal = function (set) {
     return function (pre) {
         return function (dictStrong) {
             return function (dictChoice) {
-                return affineTraversal$prime(fanout(set)(pre))(dictStrong)(dictChoice);
+                return affineTraversal$prime(Data_Profunctor_Strong.fanout(Control_Semigroupoid.semigroupoidFn)(Data_Profunctor_Strong.strongFn)(set)(pre))(dictStrong)(dictChoice);
             };
         };
     };

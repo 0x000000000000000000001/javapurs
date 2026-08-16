@@ -13,17 +13,17 @@ var traverse1 = function (dict) {
 };
 var traversableTuple = {
     traverse1: function (dictApply) {
-        var map = Data_Functor.map(dictApply.Functor0());
+        var Functor0 = dictApply.Functor0();
         return function (f) {
             return function (v) {
-                return map(Data_Tuple.Tuple.create(v.value0))(f(v.value1));
+                return Data_Functor.map(Functor0)(Data_Tuple.Tuple.create(v.value0))(f(v.value1));
             };
         };
     },
     sequence1: function (dictApply) {
-        var map = Data_Functor.map(dictApply.Functor0());
+        var Functor0 = dictApply.Functor0();
         return function (v) {
-            return map(Data_Tuple.Tuple.create(v.value0))(v.value1);
+            return Data_Functor.map(Functor0)(Data_Tuple.Tuple.create(v.value0))(v.value1);
         };
     },
     Foldable10: function () {
@@ -35,17 +35,17 @@ var traversableTuple = {
 };
 var traversableIdentity = {
     traverse1: function (dictApply) {
-        var map = Data_Functor.map(dictApply.Functor0());
+        var Functor0 = dictApply.Functor0();
         return function (f) {
             return function (v) {
-                return map(Data_Identity.Identity)(f(v));
+                return Data_Functor.map(Functor0)(Data_Identity.Identity)(f(v));
             };
         };
     },
     sequence1: function (dictApply) {
-        var map = Data_Functor.map(dictApply.Functor0());
+        var Functor0 = dictApply.Functor0();
         return function (v) {
-            return map(Data_Identity.Identity)(v);
+            return Data_Functor.map(Functor0)(Data_Identity.Identity)(v);
         };
     },
     Foldable10: function () {
@@ -56,17 +56,16 @@ var traversableIdentity = {
     }
 };
 var sequence1Default = function (dictTraversable1) {
-    var traverse11 = traverse1(dictTraversable1);
     return function (dictApply) {
-        return traverse11(dictApply)(identity);
+        return traverse1(dictTraversable1)(dictApply)(identity);
     };
 };
 var traversableDual = {
     traverse1: function (dictApply) {
-        var map = Data_Functor.map(dictApply.Functor0());
+        var Functor0 = dictApply.Functor0();
         return function (f) {
             return function (v) {
-                return map(Data_Monoid_Dual.Dual)(f(v));
+                return Data_Functor.map(Functor0)(Data_Monoid_Dual.Dual)(f(v));
             };
         };
     },
@@ -82,10 +81,10 @@ var traversableDual = {
 };
 var traversableMultiplicative = {
     traverse1: function (dictApply) {
-        var map = Data_Functor.map(dictApply.Functor0());
+        var Functor0 = dictApply.Functor0();
         return function (f) {
             return function (v) {
-                return map(Data_Monoid_Multiplicative.Multiplicative)(f(v));
+                return Data_Functor.map(Functor0)(Data_Monoid_Multiplicative.Multiplicative)(f(v));
             };
         };
     },
@@ -103,13 +102,11 @@ var sequence1 = function (dict) {
     return dict.sequence1;
 };
 var traverse1Default = function (dictTraversable1) {
-    var sequence11 = sequence1(dictTraversable1);
-    var map = Data_Functor.map((dictTraversable1.Traversable1()).Functor0());
+    var Functor0 = (dictTraversable1.Traversable1()).Functor0();
     return function (dictApply) {
-        var sequence12 = sequence11(dictApply);
         return function (f) {
             return function (ta) {
-                return sequence12(map(f)(ta));
+                return sequence1(dictTraversable1)(dictApply)(Data_Functor.map(Functor0)(f)(ta));
             };
         };
     };

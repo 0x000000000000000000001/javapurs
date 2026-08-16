@@ -3,8 +3,6 @@ import * as Data_Bifunctor from "../Data.Bifunctor/index.js";
 import * as Data_Either from "../Data.Either/index.js";
 import * as Data_Functor from "../Data.Functor/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorFn);
-var lmap = /* #__PURE__ */ Data_Bifunctor.lmap(Data_Bifunctor.bifunctorEither);
 var Stall = /* #__PURE__ */ (function () {
     function Stall(value0, value1) {
         this.value0 = value0;
@@ -22,14 +20,14 @@ var profunctorStall = {
         return function (g) {
             return function (v) {
                 return new Stall((function () {
-                    var $64 = map(g);
-                    return function ($65) {
-                        return $64(v.value0(f($65)));
+                    var $61 = Data_Functor.map(Data_Functor.functorFn)(g);
+                    return function ($62) {
+                        return $61(v.value0(f($62)));
                     };
                 })(), (function () {
-                    var $66 = lmap(g);
-                    return function ($67) {
-                        return $66(v.value1(f($67)));
+                    var $63 = Data_Bifunctor.lmap(Data_Bifunctor.bifunctorEither)(g);
+                    return function ($64) {
+                        return $63(v.value1(f($64)));
                     };
                 })());
             };
@@ -43,7 +41,7 @@ var strongStall = {
                 return new Data_Tuple.Tuple(v.value0(v1.value0)(b), v1.value1);
             };
         }, function (v1) {
-            return lmap(function (t) {
+            return Data_Bifunctor.lmap(Data_Bifunctor.bifunctorEither)(function (t) {
                 return new Data_Tuple.Tuple(t, v1.value1);
             })(v.value1(v1.value0));
         });
@@ -54,7 +52,7 @@ var strongStall = {
                 return new Data_Tuple.Tuple(v1.value0, v.value0(v1.value1)(b));
             };
         }, function (v1) {
-            return lmap(Data_Tuple.Tuple.create(v1.value0))(v.value1(v1.value1));
+            return Data_Bifunctor.lmap(Data_Bifunctor.bifunctorEither)(Data_Tuple.Tuple.create(v1.value0))(v.value1(v1.value1));
         });
     },
     Profunctor0: function () {
@@ -65,14 +63,14 @@ var functorStall = {
     map: function (f) {
         return function (v) {
             return new Stall((function () {
-                var $68 = map(f);
-                return function ($69) {
-                    return $68(v.value0($69));
+                var $65 = Data_Functor.map(Data_Functor.functorFn)(f);
+                return function ($66) {
+                    return $65(v.value0($66));
                 };
             })(), (function () {
-                var $70 = lmap(f);
-                return function ($71) {
-                    return $70(v.value1($71));
+                var $67 = Data_Bifunctor.lmap(Data_Bifunctor.bifunctorEither)(f);
+                return function ($68) {
+                    return $67(v.value1($68));
                 };
             })());
         };
@@ -94,7 +92,7 @@ var choiceStall = {
             throw new Error("Failed pattern match at Data.Lens.Internal.Stall (line 36, column 9 - line 38, column 35): " + [ v1.constructor.name ]);
         }, function (v1) {
             if (v1 instanceof Data_Either.Left) {
-                return lmap(Data_Either.Left.create)(v.value1(v1.value0));
+                return Data_Bifunctor.lmap(Data_Bifunctor.bifunctorEither)(Data_Either.Left.create)(v.value1(v1.value0));
             };
             if (v1 instanceof Data_Either.Right) {
                 return new Data_Either.Left(new Data_Either.Right(v1.value0));
@@ -120,7 +118,7 @@ var choiceStall = {
                 return new Data_Either.Left(new Data_Either.Left(v1.value0));
             };
             if (v1 instanceof Data_Either.Right) {
-                return lmap(Data_Either.Right.create)(v.value1(v1.value0));
+                return Data_Bifunctor.lmap(Data_Bifunctor.bifunctorEither)(Data_Either.Right.create)(v.value1(v1.value0));
             };
             throw new Error("Failed pattern match at Data.Lens.Internal.Stall (line 51, column 9 - line 53, column 38): " + [ v1.constructor.name ]);
         });

@@ -8,14 +8,13 @@ var Re = function (x) {
     return x;
 };
 var profunctorRe = function (dictProfunctor) {
-    var dimap = Data_Profunctor.dimap(dictProfunctor);
     return {
         dimap: function (f) {
             return function (g) {
                 return function (v) {
-                    var $43 = dimap(g)(f);
-                    return function ($44) {
-                        return v($43($44));
+                    var $41 = Data_Profunctor.dimap(dictProfunctor)(g)(f);
+                    return function ($42) {
+                        return v($41($42));
                     };
                 };
             };
@@ -28,13 +27,13 @@ var strongRe = function (dictStrong) {
     var profunctorRe1 = profunctorRe(dictStrong.Profunctor0());
     return {
         unfirst: function (v) {
-            return function ($45) {
-                return v(first($45));
+            return function ($43) {
+                return v(first($43));
             };
         },
         unsecond: function (v) {
-            return function ($46) {
-                return v(second($46));
+            return function ($44) {
+                return v(second($44));
             };
         },
         Profunctor0: function () {
@@ -53,13 +52,13 @@ var costrongRe = function (dictCostrong) {
     var profunctorRe1 = profunctorRe(dictCostrong.Profunctor0());
     return {
         first: function (v) {
-            return function ($47) {
-                return v(unfirst($47));
+            return function ($45) {
+                return v(unfirst($45));
             };
         },
         second: function (v) {
-            return function ($48) {
-                return v(unsecond($48));
+            return function ($46) {
+                return v(unsecond($46));
             };
         },
         Profunctor0: function () {
@@ -73,13 +72,13 @@ var cochoiceRe = function (dictCochoice) {
     var profunctorRe1 = profunctorRe(dictCochoice.Profunctor0());
     return {
         left: function (v) {
-            return function ($49) {
-                return v(unleft($49));
+            return function ($47) {
+                return v(unleft($47));
             };
         },
         right: function (v) {
-            return function ($50) {
-                return v(unright($50));
+            return function ($48) {
+                return v(unright($48));
             };
         },
         Profunctor0: function () {
@@ -93,13 +92,13 @@ var choiceRe = function (dictChoice) {
     var profunctorRe1 = profunctorRe(dictChoice.Profunctor0());
     return {
         unleft: function (v) {
-            return function ($51) {
-                return v(left($51));
+            return function ($49) {
+                return v(left($49));
             };
         },
         unright: function (v) {
-            return function ($52) {
-                return v(right($52));
+            return function ($50) {
+                return v(right($50));
             };
         },
         Profunctor0: function () {

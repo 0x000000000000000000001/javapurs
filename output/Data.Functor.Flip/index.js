@@ -10,19 +10,17 @@ var Flip = function (x) {
     return x;
 };
 var showFlip = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
-            return "(Flip " + (show(v) + ")");
+            return "(Flip " + (Data_Show.show(dictShow)(v) + ")");
         }
     };
 };
 var semigroupoidFlip = function (dictSemigroupoid) {
-    var compose = Control_Semigroupoid.compose(dictSemigroupoid);
     return {
         compose: function (v) {
             return function (v1) {
-                return compose(v1)(v);
+                return Control_Semigroupoid.compose(dictSemigroupoid)(v1)(v);
             };
         }
     };
@@ -36,11 +34,10 @@ var newtypeFlip = {
     }
 };
 var functorFlip = function (dictBifunctor) {
-    var lmap = Data_Bifunctor.lmap(dictBifunctor);
     return {
         map: function (f) {
             return function (v) {
-                return lmap(f)(v);
+                return Data_Bifunctor.lmap(dictBifunctor)(f)(v);
             };
         }
     };
@@ -49,11 +46,10 @@ var eqFlip = function (dictEq) {
     return dictEq;
 };
 var contravariantFlip = function (dictProfunctor) {
-    var lcmap = Data_Profunctor.lcmap(dictProfunctor);
     return {
         cmap: function (f) {
             return function (v) {
-                return lcmap(f)(v);
+                return Data_Profunctor.lcmap(dictProfunctor)(f)(v);
             };
         }
     };
@@ -68,24 +64,22 @@ var categoryFlip = function (dictCategory) {
     };
 };
 var bifunctorFlip = function (dictBifunctor) {
-    var bimap = Data_Bifunctor.bimap(dictBifunctor);
     return {
         bimap: function (f) {
             return function (g) {
                 return function (v) {
-                    return bimap(g)(f)(v);
+                    return Data_Bifunctor.bimap(dictBifunctor)(g)(f)(v);
                 };
             };
         }
     };
 };
 var biapplyFlip = function (dictBiapply) {
-    var biapply = Control_Biapply.biapply(dictBiapply);
     var bifunctorFlip1 = bifunctorFlip(dictBiapply.Bifunctor0());
     return {
         biapply: function (v) {
             return function (v1) {
-                return biapply(v)(v1);
+                return Control_Biapply.biapply(dictBiapply)(v)(v1);
             };
         },
         Bifunctor0: function () {
@@ -94,12 +88,11 @@ var biapplyFlip = function (dictBiapply) {
     };
 };
 var biapplicativeFlip = function (dictBiapplicative) {
-    var bipure = Control_Biapplicative.bipure(dictBiapplicative);
     var biapplyFlip1 = biapplyFlip(dictBiapplicative.Biapply0());
     return {
         bipure: function (a) {
             return function (b) {
-                return bipure(b)(a);
+                return Control_Biapplicative.bipure(dictBiapplicative)(b)(a);
             };
         },
         Biapply0: function () {

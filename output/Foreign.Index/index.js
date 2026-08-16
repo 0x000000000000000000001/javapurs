@@ -6,11 +6,10 @@ import * as Control_Monad_Except_Trans from "../Control.Monad.Except.Trans/index
 import * as Data_Function from "../Data.Function/index.js";
 import * as Foreign from "../Foreign/index.js";
 var unsafeReadProp = function (dictMonad) {
-    var fail = Foreign.fail(dictMonad);
     var pure = Control_Applicative.pure(Control_Monad_Except_Trans.applicativeExceptT(dictMonad));
     return function (k) {
         return function (value) {
-            return $foreign.unsafeReadPropImpl(fail(new Foreign.TypeMismatch("object", Foreign.typeOf(value))), pure, k, value);
+            return $foreign.unsafeReadPropImpl(Foreign.fail(dictMonad)(new Foreign.TypeMismatch("object", Foreign.typeOf(value))), pure, k, value);
         };
     };
 };
@@ -27,13 +26,13 @@ var index = function (dict) {
     return dict.index;
 };
 var indexableExceptT = function (dictMonad) {
-    var bindFlipped = Control_Bind.bindFlipped(Control_Monad_Except_Trans.bindExceptT(dictMonad));
+    var bindExceptT = Control_Monad_Except_Trans.bindExceptT(dictMonad);
     return {
         ix: function (dictIndex) {
             var index1 = index(dictIndex);
             return function (f) {
                 return function (i) {
-                    return bindFlipped(Data_Function.flip(index1)(i))(f);
+                    return Control_Bind.bindFlipped(bindExceptT)(Data_Function.flip(index1)(i))(f);
                 };
             };
         }

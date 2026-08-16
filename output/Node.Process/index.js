@@ -11,7 +11,7 @@ import * as Effect_Uncurried from "../Effect.Uncurried/index.js";
 import * as Foreign_Object from "../Foreign.Object/index.js";
 import * as Node_EventEmitter from "../Node.EventEmitter/index.js";
 import * as Node_Platform from "../Node.Platform/index.js";
-var show = /* #__PURE__ */ Data_Show.show(/* #__PURE__ */ Data_Show.showRecord()()(/* #__PURE__ */ Data_Show.showRecordFieldsCons({
+var showRecord = /* #__PURE__ */ Data_Show.showRecord()()(/* #__PURE__ */ Data_Show.showRecordFieldsCons({
     reflectSymbol: function () {
         return "system";
     }
@@ -19,15 +19,14 @@ var show = /* #__PURE__ */ Data_Show.show(/* #__PURE__ */ Data_Show.showRecord()
     reflectSymbol: function () {
         return "user";
     }
-})(Data_Show.showInt))(Data_Show.showInt)));
+})(Data_Show.showInt))(Data_Show.showInt));
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var map = /* #__PURE__ */ Data_Functor.map(Effect.functorEffect);
 var CpuUsage = function (x) {
     return x;
 };
 var showCpuUsage = {
     show: function (v) {
-        return "(CpuUsage " + (show(v) + ")");
+        return "(CpuUsage " + (Data_Show.show(showRecord)(v) + ")");
     }
 };
 var eqCpuUsage = {
@@ -158,7 +157,7 @@ var messageH = /* #__PURE__ */ (function () {
     });
 })();
 var lookupEnv = function (k) {
-    return map(Foreign_Object.lookup(k))($foreign.unsafeGetEnv);
+    return Data_Functor.map(Effect.functorEffect)(Foreign_Object.lookup(k))($foreign.unsafeGetEnv);
 };
 var killStr = function (p) {
     return function (sig) {
@@ -179,9 +178,9 @@ var kill = function (p) {
         return $foreign.killImpl(p);
     };
 };
-var getUid = /* #__PURE__ */ map(Data_Nullable.toMaybe)($foreign.getUidImpl);
-var getGid = /* #__PURE__ */ map(Data_Nullable.toMaybe)($foreign.getGidImpl);
-var getExitCode = /* #__PURE__ */ map(Data_Nullable.toMaybe)($foreign.getExitCodeImpl);
+var getUid = /* #__PURE__ */ Data_Functor.map(Effect.functorEffect)(Data_Nullable.toMaybe)($foreign.getUidImpl);
+var getGid = /* #__PURE__ */ Data_Functor.map(Effect.functorEffect)(Data_Nullable.toMaybe)($foreign.getGidImpl);
+var getExitCode = /* #__PURE__ */ Data_Functor.map(Effect.functorEffect)(Data_Nullable.toMaybe)($foreign.getExitCodeImpl);
 var exitH = /* #__PURE__ */ (function () {
     return new Node_EventEmitter.EventHandle("exit", Effect_Uncurried.mkEffectFn1);
 })();

@@ -27,8 +27,8 @@ var takeRight = function (i) {
 var stripSuffix = function (v) {
     return function (str) {
         var v1 = $foreign.splitAt($foreign.length(str) - $foreign.length(v) | 0)(str);
-        var $14 = v1.after === v;
-        if ($14) {
+        var $11 = v1.after === v;
+        if ($11) {
             return new Data_Maybe.Just(v1.before);
         };
         return Data_Maybe.Nothing.value;
@@ -37,8 +37,8 @@ var stripSuffix = function (v) {
 var stripPrefix = function (v) {
     return function (str) {
         var v1 = $foreign.splitAt($foreign.length(v))(str);
-        var $20 = v1.before === v;
-        if ($20) {
+        var $17 = v1.before === v;
+        if ($17) {
             return new Data_Maybe.Just(v1.after);
         };
         return Data_Maybe.Nothing.value;
@@ -67,9 +67,9 @@ var dropRight = function (i) {
     };
 };
 var contains = function (pat) {
-    var $23 = indexOf(pat);
-    return function ($24) {
-        return Data_Maybe.isJust($23($24));
+    var $20 = indexOf(pat);
+    return function ($21) {
+        return Data_Maybe.isJust($20($21));
     };
 };
 var charAt = /* #__PURE__ */ (function () {

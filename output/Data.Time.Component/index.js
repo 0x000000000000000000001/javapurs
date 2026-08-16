@@ -17,7 +17,6 @@ var $runtime_lazy = function (name, moduleName, init) {
         return val;
     };
 };
-var show = /* #__PURE__ */ Data_Show.show(Data_Show.showInt);
 var Second = function (x) {
     return x;
 };
@@ -32,22 +31,22 @@ var Hour = function (x) {
 };
 var showSecond = {
     show: function (v) {
-        return "(Second " + (show(v) + ")");
+        return "(Second " + (Data_Show.show(Data_Show.showInt)(v) + ")");
     }
 };
 var showMinute = {
     show: function (v) {
-        return "(Minute " + (show(v) + ")");
+        return "(Minute " + (Data_Show.show(Data_Show.showInt)(v) + ")");
     }
 };
 var showMillisecond = {
     show: function (v) {
-        return "(Millisecond " + (show(v) + ")");
+        return "(Millisecond " + (Data_Show.show(Data_Show.showInt)(v) + ")");
     }
 };
 var showHour = {
     show: function (v) {
-        return "(Hour " + (show(v) + ")");
+        return "(Hour " + (Data_Show.show(Data_Show.showInt)(v) + ")");
     }
 };
 var ordSecond = Data_Ord.ordInt;
@@ -110,21 +109,21 @@ var boundedEnumSecond = {
 var $lazy_enumSecond = /* #__PURE__ */ $runtime_lazy("enumSecond", "Data.Time.Component", function () {
     return {
         succ: (function () {
-            var $36 = Data_Enum.toEnum(boundedEnumSecond);
-            var $37 = Data_Enum.fromEnum(boundedEnumSecond);
-            return function ($38) {
-                return $36((function (v) {
+            var $28 = Data_Enum.toEnum(boundedEnumSecond);
+            var $29 = Data_Enum.fromEnum(boundedEnumSecond);
+            return function ($30) {
+                return $28((function (v) {
                     return v + 1 | 0;
-                })($37($38)));
+                })($29($30)));
             };
         })(),
         pred: (function () {
-            var $39 = Data_Enum.toEnum(boundedEnumSecond);
-            var $40 = Data_Enum.fromEnum(boundedEnumSecond);
-            return function ($41) {
-                return $39((function (v) {
+            var $31 = Data_Enum.toEnum(boundedEnumSecond);
+            var $32 = Data_Enum.fromEnum(boundedEnumSecond);
+            return function ($33) {
+                return $31((function (v) {
                     return v - 1 | 0;
-                })($40($41)));
+                })($32($33)));
             };
         })(),
         Ord0: function () {
@@ -157,21 +156,21 @@ var boundedEnumMinute = {
 var $lazy_enumMinute = /* #__PURE__ */ $runtime_lazy("enumMinute", "Data.Time.Component", function () {
     return {
         succ: (function () {
-            var $42 = Data_Enum.toEnum(boundedEnumMinute);
-            var $43 = Data_Enum.fromEnum(boundedEnumMinute);
-            return function ($44) {
-                return $42((function (v) {
+            var $34 = Data_Enum.toEnum(boundedEnumMinute);
+            var $35 = Data_Enum.fromEnum(boundedEnumMinute);
+            return function ($36) {
+                return $34((function (v) {
                     return v + 1 | 0;
-                })($43($44)));
+                })($35($36)));
             };
         })(),
         pred: (function () {
-            var $45 = Data_Enum.toEnum(boundedEnumMinute);
-            var $46 = Data_Enum.fromEnum(boundedEnumMinute);
-            return function ($47) {
-                return $45((function (v) {
+            var $37 = Data_Enum.toEnum(boundedEnumMinute);
+            var $38 = Data_Enum.fromEnum(boundedEnumMinute);
+            return function ($39) {
+                return $37((function (v) {
                     return v - 1 | 0;
-                })($46($47)));
+                })($38($39)));
             };
         })(),
         Ord0: function () {
@@ -204,21 +203,21 @@ var boundedEnumMillisecond = {
 var $lazy_enumMillisecond = /* #__PURE__ */ $runtime_lazy("enumMillisecond", "Data.Time.Component", function () {
     return {
         succ: (function () {
-            var $48 = Data_Enum.toEnum(boundedEnumMillisecond);
-            var $49 = Data_Enum.fromEnum(boundedEnumMillisecond);
-            return function ($50) {
-                return $48((function (v) {
+            var $40 = Data_Enum.toEnum(boundedEnumMillisecond);
+            var $41 = Data_Enum.fromEnum(boundedEnumMillisecond);
+            return function ($42) {
+                return $40((function (v) {
                     return v + 1 | 0;
-                })($49($50)));
+                })($41($42)));
             };
         })(),
         pred: (function () {
-            var $51 = Data_Enum.toEnum(boundedEnumMillisecond);
-            var $52 = Data_Enum.fromEnum(boundedEnumMillisecond);
-            return function ($53) {
-                return $51((function (v) {
+            var $43 = Data_Enum.toEnum(boundedEnumMillisecond);
+            var $44 = Data_Enum.fromEnum(boundedEnumMillisecond);
+            return function ($45) {
+                return $43((function (v) {
                     return v - 1 | 0;
-                })($52($53)));
+                })($44($45)));
             };
         })(),
         Ord0: function () {
@@ -251,21 +250,21 @@ var boundedEnumHour = {
 var $lazy_enumHour = /* #__PURE__ */ $runtime_lazy("enumHour", "Data.Time.Component", function () {
     return {
         succ: (function () {
-            var $54 = Data_Enum.toEnum(boundedEnumHour);
-            var $55 = Data_Enum.fromEnum(boundedEnumHour);
-            return function ($56) {
-                return $54((function (v) {
+            var $46 = Data_Enum.toEnum(boundedEnumHour);
+            var $47 = Data_Enum.fromEnum(boundedEnumHour);
+            return function ($48) {
+                return $46((function (v) {
                     return v + 1 | 0;
-                })($55($56)));
+                })($47($48)));
             };
         })(),
         pred: (function () {
-            var $57 = Data_Enum.toEnum(boundedEnumHour);
-            var $58 = Data_Enum.fromEnum(boundedEnumHour);
-            return function ($59) {
-                return $57((function (v) {
+            var $49 = Data_Enum.toEnum(boundedEnumHour);
+            var $50 = Data_Enum.fromEnum(boundedEnumHour);
+            return function ($51) {
+                return $49((function (v) {
                     return v - 1 | 0;
-                })($58($59)));
+                })($50($51)));
             };
         })(),
         Ord0: function () {

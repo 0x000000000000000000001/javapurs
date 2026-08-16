@@ -6,13 +6,13 @@ import * as Data_Newtype from "../Data.Newtype/index.js";
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
 var withState = Control_Monad_State_Trans.withStateT;
 var runState = function (v) {
-    return function ($18) {
-        return unwrap(v($18));
+    return function ($17) {
+        return unwrap(v($17));
     };
 };
 var mapState = function (f) {
-    return Control_Monad_State_Trans.mapStateT(function ($19) {
-        return Data_Identity.Identity(f(unwrap($19)));
+    return Control_Monad_State_Trans.mapStateT(function ($18) {
+        return Data_Identity.Identity(f(unwrap($18)));
     });
 };
 var execState = function (v) {

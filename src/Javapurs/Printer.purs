@@ -48,18 +48,23 @@ printExpr = case _ of
       Nothing -> name
   JavaLocal name -> name
   JavaAbs args body ->
+    let
+      printAbsBody b = case b of
+        JavaBlock stmts expr -> "{ " <> String.joinWith " " (map printExpr stmts) <> " return " <> printExpr expr <> "; }"
+        _ -> printExpr b
+    in
     if Array.length args == 0 then
-      "(java.util.function.Supplier<Object>) () -> " <> printExpr body
+      "(java.util.function.Supplier<Object>) () -> " <> printAbsBody body
     else
-      Array.foldr (\arg acc -> "(java.util.function.Function<Object, Object>) (" <> arg <> ") -> " <> acc) (printExpr body) args
+      Array.foldr (\arg acc -> "(java.util.function.Function<Object, Object>) (" <> arg <> ") -> " <> acc) (printAbsBody body) args
   JavaNew className args ->
     "new " <> className <> "(" <> String.joinWith ", " (map printExpr args) <> ")"
   JavaTernary cond a b ->
     "( ((Boolean) (" <> printExpr cond <> ")) ? " <> printExpr a <> " : " <> printExpr b <> ")"
   JavaThrow msg ->
-    "((java.util.function.Supplier<Object>) () -> { throw new RuntimeException(\"" <> msg <> "\"); }).get()"
+    "(new java.util.function.Supplier<Object>() { public Object get() { throw new RuntimeException(\"" <> msg <> "\"); } }).get()"
   JavaWhileTrue args expr ->
-    "((java.util.function.Supplier<Object>) () -> { " <>
+    "(new java.util.function.Supplier<Object>() { public Object get() { " <>
       String.joinWith "" (map (\arg -> "Object __tco_" <> arg <> " = " <> arg <> "; ") args) <>
       "while(true) { " <>
         String.joinWith "" (map (\arg -> "final Object __final_" <> arg <> " = __tco_" <> arg <> "; ") args) <>
@@ -69,29 +74,29 @@ printExpr = case _ of
           String.joinWith "" (Array.mapWithIndex (\i arg -> "__tco_" <> arg <> " = __tco_ex.args[" <> show i <> "]; ") args) <>
         "} " <>
       "} " <>
-    "}).get()"
+    "} }).get()"
   JavaContinue loopId argsExprs ->
-    "((java.util.function.Supplier<Object>) () -> { throw new TcoLoop(\"" <> loopId <> "\", new Object[]{" <> String.joinWith ", " (map printExpr argsExprs) <> "}); }).get()"
+    "(new java.util.function.Supplier<Object>() { public Object get() { throw new TcoLoop(\"" <> loopId <> "\", new Object[]{" <> String.joinWith ", " (map printExpr argsExprs) <> "}); } }).get()"
   JavaRecord fields ->
     let
-      puts = map (\(Tuple k v) -> "put(\"" <> k <> "\", " <> printExpr v <> "); ") fields
+      puts = map (\(Tuple k v) -> "__map.put(\"" <> k <> "\", " <> printExpr v <> "); ") fields
     in
-      "new java.util.LinkedHashMap<String, Object>() {{ " <> String.joinWith "" puts <> "}}"
+      "(new java.util.function.Supplier<Object>() { public Object get() { java.util.Map<String, Object> __map = new java.util.LinkedHashMap<>(); " <> String.joinWith "" puts <> " return __map; } }).get()"
   JavaArray items ->
     "new Object[]{" <> String.joinWith ", " (map printExpr items) <> "}"
   JavaMapGet expr prop ->
     "((java.util.LinkedHashMap<String, Object>) " <> printExpr expr <> ").get(\"" <> prop <> "\")"
   JavaMapUpdate expr updates ->
     let
-      upds = map (\(Tuple prop val) -> "put(\"" <> prop <> "\", " <> printExpr val <> "); ") updates
+      upds = map (\(Tuple prop val) -> "__map.put(\"" <> prop <> "\", " <> printExpr val <> "); ") updates
     in
-      "new java.util.LinkedHashMap<String, Object>((java.util.LinkedHashMap<String, Object>) " <> printExpr expr <> ") {{ " <> String.joinWith "" upds <> "}}"
+      "(new java.util.function.Supplier<Object>() { public Object get() { java.util.Map<String, Object> __map = new java.util.LinkedHashMap<>((java.util.LinkedHashMap<String, Object>) " <> printExpr expr <> "); " <> String.joinWith "" upds <> " return __map; } }).get()"
   JavaInstanceOf expr className ->
     "(" <> printExpr expr <> " instanceof " <> className <> ")"
   JavaPropertyAccess expr className prop ->
-    "(((" <> className <> ") " <> printExpr expr <> ")." <> prop <> ")"
+    "((" <> className <> ") (Object)(" <> printExpr expr <> "))." <> prop
   JavaLetRec binds body ->
-    "((new java.util.function.Supplier<Object>() { " <>
+    "(new java.util.function.Supplier<Object>() { public Object get() { " <>
       "class LetRecScope { " <>
         String.joinWith "" (map (\(Tuple name val) -> "Object " <> name <> "; ") binds) <>
         "LetRecScope() { " <>
@@ -100,10 +105,20 @@ printExpr = case _ of
       "} " <>
       "LetRecScope _scope = new LetRecScope(); " <>
       String.joinWith "" (map (\(Tuple name val) -> "Object " <> name <> " = _scope." <> name <> "; ") binds) <>
-      "public Object get() { return " <> printExpr body <> "; } " <>
-    "})).get()"
+      "return " <> printExpr body <> "; " <>
+    "} }).get()"
   JavaLet name val body ->
-    "((new java.util.function.Supplier<Object>() { Object " <> name <> " = " <> printExpr val <> "; public Object get() { return " <> printExpr body <> "; } })).get()"
+    let
+      flattenLets :: JavaExpr -> { bindings :: Array (Tuple String JavaExpr), body :: JavaExpr }
+      flattenLets = go []
+        where
+        go acc (JavaLet n v b) = go (Array.snoc acc (Tuple n v)) b
+        go acc expr = { bindings: acc, body: expr }
+      
+      flat = flattenLets (JavaLet name val body)
+      bindingsStr = String.joinWith " " (map (\(Tuple n v) -> "Object " <> n <> " = " <> printExpr v <> ";") flat.bindings)
+    in
+      "(new java.util.function.Supplier<Object>() { public Object get() { " <> bindingsStr <> " return " <> printExpr flat.body <> "; } }).get()"
   JavaClassDecl className args ->
     let
       fields = map (\arg -> "public final Object " <> arg <> ";") args
@@ -123,6 +138,13 @@ printExpr = case _ of
     "(" <> printExpr e1 <> " " <> op <> " " <> printExpr e2 <> ")"
   JavaCast t e ->
     "((" <> t <> ") (" <> printExpr e <> "))"
+  JavaLocalAssign name expr ->
+    "Object " <> name <> " = " <> printExpr expr <> ";"
+  JavaBlock stmts expr ->
+    "(new java.util.function.Supplier<Object>() { public Object get() { " <>
+      String.joinWith " " (map printExpr stmts) <>
+      " return " <> printExpr expr <> "; " <>
+    "} }).get()"
   JavaAssign name expr ->
     if name == "main" then
       "public static final java.util.function.Supplier<Void> main = () -> {\n            ((java.util.function.Supplier<Object>)(" <> printExpr expr <> ")).get();\n            return null;\n        };"

@@ -5,7 +5,6 @@ import * as Data_Function from "../Data.Function/index.js";
 import * as Data_Functor from "../Data.Functor/index.js";
 import * as Data_HeytingAlgebra from "../Data.HeytingAlgebra/index.js";
 import * as Data_Maybe from "../Data.Maybe/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(Control_Monad_ST_Internal.functorST);
 var not = /* #__PURE__ */ Data_HeytingAlgebra.not(Data_HeytingAlgebra.heytingAlgebraBoolean);
 var $$void = /* #__PURE__ */ Data_Functor["void"](Control_Monad_ST_Internal.functorST);
 var void1 = /* #__PURE__ */ Data_Functor["void"](Control_Monad_ST_Internal.functorST);
@@ -41,7 +40,7 @@ var pushWhile = function (p) {
         return function (array) {
             return function __do() {
                 var $$break = Control_Monad_ST_Internal["new"](false)();
-                while (map(not)(Control_Monad_ST_Internal.read($$break))()) {
+                while (Data_Functor.map(Control_Monad_ST_Internal.functorST)(not)(Control_Monad_ST_Internal.read($$break))()) {
                     (function __do() {
                         var mx = peek(iter)();
                         if (mx instanceof Data_Maybe.Just && p(mx.value0)) {
@@ -58,13 +57,13 @@ var pushWhile = function (p) {
 };
 var pushAll = /* #__PURE__ */ pushWhile(/* #__PURE__ */ Data_Function["const"](true));
 var iterator = function (f) {
-    return map(Iterator.create(f))(Control_Monad_ST_Internal["new"](0));
+    return Data_Functor.map(Control_Monad_ST_Internal.functorST)(Iterator.create(f))(Control_Monad_ST_Internal["new"](0));
 };
 var iterate = function (iter) {
     return function (f) {
         return function __do() {
             var $$break = Control_Monad_ST_Internal["new"](false)();
-            while (map(not)(Control_Monad_ST_Internal.read($$break))()) {
+            while (Data_Functor.map(Control_Monad_ST_Internal.functorST)(not)(Control_Monad_ST_Internal.read($$break))()) {
                 (function __do() {
                     var mx = next(iter)();
                     if (mx instanceof Data_Maybe.Just) {
@@ -81,9 +80,9 @@ var iterate = function (iter) {
     };
 };
 var exhausted = /* #__PURE__ */ (function () {
-    var $21 = map(Data_Maybe.isNothing);
-    return function ($22) {
-        return $21(peek($22));
+    var $16 = Data_Functor.map(Control_Monad_ST_Internal.functorST)(Data_Maybe.isNothing);
+    return function ($17) {
+        return $16(peek($17));
     };
 })();
 export {

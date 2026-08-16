@@ -4,7 +4,6 @@ import * as Data_Newtype from "../Data.Newtype/index.js";
 import * as Data_Profunctor_Choice from "../Data.Profunctor.Choice/index.js";
 import * as Data_Profunctor_Star from "../Data.Profunctor.Star/index.js";
 import * as Data_Profunctor_Strong from "../Data.Profunctor.Strong/index.js";
-var alaF = /* #__PURE__ */ Data_Newtype.alaF()()()();
 var wanderStar = function (dictApplicative) {
     var strongStar = Data_Profunctor_Star.strongStar((dictApplicative.Apply0()).Functor0());
     var choiceStar = Data_Profunctor_Star.choiceStar(dictApplicative);
@@ -24,7 +23,7 @@ var wanderStar = function (dictApplicative) {
 };
 var wanderFunction = {
     wander: function (t) {
-        return alaF(Data_Identity.Identity)(t(Data_Identity.applicativeIdentity));
+        return Data_Newtype.alaF()()()()(Data_Identity.Identity)(t(Data_Identity.applicativeIdentity));
     },
     Strong0: function () {
         return Data_Profunctor_Strong.strongFn;

@@ -31,31 +31,31 @@ var $runtime_lazy = function (name, moduleName, init) {
         return val;
     };
 };
-var bind = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser);
 var pure = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
-var apply = /* #__PURE__ */ Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser);
-var map = /* #__PURE__ */ Data_Functor.map(PureScript_CST_Parser_Monad.functorParser);
-var member = /* #__PURE__ */ Data_Set.member(Data_Ord.ordString);
 var pure1 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
-var alt = /* #__PURE__ */ Control_Alt.alt(PureScript_CST_Parser_Monad.altParser);
 var pure2 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
-var applyFirst = /* #__PURE__ */ Control_Apply.applyFirst(PureScript_CST_Parser_Monad.applyParser);
-var applySecond = /* #__PURE__ */ Control_Apply.applySecond(PureScript_CST_Parser_Monad.applyParser);
 var pure3 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
-var defer = /* #__PURE__ */ Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser);
 var pure4 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
 var pure5 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
 var pure6 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
 var pure7 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
 var pure8 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
 var pure9 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
-var voidRight = /* #__PURE__ */ Data_Functor.voidRight(PureScript_CST_Parser_Monad.functorParser);
+var pure10 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
+var pure11 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
+var pure12 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
+var pure13 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
+var pure14 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
+var pure15 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
+var pure16 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
+var pure17 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
+var pure18 = /* #__PURE__ */ Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser);
 var wrapped = function (openTok) {
     return function (closeTok) {
         return function (valueParser) {
-            return bind(openTok)(function (open) {
-                return bind(valueParser)(function (value) {
-                    return bind(closeTok)(function (close) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(openTok)(function (open) {
+                return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(valueParser)(function (value) {
+                    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(closeTok)(function (close) {
                         return pure({
                             open: open,
                             value: value,
@@ -69,14 +69,14 @@ var wrapped = function (openTok) {
 };
 var separated = function (sepParser) {
     return function (valueParser) {
-        return apply(map(function (v) {
+        return Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(function (v) {
             return function (v1) {
                 return {
                     head: v,
                     tail: v1
                 };
             };
-        })(valueParser))(PureScript_CST_Parser_Monad.many(apply(map(Data_Tuple.Tuple.create)(sepParser))(valueParser)));
+        })(valueParser))(PureScript_CST_Parser_Monad.many(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(sepParser))(valueParser)));
     };
 };
 var reservedKeywords = /* #__PURE__ */ Data_Set.fromFoldable(Data_Foldable.foldableArray)(Data_Ord.ordString)([ "ado", "case", "class", "data", "derive", "do", "else", "false", "foreign", "if", "import", "in", "infix", "infixl", "infixr", "instance", "let", "module", "newtype", "of", "then", "true", "type", "where" ]);
@@ -101,8 +101,8 @@ var recoverTokensWhile = function (p) {
                         return new Data_Tuple.Tuple(acc, stream);
                     };
                     if (v instanceof PureScript_CST_TokenStream.TokenCons) {
-                        var $144 = p(v.value0)(indent);
-                        if ($144) {
+                        var $138 = p(v.value0)(indent);
+                        if ($138) {
                             $tco_var_acc = Data_Array.snoc(acc)(v.value0);
                             $copy_stream = v.value2;
                             return;
@@ -135,8 +135,8 @@ var recoverIndent = function (mkNode) {
                     return true;
                 };
             })(stream);
-            var $154 = Data_Array["null"](v1.value0);
-            if ($154) {
+            var $148 = Data_Array["null"](v1.value0);
+            if ($148) {
                 return Data_Maybe.Nothing.value;
             };
             return new Data_Maybe.Just(new Data_Tuple.Tuple(mkNode({
@@ -166,7 +166,7 @@ var parseSmallInt = /* #__PURE__ */ PureScript_CST_Parser_Monad.take(function (v
     return new Data_Either.Left(new PureScript_CST_Errors.UnexpectedToken(v.value));
 });
 var many1 = function (parser) {
-    return apply(map(Data_Array_NonEmpty["cons$prime"])(parser))(PureScript_CST_Parser_Monad.many(parser));
+    return Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Array_NonEmpty["cons$prime"])(parser))(PureScript_CST_Parser_Monad.many(parser));
 };
 var expectMap = function (k) {
     return PureScript_CST_Parser_Monad.take(function (tok) {
@@ -205,7 +205,7 @@ var parseHole = /* #__PURE__ */ expectMap(function (v) {
     return Data_Maybe.Nothing.value;
 });
 var parseIdent = /* #__PURE__ */ expectMap(function (v) {
-    if (v.value instanceof PureScript_CST_Types.TokLowerName && (v.value.value0 instanceof Data_Maybe.Nothing && !member(v.value.value1)(reservedKeywords))) {
+    if (v.value instanceof PureScript_CST_Types.TokLowerName && (v.value.value0 instanceof Data_Maybe.Nothing && !Data_Set.member(Data_Ord.ordString)(v.value.value1)(reservedKeywords))) {
         return new Data_Maybe.Just({
             token: v,
             name: v.value.value1
@@ -280,7 +280,7 @@ var parseProper = /* #__PURE__ */ expectMap(function (v) {
     return Data_Maybe.Nothing.value;
 });
 var parseQualifiedIdent = /* #__PURE__ */ expectMap(function (v) {
-    if (v.value instanceof PureScript_CST_Types.TokLowerName && !member(v.value.value1)(reservedKeywords)) {
+    if (v.value instanceof PureScript_CST_Types.TokLowerName && !Data_Set.member(Data_Ord.ordString)(v.value.value1)(reservedKeywords)) {
         return new Data_Maybe.Just({
             token: v,
             module: v.value.value0,
@@ -356,8 +356,8 @@ var parseSymbol = /* #__PURE__ */ expectMap(function (v) {
 });
 var expect = function (pred) {
     return expectMap(function (tok) {
-        var $253 = pred(tok.value);
-        if ($253) {
+        var $247 = pred(tok.value);
+        if ($247) {
             return new Data_Maybe.Just(tok);
         };
         return Data_Maybe.Nothing.value;
@@ -388,8 +388,8 @@ var tokDot = /* #__PURE__ */ expect(function (v) {
     return false;
 });
 var parseRecordAccessor = function (expr) {
-    return bind(tokDot)(function (dot) {
-        return bind(separated(tokDot)(parseLabel))(function (path) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokDot)(function (dot) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(separated(tokDot)(parseLabel))(function (path) {
             return pure1(new PureScript_CST_Types.ExprRecordAccessor({
                 expr: expr,
                 dot: dot,
@@ -405,7 +405,7 @@ var tokDoubleColon = /* #__PURE__ */ expect(function (v) {
     return false;
 });
 var parseInstanceName = /* #__PURE__ */ (function () {
-    return apply(map(Data_Tuple.Tuple.create)(parseIdent))(tokDoubleColon);
+    return Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(parseIdent))(tokDoubleColon);
 })();
 var tokEquals = /* #__PURE__ */ expect(function (v) {
     if (v instanceof PureScript_CST_Types.TokEquals) {
@@ -427,15 +427,15 @@ var tokKeyOperator = function (sym) {
         return false;
     });
 };
-var parseBinderNegative = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyOperator("-"))(function (negative) {
-    return alt(map(Data_Tuple.uncurry(PureScript_CST_Types.BinderInt.create(new Data_Maybe.Just(negative))))($$parseInt))(map(Data_Tuple.uncurry(PureScript_CST_Types.BinderNumber.create(new Data_Maybe.Just(negative))))(parseNumber));
+var parseBinderNegative = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(/* #__PURE__ */ tokKeyOperator("-"))(function (negative) {
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.BinderInt.create(new Data_Maybe.Just(negative))))($$parseInt))(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.BinderNumber.create(new Data_Maybe.Just(negative))))(parseNumber));
 });
 var parseRecordLabeled = function (valueParser) {
-    var parseRecordField = apply(map(Data_Tuple.uncurry(PureScript_CST_Types.RecordField.create))(PureScript_CST_Parser_Monad["try"](apply(map(Data_Tuple.Tuple.create)(parseLabel))(tokKeyOperator(":")))))(valueParser);
-    return alt(parseRecordField)(map(PureScript_CST_Types.RecordPun.create)(parseIdent));
+    var parseRecordField = Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.RecordField.create))(PureScript_CST_Parser_Monad["try"](Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(parseLabel))(tokKeyOperator(":")))))(valueParser);
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseRecordField)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.RecordPun.create)(parseIdent));
 };
-var parseTypeNegative = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyOperator("-"))(function (negative) {
-    return map(Data_Tuple.uncurry(PureScript_CST_Types.TypeInt.create(new Data_Maybe.Just(negative))))($$parseInt);
+var parseTypeNegative = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(/* #__PURE__ */ tokKeyOperator("-"))(function (negative) {
+    return Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.TypeInt.create(new Data_Maybe.Just(negative))))($$parseInt);
 });
 var tokKeySymbol = function (sym) {
     return expect(function (v) {
@@ -454,14 +454,14 @@ var tokKeyword = function (kw) {
     });
 };
 var parseFixityKeyword = /* #__PURE__ */ (function () {
-    return alt(map(Data_Function.flip(Data_Tuple.Tuple.create)(PureScript_CST_Types.Infix.value))(tokKeyword("infix")))(alt(map(Data_Function.flip(Data_Tuple.Tuple.create)(PureScript_CST_Types.Infixl.value))(tokKeyword("infixl")))(map(Data_Function.flip(Data_Tuple.Tuple.create)(PureScript_CST_Types.Infixr.value))(tokKeyword("infixr"))));
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Function.flip(Data_Tuple.Tuple.create)(PureScript_CST_Types.Infix.value))(tokKeyword("infix")))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Function.flip(Data_Tuple.Tuple.create)(PureScript_CST_Types.Infixl.value))(tokKeyword("infixl")))(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Function.flip(Data_Tuple.Tuple.create)(PureScript_CST_Types.Infixr.value))(tokKeyword("infixr"))));
 })();
 var parseFixityOp = /* #__PURE__ */ (function () {
-    return alt(apply(apply(apply(map(PureScript_CST_Types.FixityType.create)(tokKeyword("type")))(parseQualifiedProper))(tokKeyword("as")))(parseOperator))(apply(apply(map(PureScript_CST_Types.FixityValue.create)(parseQualifiedIdentOrProper))(tokKeyword("as")))(parseOperator));
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.FixityType.create)(tokKeyword("type")))(parseQualifiedProper))(tokKeyword("as")))(parseOperator))(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.FixityValue.create)(parseQualifiedIdentOrProper))(tokKeyword("as")))(parseOperator));
 })();
-var parseDeclFixity = /* #__PURE__ */ bind(parseFixityKeyword)(function (keyword) {
-    return bind(parseSmallInt)(function (prec) {
-        return bind(parseFixityOp)(function (operator) {
+var parseDeclFixity = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseFixityKeyword)(function (keyword) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseSmallInt)(function (prec) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseFixityOp)(function (operator) {
             return pure2(new PureScript_CST_Types.DeclFixity({
                 keyword: keyword,
                 prec: prec,
@@ -471,15 +471,15 @@ var parseDeclFixity = /* #__PURE__ */ bind(parseFixityKeyword)(function (keyword
     });
 });
 var parseForeignKind = /* #__PURE__ */ (function () {
-    return PureScript_CST_Parser_Monad["try"](apply(map(PureScript_CST_Types.ForeignKind.create)(tokKeyword("kind")))(parseProper));
+    return PureScript_CST_Parser_Monad["try"](Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ForeignKind.create)(tokKeyword("kind")))(parseProper));
 })();
 var parseRole = /* #__PURE__ */ (function () {
-    return alt(map(Data_Function.flip(Data_Tuple.Tuple.create)(PureScript_CST_Types.Representational.value))(tokKeyword("representational")))(alt(map(Data_Function.flip(Data_Tuple.Tuple.create)(PureScript_CST_Types.Nominal.value))(tokKeyword("nominal")))(map(Data_Function.flip(Data_Tuple.Tuple.create)(PureScript_CST_Types.Phantom.value))(tokKeyword("phantom"))));
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Function.flip(Data_Tuple.Tuple.create)(PureScript_CST_Types.Representational.value))(tokKeyword("representational")))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Function.flip(Data_Tuple.Tuple.create)(PureScript_CST_Types.Nominal.value))(tokKeyword("nominal")))(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Function.flip(Data_Tuple.Tuple.create)(PureScript_CST_Types.Phantom.value))(tokKeyword("phantom"))));
 })();
 var parseDeclRole = function (keyword1) {
-    return bind(tokKeyword("role"))(function (keyword2) {
-        return bind(parseProper)(function (name) {
-            return bind(many1(parseRole))(function (roles) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokKeyword("role"))(function (keyword2) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseProper)(function (name) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(many1(parseRole))(function (roles) {
                 return pure2(new PureScript_CST_Types.DeclRole(keyword1, keyword2, name, roles));
             });
         });
@@ -497,7 +497,7 @@ var tokLayoutSep = /* #__PURE__ */ expect(function (v) {
     };
     return false;
 });
-var parseInstanceChainSeparator = /* #__PURE__ */ applyFirst(/* #__PURE__ */ tokKeyword("else"))(/* #__PURE__ */ PureScript_CST_Parser_Monad.optional(tokLayoutSep));
+var parseInstanceChainSeparator = /* #__PURE__ */ Control_Apply.applyFirst(PureScript_CST_Parser_Monad.applyParser)(/* #__PURE__ */ tokKeyword("else"))(/* #__PURE__ */ PureScript_CST_Parser_Monad.optional(tokLayoutSep));
 var tokLayoutStart = /* #__PURE__ */ expect(function (v) {
     if (v instanceof PureScript_CST_Types.TokLayoutStart) {
         return true;
@@ -505,11 +505,11 @@ var tokLayoutStart = /* #__PURE__ */ expect(function (v) {
     return false;
 });
 var layoutNonEmpty = function (valueParser) {
-    return apply(map(function (v) {
+    return Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(function (v) {
         return function (v1) {
             return Data_Array_NonEmpty["cons$prime"](v)(v1);
         };
-    })(applySecond(tokLayoutStart)(valueParser)))(applyFirst(PureScript_CST_Parser_Monad.many(applySecond(tokLayoutSep)(valueParser)))(tokLayoutEnd));
+    })(Control_Apply.applySecond(PureScript_CST_Parser_Monad.applyParser)(tokLayoutStart)(valueParser)))(Control_Apply.applyFirst(PureScript_CST_Parser_Monad.applyParser)(PureScript_CST_Parser_Monad.many(Control_Apply.applySecond(PureScript_CST_Parser_Monad.applyParser)(tokLayoutSep)(valueParser)))(tokLayoutEnd));
 };
 var tokLeftArrow = /* #__PURE__ */ expect(function (v) {
     if (v instanceof PureScript_CST_Types.TokLeftArrow) {
@@ -562,7 +562,7 @@ var tokRightArrow = /* #__PURE__ */ expect(function (v) {
     return false;
 });
 var parseFundep = /* #__PURE__ */ (function () {
-    return alt(apply(map(PureScript_CST_Types.FundepDetermined.create)(tokRightArrow))(many1(parseIdent)))(apply(apply(map(PureScript_CST_Types.FundepDetermines.create)(many1(parseIdent)))(tokRightArrow))(many1(parseIdent)));
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.FundepDetermined.create)(tokRightArrow))(many1(parseIdent)))(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.FundepDetermines.create)(many1(parseIdent)))(tokRightArrow))(many1(parseIdent)));
 })();
 var tokRightBrace = /* #__PURE__ */ expect(function (v) {
     if (v instanceof PureScript_CST_Types.TokRightBrace) {
@@ -584,7 +584,7 @@ var tokRightParen = /* #__PURE__ */ expect(function (v) {
 });
 var parens = /* #__PURE__ */ wrapped(tokLeftParen)(tokRightParen);
 var parseEmptyRow = function (open) {
-    return bind(tokRightParen)(function (close) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokRightParen)(function (close) {
         return pure3(new PureScript_CST_Types.TypeRow({
             open: open,
             value: {
@@ -624,7 +624,7 @@ var delimited = function (openTok) {
         return function (sepTok) {
             return function (valueParser) {
                 var parseNonEmpty = function (open) {
-                    return apply(map(function (v) {
+                    return Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(function (v) {
                         return function (v1) {
                             return {
                                 open: open,
@@ -635,7 +635,7 @@ var delimited = function (openTok) {
                     })(separated(sepTok)(valueParser)))(closeTok);
                 };
                 var parseEmpty = function (open) {
-                    return map(function (v) {
+                    return Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(function (v) {
                         return {
                             open: open,
                             value: Data_Maybe.Nothing.value,
@@ -643,27 +643,27 @@ var delimited = function (openTok) {
                         };
                     })(closeTok);
                 };
-                return bind(openTok)(function (open) {
-                    return alt(parseEmpty(open))(parseNonEmpty(open));
+                return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(openTok)(function (open) {
+                    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseEmpty(open))(parseNonEmpty(open));
                 });
             };
         };
     };
 };
 var parseDataMembers = /* #__PURE__ */ (function () {
-    return alt(map(PureScript_CST_Types.DataAll.create)(tokKeySymbol("..")))(map(PureScript_CST_Types.DataEnumerated.create)(delimited(tokLeftParen)(tokRightParen)(tokComma)(parseProper)));
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.DataAll.create)(tokKeySymbol("..")))(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.DataEnumerated.create)(delimited(tokLeftParen)(tokRightParen)(tokComma)(parseProper)));
 })();
 var parseExport = /* #__PURE__ */ (function () {
-    return alt(apply(map(PureScript_CST_Types.ExportTypeOp.create)(tokKeyword("type")))(parseSymbol))(alt(apply(map(PureScript_CST_Types.ExportClass.create)(tokKeyword("class")))(parseProper))(alt(apply(map(PureScript_CST_Types.ExportModule.create)(tokKeyword("module")))(parseModuleName))(alt(map(PureScript_CST_Types.ExportOp.create)(parseSymbol))(alt(map(PureScript_CST_Types.ExportValue.create)(parseIdent))(apply(map(PureScript_CST_Types.ExportType.create)(parseProper))(PureScript_CST_Parser_Monad.optional(parseDataMembers)))))));
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExportTypeOp.create)(tokKeyword("type")))(parseSymbol))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExportClass.create)(tokKeyword("class")))(parseProper))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExportModule.create)(tokKeyword("module")))(parseModuleName))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExportOp.create)(parseSymbol))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExportValue.create)(parseIdent))(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExportType.create)(parseProper))(PureScript_CST_Parser_Monad.optional(parseDataMembers)))))));
 })();
 var parseImport = /* #__PURE__ */ (function () {
-    return alt(map(PureScript_CST_Types.ImportOp.create)(parseSymbol))(alt(apply(map(PureScript_CST_Types.ImportType.create)(parseProper))(PureScript_CST_Parser_Monad.optional(parseDataMembers)))(alt(apply(map(PureScript_CST_Types.ImportTypeOp.create)(tokKeyword("type")))(parseSymbol))(alt(apply(map(PureScript_CST_Types.ImportClass.create)(tokKeyword("class")))(parseProper))(map(PureScript_CST_Types.ImportValue.create)(parseIdent)))));
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ImportOp.create)(parseSymbol))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ImportType.create)(parseProper))(PureScript_CST_Parser_Monad.optional(parseDataMembers)))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ImportTypeOp.create)(tokKeyword("type")))(parseSymbol))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ImportClass.create)(tokKeyword("class")))(parseProper))(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ImportValue.create)(parseIdent)))));
 })();
-var parseImportDecl = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyword("import"))(function (keyword) {
-    return bind(parseModuleName)(function (module_) {
-        return bind(PureScript_CST_Parser_Monad.optional(apply(map(Data_Tuple.Tuple.create)(PureScript_CST_Parser_Monad.optional(tokKeyword("hiding"))))(parens(separated(tokComma)(parseImport)))))(function (names) {
-            return bind(PureScript_CST_Parser_Monad.optional(apply(map(Data_Tuple.Tuple.create)(tokKeyword("as")))(parseModuleName)))(function (qualified) {
-                return pure({
+var parseImportDecl = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(/* #__PURE__ */ tokKeyword("import"))(function (keyword) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseModuleName)(function (module_) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(PureScript_CST_Parser_Monad.optional(tokKeyword("hiding"))))(parens(separated(tokComma)(parseImport)))))(function (names) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(tokKeyword("as")))(parseModuleName)))(function (qualified) {
+                return pure4({
                     keyword: keyword,
                     module: module_,
                     names: names,
@@ -673,13 +673,13 @@ var parseImportDecl = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyword("import"))
         });
     });
 });
-var parseModuleImportDecls = /* #__PURE__ */ PureScript_CST_Parser_Monad.many(/* #__PURE__ */ applyFirst(parseImportDecl)(/* #__PURE__ */ alt(tokLayoutSep)(/* #__PURE__ */ PureScript_CST_Parser_Monad.lookAhead(tokLayoutEnd))));
-var parseModuleHeader = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyword("module"))(function (keyword) {
-    return bind(parseModuleName)(function (name) {
-        return bind(PureScript_CST_Parser_Monad.optional(parens(separated(tokComma)(parseExport))))(function (exports) {
-            return bind(tokKeyword("where"))(function (where_) {
-                return bind(applySecond(tokLayoutStart)(parseModuleImportDecls))(function (imports) {
-                    return pure({
+var parseModuleImportDecls = /* #__PURE__ */ PureScript_CST_Parser_Monad.many(/* #__PURE__ */ Control_Apply.applyFirst(PureScript_CST_Parser_Monad.applyParser)(parseImportDecl)(/* #__PURE__ */ Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(tokLayoutSep)(/* #__PURE__ */ PureScript_CST_Parser_Monad.lookAhead(tokLayoutEnd))));
+var parseModuleHeader = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(/* #__PURE__ */ tokKeyword("module"))(function (keyword) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseModuleName)(function (name) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(parens(separated(tokComma)(parseExport))))(function (exports) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokKeyword("where"))(function (where_) {
+                return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(Control_Apply.applySecond(PureScript_CST_Parser_Monad.applyParser)(tokLayoutStart)(parseModuleImportDecls))(function (imports) {
+                    return pure5({
                         keyword: keyword,
                         name: name,
                         exports: exports,
@@ -693,10 +693,10 @@ var parseModuleHeader = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyword("module"
 });
 var braces = /* #__PURE__ */ wrapped(tokLeftBrace)(tokRightBrace);
 var parseTypeVarKinded = function (parseBindingName) {
-    return map(PureScript_CST_Types.TypeVarKinded.create)(parens(bind(parseBindingName)(function (label) {
-        return bind(tokDoubleColon)(function (separator) {
-            return bind($lazy_parseType(550))(function (value) {
-                return pure({
+    return Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.TypeVarKinded.create)(parens(Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseBindingName)(function (label) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokDoubleColon)(function (separator) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseType(550))(function (value) {
+                return pure6({
                     label: label,
                     separator: separator,
                     value: value
@@ -706,11 +706,11 @@ var parseTypeVarKinded = function (parseBindingName) {
     })));
 };
 var parseTypeVarBinding = function (parseBindingName) {
-    return alt(parseTypeVarKinded(parseBindingName))(map(PureScript_CST_Types.TypeVarName.create)(parseBindingName));
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseTypeVarKinded(parseBindingName))(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.TypeVarName.create)(parseBindingName));
 };
 var parseTypeParen = function (open) {
-    return bind($lazy_parseType(507))(function (value) {
-        return bind(tokRightParen)(function (close) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseType(507))(function (value) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokRightParen)(function (close) {
             return pure3(new PureScript_CST_Types.TypeParens({
                 open: open,
                 value: value,
@@ -720,8 +720,8 @@ var parseTypeParen = function (open) {
     });
 };
 var parseRowTailParen = function (open) {
-    return bind(apply(map(Data_Tuple.Tuple.create)(tokPipe))($lazy_parseType(477)))(function (tail) {
-        return bind(tokRightParen)(function (close) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(tokPipe))($lazy_parseType(477)))(function (tail) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokRightParen)(function (close) {
             return pure3(new PureScript_CST_Types.TypeRow({
                 open: open,
                 value: {
@@ -734,11 +734,11 @@ var parseRowTailParen = function (open) {
     });
 };
 var parseRowParen = function (open) {
-    return bind(PureScript_CST_Parser_Monad["try"](apply(map(Data_Tuple.Tuple.create)(parseLabel))(tokDoubleColon)))(function (v) {
-        return bind($lazy_parseType(459))(function (value) {
-            return bind(PureScript_CST_Parser_Monad.many(apply(map(Data_Tuple.Tuple.create)(tokComma))($lazy_parseRowLabel(460))))(function (rest) {
-                return bind(PureScript_CST_Parser_Monad.optional(apply(map(Data_Tuple.Tuple.create)(tokPipe))($lazy_parseType(461))))(function (tail) {
-                    return bind(tokRightParen)(function (close) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad["try"](Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(parseLabel))(tokDoubleColon)))(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseType(459))(function (value) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(tokComma))($lazy_parseRowLabel(460))))(function (rest) {
+                return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(tokPipe))($lazy_parseType(461))))(function (tail) {
+                    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokRightParen)(function (close) {
                         return pure3(new PureScript_CST_Types.TypeRow({
                             open: open,
                             value: {
@@ -761,9 +761,9 @@ var parseRowParen = function (open) {
     });
 };
 var parseKindedVar = function (open) {
-    return bind(PureScript_CST_Parser_Monad["try"](apply(map(Data_Tuple.Tuple.create)(parens(map(PureScript_CST_Types.TypeVar.create)(parseIdent))))(tokDoubleColon)))(function (v) {
-        return bind($lazy_parseType(497))(function (kind) {
-            return bind(tokRightParen)(function (close) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad["try"](Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(parens(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.TypeVar.create)(parseIdent))))(tokDoubleColon)))(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseType(497))(function (kind) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokRightParen)(function (close) {
                 return pure3(new PureScript_CST_Types.TypeParens({
                     open: open,
                     value: new PureScript_CST_Types.TypeKinded(new PureScript_CST_Types.TypeParens(v.value0), v.value1, kind),
@@ -774,15 +774,15 @@ var parseKindedVar = function (open) {
     });
 };
 var $lazy_parseForall = /* #__PURE__ */ $runtime_lazy("parseForall", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return apply(apply(apply(map(PureScript_CST_Types.TypeForall.create)(tokForall))(many1($lazy_parseTypeVarBindingWithVisibility(528))))(tokDot))($lazy_parseType1(530));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.TypeForall.create)(tokForall))(many1($lazy_parseTypeVarBindingWithVisibility(528))))(tokDot))($lazy_parseType1(530));
     });
 });
 var $lazy_parseRow = /* #__PURE__ */ $runtime_lazy("parseRow", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind(PureScript_CST_Parser_Monad.optional(separated(tokComma)($lazy_parseRowLabel(513))))(function (labels) {
-            return bind(PureScript_CST_Parser_Monad.optional(apply(map(Data_Tuple.Tuple.create)(tokPipe))($lazy_parseType(514))))(function (tail) {
-                return pure({
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(separated(tokComma)($lazy_parseRowLabel(513))))(function (labels) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(tokPipe))($lazy_parseType(514))))(function (tail) {
+                return pure8({
                     labels: labels,
                     tail: tail
                 });
@@ -791,10 +791,10 @@ var $lazy_parseRow = /* #__PURE__ */ $runtime_lazy("parseRow", "PureScript.CST.P
     });
 });
 var $lazy_parseRowLabel = /* #__PURE__ */ $runtime_lazy("parseRowLabel", "PureScript.CST.Parser", function () {
-    return bind(parseLabel)(function (label) {
-        return bind(tokDoubleColon)(function (separator) {
-            return bind($lazy_parseType(521))(function (value) {
-                return pure({
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseLabel)(function (label) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokDoubleColon)(function (separator) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseType(521))(function (value) {
+                return pure7({
                     label: label,
                     separator: separator,
                     value: value
@@ -804,29 +804,29 @@ var $lazy_parseRowLabel = /* #__PURE__ */ $runtime_lazy("parseRowLabel", "PureSc
     });
 });
 var $lazy_parseType = /* #__PURE__ */ $runtime_lazy("parseType", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind($lazy_parseType1(393))(function (ty) {
-            return alt(apply(map(PureScript_CST_Types.TypeKinded.create(ty))(tokDoubleColon))($lazy_parseType(394)))(pure4(ty));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseType1(393))(function (ty) {
+            return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.TypeKinded.create(ty))(tokDoubleColon))($lazy_parseType(394)))(Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)(ty));
         });
     });
 });
 var $lazy_parseType1 = /* #__PURE__ */ $runtime_lazy("parseType1", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return alt($lazy_parseForall(399))($lazy_parseType2(400));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)($lazy_parseForall(399))($lazy_parseType2(400));
     });
 });
 var $lazy_parseType2 = /* #__PURE__ */ $runtime_lazy("parseType2", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind($lazy_parseType3(404))(function (ty) {
-            return alt(apply(map(PureScript_CST_Types.TypeArrow.create(ty))(tokRightArrow))($lazy_parseType1(405)))(alt(apply(map(PureScript_CST_Types.TypeConstrained.create(ty))(tokRightFatArrow))($lazy_parseType1(406)))(pure4(ty)));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseType3(404))(function (ty) {
+            return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.TypeArrow.create(ty))(tokRightArrow))($lazy_parseType1(405)))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.TypeConstrained.create(ty))(tokRightFatArrow))($lazy_parseType1(406)))(Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)(ty)));
         });
     });
 });
 var $lazy_parseType3 = /* #__PURE__ */ $runtime_lazy("parseType3", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind($lazy_parseType4(411))(function (ty) {
-            return bind(PureScript_CST_Parser_Monad.many(apply(map(Data_Tuple.Tuple.create)(parseQualifiedOperator))($lazy_parseType4(412))))(function (ops) {
-                return pure4((function () {
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseType4(411))(function (ty) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(parseQualifiedOperator))($lazy_parseType4(412))))(function (ops) {
+                return Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)((function () {
                     var v1 = Data_Array_NonEmpty.fromArray(ops);
                     if (v1 instanceof Data_Maybe.Nothing) {
                         return ty;
@@ -841,15 +841,15 @@ var $lazy_parseType3 = /* #__PURE__ */ $runtime_lazy("parseType3", "PureScript.C
     });
 });
 var $lazy_parseType4 = /* #__PURE__ */ $runtime_lazy("parseType4", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return alt(parseTypeNegative)($lazy_parseType5(419));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseTypeNegative)($lazy_parseType5(419));
     });
 });
 var $lazy_parseType5 = /* #__PURE__ */ $runtime_lazy("parseType5", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind($lazy_parseTypeAtom(423))(function (ty) {
-            return bind(PureScript_CST_Parser_Monad.many($lazy_parseTypeAtom(424)))(function (args) {
-                return pure4((function () {
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseTypeAtom(423))(function (ty) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many($lazy_parseTypeAtom(424)))(function (args) {
+                return Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)((function () {
                     var v1 = Data_Array_NonEmpty.fromArray(args);
                     if (v1 instanceof Data_Maybe.Nothing) {
                         return ty;
@@ -864,18 +864,18 @@ var $lazy_parseType5 = /* #__PURE__ */ $runtime_lazy("parseType5", "PureScript.C
     });
 });
 var $lazy_parseTypeAtom = /* #__PURE__ */ $runtime_lazy("parseTypeAtom", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return alt(map(PureScript_CST_Types.TypeVar.create)(parseIdent))(alt(map(PureScript_CST_Types.TypeConstructor.create)(parseQualifiedProper))(alt(map(Data_Tuple.uncurry(PureScript_CST_Types.TypeString.create))(parseString))(alt(map(Data_Tuple.uncurry(PureScript_CST_Types.TypeInt.create(Data_Maybe.Nothing.value)))($$parseInt))(alt($lazy_parseTypeParens(435))(alt(map(PureScript_CST_Types.TypeRecord.create)(braces($lazy_parseRow(436))))(alt(map(PureScript_CST_Types.TypeOpName.create)(parseQualifiedSymbol))(alt(map(PureScript_CST_Types.TypeHole.create)(parseHole))(alt(map(PureScript_CST_Types.TypeWildcard.create)(tokUnderscore))(map(PureScript_CST_Types.TypeArrowName.create)(tokSymbolArrow))))))))));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.TypeVar.create)(parseIdent))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.TypeConstructor.create)(parseQualifiedProper))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.TypeString.create))(parseString))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.TypeInt.create(Data_Maybe.Nothing.value)))($$parseInt))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)($lazy_parseTypeParens(435))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.TypeRecord.create)(braces($lazy_parseRow(436))))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.TypeOpName.create)(parseQualifiedSymbol))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.TypeHole.create)(parseHole))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.TypeWildcard.create)(tokUnderscore))(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.TypeArrowName.create)(tokSymbolArrow))))))))));
     });
 });
 var $lazy_parseTypeParens = /* #__PURE__ */ $runtime_lazy("parseTypeParens", "PureScript.CST.Parser", function () {
-    return bind(tokLeftParen)(function (open) {
-        return alt(parseRowParen(open))(alt(parseRowTailParen(open))(alt(parseKindedVar(open))(alt(parseTypeParen(open))(parseEmptyRow(open)))));
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokLeftParen)(function (open) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseRowParen(open))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseRowTailParen(open))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseKindedVar(open))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseTypeParen(open))(parseEmptyRow(open)))));
     });
 });
 var $lazy_parseTypeVarBindingWithVisibility = /* #__PURE__ */ $runtime_lazy("parseTypeVarBindingWithVisibility", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return parseTypeVarBinding(apply(map(function (v1) {
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return parseTypeVarBinding(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(function (v1) {
             return function (v2) {
                 return {
                     prefix: v1,
@@ -897,7 +897,7 @@ var parseType5 = /* #__PURE__ */ $lazy_parseType5(421);
 var parseTypeAtom = /* #__PURE__ */ $lazy_parseTypeAtom(429);
 var parseTypeParens = /* #__PURE__ */ $lazy_parseTypeParens(442);
 var parseTypeVarBindingWithVisibility = /* #__PURE__ */ $lazy_parseTypeVarBindingWithVisibility(532);
-var parseDataCtor = /* #__PURE__ */ apply(/* #__PURE__ */ map(function (v) {
+var parseDataCtor = /* #__PURE__ */ Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(/* #__PURE__ */ Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(function (v) {
     return function (v1) {
         return {
             name: v,
@@ -906,17 +906,17 @@ var parseDataCtor = /* #__PURE__ */ apply(/* #__PURE__ */ map(function (v) {
     };
 })(parseProper))(/* #__PURE__ */ PureScript_CST_Parser_Monad.many(parseTypeAtom));
 var $lazy_parseBinder = /* #__PURE__ */ $runtime_lazy("parseBinder", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind($lazy_parseBinder1(825))(function (binder) {
-            return alt(apply(map(PureScript_CST_Types.BinderTyped.create(binder))(tokDoubleColon))(parseType))(pure4(binder));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseBinder1(825))(function (binder) {
+            return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.BinderTyped.create(binder))(tokDoubleColon))(parseType))(Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)(binder));
         });
     });
 });
 var $lazy_parseBinder1 = /* #__PURE__ */ $runtime_lazy("parseBinder1", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind($lazy_parseBinder2(831))(function (binder) {
-            return bind(PureScript_CST_Parser_Monad.many(apply(map(Data_Tuple.Tuple.create)(parseQualifiedOperator))($lazy_parseBinder2(832))))(function (ops) {
-                return pure4((function () {
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseBinder2(831))(function (binder) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(parseQualifiedOperator))($lazy_parseBinder2(832))))(function (ops) {
+                return Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)((function () {
                     var v1 = Data_Array_NonEmpty.fromArray(ops);
                     if (v1 instanceof Data_Maybe.Nothing) {
                         return binder;
@@ -931,27 +931,27 @@ var $lazy_parseBinder1 = /* #__PURE__ */ $runtime_lazy("parseBinder1", "PureScri
     });
 });
 var $lazy_parseBinder2 = /* #__PURE__ */ $runtime_lazy("parseBinder2", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return alt(parseBinderNegative)(alt($lazy_parseBinderConstructor(840))($lazy_parseBinderAtom(841)));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseBinderNegative)(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)($lazy_parseBinderConstructor(840))($lazy_parseBinderAtom(841)));
     });
 });
 var $lazy_parseBinderAtom = /* #__PURE__ */ $runtime_lazy("parseBinderAtom", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return alt($lazy_parseIdentBinder(857))(alt(map(Data_Function.flip(PureScript_CST_Types.BinderConstructor.create)([  ]))(parseQualifiedProper))(alt(map(PureScript_CST_Types.BinderWildcard.create)(tokUnderscore))(alt(map(Data_Tuple.uncurry(PureScript_CST_Types.BinderString.create))(parseString))(alt(map(Data_Tuple.uncurry(PureScript_CST_Types.BinderChar.create))(parseChar))(alt(map(Data_Tuple.uncurry(PureScript_CST_Types.BinderBoolean.create))(parseBoolean))(alt(map(Data_Tuple.uncurry(PureScript_CST_Types.BinderInt.create(Data_Maybe.Nothing.value)))($$parseInt))(alt(map(Data_Tuple.uncurry(PureScript_CST_Types.BinderNumber.create(Data_Maybe.Nothing.value)))(parseNumber))(alt(map(PureScript_CST_Types.BinderArray.create)(delimited(tokLeftSquare)(tokRightSquare)(tokComma)($lazy_parseBinder(865))))(alt(map(PureScript_CST_Types.BinderRecord.create)(delimited(tokLeftBrace)(tokRightBrace)(tokComma)(parseRecordLabeled($lazy_parseBinder(866)))))(map(PureScript_CST_Types.BinderParens.create)(parens($lazy_parseBinder(867)))))))))))));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)($lazy_parseIdentBinder(857))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Function.flip(PureScript_CST_Types.BinderConstructor.create)([  ]))(parseQualifiedProper))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.BinderWildcard.create)(tokUnderscore))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.BinderString.create))(parseString))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.BinderChar.create))(parseChar))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.BinderBoolean.create))(parseBoolean))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.BinderInt.create(Data_Maybe.Nothing.value)))($$parseInt))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.BinderNumber.create(Data_Maybe.Nothing.value)))(parseNumber))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.BinderArray.create)(delimited(tokLeftSquare)(tokRightSquare)(tokComma)($lazy_parseBinder(865))))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.BinderRecord.create)(delimited(tokLeftBrace)(tokRightBrace)(tokComma)(parseRecordLabeled($lazy_parseBinder(866)))))(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.BinderParens.create)(parens($lazy_parseBinder(867)))))))))))));
     });
 });
 var $lazy_parseBinderConstructor = /* #__PURE__ */ $runtime_lazy("parseBinderConstructor", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind(parseQualifiedProper)(function (name) {
-            return bind(PureScript_CST_Parser_Monad.many($lazy_parseBinderAtom(852)))(function (apps) {
-                return pure5(new PureScript_CST_Types.BinderConstructor(name, apps));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseQualifiedProper)(function (name) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many($lazy_parseBinderAtom(852)))(function (apps) {
+                return pure9(new PureScript_CST_Types.BinderConstructor(name, apps));
             });
         });
     });
 });
 var $lazy_parseIdentBinder = /* #__PURE__ */ $runtime_lazy("parseIdentBinder", "PureScript.CST.Parser", function () {
-    return bind(parseIdent)(function (ident) {
-        return alt(apply(map(PureScript_CST_Types.BinderNamed.create(ident))(tokAt))($lazy_parseBinderAtom(872)))(pure4(new PureScript_CST_Types.BinderVar(ident)));
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseIdent)(function (ident) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.BinderNamed.create(ident))(tokAt))($lazy_parseBinderAtom(872)))(Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)(new PureScript_CST_Types.BinderVar(ident)));
     });
 });
 var parseBinder = /* #__PURE__ */ $lazy_parseBinder(823);
@@ -961,15 +961,15 @@ var parseBinderAtom = /* #__PURE__ */ $lazy_parseBinderAtom(855);
 var parseBinderConstructor = /* #__PURE__ */ $lazy_parseBinderConstructor(849);
 var parseIdentBinder = /* #__PURE__ */ $lazy_parseIdentBinder(869);
 var parseClassConstraints = function (parseOneConstraint) {
-    return alt(map(PureScript_CST_Types.Many.create)(parens(separated(tokComma)(parseType))))(map(PureScript_CST_Types.One.create)(parseOneConstraint));
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.Many.create)(parens(separated(tokComma)(parseType))))(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.One.create)(parseOneConstraint));
 };
-var parseDeclDerive = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyword("derive"))(function (derive_) {
-    return bind(PureScript_CST_Parser_Monad.optional(tokKeyword("newtype")))(function (newtype_) {
-        return bind(tokKeyword("instance"))(function (keyword) {
-            return bind(PureScript_CST_Parser_Monad.optional(parseInstanceName))(function (name) {
-                return bind(PureScript_CST_Parser_Monad.optional(PureScript_CST_Parser_Monad["try"](apply(map(Data_Tuple.Tuple.create)(parseClassConstraints(parseType3)))(tokRightFatArrow))))(function (constraints) {
-                    return bind(parseQualifiedProper)(function (className) {
-                        return bind(PureScript_CST_Parser_Monad.many(parseTypeAtom))(function (types) {
+var parseDeclDerive = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(/* #__PURE__ */ tokKeyword("derive"))(function (derive_) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(tokKeyword("newtype")))(function (newtype_) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokKeyword("instance"))(function (keyword) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(parseInstanceName))(function (name) {
+                return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(PureScript_CST_Parser_Monad["try"](Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(parseClassConstraints(parseType3)))(tokRightFatArrow))))(function (constraints) {
+                    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseQualifiedProper)(function (className) {
+                        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many(parseTypeAtom))(function (types) {
                             return pure2(new PureScript_CST_Types.DeclDerive(derive_, newtype_, {
                                 keyword: keyword,
                                 name: name,
@@ -984,10 +984,10 @@ var parseDeclDerive = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyword("derive"))
         });
     });
 });
-var parseClassMember = /* #__PURE__ */ bind(parseIdent)(function (label) {
-    return bind(tokDoubleColon)(function (separator) {
-        return bind(parseType)(function (value) {
-            return pure({
+var parseClassMember = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseIdent)(function (label) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokDoubleColon)(function (separator) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseType)(function (value) {
+            return pure7({
                 label: label,
                 separator: separator,
                 value: value
@@ -996,8 +996,8 @@ var parseClassMember = /* #__PURE__ */ bind(parseIdent)(function (label) {
     });
 });
 var parseDeclClassSignature = function (keyword) {
-    return bind(PureScript_CST_Parser_Monad["try"](apply(map(Data_Tuple.Tuple.create)(parseProper))(tokDoubleColon)))(function (v) {
-        return bind(parseType)(function (value) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad["try"](Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(parseProper))(tokDoubleColon)))(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseType)(function (value) {
             return pure2(new PureScript_CST_Types.DeclKindSignature(keyword, {
                 label: v.value0,
                 separator: v.value1,
@@ -1008,8 +1008,8 @@ var parseDeclClassSignature = function (keyword) {
 };
 var parseDeclKindSignature = function (keyword) {
     return function (label) {
-        return bind(tokDoubleColon)(function (separator) {
-            return bind(parseType)(function (value) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokDoubleColon)(function (separator) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseType)(function (value) {
                 return pure2(new PureScript_CST_Types.DeclKindSignature(keyword, {
                     label: label,
                     separator: separator,
@@ -1020,8 +1020,8 @@ var parseDeclKindSignature = function (keyword) {
     };
 };
 var parseDeclSignature = function (label) {
-    return bind(tokDoubleColon)(function (separator) {
-        return bind(parseType)(function (value) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokDoubleColon)(function (separator) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseType)(function (value) {
             return pure2(new PureScript_CST_Types.DeclSignature({
                 label: label,
                 separator: separator,
@@ -1030,11 +1030,11 @@ var parseDeclSignature = function (label) {
         });
     });
 };
-var parseForeignData = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyword("data"))(function (keyword) {
-    return bind(parseProper)(function (label) {
-        return bind(tokDoubleColon)(function (separator) {
-            return bind(parseType)(function (value) {
-                return pure6(new PureScript_CST_Types.ForeignData(keyword, {
+var parseForeignData = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(/* #__PURE__ */ tokKeyword("data"))(function (keyword) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseProper)(function (label) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokDoubleColon)(function (separator) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseType)(function (value) {
+                return pure10(new PureScript_CST_Types.ForeignData(keyword, {
                     label: label,
                     separator: separator,
                     value: value
@@ -1043,10 +1043,10 @@ var parseForeignData = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyword("data"))(
         });
     });
 });
-var parseForeignValue = /* #__PURE__ */ bind(parseIdent)(function (label) {
-    return bind(tokDoubleColon)(function (separator) {
-        return bind(parseType)(function (value) {
-            return pure6(new PureScript_CST_Types.ForeignValue({
+var parseForeignValue = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseIdent)(function (label) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokDoubleColon)(function (separator) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseType)(function (value) {
+            return pure10(new PureScript_CST_Types.ForeignValue({
                 label: label,
                 separator: separator,
                 value: value
@@ -1054,17 +1054,17 @@ var parseForeignValue = /* #__PURE__ */ bind(parseIdent)(function (label) {
         });
     });
 });
-var parseDeclForeign = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyword("foreign"))(function (keyword1) {
-    return bind(tokKeyword("import"))(function (keyword2) {
-        return bind(alt(parseForeignData)(alt(parseForeignKind)(parseForeignValue)))(function (foreign_) {
+var parseDeclForeign = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(/* #__PURE__ */ tokKeyword("foreign"))(function (keyword1) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokKeyword("import"))(function (keyword2) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseForeignData)(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseForeignKind)(parseForeignValue)))(function (foreign_) {
             return pure2(new PureScript_CST_Types.DeclForeign(keyword1, keyword2, foreign_));
         });
     });
 });
 var parseInstanceBindingSignature = function (label) {
-    return bind(tokDoubleColon)(function (separator) {
-        return bind(parseType)(function (value) {
-            return pure7(new PureScript_CST_Types.InstanceBindingSignature({
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokDoubleColon)(function (separator) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseType)(function (value) {
+            return pure11(new PureScript_CST_Types.InstanceBindingSignature({
                 label: label,
                 separator: separator,
                 value: value
@@ -1073,9 +1073,9 @@ var parseInstanceBindingSignature = function (label) {
     });
 };
 var parseLetBindingSignature = function (label) {
-    return bind(tokDoubleColon)(function (separator) {
-        return bind(parseType)(function (value) {
-            return pure8(new PureScript_CST_Types.LetBindingSignature({
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokDoubleColon)(function (separator) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseType)(function (value) {
+            return pure12(new PureScript_CST_Types.LetBindingSignature({
                 label: label,
                 separator: separator,
                 value: value
@@ -1084,9 +1084,9 @@ var parseLetBindingSignature = function (label) {
     });
 };
 var parseRecordUpdates = function (expr) {
-    return bind(PureScript_CST_Parser_Monad["try"](applyFirst(tokLeftBrace)(PureScript_CST_Parser_Monad.lookAhead(applySecond(parseLabel)(alt(tokEquals)(tokLeftBrace))))))(function (open) {
-        return bind(separated(tokComma)($lazy_parseRecordUpdate(709)))(function (value) {
-            return bind(tokRightBrace)(function (close) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad["try"](Control_Apply.applyFirst(PureScript_CST_Parser_Monad.applyParser)(tokLeftBrace)(PureScript_CST_Parser_Monad.lookAhead(Control_Apply.applySecond(PureScript_CST_Parser_Monad.applyParser)(parseLabel)(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(tokEquals)(tokLeftBrace))))))(function (open) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(separated(tokComma)($lazy_parseRecordUpdate(709)))(function (value) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokRightBrace)(function (close) {
                 return pure1(new PureScript_CST_Types.ExprRecordUpdate(expr, {
                     open: open,
                     value: value,
@@ -1097,15 +1097,15 @@ var parseRecordUpdates = function (expr) {
     });
 };
 var parseRecordUpdateLeaf = function (label) {
-    return apply(map(PureScript_CST_Types.RecordUpdateLeaf.create(label))(tokEquals))($lazy_parseExpr(723));
+    return Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.RecordUpdateLeaf.create(label))(tokEquals))($lazy_parseExpr(723));
 };
 var parseRecordUpdateBranch = function (label) {
-    return map(PureScript_CST_Types.RecordUpdateBranch.create(label))(braces(separated(tokComma)($lazy_parseRecordUpdate(728))));
+    return Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.RecordUpdateBranch.create(label))(braces(separated(tokComma)($lazy_parseRecordUpdate(728))));
 };
 var parseLetBindingName = function (name) {
-    return bind(PureScript_CST_Parser_Monad.many(parseBinderAtom))(function (binders) {
-        return bind(parseGuarded(tokEquals))(function (guarded) {
-            return pure8(new PureScript_CST_Types.LetBindingName({
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many(parseBinderAtom))(function (binders) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseGuarded(tokEquals))(function (guarded) {
+            return pure12(new PureScript_CST_Types.LetBindingName({
                 name: name,
                 binders: binders,
                 guarded: guarded
@@ -1114,15 +1114,15 @@ var parseLetBindingName = function (name) {
     });
 };
 var parseGuarded = function (sepParser) {
-    var parsePatternGuard = apply(map(function (v) {
+    var parsePatternGuard = Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(function (v) {
         return function (v1) {
             return {
                 binder: v,
                 expr: v1
             };
         };
-    })(PureScript_CST_Parser_Monad.optional(PureScript_CST_Parser_Monad["try"](apply(map(Data_Tuple.Tuple.create)(parseBinder))(tokLeftArrow)))))($lazy_parseExpr(814));
-    var parseGuardedExpr = apply(apply(apply(map(function (v) {
+    })(PureScript_CST_Parser_Monad.optional(PureScript_CST_Parser_Monad["try"](Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(parseBinder))(tokLeftArrow)))))($lazy_parseExpr(814));
+    var parseGuardedExpr = Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(function (v) {
         return function (v1) {
             return function (v2) {
                 return function (v3) {
@@ -1136,12 +1136,12 @@ var parseGuarded = function (sepParser) {
             };
         };
     })(tokPipe))(separated(tokComma)(parsePatternGuard)))(sepParser))($lazy_parseWhere(808));
-    return alt(apply(map(PureScript_CST_Types.Unconditional.create)(sepParser))($lazy_parseWhere(800)))(map(PureScript_CST_Types.Guarded.create)(many1(parseGuardedExpr)));
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.Unconditional.create)(sepParser))($lazy_parseWhere(800)))(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.Guarded.create)(many1(parseGuardedExpr)));
 };
 var parseBadSingleCaseWhere = function (binder) {
-    return bind(tokRightArrow)(function (arrow) {
-        return bind(applySecond(tokLayoutEnd)($lazy_parseWhere(665)))(function (body) {
-            return pure9(Data_Array_NonEmpty.singleton(new Data_Tuple.Tuple({
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokRightArrow)(function (arrow) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(Control_Apply.applySecond(PureScript_CST_Parser_Monad.applyParser)(tokLayoutEnd)($lazy_parseWhere(665)))(function (body) {
+            return pure15(Data_Array_NonEmpty.singleton(new Data_Tuple.Tuple({
                 head: binder,
                 tail: [  ]
             }, new PureScript_CST_Types.Unconditional(arrow, body))));
@@ -1149,24 +1149,24 @@ var parseBadSingleCaseWhere = function (binder) {
     });
 };
 var parseBadSingleCaseGuarded = function (binder) {
-    return bind(applySecond(tokLayoutEnd)(parseGuarded(tokRightArrow)))(function (body) {
-        return pure9(Data_Array_NonEmpty.singleton(new Data_Tuple.Tuple({
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(Control_Apply.applySecond(PureScript_CST_Parser_Monad.applyParser)(tokLayoutEnd)(parseGuarded(tokRightArrow)))(function (body) {
+        return pure15(Data_Array_NonEmpty.singleton(new Data_Tuple.Tuple({
             head: binder,
             tail: [  ]
         }, body)));
     });
 };
 var $lazy_parseAdo = /* #__PURE__ */ $runtime_lazy("parseAdo", "PureScript.CST.Parser", function () {
-    return bind(tokQualifiedKeyword("ado"))(function (keyword) {
-        return bind((function () {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokQualifiedKeyword("ado"))(function (keyword) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)((function () {
             var valueParser = recoverDoStatement($lazy_parseDoStatement(690));
-            var nonEmptyCase = apply(map(Data_Array.cons)(valueParser))(PureScript_CST_Parser_Monad.many(applySecond(tokLayoutSep)(valueParser)));
-            return bind(tokLayoutStart)(function () {
-                return alt(voidRight([  ])(tokLayoutEnd))(applyFirst(nonEmptyCase)(tokLayoutEnd));
+            var nonEmptyCase = Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Array.cons)(valueParser))(PureScript_CST_Parser_Monad.many(Control_Apply.applySecond(PureScript_CST_Parser_Monad.applyParser)(tokLayoutSep)(valueParser)));
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokLayoutStart)(function () {
+                return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.voidRight(PureScript_CST_Parser_Monad.functorParser)([  ])(tokLayoutEnd))(Control_Apply.applyFirst(PureScript_CST_Parser_Monad.applyParser)(nonEmptyCase)(tokLayoutEnd));
             });
         })())(function (statements) {
-            return bind(tokKeyword("in"))(function (in_) {
-                return bind($lazy_parseExpr(697))(function (result) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokKeyword("in"))(function (in_) {
+                return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseExpr(697))(function (result) {
                     return pure1(new PureScript_CST_Types.ExprAdo({
                         keyword: keyword,
                         statements: statements,
@@ -1179,15 +1179,15 @@ var $lazy_parseAdo = /* #__PURE__ */ $runtime_lazy("parseAdo", "PureScript.CST.P
     });
 });
 var $lazy_parseBadSingleCaseBranch = /* #__PURE__ */ $runtime_lazy("parseBadSingleCaseBranch", "PureScript.CST.Parser", function () {
-    return bind(applySecond(tokLayoutStart)(parseBinder1))(function (binder) {
-        return alt(parseBadSingleCaseWhere(binder))(parseBadSingleCaseGuarded(binder));
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(Control_Apply.applySecond(PureScript_CST_Parser_Monad.applyParser)(tokLayoutStart)(parseBinder1))(function (binder) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseBadSingleCaseWhere(binder))(parseBadSingleCaseGuarded(binder));
     });
 });
 var $lazy_parseCase = /* #__PURE__ */ $runtime_lazy("parseCase", "PureScript.CST.Parser", function () {
-    return bind(tokKeyword("case"))(function (keyword) {
-        return bind(separated(tokComma)($lazy_parseExpr(647)))(function (head) {
-            return bind(tokKeyword("of"))(function (of_) {
-                return bind(alt(PureScript_CST_Parser_Monad["try"]($lazy_parseBadSingleCaseBranch(649)))($lazy_parseCaseBranches(649)))(function (branches) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokKeyword("case"))(function (keyword) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(separated(tokComma)($lazy_parseExpr(647)))(function (head) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokKeyword("of"))(function (of_) {
+                return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(PureScript_CST_Parser_Monad["try"]($lazy_parseBadSingleCaseBranch(649)))($lazy_parseCaseBranches(649)))(function (branches) {
                     return pure1(new PureScript_CST_Types.ExprCase({
                         keyword: keyword,
                         head: head,
@@ -1200,13 +1200,13 @@ var $lazy_parseCase = /* #__PURE__ */ $runtime_lazy("parseCase", "PureScript.CST
     });
 });
 var $lazy_parseCaseBranches = /* #__PURE__ */ $runtime_lazy("parseCaseBranches", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return layoutNonEmpty(apply(map(Data_Tuple.Tuple.create)(separated(tokComma)(parseBinder1)))(parseGuarded(tokRightArrow)));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return layoutNonEmpty(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(separated(tokComma)(parseBinder1)))(parseGuarded(tokRightArrow)));
     });
 });
 var $lazy_parseDo = /* #__PURE__ */ $runtime_lazy("parseDo", "PureScript.CST.Parser", function () {
-    return bind(tokQualifiedKeyword("do"))(function (keyword) {
-        return bind(layoutNonEmpty(recoverDoStatement($lazy_parseDoStatement(676))))(function (statements) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokQualifiedKeyword("do"))(function (keyword) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(layoutNonEmpty(recoverDoStatement($lazy_parseDoStatement(676))))(function (statements) {
             return pure1(new PureScript_CST_Types.ExprDo({
                 keyword: keyword,
                 statements: statements
@@ -1215,22 +1215,22 @@ var $lazy_parseDo = /* #__PURE__ */ $runtime_lazy("parseDo", "PureScript.CST.Par
     });
 });
 var $lazy_parseDoStatement = /* #__PURE__ */ $runtime_lazy("parseDoStatement", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return alt(apply(map(PureScript_CST_Types.DoLet.create)(tokKeyword("let")))(layoutNonEmpty(recoverLetBinding($lazy_parseLetBinding(771)))))(alt(apply(map(Data_Tuple.uncurry(PureScript_CST_Types.DoBind.create))(PureScript_CST_Parser_Monad["try"](apply(map(Data_Tuple.Tuple.create)(parseBinder))(tokLeftArrow))))($lazy_parseExpr(772)))(map(PureScript_CST_Types.DoDiscard.create)($lazy_parseExpr(773))));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.DoLet.create)(tokKeyword("let")))(layoutNonEmpty(recoverLetBinding($lazy_parseLetBinding(771)))))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.DoBind.create))(PureScript_CST_Parser_Monad["try"](Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(parseBinder))(tokLeftArrow))))($lazy_parseExpr(772)))(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.DoDiscard.create)($lazy_parseExpr(773))));
     });
 });
 var $lazy_parseExpr = /* #__PURE__ */ $runtime_lazy("parseExpr", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind($lazy_parseExpr1(555))(function (expr) {
-            return alt(apply(map(PureScript_CST_Types.ExprTyped.create(expr))(tokDoubleColon))(parseType))(pure4(expr));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseExpr1(555))(function (expr) {
+            return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExprTyped.create(expr))(tokDoubleColon))(parseType))(Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)(expr));
         });
     });
 });
 var $lazy_parseExpr1 = /* #__PURE__ */ $runtime_lazy("parseExpr1", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind($lazy_parseExpr2(561))(function (expr) {
-            return bind(PureScript_CST_Parser_Monad.many(apply(map(Data_Tuple.Tuple.create)(parseQualifiedOperator))($lazy_parseExpr2(562))))(function (ops) {
-                return pure4((function () {
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseExpr2(561))(function (expr) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(parseQualifiedOperator))($lazy_parseExpr2(562))))(function (ops) {
+                return Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)((function () {
                     var v1 = Data_Array_NonEmpty.fromArray(ops);
                     if (v1 instanceof Data_Maybe.Nothing) {
                         return expr;
@@ -1245,10 +1245,10 @@ var $lazy_parseExpr1 = /* #__PURE__ */ $runtime_lazy("parseExpr1", "PureScript.C
     });
 });
 var $lazy_parseExpr2 = /* #__PURE__ */ $runtime_lazy("parseExpr2", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind($lazy_parseExpr3(569))(function (expr) {
-            return bind(PureScript_CST_Parser_Monad.many(apply(map(Data_Tuple.Tuple.create)($lazy_parseTickExpr(570)))($lazy_parseExpr3(570))))(function (ops) {
-                return pure4((function () {
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseExpr3(569))(function (expr) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)($lazy_parseTickExpr(570)))($lazy_parseExpr3(570))))(function (ops) {
+                return Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)((function () {
                     var v1 = Data_Array_NonEmpty.fromArray(ops);
                     if (v1 instanceof Data_Maybe.Nothing) {
                         return expr;
@@ -1263,15 +1263,15 @@ var $lazy_parseExpr2 = /* #__PURE__ */ $runtime_lazy("parseExpr2", "PureScript.C
     });
 });
 var $lazy_parseExpr3 = /* #__PURE__ */ $runtime_lazy("parseExpr3", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return alt(apply(map(PureScript_CST_Types.ExprNegate.create)(tokKeyOperator("-")))($lazy_parseExpr3(592)))($lazy_parseExpr4(593));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExprNegate.create)(tokKeyOperator("-")))($lazy_parseExpr3(592)))($lazy_parseExpr4(593));
     });
 });
 var $lazy_parseExpr4 = /* #__PURE__ */ $runtime_lazy("parseExpr4", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind($lazy_parseExpr5(597))(function (expr) {
-            return bind(PureScript_CST_Parser_Monad.many($lazy_parseExprAppSpine(598)))(function (args) {
-                return pure4((function () {
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseExpr5(597))(function (expr) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many($lazy_parseExprAppSpine(598)))(function (args) {
+                return Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)((function () {
                     var v1 = Data_Array_NonEmpty.fromArray(args);
                     if (v1 instanceof Data_Maybe.Nothing) {
                         return expr;
@@ -1286,46 +1286,46 @@ var $lazy_parseExpr4 = /* #__PURE__ */ $runtime_lazy("parseExpr4", "PureScript.C
     });
 });
 var $lazy_parseExpr5 = /* #__PURE__ */ $runtime_lazy("parseExpr5", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return alt($lazy_parseIf(605))(alt($lazy_parseLetIn(606))(alt($lazy_parseLambda(607))(alt($lazy_parseCase(608))(alt($lazy_parseDo(609))(alt($lazy_parseAdo(610))($lazy_parseExpr6(611)))))));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)($lazy_parseIf(605))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)($lazy_parseLetIn(606))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)($lazy_parseLambda(607))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)($lazy_parseCase(608))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)($lazy_parseDo(609))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)($lazy_parseAdo(610))($lazy_parseExpr6(611)))))));
     });
 });
 var $lazy_parseExpr6 = /* #__PURE__ */ $runtime_lazy("parseExpr6", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind($lazy_parseExpr7(702))(function (expr) {
-            return alt(parseRecordUpdates(expr))(pure4(expr));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseExpr7(702))(function (expr) {
+            return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseRecordUpdates(expr))(Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)(expr));
         });
     });
 });
 var $lazy_parseExpr7 = /* #__PURE__ */ $runtime_lazy("parseExpr7", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind($lazy_parseExprAtom(732))(function (expr) {
-            return alt(parseRecordAccessor(expr))(pure4(expr));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseExprAtom(732))(function (expr) {
+            return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseRecordAccessor(expr))(Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)(expr));
         });
     });
 });
 var $lazy_parseExprAppSpine = /* #__PURE__ */ $runtime_lazy("parseExprAppSpine", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return alt(apply(map(PureScript_CST_Types.AppType.create)(tokAt))(parseTypeAtom))(map(PureScript_CST_Types.AppTerm.create)($lazy_parseExpr5(616)));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.AppType.create)(tokAt))(parseTypeAtom))(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.AppTerm.create)($lazy_parseExpr5(616)));
     });
 });
 var $lazy_parseExprAtom = /* #__PURE__ */ $runtime_lazy("parseExprAtom", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return alt(map(PureScript_CST_Types.ExprIdent.create)(parseQualifiedIdent))(alt(map(PureScript_CST_Types.ExprConstructor.create)(parseQualifiedProper))(alt(map(PureScript_CST_Types.ExprOpName.create)(parseQualifiedSymbol))(alt(map(PureScript_CST_Types.ExprSection.create)(tokUnderscore))(alt(map(PureScript_CST_Types.ExprHole.create)(parseHole))(alt(map(Data_Tuple.uncurry(PureScript_CST_Types.ExprString.create))(parseString))(alt(map(Data_Tuple.uncurry(PureScript_CST_Types.ExprChar.create))(parseChar))(alt(map(Data_Tuple.uncurry(PureScript_CST_Types.ExprBoolean.create))(parseBoolean))(alt(map(Data_Tuple.uncurry(PureScript_CST_Types.ExprInt.create))($$parseInt))(alt(map(Data_Tuple.uncurry(PureScript_CST_Types.ExprNumber.create))(parseNumber))(alt(map(PureScript_CST_Types.ExprArray.create)(delimited(tokLeftSquare)(tokRightSquare)(tokComma)($lazy_parseExpr(754))))(alt(map(PureScript_CST_Types.ExprRecord.create)(delimited(tokLeftBrace)(tokRightBrace)(tokComma)(parseRecordLabeled($lazy_parseExpr(755)))))(map(PureScript_CST_Types.ExprParens.create)(parens($lazy_parseExpr(756)))))))))))))));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExprIdent.create)(parseQualifiedIdent))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExprConstructor.create)(parseQualifiedProper))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExprOpName.create)(parseQualifiedSymbol))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExprSection.create)(tokUnderscore))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExprHole.create)(parseHole))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.ExprString.create))(parseString))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.ExprChar.create))(parseChar))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.ExprBoolean.create))(parseBoolean))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.ExprInt.create))($$parseInt))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.uncurry(PureScript_CST_Types.ExprNumber.create))(parseNumber))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExprArray.create)(delimited(tokLeftSquare)(tokRightSquare)(tokComma)($lazy_parseExpr(754))))(Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExprRecord.create)(delimited(tokLeftBrace)(tokRightBrace)(tokComma)(parseRecordLabeled($lazy_parseExpr(755)))))(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.ExprParens.create)(parens($lazy_parseExpr(756)))))))))))))));
     });
 });
 var $lazy_parseIdentBinding = /* #__PURE__ */ $runtime_lazy("parseIdentBinding", "PureScript.CST.Parser", function () {
-    return bind(parseIdent)(function (ident) {
-        return alt(parseLetBindingSignature(ident))(parseLetBindingName(ident));
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseIdent)(function (ident) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseLetBindingSignature(ident))(parseLetBindingName(ident));
     });
 });
 var $lazy_parseIf = /* #__PURE__ */ $runtime_lazy("parseIf", "PureScript.CST.Parser", function () {
-    return bind(tokKeyword("if"))(function (keyword) {
-        return bind($lazy_parseExpr(621))(function (cond) {
-            return bind(tokKeyword("then"))(function (then_) {
-                return bind($lazy_parseExpr(623))(function (true_) {
-                    return bind(tokKeyword("else"))(function (else_) {
-                        return bind($lazy_parseExpr(625))(function (false_) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokKeyword("if"))(function (keyword) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseExpr(621))(function (cond) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokKeyword("then"))(function (then_) {
+                return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseExpr(623))(function (true_) {
+                    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokKeyword("else"))(function (else_) {
+                        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseExpr(625))(function (false_) {
                             return pure1(new PureScript_CST_Types.ExprIf({
                                 keyword: keyword,
                                 cond: cond,
@@ -1342,10 +1342,10 @@ var $lazy_parseIf = /* #__PURE__ */ $runtime_lazy("parseIf", "PureScript.CST.Par
     });
 });
 var $lazy_parseLambda = /* #__PURE__ */ $runtime_lazy("parseLambda", "PureScript.CST.Parser", function () {
-    return bind(tokBackslash)(function (symbol) {
-        return bind(many1(parseBinderAtom))(function (binders) {
-            return bind(tokRightArrow)(function (arrow) {
-                return bind($lazy_parseExpr(641))(function (body) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokBackslash)(function (symbol) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(many1(parseBinderAtom))(function (binders) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokRightArrow)(function (arrow) {
+                return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseExpr(641))(function (body) {
                     return pure1(new PureScript_CST_Types.ExprLambda({
                         symbol: symbol,
                         binders: binders,
@@ -1358,15 +1358,15 @@ var $lazy_parseLambda = /* #__PURE__ */ $runtime_lazy("parseLambda", "PureScript
     });
 });
 var $lazy_parseLetBinding = /* #__PURE__ */ $runtime_lazy("parseLetBinding", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return alt(PureScript_CST_Parser_Monad["try"]($lazy_parseIdentBinding(777)))(apply(apply(map(PureScript_CST_Types.LetBindingPattern.create)(parseBinder1))(tokEquals))($lazy_parseWhere(778)));
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(PureScript_CST_Parser_Monad["try"]($lazy_parseIdentBinding(777)))(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.LetBindingPattern.create)(parseBinder1))(tokEquals))($lazy_parseWhere(778)));
     });
 });
 var $lazy_parseLetIn = /* #__PURE__ */ $runtime_lazy("parseLetIn", "PureScript.CST.Parser", function () {
-    return bind(tokKeyword("let"))(function (keyword) {
-        return bind(layoutNonEmpty(recoverLetBinding($lazy_parseLetBinding(631))))(function (bindings) {
-            return bind(tokKeyword("in"))(function (in_) {
-                return bind($lazy_parseExpr(633))(function (body) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokKeyword("let"))(function (keyword) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(layoutNonEmpty(recoverLetBinding($lazy_parseLetBinding(631))))(function (bindings) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokKeyword("in"))(function (in_) {
+                return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseExpr(633))(function (body) {
                     return pure1(new PureScript_CST_Types.ExprLet({
                         keyword: keyword,
                         bindings: bindings,
@@ -1379,15 +1379,15 @@ var $lazy_parseLetIn = /* #__PURE__ */ $runtime_lazy("parseLetIn", "PureScript.C
     });
 });
 var $lazy_parseRecordUpdate = /* #__PURE__ */ $runtime_lazy("parseRecordUpdate", "PureScript.CST.Parser", function () {
-    return bind(parseLabel)(function (label) {
-        return alt(parseRecordUpdateLeaf(label))(parseRecordUpdateBranch(label));
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseLabel)(function (label) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseRecordUpdateLeaf(label))(parseRecordUpdateBranch(label));
     });
 });
 var $lazy_parseTickExpr = /* #__PURE__ */ $runtime_lazy("parseTickExpr", "PureScript.CST.Parser", function () {
-    return bind(tokTick)(function (open) {
-        return bind($lazy_parseTickExpr1(578))(function (value) {
-            return bind(tokTick)(function (close) {
-                return pure({
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokTick)(function (open) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseTickExpr1(578))(function (value) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokTick)(function (close) {
+                return pure14({
                     open: open,
                     value: value,
                     close: close
@@ -1397,10 +1397,10 @@ var $lazy_parseTickExpr = /* #__PURE__ */ $runtime_lazy("parseTickExpr", "PureSc
     });
 });
 var $lazy_parseTickExpr1 = /* #__PURE__ */ $runtime_lazy("parseTickExpr1", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind($lazy_parseExpr3(584))(function (expr) {
-            return bind(PureScript_CST_Parser_Monad.many(apply(map(Data_Tuple.Tuple.create)(parseQualifiedOperator))($lazy_parseExpr3(585))))(function (ops) {
-                return pure4((function () {
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseExpr3(584))(function (expr) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(parseQualifiedOperator))($lazy_parseExpr3(585))))(function (ops) {
+                return Control_Applicative.pure(PureScript_CST_Parser_Monad.applicativeParser)((function () {
                     var v1 = Data_Array_NonEmpty.fromArray(ops);
                     if (v1 instanceof Data_Maybe.Nothing) {
                         return expr;
@@ -1415,10 +1415,10 @@ var $lazy_parseTickExpr1 = /* #__PURE__ */ $runtime_lazy("parseTickExpr1", "Pure
     });
 });
 var $lazy_parseWhere = /* #__PURE__ */ $runtime_lazy("parseWhere", "PureScript.CST.Parser", function () {
-    return defer(function (v) {
-        return bind($lazy_parseExpr(819))(function (expr) {
-            return bind(PureScript_CST_Parser_Monad.optional(apply(map(Data_Tuple.Tuple.create)(tokKeyword("where")))(layoutNonEmpty(recoverLetBinding($lazy_parseLetBinding(820))))))(function (bindings) {
-                return pure({
+    return Control_Lazy.defer(PureScript_CST_Parser_Monad.lazyParser)(function (v) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)($lazy_parseExpr(819))(function (expr) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(tokKeyword("where")))(layoutNonEmpty(recoverLetBinding($lazy_parseLetBinding(820))))))(function (bindings) {
+                return pure13({
                     expr: expr,
                     bindings: bindings
                 });
@@ -1452,8 +1452,8 @@ var parseTickExpr = /* #__PURE__ */ $lazy_parseTickExpr(575);
 var parseTickExpr1 = /* #__PURE__ */ $lazy_parseTickExpr1(582);
 var parseWhere = /* #__PURE__ */ $lazy_parseWhere(817);
 var parseDeclValue1 = function (name) {
-    return bind(PureScript_CST_Parser_Monad.many(parseBinderAtom))(function (binders) {
-        return bind(parseGuarded(tokEquals))(function (guarded) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many(parseBinderAtom))(function (binders) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseGuarded(tokEquals))(function (guarded) {
             return pure2(new PureScript_CST_Types.DeclValue({
                 name: name,
                 binders: binders,
@@ -1462,13 +1462,13 @@ var parseDeclValue1 = function (name) {
         });
     });
 };
-var parseDeclValue = /* #__PURE__ */ bind(parseIdent)(function (ident) {
-    return alt(parseDeclSignature(ident))(parseDeclValue1(ident));
+var parseDeclValue = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseIdent)(function (ident) {
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseDeclSignature(ident))(parseDeclValue1(ident));
 });
 var parseInstanceBindingName = function (name) {
-    return bind(PureScript_CST_Parser_Monad.many(parseBinderAtom))(function (binders) {
-        return bind(parseGuarded(tokEquals))(function (guarded) {
-            return pure7(new PureScript_CST_Types.InstanceBindingName({
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many(parseBinderAtom))(function (binders) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseGuarded(tokEquals))(function (guarded) {
+            return pure11(new PureScript_CST_Types.InstanceBindingName({
                 name: name,
                 binders: binders,
                 guarded: guarded
@@ -1476,16 +1476,16 @@ var parseInstanceBindingName = function (name) {
         });
     });
 };
-var parseInstanceBinding = /* #__PURE__ */ bind(parseIdent)(function (ident) {
-    return alt(parseInstanceBindingSignature(ident))(parseInstanceBindingName(ident));
+var parseInstanceBinding = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseIdent)(function (ident) {
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseInstanceBindingSignature(ident))(parseInstanceBindingName(ident));
 });
-var parseInstance = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyword("instance"))(function (keyword) {
-    return bind(PureScript_CST_Parser_Monad.optional(parseInstanceName))(function (name) {
-        return bind(PureScript_CST_Parser_Monad.optional(PureScript_CST_Parser_Monad["try"](apply(map(Data_Tuple.Tuple.create)(parseClassConstraints(parseType3)))(tokRightFatArrow))))(function (constraints) {
-            return bind(parseQualifiedProper)(function (className) {
-                return bind(PureScript_CST_Parser_Monad.many(parseTypeAtom))(function (types) {
-                    return bind(PureScript_CST_Parser_Monad.optional(apply(map(Data_Tuple.Tuple.create)(tokKeyword("where")))(layoutNonEmpty(parseInstanceBinding))))(function (body) {
-                        return pure({
+var parseInstance = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(/* #__PURE__ */ tokKeyword("instance"))(function (keyword) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(parseInstanceName))(function (name) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(PureScript_CST_Parser_Monad["try"](Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(parseClassConstraints(parseType3)))(tokRightFatArrow))))(function (constraints) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseQualifiedProper)(function (className) {
+                return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many(parseTypeAtom))(function (types) {
+                    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(tokKeyword("where")))(layoutNonEmpty(parseInstanceBinding))))(function (body) {
+                        return pure16({
                             head: {
                                 keyword: keyword,
                                 name: name,
@@ -1502,15 +1502,15 @@ var parseInstance = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyword("instance"))
     });
 });
 var parseDeclInstanceChain = /* #__PURE__ */ (function () {
-    return map(PureScript_CST_Types.DeclInstanceChain.create)(separated(parseInstanceChainSeparator)(parseInstance));
+    return Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(PureScript_CST_Types.DeclInstanceChain.create)(separated(parseInstanceChainSeparator)(parseInstance));
 })();
 var parseTypeVarBindingPlain = /* #__PURE__ */ parseTypeVarBinding(parseIdent);
 var parseDeclClass1 = function (keyword) {
-    return bind(PureScript_CST_Parser_Monad.optional(PureScript_CST_Parser_Monad["try"](apply(map(Data_Tuple.Tuple.create)(parseClassConstraints(parseType5)))(tokLeftFatArrow))))(function ($$super) {
-        return bind(parseProper)(function (name) {
-            return bind(PureScript_CST_Parser_Monad.many(parseTypeVarBindingPlain))(function (vars) {
-                return bind(PureScript_CST_Parser_Monad.optional(apply(map(Data_Tuple.Tuple.create)(tokPipe))(separated(tokComma)(parseFundep))))(function (fundeps) {
-                    return bind(PureScript_CST_Parser_Monad.optional(apply(map(Data_Tuple.Tuple.create)(tokKeyword("where")))(layoutNonEmpty(parseClassMember))))(function (members) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(PureScript_CST_Parser_Monad["try"](Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(parseClassConstraints(parseType5)))(tokLeftFatArrow))))(function ($$super) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseProper)(function (name) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many(parseTypeVarBindingPlain))(function (vars) {
+                return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(tokPipe))(separated(tokComma)(parseFundep))))(function (fundeps) {
+                    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(tokKeyword("where")))(layoutNonEmpty(parseClassMember))))(function (members) {
                         return pure2(new PureScript_CST_Types.DeclClass({
                             keyword: keyword,
                             "super": $$super,
@@ -1524,13 +1524,13 @@ var parseDeclClass1 = function (keyword) {
         });
     });
 };
-var parseDeclClass = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyword("class"))(function (keyword) {
-    return alt(parseDeclClassSignature(keyword))(parseDeclClass1(keyword));
+var parseDeclClass = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(/* #__PURE__ */ tokKeyword("class"))(function (keyword) {
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseDeclClassSignature(keyword))(parseDeclClass1(keyword));
 });
 var parseDeclData1 = function (keyword) {
     return function (name) {
-        return bind(PureScript_CST_Parser_Monad.many(parseTypeVarBindingPlain))(function (vars) {
-            return bind(PureScript_CST_Parser_Monad.optional(apply(map(Data_Tuple.Tuple.create)(tokEquals))(separated(tokPipe)(parseDataCtor))))(function (ctors) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many(parseTypeVarBindingPlain))(function (vars) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.optional(Control_Apply.apply(PureScript_CST_Parser_Monad.applyParser)(Data_Functor.map(PureScript_CST_Parser_Monad.functorParser)(Data_Tuple.Tuple.create)(tokEquals))(separated(tokPipe)(parseDataCtor))))(function (ctors) {
                 return pure2(new PureScript_CST_Types.DeclData({
                     keyword: keyword,
                     name: name,
@@ -1540,17 +1540,17 @@ var parseDeclData1 = function (keyword) {
         });
     };
 };
-var parseDeclData = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyword("data"))(function (keyword) {
-    return bind(parseProper)(function (name) {
-        return alt(parseDeclKindSignature(keyword)(name))(parseDeclData1(keyword)(name));
+var parseDeclData = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(/* #__PURE__ */ tokKeyword("data"))(function (keyword) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseProper)(function (name) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseDeclKindSignature(keyword)(name))(parseDeclData1(keyword)(name));
     });
 });
 var parseDeclNewtype1 = function (keyword) {
     return function (name) {
-        return bind(PureScript_CST_Parser_Monad.many(parseTypeVarBindingPlain))(function (vars) {
-            return bind(tokEquals)(function (tok) {
-                return bind(parseProper)(function (wrapper) {
-                    return bind(parseTypeAtom)(function (body) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many(parseTypeVarBindingPlain))(function (vars) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokEquals)(function (tok) {
+                return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseProper)(function (wrapper) {
+                    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseTypeAtom)(function (body) {
                         return pure2(new PureScript_CST_Types.DeclNewtype({
                             keyword: keyword,
                             name: name,
@@ -1562,16 +1562,16 @@ var parseDeclNewtype1 = function (keyword) {
         });
     };
 };
-var parseDeclNewtype = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyword("newtype"))(function (keyword) {
-    return bind(parseProper)(function (name) {
-        return alt(parseDeclKindSignature(keyword)(name))(parseDeclNewtype1(keyword)(name));
+var parseDeclNewtype = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(/* #__PURE__ */ tokKeyword("newtype"))(function (keyword) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseProper)(function (name) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseDeclKindSignature(keyword)(name))(parseDeclNewtype1(keyword)(name));
     });
 });
 var parseDeclType2 = function (keyword) {
     return function (name) {
-        return bind(PureScript_CST_Parser_Monad.many(parseTypeVarBindingPlain))(function (vars) {
-            return bind(tokEquals)(function (tok) {
-                return bind(parseType)(function (body) {
+        return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.many(parseTypeVarBindingPlain))(function (vars) {
+            return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(tokEquals)(function (tok) {
+                return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseType)(function (body) {
                     return pure2(new PureScript_CST_Types.DeclType({
                         keyword: keyword,
                         name: name,
@@ -1583,27 +1583,27 @@ var parseDeclType2 = function (keyword) {
     };
 };
 var parseDeclType1 = function (keyword) {
-    return bind(parseProper)(function (name) {
-        return alt(parseDeclKindSignature(keyword)(name))(parseDeclType2(keyword)(name));
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseProper)(function (name) {
+        return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseDeclKindSignature(keyword)(name))(parseDeclType2(keyword)(name));
     });
 };
-var parseDeclType = /* #__PURE__ */ bind(/* #__PURE__ */ tokKeyword("type"))(function (keyword) {
-    return alt(parseDeclRole(keyword))(parseDeclType1(keyword));
+var parseDeclType = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(/* #__PURE__ */ tokKeyword("type"))(function (keyword) {
+    return Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseDeclRole(keyword))(parseDeclType1(keyword));
 });
-var parseDecl = /* #__PURE__ */ alt(parseDeclData)(/* #__PURE__ */ alt(parseDeclNewtype)(/* #__PURE__ */ alt(parseDeclType)(/* #__PURE__ */ alt(parseDeclClass)(/* #__PURE__ */ alt(parseDeclInstanceChain)(/* #__PURE__ */ alt(parseDeclDerive)(/* #__PURE__ */ alt(parseDeclValue)(/* #__PURE__ */ alt(parseDeclForeign)(parseDeclFixity))))))));
-var parseModuleDecls = /* #__PURE__ */ PureScript_CST_Parser_Monad.many(/* #__PURE__ */ applyFirst(/* #__PURE__ */ recoverDecl(parseDecl))(/* #__PURE__ */ alt(tokLayoutSep)(/* #__PURE__ */ PureScript_CST_Parser_Monad.lookAhead(tokLayoutEnd))));
-var parseModuleBody = /* #__PURE__ */ bind(/* #__PURE__ */ applyFirst(parseModuleDecls)(tokLayoutEnd))(function (decls) {
-    return bind(PureScript_CST_Parser_Monad.eof)(function (v) {
-        return pure({
+var parseDecl = /* #__PURE__ */ Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseDeclData)(/* #__PURE__ */ Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseDeclNewtype)(/* #__PURE__ */ Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseDeclType)(/* #__PURE__ */ Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseDeclClass)(/* #__PURE__ */ Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseDeclInstanceChain)(/* #__PURE__ */ Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseDeclDerive)(/* #__PURE__ */ Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseDeclValue)(/* #__PURE__ */ Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(parseDeclForeign)(parseDeclFixity))))))));
+var parseModuleDecls = /* #__PURE__ */ PureScript_CST_Parser_Monad.many(/* #__PURE__ */ Control_Apply.applyFirst(PureScript_CST_Parser_Monad.applyParser)(/* #__PURE__ */ recoverDecl(parseDecl))(/* #__PURE__ */ Control_Alt.alt(PureScript_CST_Parser_Monad.altParser)(tokLayoutSep)(/* #__PURE__ */ PureScript_CST_Parser_Monad.lookAhead(tokLayoutEnd))));
+var parseModuleBody = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(/* #__PURE__ */ Control_Apply.applyFirst(PureScript_CST_Parser_Monad.applyParser)(parseModuleDecls)(tokLayoutEnd))(function (decls) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(PureScript_CST_Parser_Monad.eof)(function (v) {
+        return pure17({
             decls: decls,
             trailingComments: v.value1,
             end: v.value0
         });
     });
 });
-var parseModule = /* #__PURE__ */ bind(parseModuleHeader)(function (header) {
-    return bind(parseModuleBody)(function (body) {
-        return pure({
+var parseModule = /* #__PURE__ */ Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseModuleHeader)(function (header) {
+    return Control_Bind.bind(PureScript_CST_Parser_Monad.bindParser)(parseModuleBody)(function (body) {
+        return pure18({
             header: header,
             body: body
         });

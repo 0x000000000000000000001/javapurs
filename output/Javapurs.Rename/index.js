@@ -47,8 +47,8 @@ var rename = function (env) {
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaFunction(v1.value0), v1.value1);
             };
             if (v instanceof Javapurs_JavaAst.JavaLocal) {
-                var $86 = Data_String_CodePoints.take(8)(v.value0) === "__final_";
-                if ($86) {
+                var $91 = Data_String_CodePoints.take(8)(v.value0) === "__final_";
+                if ($91) {
                     var baseName = Data_String_CodePoints.drop(8)(v.value0);
                     var renamed = lookupName(baseName)(env);
                     return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaLocal("__final_" + renamed), s);
@@ -195,7 +195,21 @@ var rename = function (env) {
                 var v1 = rename(env)(s)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaCast(v.value0, v1.value0), v1.value1);
             };
-            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 112, column 32): " + [ v.constructor.name ]);
+            if (v instanceof Javapurs_JavaAst.JavaLocalAssign) {
+                var v1 = rename(env)(s)(v.value1);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaLocalAssign(lookupName(v.value0)(env), v1.value0), v1.value1);
+            };
+            if (v instanceof Javapurs_JavaAst.JavaBlock) {
+                var v1 = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (v2) {
+                    return function (stmt) {
+                        var v3 = rename(env)(v2.value1)(stmt);
+                        return new Data_Tuple.Tuple(Data_Array.snoc(v2.value0)(v3.value0), v3.value1);
+                    };
+                })(new Data_Tuple.Tuple([  ], s))(v.value0);
+                var v2 = rename(env)(v1.value1)(v.value1);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaBlock(v1.value0, v2.value0), v2.value1);
+            };
+            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 122, column 38): " + [ v.constructor.name ]);
         };
     };
 };

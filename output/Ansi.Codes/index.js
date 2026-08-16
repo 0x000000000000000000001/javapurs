@@ -12,10 +12,6 @@ import * as Data_Show_Generic from "../Data.Show.Generic/index.js";
 var genericShowConstructor = /* #__PURE__ */ Data_Show_Generic.genericShowConstructor(Data_Show_Generic.genericShowArgsNoArguments);
 var genericShowArgsArgument = /* #__PURE__ */ Data_Show_Generic.genericShowArgsArgument(Data_Show.showInt);
 var genericShowConstructor1 = /* #__PURE__ */ Data_Show_Generic.genericShowConstructor(genericShowArgsArgument);
-var compare = /* #__PURE__ */ Data_Ord.compare(Data_Ord.ordInt);
-var show = /* #__PURE__ */ Data_Show.show(Data_Show.showInt);
-var intercalate = /* #__PURE__ */ Data_Foldable.intercalate(Data_List_Types.foldableNonEmptyList)(Data_Monoid.monoidString);
-var map = /* #__PURE__ */ Data_Functor.map(Data_List_Types.functorNonEmptyList);
 var Bold = /* #__PURE__ */ (function () {
     function Bold() {
 
@@ -945,7 +941,6 @@ var eqRenderingMode = {
         };
     }
 };
-var eq1 = /* #__PURE__ */ Data_Eq.eq(eqRenderingMode);
 var ordRenderingMode = {
     compare: function (x) {
         return function (y) {
@@ -1004,7 +999,6 @@ var ordRenderingMode = {
         return eqRenderingMode;
     }
 };
-var compare1 = /* #__PURE__ */ Data_Ord.compare(ordRenderingMode);
 var eqEraseParam = {
     eq: function (x) {
         return function (y) {
@@ -1021,7 +1015,6 @@ var eqEraseParam = {
         };
     }
 };
-var eq2 = /* #__PURE__ */ Data_Eq.eq(eqEraseParam);
 var ordEraseParam = {
     compare: function (x) {
         return function (y) {
@@ -1053,7 +1046,6 @@ var ordEraseParam = {
         return eqEraseParam;
     }
 };
-var compare2 = /* #__PURE__ */ Data_Ord.compare(ordEraseParam);
 var eqColor = {
     eq: function (x) {
         return function (y) {
@@ -1109,7 +1101,6 @@ var eqColor = {
         };
     }
 };
-var eq3 = /* #__PURE__ */ Data_Eq.eq(eqColor);
 var eqGraphicsParam = {
     eq: function (x) {
         return function (y) {
@@ -1117,19 +1108,19 @@ var eqGraphicsParam = {
                 return true;
             };
             if (x instanceof PMode && y instanceof PMode) {
-                return eq1(x.value0)(y.value0);
+                return Data_Eq.eq(eqRenderingMode)(x.value0)(y.value0);
             };
             if (x instanceof PForeground && y instanceof PForeground) {
-                return eq3(x.value0)(y.value0);
+                return Data_Eq.eq(eqColor)(x.value0)(y.value0);
             };
             if (x instanceof PBackground && y instanceof PBackground) {
-                return eq3(x.value0)(y.value0);
+                return Data_Eq.eq(eqColor)(x.value0)(y.value0);
             };
             return false;
         };
     }
 };
-var eq4 = /* #__PURE__ */ Data_Eq.eq(/* #__PURE__ */ Data_List_Types.eqNonEmptyList(eqGraphicsParam));
+var eqNonEmptyList = /* #__PURE__ */ Data_List_Types.eqNonEmptyList(eqGraphicsParam);
 var eqEscapeCode = {
     eq: function (x) {
         return function (y) {
@@ -1158,10 +1149,10 @@ var eqEscapeCode = {
                 return x.value0 === y.value0 && x.value1 === y.value1;
             };
             if (x instanceof EraseData && y instanceof EraseData) {
-                return eq2(x.value0)(y.value0);
+                return Data_Eq.eq(eqEraseParam)(x.value0)(y.value0);
             };
             if (x instanceof EraseLine && y instanceof EraseLine) {
-                return eq2(x.value0)(y.value0);
+                return Data_Eq.eq(eqEraseParam)(x.value0)(y.value0);
             };
             if (x instanceof ScrollUp && y instanceof ScrollUp) {
                 return x.value0 === y.value0;
@@ -1170,7 +1161,7 @@ var eqEscapeCode = {
                 return x.value0 === y.value0;
             };
             if (x instanceof Graphics && y instanceof Graphics) {
-                return eq4(x.value0)(y.value0);
+                return Data_Eq.eq(eqNonEmptyList)(x.value0)(y.value0);
             };
             if (x instanceof SavePosition && y instanceof SavePosition) {
                 return true;
@@ -1339,7 +1330,6 @@ var ordColor = {
         return eqColor;
     }
 };
-var compare3 = /* #__PURE__ */ Data_Ord.compare(ordColor);
 var ordGraphicsParam = {
     compare: function (x) {
         return function (y) {
@@ -1353,7 +1343,7 @@ var ordGraphicsParam = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof PMode && y instanceof PMode) {
-                return compare1(x.value0)(y.value0);
+                return Data_Ord.compare(ordRenderingMode)(x.value0)(y.value0);
             };
             if (x instanceof PMode) {
                 return Data_Ordering.LT.value;
@@ -1362,7 +1352,7 @@ var ordGraphicsParam = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof PForeground && y instanceof PForeground) {
-                return compare3(x.value0)(y.value0);
+                return Data_Ord.compare(ordColor)(x.value0)(y.value0);
             };
             if (x instanceof PForeground) {
                 return Data_Ordering.LT.value;
@@ -1371,7 +1361,7 @@ var ordGraphicsParam = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof PBackground && y instanceof PBackground) {
-                return compare3(x.value0)(y.value0);
+                return Data_Ord.compare(ordColor)(x.value0)(y.value0);
             };
             throw new Error("Failed pattern match at Ansi.Codes (line 0, column 0 - line 0, column 0): " + [ x.constructor.name, y.constructor.name ]);
         };
@@ -1380,12 +1370,12 @@ var ordGraphicsParam = {
         return eqGraphicsParam;
     }
 };
-var compare4 = /* #__PURE__ */ Data_Ord.compare(/* #__PURE__ */ Data_List_Types.ordNonEmptyList(ordGraphicsParam));
+var ordNonEmptyList = /* #__PURE__ */ Data_List_Types.ordNonEmptyList(ordGraphicsParam);
 var ordEscapeCode = {
     compare: function (x) {
         return function (y) {
             if (x instanceof Up && y instanceof Up) {
-                return compare(x.value0)(y.value0);
+                return Data_Ord.compare(Data_Ord.ordInt)(x.value0)(y.value0);
             };
             if (x instanceof Up) {
                 return Data_Ordering.LT.value;
@@ -1394,7 +1384,7 @@ var ordEscapeCode = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof Down && y instanceof Down) {
-                return compare(x.value0)(y.value0);
+                return Data_Ord.compare(Data_Ord.ordInt)(x.value0)(y.value0);
             };
             if (x instanceof Down) {
                 return Data_Ordering.LT.value;
@@ -1403,7 +1393,7 @@ var ordEscapeCode = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof Forward && y instanceof Forward) {
-                return compare(x.value0)(y.value0);
+                return Data_Ord.compare(Data_Ord.ordInt)(x.value0)(y.value0);
             };
             if (x instanceof Forward) {
                 return Data_Ordering.LT.value;
@@ -1412,7 +1402,7 @@ var ordEscapeCode = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof Back && y instanceof Back) {
-                return compare(x.value0)(y.value0);
+                return Data_Ord.compare(Data_Ord.ordInt)(x.value0)(y.value0);
             };
             if (x instanceof Back) {
                 return Data_Ordering.LT.value;
@@ -1421,7 +1411,7 @@ var ordEscapeCode = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof NextLine && y instanceof NextLine) {
-                return compare(x.value0)(y.value0);
+                return Data_Ord.compare(Data_Ord.ordInt)(x.value0)(y.value0);
             };
             if (x instanceof NextLine) {
                 return Data_Ordering.LT.value;
@@ -1430,7 +1420,7 @@ var ordEscapeCode = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof PreviousLine && y instanceof PreviousLine) {
-                return compare(x.value0)(y.value0);
+                return Data_Ord.compare(Data_Ord.ordInt)(x.value0)(y.value0);
             };
             if (x instanceof PreviousLine) {
                 return Data_Ordering.LT.value;
@@ -1439,7 +1429,7 @@ var ordEscapeCode = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof HorizontalAbsolute && y instanceof HorizontalAbsolute) {
-                return compare(x.value0)(y.value0);
+                return Data_Ord.compare(Data_Ord.ordInt)(x.value0)(y.value0);
             };
             if (x instanceof HorizontalAbsolute) {
                 return Data_Ordering.LT.value;
@@ -1448,14 +1438,14 @@ var ordEscapeCode = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof Position && y instanceof Position) {
-                var v = compare(x.value0)(y.value0);
+                var v = Data_Ord.compare(Data_Ord.ordInt)(x.value0)(y.value0);
                 if (v instanceof Data_Ordering.LT) {
                     return Data_Ordering.LT.value;
                 };
                 if (v instanceof Data_Ordering.GT) {
                     return Data_Ordering.GT.value;
                 };
-                return compare(x.value1)(y.value1);
+                return Data_Ord.compare(Data_Ord.ordInt)(x.value1)(y.value1);
             };
             if (x instanceof Position) {
                 return Data_Ordering.LT.value;
@@ -1464,7 +1454,7 @@ var ordEscapeCode = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof EraseData && y instanceof EraseData) {
-                return compare2(x.value0)(y.value0);
+                return Data_Ord.compare(ordEraseParam)(x.value0)(y.value0);
             };
             if (x instanceof EraseData) {
                 return Data_Ordering.LT.value;
@@ -1473,7 +1463,7 @@ var ordEscapeCode = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof EraseLine && y instanceof EraseLine) {
-                return compare2(x.value0)(y.value0);
+                return Data_Ord.compare(ordEraseParam)(x.value0)(y.value0);
             };
             if (x instanceof EraseLine) {
                 return Data_Ordering.LT.value;
@@ -1482,7 +1472,7 @@ var ordEscapeCode = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof ScrollUp && y instanceof ScrollUp) {
-                return compare(x.value0)(y.value0);
+                return Data_Ord.compare(Data_Ord.ordInt)(x.value0)(y.value0);
             };
             if (x instanceof ScrollUp) {
                 return Data_Ordering.LT.value;
@@ -1491,7 +1481,7 @@ var ordEscapeCode = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof ScrollDown && y instanceof ScrollDown) {
-                return compare(x.value0)(y.value0);
+                return Data_Ord.compare(Data_Ord.ordInt)(x.value0)(y.value0);
             };
             if (x instanceof ScrollDown) {
                 return Data_Ordering.LT.value;
@@ -1500,7 +1490,7 @@ var ordEscapeCode = {
                 return Data_Ordering.GT.value;
             };
             if (x instanceof Graphics && y instanceof Graphics) {
-                return compare4(x.value0)(y.value0);
+                return Data_Ord.compare(ordNonEmptyList)(x.value0)(y.value0);
             };
             if (x instanceof Graphics) {
                 return Data_Ordering.LT.value;
@@ -1632,41 +1622,41 @@ var graphicsParamToString = function (gp) {
         return "0";
     };
     if (gp instanceof PMode) {
-        return show(codeForRenderingMode(gp.value0));
+        return Data_Show.show(Data_Show.showInt)(codeForRenderingMode(gp.value0));
     };
     if (gp instanceof PForeground) {
-        return show(colorCode(gp.value0));
+        return Data_Show.show(Data_Show.showInt)(colorCode(gp.value0));
     };
     if (gp instanceof PBackground) {
-        return show(colorCode(gp.value0) + 10 | 0);
+        return Data_Show.show(Data_Show.showInt)(colorCode(gp.value0) + 10 | 0);
     };
     throw new Error("Failed pattern match at Ansi.Codes (line 116, column 3 - line 120, column 45): " + [ gp.constructor.name ]);
 };
 var escapeCodeToString = /* #__PURE__ */ (function () {
     var go = function (c) {
         if (c instanceof Up) {
-            return show(c.value0) + "A";
+            return Data_Show.show(Data_Show.showInt)(c.value0) + "A";
         };
         if (c instanceof Down) {
-            return show(c.value0) + "B";
+            return Data_Show.show(Data_Show.showInt)(c.value0) + "B";
         };
         if (c instanceof Forward) {
-            return show(c.value0) + "C";
+            return Data_Show.show(Data_Show.showInt)(c.value0) + "C";
         };
         if (c instanceof Back) {
-            return show(c.value0) + "D";
+            return Data_Show.show(Data_Show.showInt)(c.value0) + "D";
         };
         if (c instanceof NextLine) {
-            return show(c.value0) + "E";
+            return Data_Show.show(Data_Show.showInt)(c.value0) + "E";
         };
         if (c instanceof PreviousLine) {
-            return show(c.value0) + "F";
+            return Data_Show.show(Data_Show.showInt)(c.value0) + "F";
         };
         if (c instanceof HorizontalAbsolute) {
-            return show(c.value0) + "G";
+            return Data_Show.show(Data_Show.showInt)(c.value0) + "G";
         };
         if (c instanceof Position) {
-            return show(c.value0) + (";" + (show(c.value1) + "H"));
+            return Data_Show.show(Data_Show.showInt)(c.value0) + (";" + (Data_Show.show(Data_Show.showInt)(c.value1) + "H"));
         };
         if (c instanceof EraseData) {
             return eraseParamToString(c.value0) + "J";
@@ -1675,13 +1665,13 @@ var escapeCodeToString = /* #__PURE__ */ (function () {
             return eraseParamToString(c.value0) + "K";
         };
         if (c instanceof ScrollUp) {
-            return show(c.value0) + "S";
+            return Data_Show.show(Data_Show.showInt)(c.value0) + "S";
         };
         if (c instanceof ScrollDown) {
-            return show(c.value0) + "T";
+            return Data_Show.show(Data_Show.showInt)(c.value0) + "T";
         };
         if (c instanceof Graphics) {
-            return intercalate(";")(map(graphicsParamToString)(c.value0)) + colorSuffix;
+            return Data_Foldable.intercalate(Data_List_Types.foldableNonEmptyList)(Data_Monoid.monoidString)(";")(Data_Functor.map(Data_List_Types.functorNonEmptyList)(graphicsParamToString)(c.value0)) + colorSuffix;
         };
         if (c instanceof SavePosition) {
             return "s";
@@ -1700,10 +1690,10 @@ var escapeCodeToString = /* #__PURE__ */ (function () {
         };
         throw new Error("Failed pattern match at Ansi.Codes (line 53, column 5 - line 71, column 37): " + [ c.constructor.name ]);
     };
-    return function ($846) {
+    return function ($828) {
         return (function (v) {
             return prefix + v;
-        })(go($846));
+        })(go($828));
     };
 })();
 export {

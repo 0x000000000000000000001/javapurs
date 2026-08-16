@@ -4,10 +4,9 @@ import * as Data_Functor from "../Data.Functor/index.js";
 import * as Effect from "../Effect/index.js";
 import * as Effect_Aff from "../Effect.Aff/index.js";
 import * as Node_FS_Async from "../Node.FS.Async/index.js";
-var voidLeft = /* #__PURE__ */ Data_Functor.voidLeft(Effect.functorEffect);
 var toAff = function (p) {
     return Effect_Aff.makeAff(function (k) {
-        return voidLeft(p(k))(Effect_Aff.nonCanceler);
+        return Data_Functor.voidLeft(Effect.functorEffect)(p(k))(Effect_Aff.nonCanceler);
     });
 };
 var toAff1 = function (f) {
@@ -84,8 +83,8 @@ var access$prime = function (path) {
     return function (mode) {
         return Effect_Aff.makeAff(function (k) {
             return function __do() {
-                Node_FS_Async["access$prime"](path)(mode)(function ($5) {
-                    return k(Data_Either.Right.create($5));
+                Node_FS_Async["access$prime"](path)(mode)(function ($0) {
+                    return k(Data_Either.Right.create($0));
                 })();
                 return Effect_Aff.nonCanceler;
             };
@@ -95,8 +94,8 @@ var access$prime = function (path) {
 var access = function (path) {
     return Effect_Aff.makeAff(function (k) {
         return function __do() {
-            Node_FS_Async.access(path)(function ($6) {
-                return k(Data_Either.Right.create($6));
+            Node_FS_Async.access(path)(function ($1) {
+                return k(Data_Either.Right.create($1));
             })();
             return Effect_Aff.nonCanceler;
         };

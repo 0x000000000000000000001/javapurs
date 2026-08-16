@@ -37,13 +37,7 @@ import * as PureScript_CST_Errors from "../PureScript.CST.Errors/index.js";
 import * as PureScript_CST_Layout from "../PureScript.CST.Layout/index.js";
 import * as PureScript_CST_TokenStream from "../PureScript.CST.TokenStream/index.js";
 import * as PureScript_CST_Types from "../PureScript.CST.Types/index.js";
-var add = /* #__PURE__ */ Data_Semiring.add(Data_Semiring.semiringInt);
-var div = /* #__PURE__ */ Data_EuclideanRing.div(Data_EuclideanRing.euclideanRingInt);
-var foldMap = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableArray)(Data_Monoid.monoidArray);
-var bindFlipped = /* #__PURE__ */ Control_Bind.bindFlipped(Data_Maybe.bindMaybe);
-var foldMap1 = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(Data_Monoid.monoidString);
-var fold = /* #__PURE__ */ Data_Foldable.fold(Data_Foldable.foldableMaybe)(Data_Monoid.monoidString);
-var fold1 = /* #__PURE__ */ Data_Foldable.fold(Data_Foldable.foldableArray)(/* #__PURE__ */ Data_Monoid.monoidRecord()(/* #__PURE__ */ Data_Monoid.monoidRecordCons({
+var monoidRecord = /* #__PURE__ */ Data_Monoid.monoidRecord()(/* #__PURE__ */ Data_Monoid.monoidRecordCons({
     reflectSymbol: function () {
         return "raw";
     }
@@ -51,9 +45,7 @@ var fold1 = /* #__PURE__ */ Data_Foldable.fold(Data_Foldable.foldableArray)(/* #
     reflectSymbol: function () {
         return "string";
     }
-})(Data_Monoid.monoidString)()(Data_Monoid.monoidRecordNil))));
-var foldl = /* #__PURE__ */ Data_Foldable.foldl(Data_Foldable.foldableArray);
-var consTokens = /* #__PURE__ */ PureScript_CST_TokenStream.consTokens(Data_Foldable.foldableArray);
+})(Data_Monoid.monoidString)()(Data_Monoid.monoidRecordNil)));
 var LexFail = /* #__PURE__ */ (function () {
     function LexFail(value0, value1) {
         this.value0 = value0;
@@ -108,10 +100,10 @@ var toModuleName = function (v) {
     return new Data_Maybe.Just(Data_String_CodeUnits.dropRight(1)(v));
 };
 var qualLength = /* #__PURE__ */ Data_Maybe.maybe(0)(/* #__PURE__ */ (function () {
-    var $320 = add(1);
-    var $321 = Data_Newtype.unwrap();
-    return function ($322) {
-        return $320(Data_String_CodePoints.length($321($322)));
+    var $286 = Data_Semiring.add(Data_Semiring.semiringInt)(1);
+    var $287 = Data_Newtype.unwrap();
+    return function ($288) {
+        return $286(Data_String_CodePoints.length($287($288)));
     };
 })());
 var optional = function (v) {
@@ -134,12 +126,12 @@ var optional = function (v) {
 var mkUnexpected = function (str) {
     var start = Data_String_CodePoints.take(6)(str);
     var len = Data_String_CodePoints.length(start);
-    var $149 = len === 0;
-    if ($149) {
+    var $115 = len === 0;
+    if ($115) {
         return "end of file";
     };
-    var $150 = len < 6;
-    if ($150) {
+    var $116 = len < 6;
+    if ($116) {
         return start;
     };
     return start + "...";
@@ -155,9 +147,9 @@ var regex = function (mkErr) {
                 }, str);
             };
             if (v instanceof Data_Maybe.Just) {
-                var $152 = Data_Array_NonEmpty.head(v.value0);
-                if ($152 instanceof Data_Maybe.Just) {
-                    return new LexSucc($152.value0, Data_String_CodeUnits.drop(Data_String_CodeUnits.length($152.value0))(str));
+                var $118 = Data_Array_NonEmpty.head(v.value0);
+                if ($118 instanceof Data_Maybe.Just) {
+                    return new LexSucc($118.value0, Data_String_CodeUnits.drop(Data_String_CodeUnits.length($118.value0))(str));
                 };
                 return v1(true);
             };
@@ -184,8 +176,8 @@ var satisfy = function (mkErr) {
 var string = function (mkErr) {
     return function (match) {
         return function (str) {
-            var $157 = Data_String_CodeUnits.take(Data_String_CodeUnits.length(match))(str) === match;
-            if ($157) {
+            var $123 = Data_String_CodeUnits.take(Data_String_CodeUnits.length(match))(str) === match;
+            if ($123) {
                 return new LexSucc(match, Data_String_CodeUnits.drop(Data_String_CodeUnits.length(match))(str));
             };
             return new LexFail(function (v) {
@@ -249,9 +241,8 @@ var functorLex = {
         };
     }
 };
-var map = /* #__PURE__ */ Data_Functor.map(functorLex);
 var spaceComment = /* #__PURE__ */ (function () {
-    return map(Data_String_CodeUnits.length)(regex(PureScript_CST_Errors.LexExpected.create("spaces"))(" +"));
+    return Data_Functor.map(functorLex)(Data_String_CodeUnits.length)(regex(PureScript_CST_Errors.LexExpected.create("spaces"))(" +"));
 })();
 var fromCharCode = function (dict) {
     return dict.fromCharCode;
@@ -259,15 +250,15 @@ var fromCharCode = function (dict) {
 var fromChar = function (dict) {
     return dict.fromChar;
 };
-var fail = function ($323) {
-    return Lex(LexFail.create(Data_Function["const"]($323)));
+var fail = function ($289) {
+    return Lex(LexFail.create(Data_Function["const"]($289)));
 };
 var char$prime = function (mkErr) {
     return function (res) {
         return function (match) {
             return function (str) {
-                var $173 = Data_String_CodeUnits.singleton(match) === Data_String_CodeUnits.take(1)(str);
-                if ($173) {
+                var $139 = Data_String_CodeUnits.singleton(match) === Data_String_CodeUnits.take(1)(str);
+                if ($139) {
                     return new LexSucc(res, Data_String_CodeUnits.drop(1)(str));
                 };
                 return new LexFail(function (v) {
@@ -280,8 +271,8 @@ var char$prime = function (mkErr) {
 var $$char = function (mkErr) {
     return function (match) {
         return function (str) {
-            var $174 = Data_String_CodeUnits.singleton(match) === Data_String_CodeUnits.take(1)(str);
-            if ($174) {
+            var $140 = Data_String_CodeUnits.singleton(match) === Data_String_CodeUnits.take(1)(str);
+            if ($140) {
                 return new LexSucc(match, Data_String_CodeUnits.drop(1)(str));
             };
             return new LexFail(function (v) {
@@ -603,9 +594,6 @@ var applyLex = {
         return functorLex;
     }
 };
-var apply = /* #__PURE__ */ Control_Apply.apply(applyLex);
-var applyFirst = /* #__PURE__ */ Control_Apply.applyFirst(applyLex);
-var applySecond = /* #__PURE__ */ Control_Apply.applySecond(applyLex);
 var bindLex = {
     bind: function (v) {
         return function (k) {
@@ -626,17 +614,15 @@ var bindLex = {
         return applyLex;
     }
 };
-var bind1 = /* #__PURE__ */ Control_Bind.bind(bindLex);
 var applicativeLex = {
-    pure: function ($324) {
-        return Lex(LexSucc.create($324));
+    pure: function ($290) {
+        return Lex(LexSucc.create($290));
     },
     Apply0: function () {
         return applyLex;
     }
 };
-var pure1 = /* #__PURE__ */ Control_Applicative.pure(applicativeLex);
-var pure2 = /* #__PURE__ */ Control_Applicative.pure(applicativeLex);
+var pure = /* #__PURE__ */ Control_Applicative.pure(applicativeLex);
 var altLex = {
     alt: function (v) {
         return function (v1) {
@@ -661,44 +647,43 @@ var altLex = {
         return functorLex;
     }
 };
-var alt = /* #__PURE__ */ Control_Alt.alt(altLex);
 var comment = /* #__PURE__ */ (function () {
-    return alt(regex(PureScript_CST_Errors.LexExpected.create("block comment"))("\\{-(-(?!\\})|[^-]+)*(-\\}|$)"))(regex(PureScript_CST_Errors.LexExpected.create("line comment"))("--[^\\r\\n]*"));
+    return Control_Alt.alt(altLex)(regex(PureScript_CST_Errors.LexExpected.create("block comment"))("\\{-(-(?!\\})|[^-]+)*(-\\}|$)"))(regex(PureScript_CST_Errors.LexExpected.create("line comment"))("--[^\\r\\n]*"));
 })();
 var lineComment = /* #__PURE__ */ (function () {
-    return alt(map((function () {
-        var $325 = PureScript_CST_Types.Line.create(PureScript_CST_Types.LF.value);
-        return function ($326) {
-            return $325(Data_String_CodePoints.length($326));
+    return Control_Alt.alt(altLex)(Data_Functor.map(functorLex)((function () {
+        var $291 = PureScript_CST_Types.Line.create(PureScript_CST_Types.LF.value);
+        return function ($292) {
+            return $291(Data_String_CodePoints.length($292));
         };
-    })())(regex(PureScript_CST_Errors.LexExpected.create("newline"))("\x0a+")))(map((function () {
-        var $327 = PureScript_CST_Types.Line.create(PureScript_CST_Types.CRLF.value);
-        return function ($328) {
-            return $327((function (v) {
-                return div(v)(2);
-            })(Data_String_CodePoints.length($328)));
+    })())(regex(PureScript_CST_Errors.LexExpected.create("newline"))("\x0a+")))(Data_Functor.map(functorLex)((function () {
+        var $293 = PureScript_CST_Types.Line.create(PureScript_CST_Types.CRLF.value);
+        return function ($294) {
+            return $293((function (v) {
+                return Data_EuclideanRing.div(Data_EuclideanRing.euclideanRingInt)(v)(2);
+            })(Data_String_CodePoints.length($294)));
         };
     })())(regex(PureScript_CST_Errors.LexExpected.create("newline"))("(?:\x0d\x0a)+")));
 })();
 var leadingComments = /* #__PURE__ */ (function () {
-    return many(alt(map(PureScript_CST_Types.Comment.create)(comment))(alt(map(PureScript_CST_Types.Space.create)(spaceComment))(lineComment)));
+    return many(Control_Alt.alt(altLex)(Data_Functor.map(functorLex)(PureScript_CST_Types.Comment.create)(comment))(Control_Alt.alt(altLex)(Data_Functor.map(functorLex)(PureScript_CST_Types.Space.create)(spaceComment))(lineComment)));
 })();
-var oneLineComment = /* #__PURE__ */ bind1(lineComment)(function (line) {
+var oneLineComment = /* #__PURE__ */ Control_Bind.bind(bindLex)(lineComment)(function (line) {
     if (line instanceof PureScript_CST_Types.Line && line.value1 === 1) {
-        return pure1(line);
+        return Control_Applicative.pure(applicativeLex)(line);
     };
     return fail(new PureScript_CST_Errors.LexExpected("one newline", "multiple newlines"));
 });
 var leadingShebangs = /* #__PURE__ */ (function () {
-    return apply(map(function (v) {
+    return Control_Apply.apply(applyLex)(Data_Functor.map(functorLex)(function (v) {
         return function (v1) {
-            return Data_Array.cons(new PureScript_CST_Types.Comment(v))(foldMap(function (v2) {
+            return Data_Array.cons(new PureScript_CST_Types.Comment(v))(Data_Foldable.foldMap(Data_Foldable.foldableArray)(Data_Monoid.monoidArray)(function (v2) {
                 return [ v2.value0, new PureScript_CST_Types.Comment(v2.value1) ];
             })(v1));
         };
-    })(shebangComment))(many($$try(apply(map(Data_Tuple.Tuple.create)(oneLineComment))(shebangComment))));
+    })(shebangComment))(many($$try(Control_Apply.apply(applyLex)(Data_Functor.map(functorLex)(Data_Tuple.Tuple.create)(oneLineComment))(shebangComment))));
 })();
-var leadingModuleComments = /* #__PURE__ */ apply(/* #__PURE__ */ map(/* #__PURE__ */ Data_Semigroup.append(Data_Semigroup.semigroupArray))(/* #__PURE__ */ alt(leadingShebangs)(/* #__PURE__ */ pure1([  ]))))(leadingComments);
+var leadingModuleComments = /* #__PURE__ */ Control_Apply.apply(applyLex)(/* #__PURE__ */ Data_Functor.map(functorLex)(/* #__PURE__ */ Data_Semigroup.append(Data_Semigroup.semigroupArray))(/* #__PURE__ */ Control_Alt.alt(altLex)(leadingShebangs)(/* #__PURE__ */ Control_Applicative.pure(applicativeLex)([  ]))))(leadingComments);
 var token = /* #__PURE__ */ (function () {
     var tokenTick = char$prime(PureScript_CST_Errors.LexExpected.create("backtick"))(PureScript_CST_Types.TokTick.value)("`");
     var tokenRightSquare = char$prime(PureScript_CST_Errors.LexExpected.create("right square"))(PureScript_CST_Types.TokRightSquare.value)("]");
@@ -713,7 +698,7 @@ var token = /* #__PURE__ */ (function () {
     var stringCharsRegex = regex(PureScript_CST_Errors.LexExpected.create("string characters"))("[^\"\\\\]+");
     var rawStringCharsRegex = regex(PureScript_CST_Errors.LexExpected.create("raw string characters"))("\"\"\"\"{0,2}([^\"]+\"{1,2})*[^\"]*\"\"\"");
     var parseSymbolIdent = regex(PureScript_CST_Errors.LexExpected.create("symbol"))("(?:[:!#$%&*+./<=>?@\\\\^|~-]|(?!\\p{P})\\p{S})+");
-    var parseSymbol = map(function (v) {
+    var parseSymbol = Data_Functor.map(functorLex)(function (v) {
         return function (v1) {
             if (v1 instanceof Data_Maybe.Nothing) {
                 if (v === "->") {
@@ -726,25 +711,25 @@ var token = /* #__PURE__ */ (function () {
             };
             return new PureScript_CST_Types.TokSymbolName(v1, v);
         };
-    })($$try(applyFirst(applySecond(tokenLeftParen)(parseSymbolIdent))(tokenRightParen)));
-    var parseStringSpaceEscape = map(function (v) {
+    })($$try(Control_Apply.applyFirst(applyLex)(Control_Apply.applySecond(applyLex)(tokenLeftParen)(parseSymbolIdent))(tokenRightParen)));
+    var parseStringSpaceEscape = Data_Functor.map(functorLex)(function (v) {
         return {
             raw: v,
             string: ""
         };
     })(stringSpaceEscapeRegex);
-    var parseStringChars = map(function (v) {
+    var parseStringChars = Data_Functor.map(functorLex)(function (v) {
         return {
             raw: v,
             string: v
         };
     })(stringCharsRegex);
-    var parseRawString = map(function (v) {
+    var parseRawString = Data_Functor.map(functorLex)(function (v) {
         return new PureScript_CST_Types.TokRawString(Data_String_CodeUnits.dropRight(3)(Data_String_CodeUnits.drop(3)(v)));
     })(rawStringCharsRegex);
     var parseProper = regex(PureScript_CST_Errors.LexExpected.create("proper name"))("\\p{Lu}[\\p{L}0-9_']*");
-    var parseUpper = map(Data_Function.flip(PureScript_CST_Types.TokUpperName.create))(parseProper);
-    var parseOperator = map(function (v) {
+    var parseUpper = Data_Functor.map(functorLex)(Data_Function.flip(PureScript_CST_Types.TokUpperName.create))(parseProper);
+    var parseOperator = Data_Functor.map(functorLex)(function (v) {
         return function (v1) {
             if (v1 instanceof Data_Maybe.Nothing) {
                 if (v === "<-") {
@@ -799,7 +784,7 @@ var token = /* #__PURE__ */ (function () {
     })(parseSymbolIdent);
     var parseModuleNamePrefix = regex(PureScript_CST_Errors.LexExpected.create("module name"))("(?:(?:\\p{Lu}[\\p{L}0-9_']*)\\.)*");
     var parseIdent = regex(PureScript_CST_Errors.LexExpected.create("ident"))("[\\p{Ll}_][\\p{L}0-9_']*");
-    var parseLower = map(function (v) {
+    var parseLower = Data_Functor.map(functorLex)(function (v) {
         return function (v1) {
             if (v1 instanceof Data_Maybe.Nothing) {
                 if (v === "forall") {
@@ -813,15 +798,15 @@ var token = /* #__PURE__ */ (function () {
             return new PureScript_CST_Types.TokLowerName(v1, v);
         };
     })(parseIdent);
-    var parseName = alt(parseLower)(alt(parseUpper)(alt(parseOperator)(parseSymbol)));
-    var parseModuleName = apply(map(function (v) {
+    var parseName = Control_Alt.alt(altLex)(parseLower)(Control_Alt.alt(altLex)(parseUpper)(Control_Alt.alt(altLex)(parseOperator)(parseSymbol)));
+    var parseModuleName = Control_Apply.apply(applyLex)(Data_Functor.map(functorLex)(function (v) {
         return function (v1) {
             return v1(toModuleName(v));
         };
     })(parseModuleNamePrefix))(parseName);
-    var parseExponentSign = alt(string(PureScript_CST_Errors.LexExpected.create("negative"))("-"))(string(PureScript_CST_Errors.LexExpected.create("positive"))("+"));
+    var parseExponentSign = Control_Alt.alt(altLex)(string(PureScript_CST_Errors.LexExpected.create("negative"))("-"))(string(PureScript_CST_Errors.LexExpected.create("positive"))("+"));
     var intPartRegex = regex(PureScript_CST_Errors.LexExpected.create("int part"))("(0|[1-9][0-9_]*)");
-    var parseExponentPart = apply(map(function (v) {
+    var parseExponentPart = Control_Apply.apply(applyLex)(Data_Functor.map(functorLex)(function (v) {
         return function (v1) {
             return {
                 sign: v,
@@ -831,23 +816,23 @@ var token = /* #__PURE__ */ (function () {
     })(optional(parseExponentSign)))(intPartRegex);
     var hexIntRegex = regex(PureScript_CST_Errors.LexExpected.create("hex int"))("[a-fA-F0-9]+");
     var hexIntPrefix = string(PureScript_CST_Errors.LexExpected.create("hex int prefix"))("0x");
-    var parseHexInt = bind1(applySecond(hexIntPrefix)(hexIntRegex))(function (raw) {
+    var parseHexInt = Control_Bind.bind(bindLex)(Control_Apply.applySecond(applyLex)(hexIntPrefix)(hexIntRegex))(function (raw) {
         var v = Data_Int.fromStringAs(Data_Int.hexadecimal)(raw);
         if (v instanceof Data_Maybe.Just) {
-            return pure2(new PureScript_CST_Types.TokInt("0x" + raw, new PureScript_CST_Types.SmallInt(v.value0)));
+            return pure(new PureScript_CST_Types.TokInt("0x" + raw, new PureScript_CST_Types.SmallInt(v.value0)));
         };
         if (v instanceof Data_Maybe.Nothing) {
-            return pure2(new PureScript_CST_Types.TokInt("0x" + raw, new PureScript_CST_Types.BigHex(raw)));
+            return pure(new PureScript_CST_Types.TokInt("0x" + raw, new PureScript_CST_Types.BigHex(raw)));
         };
         throw new Error("Failed pattern match at PureScript.CST.Lexer (line 631, column 5 - line 635, column 49): " + [ v.constructor.name ]);
     });
     var hexEscapeRegex = regex(PureScript_CST_Errors.LexExpected.create("hex"))("[a-fA-F0-9]{1,6}");
     var parseHexEscape = function (dictIsChar) {
         var fromCharCode1 = fromCharCode(dictIsChar);
-        return bind1(hexEscapeRegex)(function (esc) {
-            var v = bindFlipped(fromCharCode1)(Data_Int.fromStringAs(Data_Int.hexadecimal)(esc));
+        return Control_Bind.bind(bindLex)(hexEscapeRegex)(function (esc) {
+            var v = Control_Bind.bindFlipped(Data_Maybe.bindMaybe)(fromCharCode1)(Data_Int.fromStringAs(Data_Int.hexadecimal)(esc));
             if (v instanceof Data_Maybe.Just) {
-                return pure1({
+                return Control_Applicative.pure(applicativeLex)({
                     raw: "\\x" + esc,
                     "char": v.value0
                 });
@@ -862,36 +847,36 @@ var token = /* #__PURE__ */ (function () {
     var charSingleQuote = $$char(PureScript_CST_Errors.LexExpected.create("single quote"))("'");
     var charQuote = $$char(PureScript_CST_Errors.LexExpected.create("quote"))("\"");
     var charQuestionMark = $$char(PureScript_CST_Errors.LexExpected.create("question mark"))("?");
-    var parseHole = map(function (v) {
+    var parseHole = Data_Functor.map(functorLex)(function (v) {
         return new PureScript_CST_Types.TokHole(v);
-    })($$try(applySecond(charQuestionMark)(alt(parseIdent)(parseProper))));
+    })($$try(Control_Apply.applySecond(applyLex)(charQuestionMark)(Control_Alt.alt(altLex)(parseIdent)(parseProper))));
     var charExponent = $$char(PureScript_CST_Errors.LexExpected.create("exponent"))("e");
-    var parseNumberExponentPart = optional(applySecond(charExponent)(parseExponentPart));
+    var parseNumberExponentPart = optional(Control_Apply.applySecond(applyLex)(charExponent)(parseExponentPart));
     var charDot = $$char(PureScript_CST_Errors.LexExpected.create("dot"))(".");
-    var parseNumberFractionPart = optional($$try(applySecond(charDot)(fractionPartRegex)));
-    var parseNumber = bind1(intPartRegex)(function (intPart) {
-        return bind1(parseNumberFractionPart)(function (fractionPart) {
-            return bind1(parseNumberExponentPart)(function (exponentPart) {
-                var $283 = Data_Maybe.isNothing(fractionPart) && Data_Maybe.isNothing(exponentPart);
-                if ($283) {
+    var parseNumberFractionPart = optional($$try(Control_Apply.applySecond(applyLex)(charDot)(fractionPartRegex)));
+    var parseNumber = Control_Bind.bind(bindLex)(intPartRegex)(function (intPart) {
+        return Control_Bind.bind(bindLex)(parseNumberFractionPart)(function (fractionPart) {
+            return Control_Bind.bind(bindLex)(parseNumberExponentPart)(function (exponentPart) {
+                var $249 = Data_Maybe.isNothing(fractionPart) && Data_Maybe.isNothing(exponentPart);
+                if ($249) {
                     var intVal = stripUnderscores(intPart);
                     var v = Data_Int.fromString(intVal);
                     if (v instanceof Data_Maybe.Just) {
-                        return pure2(new PureScript_CST_Types.TokInt(intPart, new PureScript_CST_Types.SmallInt(v.value0)));
+                        return pure(new PureScript_CST_Types.TokInt(intPart, new PureScript_CST_Types.SmallInt(v.value0)));
                     };
                     if (v instanceof Data_Maybe.Nothing) {
-                        return pure2(new PureScript_CST_Types.TokInt(intPart, new PureScript_CST_Types.BigInt(intVal)));
+                        return pure(new PureScript_CST_Types.TokInt(intPart, new PureScript_CST_Types.BigInt(intVal)));
                     };
                     throw new Error("Failed pattern match at PureScript.CST.Lexer (line 643, column 7 - line 647, column 48): " + [ v.constructor.name ]);
                 };
-                var raw = intPart + (foldMap1(function (fr) {
+                var raw = intPart + (Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(Data_Monoid.monoidString)(function (fr) {
                     return "." + fr;
-                })(fractionPart) + foldMap1(function (ex) {
-                    return "e" + (fold(ex.sign) + ex.exponent);
+                })(fractionPart) + Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(Data_Monoid.monoidString)(function (ex) {
+                    return "e" + (Data_Foldable.fold(Data_Foldable.foldableMaybe)(Data_Monoid.monoidString)(ex.sign) + ex.exponent);
                 })(exponentPart));
                 var v = Data_Number.fromString(stripUnderscores(raw));
                 if (v instanceof Data_Maybe.Just) {
-                    return pure2(new PureScript_CST_Types.TokNumber(raw, v.value0));
+                    return pure(new PureScript_CST_Types.TokNumber(raw, v.value0));
                 };
                 if (v instanceof Data_Maybe.Nothing) {
                     return fail(new PureScript_CST_Errors.LexNumberOutOfRange(raw));
@@ -900,47 +885,46 @@ var token = /* #__PURE__ */ (function () {
             });
         });
     });
-    var parseNumericLiteral = alt(parseHexInt)(parseNumber);
+    var parseNumericLiteral = Control_Alt.alt(altLex)(parseHexInt)(parseNumber);
     var charBackslash = $$char(PureScript_CST_Errors.LexExpected.create("backslash"))("\\");
     var charAny = satisfy(PureScript_CST_Errors.LexExpected.create("char"))(Data_Function["const"](true));
     var parseEscape = function (dictIsChar) {
-        var fromChar1 = fromChar(dictIsChar);
         var parseHexEscape1 = parseHexEscape(dictIsChar);
-        return bind1(charAny)(function (ch) {
+        return Control_Bind.bind(bindLex)(charAny)(function (ch) {
             if (ch === "t") {
-                return pure1({
+                return Control_Applicative.pure(applicativeLex)({
                     raw: "\\t",
-                    "char": fromChar1("\x09")
+                    "char": fromChar(dictIsChar)("\x09")
                 });
             };
             if (ch === "r") {
-                return pure1({
+                return Control_Applicative.pure(applicativeLex)({
                     raw: "\\r",
-                    "char": fromChar1("\x0d")
+                    "char": fromChar(dictIsChar)("\x0d")
                 });
             };
             if (ch === "n") {
-                return pure1({
+                return Control_Applicative.pure(applicativeLex)({
                     raw: "\\n",
-                    "char": fromChar1("\x0a")
+                    "char": fromChar(dictIsChar)("\x0a")
                 });
             };
             if (ch === "\"") {
-                return pure1({
+                return Control_Applicative.pure(applicativeLex)({
                     raw: "\\\"",
-                    "char": fromChar1("\"")
+                    "char": fromChar(dictIsChar)("\"")
                 });
             };
             if (ch === "'") {
-                return pure1({
+                return Control_Applicative.pure(applicativeLex)({
                     raw: "\\'",
-                    "char": fromChar1("'")
+                    "char": fromChar(dictIsChar)("'")
                 });
             };
             if (ch === "\\") {
-                return pure1({
+                return Control_Applicative.pure(applicativeLex)({
                     raw: "\\\\",
-                    "char": fromChar1("\\")
+                    "char": fromChar(dictIsChar)("\\")
                 });
             };
             if (ch === "x") {
@@ -950,36 +934,36 @@ var token = /* #__PURE__ */ (function () {
         });
     };
     var parseEscape1 = parseEscape(isCharChar);
-    var parseChar = bind1(charAny)(function (ch) {
+    var parseChar = Control_Bind.bind(bindLex)(charAny)(function (ch) {
         if (ch === "\\") {
             return parseEscape1;
         };
         if (ch === "'") {
             return fail(new PureScript_CST_Errors.LexExpected("character", "empty character literal"));
         };
-        return pure1({
+        return Control_Applicative.pure(applicativeLex)({
             raw: Data_String_CodeUnits.singleton(ch),
             "char": ch
         });
     });
-    var parseCharLiteral = map(function (v) {
+    var parseCharLiteral = Data_Functor.map(functorLex)(function (v) {
         return new PureScript_CST_Types.TokChar(v.raw, v["char"]);
-    })(applyFirst(applySecond(charSingleQuote)(parseChar))(charSingleQuote));
-    var parseStringEscape = map(function (v) {
+    })(Control_Apply.applyFirst(applyLex)(Control_Apply.applySecond(applyLex)(charSingleQuote)(parseChar))(charSingleQuote));
+    var parseStringEscape = Data_Functor.map(functorLex)(function (v) {
         return {
             raw: v.raw,
             string: Data_String_CodePoints.singleton(v["char"])
         };
-    })(applySecond(charBackslash)(parseEscape(isCharCodePoint)));
-    var parseStringPart = alt(parseStringChars)(alt(parseStringSpaceEscape)(parseStringEscape));
-    var parseString = map(function (v) {
-        var v1 = fold1(v);
+    })(Control_Apply.applySecond(applyLex)(charBackslash)(parseEscape(isCharCodePoint)));
+    var parseStringPart = Control_Alt.alt(altLex)(parseStringChars)(Control_Alt.alt(altLex)(parseStringSpaceEscape)(parseStringEscape));
+    var parseString = Data_Functor.map(functorLex)(function (v) {
+        var v1 = Data_Foldable.fold(Data_Foldable.foldableArray)(monoidRecord)(v);
         return new PureScript_CST_Types.TokString(v1.raw, v1.string);
-    })(applyFirst(applySecond(charQuote)(many(parseStringPart)))(charQuote));
-    var parseStringLiteral = alt(parseRawString)(parseString);
-    return alt(parseHole)(alt(parseModuleName)(alt(parseCharLiteral)(alt(parseStringLiteral)(alt(parseNumericLiteral)(alt(tokenLeftParen)(alt(tokenRightParen)(alt(tokenLeftBrace)(alt(tokenRightBrace)(alt(tokenLeftSquare)(alt(tokenRightSquare)(alt(tokenTick)(tokenComma))))))))))));
+    })(Control_Apply.applyFirst(applyLex)(Control_Apply.applySecond(applyLex)(charQuote)(many(parseStringPart)))(charQuote));
+    var parseStringLiteral = Control_Alt.alt(altLex)(parseRawString)(parseString);
+    return Control_Alt.alt(altLex)(parseHole)(Control_Alt.alt(altLex)(parseModuleName)(Control_Alt.alt(altLex)(parseCharLiteral)(Control_Alt.alt(altLex)(parseStringLiteral)(Control_Alt.alt(altLex)(parseNumericLiteral)(Control_Alt.alt(altLex)(tokenLeftParen)(Control_Alt.alt(altLex)(tokenRightParen)(Control_Alt.alt(altLex)(tokenLeftBrace)(Control_Alt.alt(altLex)(tokenRightBrace)(Control_Alt.alt(altLex)(tokenLeftSquare)(Control_Alt.alt(altLex)(tokenRightSquare)(Control_Alt.alt(altLex)(tokenTick)(tokenComma))))))))))));
 })();
-var lexToken = function ($329) {
+var lexToken = function ($295) {
     return (function (v) {
         if (v instanceof LexSucc && v.value1 === "") {
             return new Data_Either.Right(v.value0);
@@ -993,13 +977,13 @@ var lexToken = function ($329) {
             return new Data_Either.Left(v.value0);
         };
         throw new Error("Failed pattern match at PureScript.CST.Lexer (line 257, column 18 - line 260, column 28): " + [ v.constructor.name ]);
-    })(token($329));
+    })(token($295));
 };
 var trailingComments = /* #__PURE__ */ (function () {
-    return many(alt(map(PureScript_CST_Types.Comment.create)(comment))(map(PureScript_CST_Types.Space.create)(spaceComment)));
+    return many(Control_Alt.alt(altLex)(Data_Functor.map(functorLex)(PureScript_CST_Types.Comment.create)(comment))(Data_Functor.map(functorLex)(PureScript_CST_Types.Space.create)(spaceComment)));
 })();
 var lexWithState$prime = function (lexLeadingComments) {
-    var token$prime = apply(apply(map(function (v) {
+    var token$prime = Control_Apply.apply(applyLex)(Control_Apply.apply(applyLex)(Data_Functor.map(functorLex)(function (v) {
         return function (v1) {
             return function (v2) {
                 return {
@@ -1015,8 +999,8 @@ var lexWithState$prime = function (lexLeadingComments) {
             return function (leading) {
                 return function (str) {
                     return Data_Lazy.defer(function (v) {
-                        var $304 = str === "";
-                        if ($304) {
+                        var $270 = str === "";
+                        if ($270) {
                             return PureScript_CST_TokenStream.step(PureScript_CST_TokenStream.unwindLayout(startPos)(Data_Lazy.defer(function (v1) {
                                 return new PureScript_CST_TokenStream.TokenEOF(startPos, leading);
                             }))(stack));
@@ -1028,7 +1012,7 @@ var lexWithState$prime = function (lexLeadingComments) {
                         };
                         if (v1 instanceof LexSucc) {
                             var endPos = bumpToken(startPos)(v1.value0.token);
-                            var nextStart = foldl(bumpComment)(foldl(bumpComment)(endPos)(v1.value0.trailing))(v1.value0.nextLeading);
+                            var nextStart = Data_Foldable.foldl(Data_Foldable.foldableArray)(bumpComment)(Data_Foldable.foldl(Data_Foldable.foldableArray)(bumpComment)(endPos)(v1.value0.trailing))(v1.value0.nextLeading);
                             var posToken = {
                                 range: {
                                     start: startPos,
@@ -1039,7 +1023,7 @@ var lexWithState$prime = function (lexLeadingComments) {
                                 value: v1.value0.token
                             };
                             var v2 = PureScript_CST_Layout.insertLayout(posToken)(nextStart)(stack);
-                            return PureScript_CST_TokenStream.step(Data_Tuple.snd(consTokens(v2.value1)(new Data_Tuple.Tuple(nextStart, go(v2.value0)(nextStart)(v1.value0.nextLeading)(v1.value1)))));
+                            return PureScript_CST_TokenStream.step(Data_Tuple.snd(PureScript_CST_TokenStream.consTokens(Data_Foldable.foldableArray)(v2.value1)(new Data_Tuple.Tuple(nextStart, go(v2.value0)(nextStart)(v1.value0.nextLeading)(v1.value1)))));
                         };
                         throw new Error("Failed pattern match at PureScript.CST.Lexer (line 228, column 7 - line 247, column 63): " + [ v1.constructor.name ]);
                     });
@@ -1056,7 +1040,7 @@ var lexWithState$prime = function (lexLeadingComments) {
                         return Partial_Unsafe.unsafeCrashWith("Leading comments can't fail.");
                     };
                     if (v1 instanceof LexSucc) {
-                        var nextPos = foldl(bumpComment)(initPos)(v1.value0);
+                        var nextPos = Data_Foldable.foldl(Data_Foldable.foldableArray)(bumpComment)(initPos)(v1.value0);
                         return PureScript_CST_TokenStream.step(go(initStack)(nextPos)(v1.value0)(v1.value1));
                     };
                     throw new Error("Failed pattern match at PureScript.CST.Lexer (line 215, column 5 - line 220, column 51): " + [ v1.constructor.name ]);

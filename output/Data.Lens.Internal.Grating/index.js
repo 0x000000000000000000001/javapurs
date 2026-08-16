@@ -8,8 +8,8 @@ var profunctorGrating = {
             return function (v) {
                 return function (d) {
                     return g(v(function (k) {
-                        return d(function ($7) {
-                            return k(f($7));
+                        return d(function ($6) {
+                            return k(f($6));
                         });
                     }));
                 };

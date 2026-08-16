@@ -263,6 +263,18 @@ var JavaAssign = /* #__PURE__ */ (function () {
     };
     return JavaAssign;
 })();
+var JavaLocalAssign = /* #__PURE__ */ (function () {
+    function JavaLocalAssign(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    JavaLocalAssign.create = function (value0) {
+        return function (value1) {
+            return new JavaLocalAssign(value0, value1);
+        };
+    };
+    return JavaLocalAssign;
+})();
 var JavaBinaryOp = /* #__PURE__ */ (function () {
     function JavaBinaryOp(value0, value1, value2) {
         this.value0 = value0;
@@ -290,6 +302,18 @@ var JavaCast = /* #__PURE__ */ (function () {
     };
     return JavaCast;
 })();
+var JavaBlock = /* #__PURE__ */ (function () {
+    function JavaBlock(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    JavaBlock.create = function (value0) {
+        return function (value1) {
+            return new JavaBlock(value0, value1);
+        };
+    };
+    return JavaBlock;
+})();
 export {
     JavaString,
     JavaCall,
@@ -314,7 +338,9 @@ export {
     JavaClassDecl,
     JavaRaw,
     JavaAssign,
+    JavaLocalAssign,
     JavaBinaryOp,
-    JavaCast
+    JavaCast,
+    JavaBlock
 };
 //# sourceMappingURL=index.js.map

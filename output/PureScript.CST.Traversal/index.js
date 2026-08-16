@@ -18,31 +18,18 @@ import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
 import * as PureScript_CST_Types from "../PureScript.CST.Types/index.js";
-var traverse = /* #__PURE__ */ Data_Traversable.traverse(Data_Traversable.traversableArray);
-var traverse1 = /* #__PURE__ */ Data_Traversable.traverse(Data_Traversable.traversableTuple);
-var traverse2 = /* #__PURE__ */ Data_Traversable.traverse(Data_Traversable.traversableMaybe);
-var ltraverse = /* #__PURE__ */ Data_Bitraversable.ltraverse(Data_Bitraversable.bitraversableTuple);
-var traverse3 = /* #__PURE__ */ Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray);
-var bitraverse = /* #__PURE__ */ Data_Bitraversable.bitraverse(Data_Bitraversable.bitraversableTuple);
-var bind = /* #__PURE__ */ Control_Bind.bind(Data_Identity.bindIdentity);
-var pure = /* #__PURE__ */ Control_Applicative.pure(Data_Identity.applicativeIdentity);
 var applicativeReaderT = /* #__PURE__ */ Control_Monad_Reader_Trans.applicativeReaderT(Data_Identity.applicativeIdentity);
-var bind1 = /* #__PURE__ */ Control_Bind.bind(Control_Monad_Free.freeBind);
-var pure1 = /* #__PURE__ */ Control_Applicative.pure(Control_Monad_Free.freeApplicative);
-var un = /* #__PURE__ */ Data_Newtype.un();
-var runFree = /* #__PURE__ */ Control_Monad_Free.runFree(Data_Identity.functorIdentity);
 var applyCompose = /* #__PURE__ */ Data_Functor_Compose.applyCompose(Control_Monad_Free.freeApply);
 var applicativeCompose = /* #__PURE__ */ Data_Functor_Compose.applicativeCompose(Control_Monad_Free.freeApplicative);
-var bindFlipped = /* #__PURE__ */ Control_Bind.bindFlipped(Control_Monad_Free.freeBind);
+var pure = /* #__PURE__ */ Control_Applicative.pure(Control_Monad_Free.freeApplicative);
+var pure1 = /* #__PURE__ */ Control_Applicative.pure(Control_Monad_Free.freeApplicative);
 var pure2 = /* #__PURE__ */ Control_Applicative.pure(Control_Monad_Free.freeApplicative);
 var pure3 = /* #__PURE__ */ Control_Applicative.pure(Control_Monad_Free.freeApplicative);
-var pure4 = /* #__PURE__ */ Control_Applicative.pure(Control_Monad_Free.freeApplicative);
-var pure5 = /* #__PURE__ */ Control_Applicative.pure(Control_Monad_Free.freeApplicative);
 var traverseWrapped = function (dictApplicative) {
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
-            return map(function (value) {
+            return Data_Functor.map(Functor0)(function (value) {
                 return {
                     open: v.open,
                     close: v.close,
@@ -54,59 +41,53 @@ var traverseWrapped = function (dictApplicative) {
 };
 var traverseSeparated = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    var map = Data_Functor.map(Apply0.Functor0());
-    var traverse4 = traverse(dictApplicative);
-    var traverse5 = traverse1(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
-            return apply(map(function (v1) {
+            return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (v1) {
                 return function (v2) {
                     return {
                         head: v1,
                         tail: v2
                     };
                 };
-            })(k(v.head)))(traverse4(traverse5(k))(v.tail));
+            })(k(v.head)))(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(Data_Traversable.traverse(Data_Traversable.traversableTuple)(dictApplicative)(k))(v.tail));
         };
     };
 };
 var traverseRecordUpdate = function (dictApplicative) {
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-    var traverseWrapped1 = traverseWrapped(dictApplicative);
-    var traverseSeparated1 = traverseSeparated(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
             if (v instanceof PureScript_CST_Types.RecordUpdateLeaf) {
-                return map(PureScript_CST_Types.RecordUpdateLeaf.create(v.value0)(v.value1))(k.onExpr(v.value2));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.RecordUpdateLeaf.create(v.value0)(v.value1))(k.onExpr(v.value2));
             };
             if (v instanceof PureScript_CST_Types.RecordUpdateBranch) {
-                return map(PureScript_CST_Types.RecordUpdateBranch.create(v.value0))(traverseWrapped1(traverseSeparated1(traverseRecordUpdate(dictApplicative)(k)))(v.value1));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.RecordUpdateBranch.create(v.value0))(traverseWrapped(dictApplicative)(traverseSeparated(dictApplicative)(traverseRecordUpdate(dictApplicative)(k)))(v.value1));
             };
             throw new Error("Failed pattern match at PureScript.CST.Traversal (line 419, column 26 - line 421, column 146): " + [ v.constructor.name ]);
         };
     };
 };
 var traverseRecordLabeled = function (dictApplicative) {
-    var pure6 = Control_Applicative.pure(dictApplicative);
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
             if (v instanceof PureScript_CST_Types.RecordPun) {
-                return pure6(new PureScript_CST_Types.RecordPun(v.value0));
+                return Control_Applicative.pure(dictApplicative)(new PureScript_CST_Types.RecordPun(v.value0));
             };
             if (v instanceof PureScript_CST_Types.RecordField) {
-                return map(PureScript_CST_Types.RecordField.create(v.value0)(v.value1))(k(v.value2));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.RecordField.create(v.value0)(v.value1))(k(v.value2));
             };
             throw new Error("Failed pattern match at PureScript.CST.Traversal (line 394, column 27 - line 396, column 57): " + [ v.constructor.name ]);
         };
     };
 };
 var traverseRecordAccessor = function (dictApplicative) {
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (r) {
-            return map(function (v) {
+            return Data_Functor.map(Functor0)(function (v) {
                 return {
                     dot: r.dot,
                     path: r.path,
@@ -118,61 +99,54 @@ var traverseRecordAccessor = function (dictApplicative) {
 };
 var traversePatternGuard = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    var map = Data_Functor.map(Apply0.Functor0());
-    var traverse4 = traverse2(dictApplicative);
-    var ltraverse1 = ltraverse(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
-            return apply(map(function (binder) {
+            return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (binder) {
                 return function (expr) {
                     return {
                         binder: binder,
                         expr: expr
                     };
                 };
-            })(traverse4(ltraverse1(k.onBinder))(v.binder)))(k.onExpr(v.expr));
+            })(Data_Traversable.traverse(Data_Traversable.traversableMaybe)(dictApplicative)(Data_Bitraversable.ltraverse(Data_Bitraversable.bitraversableTuple)(dictApplicative)(k.onBinder))(v.binder)))(k.onExpr(v.expr));
         };
     };
 };
 var traverseModuleBody = function (dictApplicative) {
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-    var traverse4 = traverse(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
-            return map(function (decls) {
+            return Data_Functor.map(Functor0)(function (decls) {
                 return {
                     trailingComments: v.trailingComments,
                     end: v.end,
                     decls: decls
                 };
-            })(traverse4(k.onDecl)(v.decls));
+            })(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(k.onDecl)(v.decls));
         };
     };
 };
 var traverseModule = function (dictApplicative) {
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-    var traverseModuleBody1 = traverseModuleBody(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
-            return map(function (body) {
+            return Data_Functor.map(Functor0)(function (body) {
                 return {
                     header: v.header,
                     body: body
                 };
-            })(traverseModuleBody1(k)(v.body));
+            })(traverseModuleBody(dictApplicative)(k)(v.body));
         };
     };
 };
 var traverseModule1 = /* #__PURE__ */ traverseModule(Control_Monad_Free.freeApplicative);
 var traverseLambda = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    var map = Data_Functor.map(Apply0.Functor0());
-    var traverse4 = traverse3(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (l) {
-            return apply(map(function (v) {
+            return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (v) {
                 return function (v1) {
                     return {
                         arrow: l.arrow,
@@ -181,15 +155,15 @@ var traverseLambda = function (dictApplicative) {
                         body: v1
                     };
                 };
-            })(traverse4(k.onBinder)(l.binders)))(k.onExpr(l.body));
+            })(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(k.onBinder)(l.binders)))(k.onExpr(l.body));
         };
     };
 };
 var traverseLabeled = function (dictApplicative) {
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
-            return map(function (value) {
+            return Data_Functor.map(Functor0)(function (value) {
                 return {
                     label: v.label,
                     separator: v.separator,
@@ -201,96 +175,76 @@ var traverseLabeled = function (dictApplicative) {
 };
 var traverseRow = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    var map = Data_Functor.map(Apply0.Functor0());
-    var traverse4 = traverse2(dictApplicative);
-    var traverseSeparated1 = traverseSeparated(dictApplicative);
-    var traverseLabeled1 = traverseLabeled(dictApplicative);
-    var traverse5 = traverse1(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
-            return apply(map(function (labels) {
+            return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (labels) {
                 return function (tail) {
                     return {
                         labels: labels,
                         tail: tail
                     };
                 };
-            })(traverse4(traverseSeparated1(traverseLabeled1(k.onType)))(v.labels)))(traverse4(traverse5(k.onType))(v.tail));
+            })(Data_Traversable.traverse(Data_Traversable.traversableMaybe)(dictApplicative)(traverseSeparated(dictApplicative)(traverseLabeled(dictApplicative)(k.onType)))(v.labels)))(Data_Traversable.traverse(Data_Traversable.traversableMaybe)(dictApplicative)(Data_Traversable.traverse(Data_Traversable.traversableTuple)(dictApplicative)(k.onType))(v.tail));
         };
     };
 };
 var traverseTypeVarBinding = function (dictApplicative) {
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-    var traverseWrapped1 = traverseWrapped(dictApplicative);
-    var traverseLabeled1 = traverseLabeled(dictApplicative);
-    var pure6 = Control_Applicative.pure(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
             if (v instanceof PureScript_CST_Types.TypeVarKinded) {
-                return map(PureScript_CST_Types.TypeVarKinded.create)(traverseWrapped1(traverseLabeled1(k.onType))(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.TypeVarKinded.create)(traverseWrapped(dictApplicative)(traverseLabeled(dictApplicative)(k.onType))(v.value0));
             };
             if (v instanceof PureScript_CST_Types.TypeVarName) {
-                return pure6(new PureScript_CST_Types.TypeVarName(v.value0));
+                return Control_Applicative.pure(dictApplicative)(new PureScript_CST_Types.TypeVarName(v.value0));
             };
             throw new Error("Failed pattern match at PureScript.CST.Traversal (line 320, column 28 - line 322, column 46): " + [ v.constructor.name ]);
         };
     };
 };
 var traverseType = function (dictApplicative) {
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     var Apply0 = dictApplicative.Apply0();
-    var Functor0 = Apply0.Functor0();
-    var map = Data_Functor.map(Functor0);
-    var traverseWrapped1 = traverseWrapped(dictApplicative);
-    var traverseRow1 = traverseRow(dictApplicative);
-    var apply = Control_Apply.apply(Apply0);
-    var flap = Data_Functor.flap(Functor0);
-    var traverse4 = traverse3(dictApplicative);
-    var traverseTypeVarBinding1 = traverseTypeVarBinding(dictApplicative);
-    var traverse5 = traverse1(dictApplicative);
-    var pure6 = Control_Applicative.pure(dictApplicative);
     return function (k) {
         return function (v) {
             if (v instanceof PureScript_CST_Types.TypeRow) {
-                return map(PureScript_CST_Types.TypeRow.create)(traverseWrapped1(traverseRow1(k))(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.TypeRow.create)(traverseWrapped(dictApplicative)(traverseRow(dictApplicative)(k))(v.value0));
             };
             if (v instanceof PureScript_CST_Types.TypeRecord) {
-                return map(PureScript_CST_Types.TypeRecord.create)(traverseWrapped1(traverseRow1(k))(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.TypeRecord.create)(traverseWrapped(dictApplicative)(traverseRow(dictApplicative)(k))(v.value0));
             };
             if (v instanceof PureScript_CST_Types.TypeForall) {
-                return apply(flap(map(PureScript_CST_Types.TypeForall.create(v.value0))(traverse4(traverseTypeVarBinding1(k))(v.value1)))(v.value2))(k.onType(v.value3));
+                return Control_Apply.apply(Apply0)(Data_Functor.flap(Functor0)(Data_Functor.map(Functor0)(PureScript_CST_Types.TypeForall.create(v.value0))(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(traverseTypeVarBinding(dictApplicative)(k))(v.value1)))(v.value2))(k.onType(v.value3));
             };
             if (v instanceof PureScript_CST_Types.TypeKinded) {
-                return apply(flap(map(PureScript_CST_Types.TypeKinded.create)(k.onType(v.value0)))(v.value1))(k.onType(v.value2));
+                return Control_Apply.apply(Apply0)(Data_Functor.flap(Functor0)(Data_Functor.map(Functor0)(PureScript_CST_Types.TypeKinded.create)(k.onType(v.value0)))(v.value1))(k.onType(v.value2));
             };
             if (v instanceof PureScript_CST_Types.TypeApp) {
-                return apply(map(PureScript_CST_Types.TypeApp.create)(k.onType(v.value0)))(traverse4(k.onType)(v.value1));
+                return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(PureScript_CST_Types.TypeApp.create)(k.onType(v.value0)))(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(k.onType)(v.value1));
             };
             if (v instanceof PureScript_CST_Types.TypeOp) {
-                return apply(map(PureScript_CST_Types.TypeOp.create)(k.onType(v.value0)))(traverse4(traverse5(k.onType))(v.value1));
+                return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(PureScript_CST_Types.TypeOp.create)(k.onType(v.value0)))(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(Data_Traversable.traverse(Data_Traversable.traversableTuple)(dictApplicative)(k.onType))(v.value1));
             };
             if (v instanceof PureScript_CST_Types.TypeArrow) {
-                return apply(flap(map(PureScript_CST_Types.TypeArrow.create)(k.onType(v.value0)))(v.value1))(k.onType(v.value2));
+                return Control_Apply.apply(Apply0)(Data_Functor.flap(Functor0)(Data_Functor.map(Functor0)(PureScript_CST_Types.TypeArrow.create)(k.onType(v.value0)))(v.value1))(k.onType(v.value2));
             };
             if (v instanceof PureScript_CST_Types.TypeConstrained) {
-                return apply(flap(map(PureScript_CST_Types.TypeConstrained.create)(k.onType(v.value0)))(v.value1))(k.onType(v.value2));
+                return Control_Apply.apply(Apply0)(Data_Functor.flap(Functor0)(Data_Functor.map(Functor0)(PureScript_CST_Types.TypeConstrained.create)(k.onType(v.value0)))(v.value1))(k.onType(v.value2));
             };
             if (v instanceof PureScript_CST_Types.TypeParens) {
-                return map(PureScript_CST_Types.TypeParens.create)(traverseWrapped1(k.onType)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.TypeParens.create)(traverseWrapped(dictApplicative)(k.onType)(v.value0));
             };
-            return pure6(v);
+            return Control_Applicative.pure(dictApplicative)(v);
         };
     };
 };
-var traverseType1 = /* #__PURE__ */ traverseType(applicativeReaderT);
-var traverseType2 = /* #__PURE__ */ traverseType(Control_Monad_Free.freeApplicative);
 var traverseIfThenElse = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    var map = Data_Functor.map(Apply0.Functor0());
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (r) {
-            return apply(apply(map(function (v) {
+            return Control_Apply.apply(Apply0)(Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (v) {
                 return function (v1) {
                     return function (v2) {
                         return {
@@ -309,32 +263,26 @@ var traverseIfThenElse = function (dictApplicative) {
 };
 var traverseWhere = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    var map = Data_Functor.map(Apply0.Functor0());
-    var traverse4 = traverse2(dictApplicative);
-    var traverse5 = traverse1(dictApplicative);
-    var traverse6 = traverse3(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
-            return apply(map(function (expr) {
+            return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (expr) {
                 return function (bindings) {
                     return {
                         expr: expr,
                         bindings: bindings
                     };
                 };
-            })(k.onExpr(v.expr)))(traverse4(traverse5(traverse6(traverseLetBinding(dictApplicative)(k))))(v.bindings));
+            })(k.onExpr(v.expr)))(Data_Traversable.traverse(Data_Traversable.traversableMaybe)(dictApplicative)(Data_Traversable.traverse(Data_Traversable.traversableTuple)(dictApplicative)(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(traverseLetBinding(dictApplicative)(k))))(v.bindings));
         };
     };
 };
 var traverseValueBindingFields = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    var map = Data_Functor.map(Apply0.Functor0());
-    var traverse4 = traverse(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
-            return apply(map(function (v1) {
+            return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (v1) {
                 return function (v2) {
                     return {
                         name: v.name,
@@ -342,31 +290,26 @@ var traverseValueBindingFields = function (dictApplicative) {
                         guarded: v2
                     };
                 };
-            })(traverse4(k.onBinder)(v.binders)))(traverseGuarded(dictApplicative)(k)(v.guarded));
+            })(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(k.onBinder)(v.binders)))(traverseGuarded(dictApplicative)(k)(v.guarded));
         };
     };
 };
 var traverseLetBinding = function (dictApplicative) {
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     var Apply0 = dictApplicative.Apply0();
-    var Functor0 = Apply0.Functor0();
-    var map = Data_Functor.map(Functor0);
-    var traverseLabeled1 = traverseLabeled(dictApplicative);
-    var apply = Control_Apply.apply(Apply0);
-    var flap = Data_Functor.flap(Functor0);
-    var pure6 = Control_Applicative.pure(dictApplicative);
     return function (k) {
         return function (v) {
             if (v instanceof PureScript_CST_Types.LetBindingSignature) {
-                return map(PureScript_CST_Types.LetBindingSignature.create)(traverseLabeled1(k.onType)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.LetBindingSignature.create)(traverseLabeled(dictApplicative)(k.onType)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.LetBindingName) {
-                return map(PureScript_CST_Types.LetBindingName.create)(traverseValueBindingFields(dictApplicative)(k)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.LetBindingName.create)(traverseValueBindingFields(dictApplicative)(k)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.LetBindingPattern) {
-                return apply(flap(map(PureScript_CST_Types.LetBindingPattern.create)(k.onBinder(v.value0)))(v.value1))(traverseWhere(dictApplicative)(k)(v.value2));
+                return Control_Apply.apply(Apply0)(Data_Functor.flap(Functor0)(Data_Functor.map(Functor0)(PureScript_CST_Types.LetBindingPattern.create)(k.onBinder(v.value0)))(v.value1))(traverseWhere(dictApplicative)(k)(v.value2));
             };
             if (v instanceof PureScript_CST_Types.LetBindingError) {
-                return pure6(new PureScript_CST_Types.LetBindingError(v.value0));
+                return Control_Applicative.pure(dictApplicative)(new PureScript_CST_Types.LetBindingError(v.value0));
             };
             throw new Error("Failed pattern match at PureScript.CST.Traversal (line 498, column 24 - line 502, column 48): " + [ v.constructor.name ]);
         };
@@ -374,13 +317,10 @@ var traverseLetBinding = function (dictApplicative) {
 };
 var traverseGuardedExpr = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    var map = Data_Functor.map(Apply0.Functor0());
-    var traverseSeparated1 = traverseSeparated(dictApplicative);
-    var traversePatternGuard1 = traversePatternGuard(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
-            return apply(map(function (ps) {
+            return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (ps) {
                 return function (wh) {
                     return {
                         bar: v.bar,
@@ -389,36 +329,33 @@ var traverseGuardedExpr = function (dictApplicative) {
                         where: wh
                     };
                 };
-            })(traverseSeparated1(traversePatternGuard1(k))(v.patterns)))(traverseWhere(dictApplicative)(k)(v.where));
+            })(traverseSeparated(dictApplicative)(traversePatternGuard(dictApplicative)(k))(v.patterns)))(traverseWhere(dictApplicative)(k)(v.where));
         };
     };
 };
 var traverseGuarded = function (dictApplicative) {
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-    var traverse4 = traverse3(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
             if (v instanceof PureScript_CST_Types.Unconditional) {
-                return map(PureScript_CST_Types.Unconditional.create(v.value0))(traverseWhere(dictApplicative)(k)(v.value1));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.Unconditional.create(v.value0))(traverseWhere(dictApplicative)(k)(v.value1));
             };
             if (v instanceof PureScript_CST_Types.Guarded) {
-                return map(PureScript_CST_Types.Guarded.create)(traverse4(traverseGuardedExpr(dictApplicative)(k))(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.Guarded.create)(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(traverseGuardedExpr(dictApplicative)(k))(v.value0));
             };
             throw new Error("Failed pattern match at PureScript.CST.Traversal (line 459, column 21 - line 461, column 72): " + [ v.constructor.name ]);
         };
     };
 };
 var traverseInstanceBinding = function (dictApplicative) {
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-    var traverseLabeled1 = traverseLabeled(dictApplicative);
-    var traverseValueBindingFields1 = traverseValueBindingFields(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
             if (v instanceof PureScript_CST_Types.InstanceBindingSignature) {
-                return map(PureScript_CST_Types.InstanceBindingSignature.create)(traverseLabeled1(k.onType)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.InstanceBindingSignature.create)(traverseLabeled(dictApplicative)(k.onType)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.InstanceBindingName) {
-                return map(PureScript_CST_Types.InstanceBindingName.create)(traverseValueBindingFields1(k)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.InstanceBindingName.create)(traverseValueBindingFields(dictApplicative)(k)(v.value0));
             };
             throw new Error("Failed pattern match at PureScript.CST.Traversal (line 247, column 29 - line 249, column 92): " + [ v.constructor.name ]);
         };
@@ -426,13 +363,10 @@ var traverseInstanceBinding = function (dictApplicative) {
 };
 var traverseLetIn = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    var map = Data_Functor.map(Apply0.Functor0());
-    var traverse4 = traverse3(dictApplicative);
-    var traverseLetBinding1 = traverseLetBinding(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (l) {
-            return apply(map(function (v) {
+            return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (v) {
                 return function (v1) {
                     return {
                         "in": l["in"],
@@ -441,102 +375,89 @@ var traverseLetIn = function (dictApplicative) {
                         body: v1
                     };
                 };
-            })(traverse4(traverseLetBinding1(k))(l.bindings)))(k.onExpr(l.body));
+            })(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(traverseLetBinding(dictApplicative)(k))(l.bindings)))(k.onExpr(l.body));
         };
     };
 };
 var traverseForeign = function (dictApplicative) {
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-    var traverseLabeled1 = traverseLabeled(dictApplicative);
-    var pure6 = Control_Applicative.pure(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
             if (v instanceof PureScript_CST_Types.ForeignValue) {
-                return map(PureScript_CST_Types.ForeignValue.create)(traverseLabeled1(k.onType)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.ForeignValue.create)(traverseLabeled(dictApplicative)(k.onType)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.ForeignData) {
-                return map(PureScript_CST_Types.ForeignData.create(v.value0))(traverseLabeled1(k.onType)(v.value1));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.ForeignData.create(v.value0))(traverseLabeled(dictApplicative)(k.onType)(v.value1));
             };
             if (v instanceof PureScript_CST_Types.ForeignKind) {
-                return pure6(v);
+                return Control_Applicative.pure(dictApplicative)(v);
             };
             throw new Error("Failed pattern match at PureScript.CST.Traversal (line 217, column 21 - line 220, column 40): " + [ v.constructor.name ]);
         };
     };
 };
 var traverseExprAppSpine = function (dictApplicative) {
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
             if (v instanceof PureScript_CST_Types.AppType) {
-                return map(PureScript_CST_Types.AppType.create(v.value0))(k.onType(v.value1));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.AppType.create(v.value0))(k.onType(v.value1));
             };
             if (v instanceof PureScript_CST_Types.AppTerm) {
-                return map(PureScript_CST_Types.AppTerm.create)(k.onExpr(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.AppTerm.create)(k.onExpr(v.value0));
             };
             throw new Error("Failed pattern match at PureScript.CST.Traversal (line 353, column 26 - line 355, column 44): " + [ v.constructor.name ]);
         };
     };
 };
 var traverseDoStatement = function (dictApplicative) {
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     var Apply0 = dictApplicative.Apply0();
-    var Functor0 = Apply0.Functor0();
-    var map = Data_Functor.map(Functor0);
-    var traverse4 = traverse3(dictApplicative);
-    var traverseLetBinding1 = traverseLetBinding(dictApplicative);
-    var apply = Control_Apply.apply(Apply0);
-    var flap = Data_Functor.flap(Functor0);
-    var pure6 = Control_Applicative.pure(dictApplicative);
     return function (k) {
         return function (v) {
             if (v instanceof PureScript_CST_Types.DoLet) {
-                return map(PureScript_CST_Types.DoLet.create(v.value0))(traverse4(traverseLetBinding1(k))(v.value1));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.DoLet.create(v.value0))(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(traverseLetBinding(dictApplicative)(k))(v.value1));
             };
             if (v instanceof PureScript_CST_Types.DoDiscard) {
-                return map(PureScript_CST_Types.DoDiscard.create)(k.onExpr(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.DoDiscard.create)(k.onExpr(v.value0));
             };
             if (v instanceof PureScript_CST_Types.DoBind) {
-                return apply(flap(map(PureScript_CST_Types.DoBind.create)(k.onBinder(v.value0)))(v.value1))(k.onExpr(v.value2));
+                return Control_Apply.apply(Apply0)(Data_Functor.flap(Functor0)(Data_Functor.map(Functor0)(PureScript_CST_Types.DoBind.create)(k.onBinder(v.value0)))(v.value1))(k.onExpr(v.value2));
             };
             if (v instanceof PureScript_CST_Types.DoError) {
-                return pure6(new PureScript_CST_Types.DoError(v.value0));
+                return Control_Applicative.pure(dictApplicative)(new PureScript_CST_Types.DoError(v.value0));
             };
             throw new Error("Failed pattern match at PureScript.CST.Traversal (line 529, column 25 - line 533, column 32): " + [ v.constructor.name ]);
         };
     };
 };
 var traverseDoBlock = function (dictApplicative) {
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-    var traverse4 = traverse3(dictApplicative);
-    var traverseDoStatement1 = traverseDoStatement(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (d) {
-            return map(function (v) {
+            return Data_Functor.map(Functor0)(function (v) {
                 return {
                     keyword: d.keyword,
                     statements: v
                 };
-            })(traverse4(traverseDoStatement1(k))(d.statements));
+            })(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(traverseDoStatement(dictApplicative)(k))(d.statements));
         };
     };
 };
 var traverseDelimitedNonEmpty = function (dictApplicative) {
-    var traverseWrapped1 = traverseWrapped(dictApplicative);
-    var traverseSeparated1 = traverseSeparated(dictApplicative);
     return function (k) {
-        return traverseWrapped1(traverseSeparated1(k));
+        return traverseWrapped(dictApplicative)(traverseSeparated(dictApplicative)(k));
     };
 };
 var traverseOneOrDelimited = function (dictApplicative) {
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-    var traverseDelimitedNonEmpty1 = traverseDelimitedNonEmpty(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
             if (v instanceof PureScript_CST_Types.One) {
-                return map(PureScript_CST_Types.One.create)(k(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.One.create)(k(v.value0));
             };
             if (v instanceof PureScript_CST_Types.Many) {
-                return map(PureScript_CST_Types.Many.create)(traverseDelimitedNonEmpty1(k)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.Many.create)(traverseDelimitedNonEmpty(dictApplicative)(k)(v.value0));
             };
             throw new Error("Failed pattern match at PureScript.CST.Traversal (line 266, column 28 - line 268, column 55): " + [ v.constructor.name ]);
         };
@@ -544,15 +465,10 @@ var traverseOneOrDelimited = function (dictApplicative) {
 };
 var traverseInstanceHead = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    var map = Data_Functor.map(Apply0.Functor0());
-    var traverse4 = traverse2(dictApplicative);
-    var ltraverse1 = ltraverse(dictApplicative);
-    var traverseOneOrDelimited1 = traverseOneOrDelimited(dictApplicative);
-    var traverse5 = traverse(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (head) {
-            return apply(map(function (v) {
+            return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (v) {
                 return function (v1) {
                     return {
                         className: head.className,
@@ -562,82 +478,64 @@ var traverseInstanceHead = function (dictApplicative) {
                         types: v1
                     };
                 };
-            })(traverse4(ltraverse1(traverseOneOrDelimited1(k.onType)))(head.constraints)))(traverse5(k.onType)(head.types));
+            })(Data_Traversable.traverse(Data_Traversable.traversableMaybe)(dictApplicative)(Data_Bitraversable.ltraverse(Data_Bitraversable.bitraversableTuple)(dictApplicative)(traverseOneOrDelimited(dictApplicative)(k.onType)))(head.constraints)))(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(k.onType)(head.types));
         };
     };
 };
 var traverseInstance = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    var map = Data_Functor.map(Apply0.Functor0());
-    var traverseInstanceHead1 = traverseInstanceHead(dictApplicative);
-    var traverse4 = traverse2(dictApplicative);
-    var traverse5 = traverse1(dictApplicative);
-    var traverse6 = traverse3(dictApplicative);
-    var traverseInstanceBinding1 = traverseInstanceBinding(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
-            return apply(map(function (head) {
+            return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (head) {
                 return function (body) {
                     return {
                         head: head,
                         body: body
                     };
                 };
-            })(traverseInstanceHead1(k)(v.head)))(traverse4(traverse5(traverse6(traverseInstanceBinding1(k))))(v.body));
+            })(traverseInstanceHead(dictApplicative)(k)(v.head)))(Data_Traversable.traverse(Data_Traversable.traversableMaybe)(dictApplicative)(Data_Traversable.traverse(Data_Traversable.traversableTuple)(dictApplicative)(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(traverseInstanceBinding(dictApplicative)(k))))(v.body));
         };
     };
 };
 var traverseDelimited = function (dictApplicative) {
-    var traverseWrapped1 = traverseWrapped(dictApplicative);
-    var traverse4 = traverse2(dictApplicative);
-    var traverseSeparated1 = traverseSeparated(dictApplicative);
     return function (k) {
-        return traverseWrapped1(traverse4(traverseSeparated1(k)));
+        return traverseWrapped(dictApplicative)(Data_Traversable.traverse(Data_Traversable.traversableMaybe)(dictApplicative)(traverseSeparated(dictApplicative)(k)));
     };
 };
 var traverseDataHead = function (dictApplicative) {
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-    var traverse4 = traverse(dictApplicative);
-    var traverseTypeVarBinding1 = traverseTypeVarBinding(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (head) {
-            return map(function (v) {
+            return Data_Functor.map(Functor0)(function (v) {
                 return {
                     keyword: head.keyword,
                     name: head.name,
                     vars: v
                 };
-            })(traverse4(traverseTypeVarBinding1(k))(head.vars));
+            })(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(traverseTypeVarBinding(dictApplicative)(k))(head.vars));
         };
     };
 };
 var traverseDataCtor = function (dictApplicative) {
-    var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-    var traverse4 = traverse(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
-            return map(function (fields) {
+            return Data_Functor.map(Functor0)(function (fields) {
                 return {
                     name: v.name,
                     fields: fields
                 };
-            })(traverse4(k.onType)(v.fields));
+            })(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(k.onType)(v.fields));
         };
     };
 };
 var traverseClassHead = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    var map = Data_Functor.map(Apply0.Functor0());
-    var traverse4 = traverse2(dictApplicative);
-    var ltraverse1 = ltraverse(dictApplicative);
-    var traverseOneOrDelimited1 = traverseOneOrDelimited(dictApplicative);
-    var traverse5 = traverse(dictApplicative);
-    var traverseTypeVarBinding1 = traverseTypeVarBinding(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (head) {
-            return apply(map(function (v) {
+            return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (v) {
                 return function (v1) {
                     return {
                         fundeps: head.fundeps,
@@ -647,78 +545,55 @@ var traverseClassHead = function (dictApplicative) {
                         vars: v1
                     };
                 };
-            })(traverse4(ltraverse1(traverseOneOrDelimited1(k.onType)))(head["super"])))(traverse5(traverseTypeVarBinding1(k))(head.vars));
+            })(Data_Traversable.traverse(Data_Traversable.traversableMaybe)(dictApplicative)(Data_Bitraversable.ltraverse(Data_Bitraversable.bitraversableTuple)(dictApplicative)(traverseOneOrDelimited(dictApplicative)(k.onType)))(head["super"])))(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(traverseTypeVarBinding(dictApplicative)(k))(head.vars));
         };
     };
 };
 var traverseDecl = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    var Functor0 = Apply0.Functor0();
-    var map = Data_Functor.map(Functor0);
-    var traverseDataHead1 = traverseDataHead(dictApplicative);
-    var traverse4 = traverse2(dictApplicative);
-    var traverse5 = traverse1(dictApplicative);
-    var traverseSeparated1 = traverseSeparated(dictApplicative);
-    var traverseDataCtor1 = traverseDataCtor(dictApplicative);
-    var flap = Data_Functor.flap(Functor0);
-    var traverseClassHead1 = traverseClassHead(dictApplicative);
-    var traverse6 = traverse3(dictApplicative);
-    var traverseLabeled1 = traverseLabeled(dictApplicative);
-    var traverseInstance1 = traverseInstance(dictApplicative);
-    var traverseInstanceHead1 = traverseInstanceHead(dictApplicative);
-    var traverseValueBindingFields1 = traverseValueBindingFields(dictApplicative);
-    var traverseForeign1 = traverseForeign(dictApplicative);
-    var pure6 = Control_Applicative.pure(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (v) {
             if (v instanceof PureScript_CST_Types.DeclData) {
-                return apply(map(PureScript_CST_Types.DeclData.create)(traverseDataHead1(k)(v.value0)))(traverse4(traverse5(traverseSeparated1(traverseDataCtor1(k))))(v.value1));
+                return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(PureScript_CST_Types.DeclData.create)(traverseDataHead(dictApplicative)(k)(v.value0)))(Data_Traversable.traverse(Data_Traversable.traversableMaybe)(dictApplicative)(Data_Traversable.traverse(Data_Traversable.traversableTuple)(dictApplicative)(traverseSeparated(dictApplicative)(traverseDataCtor(dictApplicative)(k))))(v.value1));
             };
             if (v instanceof PureScript_CST_Types.DeclType) {
-                return apply(flap(map(PureScript_CST_Types.DeclType.create)(traverseDataHead1(k)(v.value0)))(v.value1))(k.onType(v.value2));
+                return Control_Apply.apply(Apply0)(Data_Functor.flap(Functor0)(Data_Functor.map(Functor0)(PureScript_CST_Types.DeclType.create)(traverseDataHead(dictApplicative)(k)(v.value0)))(v.value1))(k.onType(v.value2));
             };
             if (v instanceof PureScript_CST_Types.DeclNewtype) {
-                return apply(flap(flap(map(PureScript_CST_Types.DeclNewtype.create)(traverseDataHead1(k)(v.value0)))(v.value1))(v.value2))(k.onType(v.value3));
+                return Control_Apply.apply(Apply0)(Data_Functor.flap(Functor0)(Data_Functor.flap(Functor0)(Data_Functor.map(Functor0)(PureScript_CST_Types.DeclNewtype.create)(traverseDataHead(dictApplicative)(k)(v.value0)))(v.value1))(v.value2))(k.onType(v.value3));
             };
             if (v instanceof PureScript_CST_Types.DeclClass) {
-                return apply(map(PureScript_CST_Types.DeclClass.create)(traverseClassHead1(k)(v.value0)))(traverse4(traverse5(traverse6(traverseLabeled1(k.onType))))(v.value1));
+                return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(PureScript_CST_Types.DeclClass.create)(traverseClassHead(dictApplicative)(k)(v.value0)))(Data_Traversable.traverse(Data_Traversable.traversableMaybe)(dictApplicative)(Data_Traversable.traverse(Data_Traversable.traversableTuple)(dictApplicative)(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(traverseLabeled(dictApplicative)(k.onType))))(v.value1));
             };
             if (v instanceof PureScript_CST_Types.DeclInstanceChain) {
-                return map(PureScript_CST_Types.DeclInstanceChain.create)(traverseSeparated1(traverseInstance1(k))(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.DeclInstanceChain.create)(traverseSeparated(dictApplicative)(traverseInstance(dictApplicative)(k))(v.value0));
             };
             if (v instanceof PureScript_CST_Types.DeclDerive) {
-                return map(PureScript_CST_Types.DeclDerive.create(v.value0)(v.value1))(traverseInstanceHead1(k)(v.value2));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.DeclDerive.create(v.value0)(v.value1))(traverseInstanceHead(dictApplicative)(k)(v.value2));
             };
             if (v instanceof PureScript_CST_Types.DeclKindSignature) {
-                return map(PureScript_CST_Types.DeclKindSignature.create(v.value0))(traverseLabeled1(k.onType)(v.value1));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.DeclKindSignature.create(v.value0))(traverseLabeled(dictApplicative)(k.onType)(v.value1));
             };
             if (v instanceof PureScript_CST_Types.DeclSignature) {
-                return map(PureScript_CST_Types.DeclSignature.create)(traverseLabeled1(k.onType)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.DeclSignature.create)(traverseLabeled(dictApplicative)(k.onType)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.DeclValue) {
-                return map(PureScript_CST_Types.DeclValue.create)(traverseValueBindingFields1(k)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.DeclValue.create)(traverseValueBindingFields(dictApplicative)(k)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.DeclForeign) {
-                return map(PureScript_CST_Types.DeclForeign.create(v.value0)(v.value1))(traverseForeign1(k)(v.value2));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.DeclForeign.create(v.value0)(v.value1))(traverseForeign(dictApplicative)(k)(v.value2));
             };
-            return pure6(v);
+            return Control_Applicative.pure(dictApplicative)(v);
         };
     };
 };
-var traverseDecl1 = /* #__PURE__ */ traverseDecl(applicativeReaderT);
-var traverseDecl2 = /* #__PURE__ */ traverseDecl(Control_Monad_Free.freeApplicative);
 var traverseCaseOf = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    var map = Data_Functor.map(Apply0.Functor0());
-    var traverseSeparated1 = traverseSeparated(dictApplicative);
-    var traverse4 = traverse3(dictApplicative);
-    var bitraverse1 = bitraverse(dictApplicative);
-    var traverseGuarded1 = traverseGuarded(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (r) {
-            return apply(map(function (v) {
+            return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (v) {
                 return function (v1) {
                     return {
                         keyword: r.keyword,
@@ -727,61 +602,46 @@ var traverseCaseOf = function (dictApplicative) {
                         branches: v1
                     };
                 };
-            })(traverseSeparated1(k.onExpr)(r.head)))(traverse4(bitraverse1(traverseSeparated1(k.onBinder))(traverseGuarded1(k)))(r.branches));
+            })(traverseSeparated(dictApplicative)(k.onExpr)(r.head)))(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(Data_Bitraversable.bitraverse(Data_Bitraversable.bitraversableTuple)(dictApplicative)(traverseSeparated(dictApplicative)(k.onBinder))(traverseGuarded(dictApplicative)(k)))(r.branches));
         };
     };
 };
 var traverseBinder = function (dictApplicative) {
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     var Apply0 = dictApplicative.Apply0();
-    var Functor0 = Apply0.Functor0();
-    var map = Data_Functor.map(Functor0);
-    var traverse4 = traverse(dictApplicative);
-    var traverseDelimited1 = traverseDelimited(dictApplicative);
-    var traverseRecordLabeled1 = traverseRecordLabeled(dictApplicative);
-    var traverseWrapped1 = traverseWrapped(dictApplicative);
-    var apply = Control_Apply.apply(Apply0);
-    var flap = Data_Functor.flap(Functor0);
-    var traverse5 = traverse3(dictApplicative);
-    var traverse6 = traverse1(dictApplicative);
-    var pure6 = Control_Applicative.pure(dictApplicative);
     return function (k) {
         return function (v) {
             if (v instanceof PureScript_CST_Types.BinderNamed) {
-                return map(PureScript_CST_Types.BinderNamed.create(v.value0)(v.value1))(k.onBinder(v.value2));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.BinderNamed.create(v.value0)(v.value1))(k.onBinder(v.value2));
             };
             if (v instanceof PureScript_CST_Types.BinderConstructor) {
-                return map(PureScript_CST_Types.BinderConstructor.create(v.value0))(traverse4(k.onBinder)(v.value1));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.BinderConstructor.create(v.value0))(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(k.onBinder)(v.value1));
             };
             if (v instanceof PureScript_CST_Types.BinderArray) {
-                return map(PureScript_CST_Types.BinderArray.create)(traverseDelimited1(k.onBinder)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.BinderArray.create)(traverseDelimited(dictApplicative)(k.onBinder)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.BinderRecord) {
-                return map(PureScript_CST_Types.BinderRecord.create)(traverseDelimited1(traverseRecordLabeled1(k.onBinder))(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.BinderRecord.create)(traverseDelimited(dictApplicative)(traverseRecordLabeled(dictApplicative)(k.onBinder))(v.value0));
             };
             if (v instanceof PureScript_CST_Types.BinderParens) {
-                return map(PureScript_CST_Types.BinderParens.create)(traverseWrapped1(k.onBinder)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.BinderParens.create)(traverseWrapped(dictApplicative)(k.onBinder)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.BinderTyped) {
-                return apply(flap(map(PureScript_CST_Types.BinderTyped.create)(k.onBinder(v.value0)))(v.value1))(k.onType(v.value2));
+                return Control_Apply.apply(Apply0)(Data_Functor.flap(Functor0)(Data_Functor.map(Functor0)(PureScript_CST_Types.BinderTyped.create)(k.onBinder(v.value0)))(v.value1))(k.onType(v.value2));
             };
             if (v instanceof PureScript_CST_Types.BinderOp) {
-                return apply(map(PureScript_CST_Types.BinderOp.create)(k.onBinder(v.value0)))(traverse5(traverse6(k.onBinder))(v.value1));
+                return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(PureScript_CST_Types.BinderOp.create)(k.onBinder(v.value0)))(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(Data_Traversable.traverse(Data_Traversable.traversableTuple)(dictApplicative)(k.onBinder))(v.value1));
             };
-            return pure6(v);
+            return Control_Applicative.pure(dictApplicative)(v);
         };
     };
 };
-var traverseBinder1 = /* #__PURE__ */ traverseBinder(applicativeReaderT);
-var traverseBinder2 = /* #__PURE__ */ traverseBinder(Control_Monad_Free.freeApplicative);
 var traverseAdoBlock = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    var map = Data_Functor.map(Apply0.Functor0());
-    var traverse4 = traverse(dictApplicative);
-    var traverseDoStatement1 = traverseDoStatement(dictApplicative);
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     return function (k) {
         return function (a) {
-            return apply(map(function (v) {
+            return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(function (v) {
                 return function (v1) {
                     return {
                         "in": a["in"],
@@ -790,134 +650,108 @@ var traverseAdoBlock = function (dictApplicative) {
                         result: v1
                     };
                 };
-            })(traverse4(traverseDoStatement1(k))(a.statements)))(k.onExpr(a.result));
+            })(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(traverseDoStatement(dictApplicative)(k))(a.statements)))(k.onExpr(a.result));
         };
     };
 };
 var traverseExpr = function (dictApplicative) {
+    var Functor0 = (dictApplicative.Apply0()).Functor0();
     var Apply0 = dictApplicative.Apply0();
-    var Functor0 = Apply0.Functor0();
-    var map = Data_Functor.map(Functor0);
-    var traverseDelimited1 = traverseDelimited(dictApplicative);
-    var traverseRecordLabeled1 = traverseRecordLabeled(dictApplicative);
-    var traverseWrapped1 = traverseWrapped(dictApplicative);
-    var apply = Control_Apply.apply(Apply0);
-    var flap = Data_Functor.flap(Functor0);
-    var traverse4 = traverse3(dictApplicative);
-    var bitraverse1 = bitraverse(dictApplicative);
-    var traverse5 = traverse1(dictApplicative);
-    var traverseRecordAccessor1 = traverseRecordAccessor(dictApplicative);
-    var traverseSeparated1 = traverseSeparated(dictApplicative);
-    var traverseRecordUpdate1 = traverseRecordUpdate(dictApplicative);
-    var traverseExprAppSpine1 = traverseExprAppSpine(dictApplicative);
-    var traverseLambda1 = traverseLambda(dictApplicative);
-    var traverseIfThenElse1 = traverseIfThenElse(dictApplicative);
-    var traverseCaseOf1 = traverseCaseOf(dictApplicative);
-    var traverseLetIn1 = traverseLetIn(dictApplicative);
-    var traverseDoBlock1 = traverseDoBlock(dictApplicative);
-    var traverseAdoBlock1 = traverseAdoBlock(dictApplicative);
-    var pure6 = Control_Applicative.pure(dictApplicative);
     return function (k) {
         return function (v) {
             if (v instanceof PureScript_CST_Types.ExprArray) {
-                return map(PureScript_CST_Types.ExprArray.create)(traverseDelimited1(k.onExpr)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.ExprArray.create)(traverseDelimited(dictApplicative)(k.onExpr)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.ExprRecord) {
-                return map(PureScript_CST_Types.ExprRecord.create)(traverseDelimited1(traverseRecordLabeled1(k.onExpr))(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.ExprRecord.create)(traverseDelimited(dictApplicative)(traverseRecordLabeled(dictApplicative)(k.onExpr))(v.value0));
             };
             if (v instanceof PureScript_CST_Types.ExprParens) {
-                return map(PureScript_CST_Types.ExprParens.create)(traverseWrapped1(k.onExpr)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.ExprParens.create)(traverseWrapped(dictApplicative)(k.onExpr)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.ExprTyped) {
-                return apply(flap(map(PureScript_CST_Types.ExprTyped.create)(k.onExpr(v.value0)))(v.value1))(k.onType(v.value2));
+                return Control_Apply.apply(Apply0)(Data_Functor.flap(Functor0)(Data_Functor.map(Functor0)(PureScript_CST_Types.ExprTyped.create)(k.onExpr(v.value0)))(v.value1))(k.onType(v.value2));
             };
             if (v instanceof PureScript_CST_Types.ExprInfix) {
-                return apply(map(PureScript_CST_Types.ExprInfix.create)(k.onExpr(v.value0)))(traverse4(bitraverse1(traverseWrapped1(k.onExpr))(k.onExpr))(v.value1));
+                return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(PureScript_CST_Types.ExprInfix.create)(k.onExpr(v.value0)))(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(Data_Bitraversable.bitraverse(Data_Bitraversable.bitraversableTuple)(dictApplicative)(traverseWrapped(dictApplicative)(k.onExpr))(k.onExpr))(v.value1));
             };
             if (v instanceof PureScript_CST_Types.ExprOp) {
-                return apply(map(PureScript_CST_Types.ExprOp.create)(k.onExpr(v.value0)))(traverse4(traverse5(k.onExpr))(v.value1));
+                return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(PureScript_CST_Types.ExprOp.create)(k.onExpr(v.value0)))(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(Data_Traversable.traverse(Data_Traversable.traversableTuple)(dictApplicative)(k.onExpr))(v.value1));
             };
             if (v instanceof PureScript_CST_Types.ExprNegate) {
-                return map(PureScript_CST_Types.ExprNegate.create(v.value0))(k.onExpr(v.value1));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.ExprNegate.create(v.value0))(k.onExpr(v.value1));
             };
             if (v instanceof PureScript_CST_Types.ExprRecordAccessor) {
-                return map(PureScript_CST_Types.ExprRecordAccessor.create)(traverseRecordAccessor1(k)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.ExprRecordAccessor.create)(traverseRecordAccessor(dictApplicative)(k)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.ExprRecordUpdate) {
-                return apply(map(PureScript_CST_Types.ExprRecordUpdate.create)(k.onExpr(v.value0)))(traverseWrapped1(traverseSeparated1(traverseRecordUpdate1(k)))(v.value1));
+                return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(PureScript_CST_Types.ExprRecordUpdate.create)(k.onExpr(v.value0)))(traverseWrapped(dictApplicative)(traverseSeparated(dictApplicative)(traverseRecordUpdate(dictApplicative)(k)))(v.value1));
             };
             if (v instanceof PureScript_CST_Types.ExprApp) {
-                return apply(map(PureScript_CST_Types.ExprApp.create)(k.onExpr(v.value0)))(traverse4(traverseExprAppSpine1(k))(v.value1));
+                return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(PureScript_CST_Types.ExprApp.create)(k.onExpr(v.value0)))(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(traverseExprAppSpine(dictApplicative)(k))(v.value1));
             };
             if (v instanceof PureScript_CST_Types.ExprLambda) {
-                return map(PureScript_CST_Types.ExprLambda.create)(traverseLambda1(k)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.ExprLambda.create)(traverseLambda(dictApplicative)(k)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.ExprIf) {
-                return map(PureScript_CST_Types.ExprIf.create)(traverseIfThenElse1(k)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.ExprIf.create)(traverseIfThenElse(dictApplicative)(k)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.ExprCase) {
-                return map(PureScript_CST_Types.ExprCase.create)(traverseCaseOf1(k)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.ExprCase.create)(traverseCaseOf(dictApplicative)(k)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.ExprLet) {
-                return map(PureScript_CST_Types.ExprLet.create)(traverseLetIn1(k)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.ExprLet.create)(traverseLetIn(dictApplicative)(k)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.ExprDo) {
-                return map(PureScript_CST_Types.ExprDo.create)(traverseDoBlock1(k)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.ExprDo.create)(traverseDoBlock(dictApplicative)(k)(v.value0));
             };
             if (v instanceof PureScript_CST_Types.ExprAdo) {
-                return map(PureScript_CST_Types.ExprAdo.create)(traverseAdoBlock1(k)(v.value0));
+                return Data_Functor.map(Functor0)(PureScript_CST_Types.ExprAdo.create)(traverseAdoBlock(dictApplicative)(k)(v.value0));
             };
-            return pure6(v);
+            return Control_Applicative.pure(dictApplicative)(v);
         };
     };
 };
-var traverseExpr1 = /* #__PURE__ */ traverseExpr(applicativeReaderT);
-var traverseExpr2 = /* #__PURE__ */ traverseExpr(Control_Monad_Free.freeApplicative);
 var topDownTraversalWithContextM = function (dictMonad) {
-    var bind2 = Control_Bind.bind(dictMonad.Bind1());
+    var Bind1 = dictMonad.Bind1();
     var applicativeReaderT1 = Control_Monad_Reader_Trans.applicativeReaderT(dictMonad.Applicative0());
-    var traverseBinder3 = traverseBinder(applicativeReaderT1);
-    var traverseExpr3 = traverseExpr(applicativeReaderT1);
-    var traverseDecl3 = traverseDecl(applicativeReaderT1);
-    var traverseType3 = traverseType(applicativeReaderT1);
     return function (visitor) {
         var visitor$prime = {
             onBinder: function (a) {
                 return function (ctx) {
-                    return bind2(visitor.onBinder(ctx)(a))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                        var $700 = traverseBinder3(visitor$prime);
-                        return function ($701) {
-                            return Control_Monad_Reader_Trans.runReaderT($700($701));
+                    return Control_Bind.bind(Bind1)(visitor.onBinder(ctx)(a))(Data_Tuple.uncurry(Data_Function.flip((function () {
+                        var $479 = traverseBinder(applicativeReaderT1)(visitor$prime);
+                        return function ($480) {
+                            return Control_Monad_Reader_Trans.runReaderT($479($480));
                         };
                     })())));
                 };
             },
             onExpr: function (a) {
                 return function (ctx) {
-                    return bind2(visitor.onExpr(ctx)(a))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                        var $702 = traverseExpr3(visitor$prime);
-                        return function ($703) {
-                            return Control_Monad_Reader_Trans.runReaderT($702($703));
+                    return Control_Bind.bind(Bind1)(visitor.onExpr(ctx)(a))(Data_Tuple.uncurry(Data_Function.flip((function () {
+                        var $481 = traverseExpr(applicativeReaderT1)(visitor$prime);
+                        return function ($482) {
+                            return Control_Monad_Reader_Trans.runReaderT($481($482));
                         };
                     })())));
                 };
             },
             onDecl: function (a) {
                 return function (ctx) {
-                    return bind2(visitor.onDecl(ctx)(a))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                        var $704 = traverseDecl3(visitor$prime);
-                        return function ($705) {
-                            return Control_Monad_Reader_Trans.runReaderT($704($705));
+                    return Control_Bind.bind(Bind1)(visitor.onDecl(ctx)(a))(Data_Tuple.uncurry(Data_Function.flip((function () {
+                        var $483 = traverseDecl(applicativeReaderT1)(visitor$prime);
+                        return function ($484) {
+                            return Control_Monad_Reader_Trans.runReaderT($483($484));
                         };
                     })())));
                 };
             },
             onType: function (a) {
                 return function (ctx) {
-                    return bind2(visitor.onType(ctx)(a))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                        var $706 = traverseType3(visitor$prime);
-                        return function ($707) {
-                            return Control_Monad_Reader_Trans.runReaderT($706($707));
+                    return Control_Bind.bind(Bind1)(visitor.onType(ctx)(a))(Data_Tuple.uncurry(Data_Function.flip((function () {
+                        var $485 = traverseType(applicativeReaderT1)(visitor$prime);
+                        return function ($486) {
+                            return Control_Monad_Reader_Trans.runReaderT($485($486));
                         };
                     })())));
                 };
@@ -930,40 +764,40 @@ var topDownTraversalWithContext = function (visitor) {
     var visitor$prime = {
         onBinder: function (a) {
             return function (ctx) {
-                return bind(pure(visitor.onBinder(ctx)(a)))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                    var $708 = traverseBinder1(visitor$prime);
-                    return function ($709) {
-                        return Control_Monad_Reader_Trans.runReaderT($708($709));
+                return Control_Bind.bind(Data_Identity.bindIdentity)(Control_Applicative.pure(Data_Identity.applicativeIdentity)(visitor.onBinder(ctx)(a)))(Data_Tuple.uncurry(Data_Function.flip((function () {
+                    var $487 = traverseBinder(applicativeReaderT)(visitor$prime);
+                    return function ($488) {
+                        return Control_Monad_Reader_Trans.runReaderT($487($488));
                     };
                 })())));
             };
         },
         onExpr: function (a) {
             return function (ctx) {
-                return bind(pure(visitor.onExpr(ctx)(a)))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                    var $710 = traverseExpr1(visitor$prime);
-                    return function ($711) {
-                        return Control_Monad_Reader_Trans.runReaderT($710($711));
+                return Control_Bind.bind(Data_Identity.bindIdentity)(Control_Applicative.pure(Data_Identity.applicativeIdentity)(visitor.onExpr(ctx)(a)))(Data_Tuple.uncurry(Data_Function.flip((function () {
+                    var $489 = traverseExpr(applicativeReaderT)(visitor$prime);
+                    return function ($490) {
+                        return Control_Monad_Reader_Trans.runReaderT($489($490));
                     };
                 })())));
             };
         },
         onDecl: function (a) {
             return function (ctx) {
-                return bind(pure(visitor.onDecl(ctx)(a)))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                    var $712 = traverseDecl1(visitor$prime);
-                    return function ($713) {
-                        return Control_Monad_Reader_Trans.runReaderT($712($713));
+                return Control_Bind.bind(Data_Identity.bindIdentity)(Control_Applicative.pure(Data_Identity.applicativeIdentity)(visitor.onDecl(ctx)(a)))(Data_Tuple.uncurry(Data_Function.flip((function () {
+                    var $491 = traverseDecl(applicativeReaderT)(visitor$prime);
+                    return function ($492) {
+                        return Control_Monad_Reader_Trans.runReaderT($491($492));
                     };
                 })())));
             };
         },
         onType: function (a) {
             return function (ctx) {
-                return bind(pure(visitor.onType(ctx)(a)))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                    var $714 = traverseType1(visitor$prime);
-                    return function ($715) {
-                        return Control_Monad_Reader_Trans.runReaderT($714($715));
+                return Control_Bind.bind(Data_Identity.bindIdentity)(Control_Applicative.pure(Data_Identity.applicativeIdentity)(visitor.onType(ctx)(a)))(Data_Tuple.uncurry(Data_Function.flip((function () {
+                    var $493 = traverseType(applicativeReaderT)(visitor$prime);
+                    return function ($494) {
+                        return Control_Monad_Reader_Trans.runReaderT($493($494));
                     };
                 })())));
             };
@@ -972,25 +806,21 @@ var topDownTraversalWithContext = function (visitor) {
     return visitor$prime;
 };
 var topDownTraversal = function (dictMonad) {
-    var bind2 = Control_Bind.bind(dictMonad.Bind1());
+    var Bind1 = dictMonad.Bind1();
     var Applicative0 = dictMonad.Applicative0();
-    var traverseBinder3 = traverseBinder(Applicative0);
-    var traverseExpr3 = traverseExpr(Applicative0);
-    var traverseType3 = traverseType(Applicative0);
-    var traverseDecl3 = traverseDecl(Applicative0);
     return function (visitor) {
         var visitor$prime = {
             onBinder: function (a) {
-                return bind2(visitor.onBinder(a))(traverseBinder3(visitor$prime));
+                return Control_Bind.bind(Bind1)(visitor.onBinder(a))(traverseBinder(Applicative0)(visitor$prime));
             },
             onExpr: function (a) {
-                return bind2(visitor.onExpr(a))(traverseExpr3(visitor$prime));
+                return Control_Bind.bind(Bind1)(visitor.onExpr(a))(traverseExpr(Applicative0)(visitor$prime));
             },
             onType: function (a) {
-                return bind2(visitor.onType(a))(traverseType3(visitor$prime));
+                return Control_Bind.bind(Bind1)(visitor.onType(a))(traverseType(Applicative0)(visitor$prime));
             },
             onDecl: function (a) {
-                return bind2(visitor.onDecl(a))(traverseDecl3(visitor$prime));
+                return Control_Bind.bind(Bind1)(visitor.onDecl(a))(traverseDecl(Applicative0)(visitor$prime));
             }
         };
         return visitor$prime;
@@ -999,29 +829,28 @@ var topDownTraversal = function (dictMonad) {
 var topDownPureTraversal = function (visitor) {
     var visitor$prime = {
         onBinder: function (a) {
-            return bind1(pure1(visitor.onBinder(a)))(traverseBinder2(visitor$prime));
+            return Control_Bind.bind(Control_Monad_Free.freeBind)(Control_Applicative.pure(Control_Monad_Free.freeApplicative)(visitor.onBinder(a)))(traverseBinder(Control_Monad_Free.freeApplicative)(visitor$prime));
         },
         onExpr: function (a) {
-            return bind1(pure1(visitor.onExpr(a)))(traverseExpr2(visitor$prime));
+            return Control_Bind.bind(Control_Monad_Free.freeBind)(Control_Applicative.pure(Control_Monad_Free.freeApplicative)(visitor.onExpr(a)))(traverseExpr(Control_Monad_Free.freeApplicative)(visitor$prime));
         },
         onType: function (a) {
-            return bind1(pure1(visitor.onType(a)))(traverseType2(visitor$prime));
+            return Control_Bind.bind(Control_Monad_Free.freeBind)(Control_Applicative.pure(Control_Monad_Free.freeApplicative)(visitor.onType(a)))(traverseType(Control_Monad_Free.freeApplicative)(visitor$prime));
         },
         onDecl: function (a) {
-            return bind1(pure1(visitor.onDecl(a)))(traverseDecl2(visitor$prime));
+            return Control_Bind.bind(Control_Monad_Free.freeBind)(Control_Applicative.pure(Control_Monad_Free.freeApplicative)(visitor.onDecl(a)))(traverseDecl(Control_Monad_Free.freeApplicative)(visitor$prime));
         }
     };
     return visitor$prime;
 };
 var rewriteWithContextM = function (dictMonad) {
-    var topDownTraversalWithContextM1 = topDownTraversalWithContextM(dictMonad);
-    var map = Data_Functor.map(((dictMonad.Bind1()).Apply0()).Functor0());
+    var Functor0 = ((dictMonad.Bind1()).Apply0()).Functor0();
     return function (traversal) {
         return function (visitor) {
             return function (ctx) {
                 return function (g) {
-                    var visitor$prime = topDownTraversalWithContextM1(visitor);
-                    return map(Data_Tuple.Tuple.create(ctx))(Control_Monad_Reader_Trans.runReaderT(traversal(visitor$prime)(g))(ctx));
+                    var visitor$prime = topDownTraversalWithContextM(dictMonad)(visitor);
+                    return Data_Functor.map(Functor0)(Data_Tuple.Tuple.create(ctx))(Control_Monad_Reader_Trans.runReaderT(traversal(visitor$prime)(g))(ctx));
                 };
             };
         };
@@ -1032,7 +861,7 @@ var rewriteWithContext = function (traversal) {
         return function (ctx) {
             return function (g) {
                 var visitor$prime = topDownTraversalWithContext(visitor);
-                return new Data_Tuple.Tuple(ctx, un(Data_Identity.Identity)(Control_Monad_Reader_Trans.runReaderT(traversal(visitor$prime)(g))(ctx)));
+                return new Data_Tuple.Tuple(ctx, Data_Newtype.un()(Data_Identity.Identity)(Control_Monad_Reader_Trans.runReaderT(traversal(visitor$prime)(g))(ctx)));
             };
         };
     };
@@ -1046,10 +875,9 @@ var rewriteTypeWithContext = /* #__PURE__ */ rewriteWithContext(function (v) {
     return v.onType;
 });
 var rewriteTopDownM = function (dictMonad) {
-    var topDownTraversal1 = topDownTraversal(dictMonad);
     return function (traversal) {
         return function (visitor) {
-            var visitor$prime = topDownTraversal1(visitor);
+            var visitor$prime = topDownTraversal(dictMonad)(visitor);
             return traversal(visitor$prime);
         };
     };
@@ -1062,10 +890,10 @@ var rewriteTypeTopDownM = function (dictMonad) {
 var rewriteTopDown = function (traversal) {
     return function (visitor) {
         var visitor$prime = topDownPureTraversal(visitor);
-        var $716 = runFree(un(Data_Identity.Identity));
-        var $717 = traversal(visitor$prime);
-        return function ($718) {
-            return $716($717($718));
+        var $495 = Control_Monad_Free.runFree(Data_Identity.functorIdentity)(Data_Newtype.un()(Data_Identity.Identity));
+        var $496 = traversal(visitor$prime);
+        return function ($497) {
+            return $495($496($497));
         };
     };
 };
@@ -1075,7 +903,7 @@ var rewriteTypeTopDown = /* #__PURE__ */ rewriteTopDown(function (v) {
 var rewriteModuleWithContextM = function (dictMonad) {
     return rewriteWithContextM(dictMonad)(traverseModule(Control_Monad_Reader_Trans.applicativeReaderT(dictMonad.Applicative0())));
 };
-var rewriteModuleWithContext = /* #__PURE__ */ rewriteWithContext(/* #__PURE__ */ traverseModule(applicativeReaderT));
+var rewriteModuleWithContext = /* #__PURE__ */ rewriteWithContext(/* #__PURE__ */ traverseModule(/* #__PURE__ */ Control_Monad_Reader_Trans.applicativeReaderT(Data_Identity.applicativeIdentity)));
 var rewriteModuleTopDownM = function (dictMonad) {
     return rewriteTopDownM(dictMonad)(traverseModule(dictMonad.Applicative0()));
 };
@@ -1129,40 +957,35 @@ var rewriteBinderTopDown = /* #__PURE__ */ rewriteTopDown(function (v) {
     return v.onBinder;
 });
 var defer = function (dictMonad) {
-    var bind2 = Control_Bind.bind(dictMonad.Bind1());
-    var pure6 = Control_Applicative.pure(dictMonad.Applicative0());
+    var Bind1 = dictMonad.Bind1();
+    var Applicative0 = dictMonad.Applicative0();
     return function (v) {
-        return bind2(pure6(Data_Unit.unit))(v);
+        return Control_Bind.bind(Bind1)(Control_Applicative.pure(Applicative0)(Data_Unit.unit))(v);
     };
 };
-var defer1 = /* #__PURE__ */ defer(Control_Monad_Free.freeMonad);
 var topDownMonoidalTraversal = function (dictMonoid) {
-    var apply = Control_Apply.apply(applyCompose(Data_Const.applyConst(dictMonoid.Semigroup0())));
+    var applyCompose1 = applyCompose(Data_Const.applyConst(dictMonoid.Semigroup0()));
     var applicativeCompose1 = applicativeCompose(Data_Const.applicativeConst(dictMonoid));
-    var traverseBinder3 = traverseBinder(applicativeCompose1);
-    var traverseExpr3 = traverseExpr(applicativeCompose1);
-    var traverseDecl3 = traverseDecl(applicativeCompose1);
-    var traverseType3 = traverseType(applicativeCompose1);
     return function (visitor) {
         var visitor$prime = {
             onBinder: function (a) {
-                return apply(pure1(visitor.onBinder(a)))(defer1(function (v) {
-                    return un(Data_Functor_Compose.Compose)(traverseBinder3(visitor$prime)(a));
+                return Control_Apply.apply(applyCompose1)(Control_Applicative.pure(Control_Monad_Free.freeApplicative)(visitor.onBinder(a)))(defer(Control_Monad_Free.freeMonad)(function (v) {
+                    return Data_Newtype.un()(Data_Functor_Compose.Compose)(traverseBinder(applicativeCompose1)(visitor$prime)(a));
                 }));
             },
             onExpr: function (a) {
-                return apply(pure1(visitor.onExpr(a)))(defer1(function (v) {
-                    return un(Data_Functor_Compose.Compose)(traverseExpr3(visitor$prime)(a));
+                return Control_Apply.apply(applyCompose1)(Control_Applicative.pure(Control_Monad_Free.freeApplicative)(visitor.onExpr(a)))(defer(Control_Monad_Free.freeMonad)(function (v) {
+                    return Data_Newtype.un()(Data_Functor_Compose.Compose)(traverseExpr(applicativeCompose1)(visitor$prime)(a));
                 }));
             },
             onDecl: function (a) {
-                return apply(pure1(visitor.onDecl(a)))(defer1(function (v) {
-                    return un(Data_Functor_Compose.Compose)(traverseDecl3(visitor$prime)(a));
+                return Control_Apply.apply(applyCompose1)(Control_Applicative.pure(Control_Monad_Free.freeApplicative)(visitor.onDecl(a)))(defer(Control_Monad_Free.freeMonad)(function (v) {
+                    return Data_Newtype.un()(Data_Functor_Compose.Compose)(traverseDecl(applicativeCompose1)(visitor$prime)(a));
                 }));
             },
             onType: function (a) {
-                return apply(pure1(visitor.onType(a)))(defer1(function (v) {
-                    return un(Data_Functor_Compose.Compose)(traverseType3(visitor$prime)(a));
+                return Control_Apply.apply(applyCompose1)(Control_Applicative.pure(Control_Monad_Free.freeApplicative)(visitor.onType(a)))(defer(Control_Monad_Free.freeMonad)(function (v) {
+                    return Data_Newtype.un()(Data_Functor_Compose.Compose)(traverseType(applicativeCompose1)(visitor$prime)(a));
                 }));
             }
         };
@@ -1170,12 +993,11 @@ var topDownMonoidalTraversal = function (dictMonoid) {
     };
 };
 var monoidalRewrite = function (dictMonoid) {
-    var topDownMonoidalTraversal1 = topDownMonoidalTraversal(dictMonoid);
     return function (traversal) {
         return function (visitor) {
             return function (g) {
-                var visitor$prime = topDownMonoidalTraversal1(visitor);
-                return un(Data_Const.Const)(runFree(un(Data_Identity.Identity))(un(Data_Functor_Compose.Compose)(traversal(visitor$prime)(g))));
+                var visitor$prime = topDownMonoidalTraversal(dictMonoid)(visitor);
+                return Data_Newtype.un()(Data_Const.Const)(Control_Monad_Free.runFree(Data_Identity.functorIdentity)(Data_Newtype.un()(Data_Identity.Identity))(Data_Newtype.un()(Data_Functor_Compose.Compose)(traversal(visitor$prime)(g))));
             };
         };
     };
@@ -1242,33 +1064,28 @@ var defaultMonoidalVisitor = function (dictMonoid) {
     };
 };
 var bottomUpTraversal = function (dictMonad) {
-    var bindFlipped1 = Control_Bind.bindFlipped(dictMonad.Bind1());
-    var defer2 = defer(dictMonad);
+    var Bind1 = dictMonad.Bind1();
     var Applicative0 = dictMonad.Applicative0();
-    var traverseBinder3 = traverseBinder(Applicative0);
-    var traverseExpr3 = traverseExpr(Applicative0);
-    var traverseType3 = traverseType(Applicative0);
-    var traverseDecl3 = traverseDecl(Applicative0);
     return function (visitor) {
         var visitor$prime = {
             onBinder: function (a) {
-                return bindFlipped1(visitor.onBinder)(defer2(function (v) {
-                    return traverseBinder3(visitor$prime)(a);
+                return Control_Bind.bindFlipped(Bind1)(visitor.onBinder)(defer(dictMonad)(function (v) {
+                    return traverseBinder(Applicative0)(visitor$prime)(a);
                 }));
             },
             onExpr: function (a) {
-                return bindFlipped1(visitor.onExpr)(defer2(function (v) {
-                    return traverseExpr3(visitor$prime)(a);
+                return Control_Bind.bindFlipped(Bind1)(visitor.onExpr)(defer(dictMonad)(function (v) {
+                    return traverseExpr(Applicative0)(visitor$prime)(a);
                 }));
             },
             onType: function (a) {
-                return bindFlipped1(visitor.onType)(defer2(function (v) {
-                    return traverseType3(visitor$prime)(a);
+                return Control_Bind.bindFlipped(Bind1)(visitor.onType)(defer(dictMonad)(function (v) {
+                    return traverseType(Applicative0)(visitor$prime)(a);
                 }));
             },
             onDecl: function (a) {
-                return bindFlipped1(visitor.onDecl)(defer2(function (v) {
-                    return traverseDecl3(visitor$prime)(a);
+                return Control_Bind.bindFlipped(Bind1)(visitor.onDecl)(defer(dictMonad)(function (v) {
+                    return traverseDecl(Applicative0)(visitor$prime)(a);
                 }));
             }
         };
@@ -1276,10 +1093,9 @@ var bottomUpTraversal = function (dictMonad) {
     };
 };
 var rewriteBottomUpM = function (dictMonad) {
-    var bottomUpTraversal1 = bottomUpTraversal(dictMonad);
     return function (traversal) {
         return function (visitor) {
-            var visitor$prime = bottomUpTraversal1(visitor);
+            var visitor$prime = bottomUpTraversal(dictMonad)(visitor);
             return traversal(visitor$prime);
         };
     };
@@ -1310,24 +1126,24 @@ var rewriteTypeBottomUpM = function (dictMonad) {
 var bottomUpPureTraversal = function (visitor) {
     var visitor$prime = {
         onBinder: function (a) {
-            return bindFlipped(function ($719) {
-                return pure2(visitor.onBinder($719));
-            })(traverseBinder2(visitor$prime)(a));
+            return Control_Bind.bindFlipped(Control_Monad_Free.freeBind)(function ($498) {
+                return pure(visitor.onBinder($498));
+            })(traverseBinder(Control_Monad_Free.freeApplicative)(visitor$prime)(a));
         },
         onExpr: function (a) {
-            return bindFlipped(function ($720) {
-                return pure3(visitor.onExpr($720));
-            })(traverseExpr2(visitor$prime)(a));
+            return Control_Bind.bindFlipped(Control_Monad_Free.freeBind)(function ($499) {
+                return pure1(visitor.onExpr($499));
+            })(traverseExpr(Control_Monad_Free.freeApplicative)(visitor$prime)(a));
         },
         onType: function (a) {
-            return bindFlipped(function ($721) {
-                return pure4(visitor.onType($721));
-            })(traverseType2(visitor$prime)(a));
+            return Control_Bind.bindFlipped(Control_Monad_Free.freeBind)(function ($500) {
+                return pure2(visitor.onType($500));
+            })(traverseType(Control_Monad_Free.freeApplicative)(visitor$prime)(a));
         },
         onDecl: function (a) {
-            return bindFlipped(function ($722) {
-                return pure5(visitor.onDecl($722));
-            })(traverseDecl2(visitor$prime)(a));
+            return Control_Bind.bindFlipped(Control_Monad_Free.freeBind)(function ($501) {
+                return pure3(visitor.onDecl($501));
+            })(traverseDecl(Control_Monad_Free.freeApplicative)(visitor$prime)(a));
         }
     };
     return visitor$prime;
@@ -1335,10 +1151,10 @@ var bottomUpPureTraversal = function (visitor) {
 var rewriteBottomUp = function (traversal) {
     return function (visitor) {
         var visitor$prime = bottomUpPureTraversal(visitor);
-        var $723 = runFree(un(Data_Identity.Identity));
-        var $724 = traversal(visitor$prime);
-        return function ($725) {
-            return $723($724($725));
+        var $502 = Control_Monad_Free.runFree(Data_Identity.functorIdentity)(Data_Newtype.un()(Data_Identity.Identity));
+        var $503 = traversal(visitor$prime);
+        return function ($504) {
+            return $502($503($504));
         };
     };
 };

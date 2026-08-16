@@ -32,16 +32,14 @@ var Right = /* #__PURE__ */ (function () {
     return Right;
 })();
 var showEither = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return function (dictShow1) {
-        var show1 = Data_Show.show(dictShow1);
         return {
             show: function (v) {
                 if (v instanceof Left) {
-                    return "(Left " + (show(v.value0) + ")");
+                    return "(Left " + (Data_Show.show(dictShow)(v.value0) + ")");
                 };
                 if (v instanceof Right) {
-                    return "(Right " + (show1(v.value0) + ")");
+                    return "(Right " + (Data_Show.show(dictShow1)(v.value0) + ")");
                 };
                 throw new Error("Failed pattern match at Data.Either (line 173, column 1 - line 175, column 46): " + [ v.constructor.name ]);
             }
@@ -49,8 +47,8 @@ var showEither = function (dictShow) {
     };
 };
 var note$prime = function (f) {
-    return Data_Maybe["maybe$prime"](function ($138) {
-        return Left.create(f($138));
+    return Data_Maybe["maybe$prime"](function ($124) {
+        return Left.create(f($124));
     })(Right.create);
 };
 var note = function (a) {
@@ -89,7 +87,6 @@ var functorEither = {
         };
     }
 };
-var map = /* #__PURE__ */ Data_Functor.map(functorEither);
 var invariantEither = {
     imap: /* #__PURE__ */ Data_Functor_Invariant.imapF(functorEither)
 };
@@ -139,17 +136,15 @@ var extendEither = {
     }
 };
 var eqEither = function (dictEq) {
-    var eq = Data_Eq.eq(dictEq);
     return function (dictEq1) {
-        var eq1 = Data_Eq.eq(dictEq1);
         return {
             eq: function (x) {
                 return function (y) {
                     if (x instanceof Left && y instanceof Left) {
-                        return eq(x.value0)(y.value0);
+                        return Data_Eq.eq(dictEq)(x.value0)(y.value0);
                     };
                     if (x instanceof Right && y instanceof Right) {
-                        return eq1(x.value0)(y.value0);
+                        return Data_Eq.eq(dictEq1)(x.value0)(y.value0);
                     };
                     return false;
                 };
@@ -158,16 +153,14 @@ var eqEither = function (dictEq) {
     };
 };
 var ordEither = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     var eqEither1 = eqEither(dictOrd.Eq0());
     return function (dictOrd1) {
-        var compare1 = Data_Ord.compare(dictOrd1);
         var eqEither2 = eqEither1(dictOrd1.Eq0());
         return {
             compare: function (x) {
                 return function (y) {
                     if (x instanceof Left && y instanceof Left) {
-                        return compare(x.value0)(y.value0);
+                        return Data_Ord.compare(dictOrd)(x.value0)(y.value0);
                     };
                     if (x instanceof Left) {
                         return Data_Ordering.LT.value;
@@ -176,7 +169,7 @@ var ordEither = function (dictOrd) {
                         return Data_Ordering.GT.value;
                     };
                     if (x instanceof Right && y instanceof Right) {
-                        return compare1(x.value0)(y.value0);
+                        return Data_Ord.compare(dictOrd1)(x.value0)(y.value0);
                     };
                     throw new Error("Failed pattern match at Data.Either (line 0, column 0 - line 0, column 0): " + [ x.constructor.name, y.constructor.name ]);
                 };
@@ -226,22 +219,20 @@ var hush = /* #__PURE__ */ (function () {
 var isLeft = /* #__PURE__ */ either(/* #__PURE__ */ Data_Function["const"](true))(/* #__PURE__ */ Data_Function["const"](false));
 var isRight = /* #__PURE__ */ either(/* #__PURE__ */ Data_Function["const"](false))(/* #__PURE__ */ Data_Function["const"](true));
 var choose = function (dictAlt) {
-    var alt = Control_Alt.alt(dictAlt);
-    var map1 = Data_Functor.map(dictAlt.Functor0());
+    var Functor0 = dictAlt.Functor0();
     return function (a) {
         return function (b) {
-            return alt(map1(Left.create)(a))(map1(Right.create)(b));
+            return Control_Alt.alt(dictAlt)(Data_Functor.map(Functor0)(Left.create)(a))(Data_Functor.map(Functor0)(Right.create)(b));
         };
     };
 };
 var boundedEither = function (dictBounded) {
-    var bottom = Data_Bounded.bottom(dictBounded);
     var ordEither1 = ordEither(dictBounded.Ord0());
     return function (dictBounded1) {
         var ordEither2 = ordEither1(dictBounded1.Ord0());
         return {
             top: new Right(Data_Bounded.top(dictBounded1)),
-            bottom: new Left(bottom),
+            bottom: new Left(Data_Bounded.bottom(dictBounded)),
             Ord0: function () {
                 return ordEither2;
             }
@@ -258,7 +249,7 @@ var applyEither = {
                 return new Left(v.value0);
             };
             if (v instanceof Right) {
-                return map(v.value0)(v1);
+                return Data_Functor.map(functorEither)(v.value0)(v1);
             };
             throw new Error("Failed pattern match at Data.Either (line 70, column 1 - line 72, column 30): " + [ v.constructor.name, v1.constructor.name ]);
         };
@@ -267,7 +258,6 @@ var applyEither = {
         return functorEither;
     }
 };
-var apply = /* #__PURE__ */ Control_Apply.apply(applyEither);
 var bindEither = {
     bind: /* #__PURE__ */ either(function (e) {
         return function (v) {
@@ -283,11 +273,11 @@ var bindEither = {
     }
 };
 var semigroupEither = function (dictSemigroup) {
-    var append1 = Data_Semigroup.append(dictSemigroup);
+    var append = Data_Semigroup.append(dictSemigroup);
     return {
         append: function (x) {
             return function (y) {
-                return apply(map(append1)(x))(y);
+                return Control_Apply.apply(applyEither)(Data_Functor.map(functorEither)(append)(x))(y);
             };
         }
     };

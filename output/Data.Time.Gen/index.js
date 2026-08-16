@@ -4,9 +4,9 @@ import * as Data_Functor from "../Data.Functor/index.js";
 import * as Data_Time from "../Data.Time/index.js";
 import * as Data_Time_Component_Gen from "../Data.Time.Component.Gen/index.js";
 var genTime = function (dictMonadGen) {
-    var Apply0 = ((dictMonadGen.Monad0()).Bind1()).Apply0();
-    var apply = Control_Apply.apply(Apply0);
-    return apply(apply(apply(Data_Functor.map(Apply0.Functor0())(Data_Time.Time.create)(Data_Time_Component_Gen.genHour(dictMonadGen)))(Data_Time_Component_Gen.genMinute(dictMonadGen)))(Data_Time_Component_Gen.genSecond(dictMonadGen)))(Data_Time_Component_Gen.genMillisecond(dictMonadGen));
+    var Bind1 = (dictMonadGen.Monad0()).Bind1();
+    var Apply0 = Bind1.Apply0();
+    return Control_Apply.apply(Apply0)(Control_Apply.apply(Apply0)(Control_Apply.apply(Apply0)(Data_Functor.map((Bind1.Apply0()).Functor0())(Data_Time.Time.create)(Data_Time_Component_Gen.genHour(dictMonadGen)))(Data_Time_Component_Gen.genMinute(dictMonadGen)))(Data_Time_Component_Gen.genSecond(dictMonadGen)))(Data_Time_Component_Gen.genMillisecond(dictMonadGen));
 };
 export {
     genTime

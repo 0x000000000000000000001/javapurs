@@ -12,10 +12,9 @@ var Compose = function (x) {
     return x;
 };
 var showCompose = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
-            return "(Compose " + (show(v) + ")");
+            return "(Compose " + (Data_Show.show(dictShow)(v) + ")");
         }
     };
 };
@@ -25,28 +24,25 @@ var newtypeCompose = {
     }
 };
 var functorCompose = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return function (dictFunctor1) {
-        var map1 = Data_Functor.map(dictFunctor1);
         return {
             map: function (f) {
                 return function (v) {
-                    return map(map1(f))(v);
+                    return Data_Functor.map(dictFunctor)(Data_Functor.map(dictFunctor1)(f))(v);
                 };
             }
         };
     };
 };
 var eqCompose = function (dictEq1) {
-    var eq1 = Data_Eq.eq1(dictEq1);
     return function (dictEq11) {
         var eqApp = Data_Functor_App.eqApp(dictEq11);
         return function (dictEq) {
-            var eq11 = eq1(eqApp(dictEq));
+            var eqApp1 = eqApp(dictEq);
             return {
                 eq: function (v) {
                     return function (v1) {
-                        return eq11(Data_Functor_App.hoistLiftApp(v))(Data_Functor_App.hoistLiftApp(v1));
+                        return Data_Eq.eq1(dictEq1)(eqApp1)(Data_Functor_App.hoistLiftApp(v))(Data_Functor_App.hoistLiftApp(v1));
                     };
                 }
             };
@@ -54,18 +50,17 @@ var eqCompose = function (dictEq1) {
     };
 };
 var ordCompose = function (dictOrd1) {
-    var compare1 = Data_Ord.compare1(dictOrd1);
     var eqCompose1 = eqCompose(dictOrd1.Eq10());
     return function (dictOrd11) {
         var ordApp = Data_Functor_App.ordApp(dictOrd11);
         var eqCompose2 = eqCompose1(dictOrd11.Eq10());
         return function (dictOrd) {
-            var compare11 = compare1(ordApp(dictOrd));
+            var ordApp1 = ordApp(dictOrd);
             var eqCompose3 = eqCompose2(dictOrd.Eq0());
             return {
                 compare: function (v) {
                     return function (v1) {
-                        return compare11(Data_Functor_App.hoistLiftApp(v))(Data_Functor_App.hoistLiftApp(v1));
+                        return Data_Ord.compare1(dictOrd1)(ordApp1)(Data_Functor_App.hoistLiftApp(v))(Data_Functor_App.hoistLiftApp(v1));
                     };
                 },
                 Eq0: function () {
@@ -103,27 +98,24 @@ var ord1Compose = function (dictOrd1) {
     };
 };
 var bihoistCompose = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return function (natF) {
         return function (natG) {
             return function (v) {
-                return natF(map(natG)(v));
+                return natF(Data_Functor.map(dictFunctor)(natG)(v));
             };
         };
     };
 };
 var applyCompose = function (dictApply) {
-    var apply = Control_Apply.apply(dictApply);
     var Functor0 = dictApply.Functor0();
-    var map = Data_Functor.map(Functor0);
-    var functorCompose1 = functorCompose(Functor0);
+    var functorCompose1 = functorCompose(dictApply.Functor0());
     return function (dictApply1) {
-        var apply1 = Control_Apply.apply(dictApply1);
+        var apply = Control_Apply.apply(dictApply1);
         var functorCompose2 = functorCompose1(dictApply1.Functor0());
         return {
             apply: function (v) {
                 return function (v1) {
-                    return apply(map(apply1)(v))(v1);
+                    return Control_Apply.apply(dictApply)(Data_Functor.map(Functor0)(apply)(v))(v1);
                 };
             },
             Functor0: function () {
@@ -139,9 +131,9 @@ var applicativeCompose = function (dictApplicative) {
         var applyCompose2 = applyCompose1(dictApplicative1.Apply0());
         return {
             pure: (function () {
-                var $112 = Control_Applicative.pure(dictApplicative1);
-                return function ($113) {
-                    return Compose(pure($112($113)));
+                var $100 = Control_Applicative.pure(dictApplicative1);
+                return function ($101) {
+                    return Compose(pure($100($101)));
                 };
             })(),
             Apply0: function () {
@@ -151,14 +143,13 @@ var applicativeCompose = function (dictApplicative) {
     };
 };
 var altCompose = function (dictAlt) {
-    var alt = Control_Alt.alt(dictAlt);
     var functorCompose1 = functorCompose(dictAlt.Functor0());
     return function (dictFunctor) {
         var functorCompose2 = functorCompose1(dictFunctor);
         return {
             alt: function (v) {
                 return function (v1) {
-                    return alt(v)(v1);
+                    return Control_Alt.alt(dictAlt)(v)(v1);
                 };
             },
             Functor0: function () {

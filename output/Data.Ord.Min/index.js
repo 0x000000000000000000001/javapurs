@@ -6,19 +6,17 @@ var Min = function (x) {
     return x;
 };
 var showMin = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
-            return "(Min " + (show(v) + ")");
+            return "(Min " + (Data_Show.show(dictShow)(v) + ")");
         }
     };
 };
 var semigroupMin = function (dictOrd) {
-    var min = Data_Ord.min(dictOrd);
     return {
         append: function (v) {
             return function (v1) {
-                return min(v)(v1);
+                return Data_Ord.min(dictOrd)(v)(v1);
             };
         }
     };
@@ -41,12 +39,11 @@ var eqMin = function (dictEq) {
     return dictEq;
 };
 var ordMin = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     var eqMin1 = eqMin(dictOrd.Eq0());
     return {
         compare: function (v) {
             return function (v1) {
-                return compare(v)(v1);
+                return Data_Ord.compare(dictOrd)(v)(v1);
             };
         },
         Eq0: function () {

@@ -4,34 +4,32 @@ import * as Control_Monad_Cont_Trans from "../Control.Monad.Cont.Trans/index.js"
 import * as Control_Semigroupoid from "../Control.Semigroupoid/index.js";
 import * as Data_Identity from "../Data.Identity/index.js";
 import * as Data_Newtype from "../Data.Newtype/index.js";
-var compose = /* #__PURE__ */ Control_Semigroupoid.compose(Control_Semigroupoid.semigroupoidFn);
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
-var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
 var withCont = function (f) {
     return Control_Monad_Cont_Trans.withContT((function () {
-        var $3 = compose(Data_Identity.Identity);
-        var $4 = compose(unwrap);
-        return function ($5) {
-            return $3(f($4($5)));
+        var $1 = Control_Semigroupoid.compose(Control_Semigroupoid.semigroupoidFn)(Data_Identity.Identity);
+        var $2 = Control_Semigroupoid.compose(Control_Semigroupoid.semigroupoidFn)(unwrap);
+        return function ($3) {
+            return $1(f($2($3)));
         };
     })());
 };
 var runCont = function (cc) {
     return function (k) {
-        return unwrap1(Control_Monad_Cont_Trans.runContT(cc)(function ($6) {
-            return Data_Identity.Identity(k($6));
+        return Data_Newtype.unwrap()(Control_Monad_Cont_Trans.runContT(cc)(function ($4) {
+            return Data_Identity.Identity(k($4));
         }));
     };
 };
 var mapCont = function (f) {
-    return Control_Monad_Cont_Trans.mapContT(function ($7) {
-        return Data_Identity.Identity(f(unwrap($7)));
+    return Control_Monad_Cont_Trans.mapContT(function ($5) {
+        return Data_Identity.Identity(f(unwrap($5)));
     });
 };
 var cont = function (f) {
     return function (c) {
-        return f(function ($8) {
-            return unwrap(c($8));
+        return f(function ($6) {
+            return unwrap(c($6));
         });
     };
 };

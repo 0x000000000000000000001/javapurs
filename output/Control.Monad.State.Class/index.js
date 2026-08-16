@@ -5,34 +5,30 @@ var state = function (dict) {
     return dict.state;
 };
 var put = function (dictMonadState) {
-    var state1 = state(dictMonadState);
     return function (s) {
-        return state1(function (v) {
+        return state(dictMonadState)(function (v) {
             return new Data_Tuple.Tuple(Data_Unit.unit, s);
         });
     };
 };
 var modify_ = function (dictMonadState) {
-    var state1 = state(dictMonadState);
     return function (f) {
-        return state1(function (s) {
+        return state(dictMonadState)(function (s) {
             return new Data_Tuple.Tuple(Data_Unit.unit, f(s));
         });
     };
 };
 var modify = function (dictMonadState) {
-    var state1 = state(dictMonadState);
     return function (f) {
-        return state1(function (s) {
+        return state(dictMonadState)(function (s) {
             var s$prime = f(s);
             return new Data_Tuple.Tuple(s$prime, s$prime);
         });
     };
 };
 var gets = function (dictMonadState) {
-    var state1 = state(dictMonadState);
     return function (f) {
-        return state1(function (s) {
+        return state(dictMonadState)(function (s) {
             return new Data_Tuple.Tuple(f(s), s);
         });
     };

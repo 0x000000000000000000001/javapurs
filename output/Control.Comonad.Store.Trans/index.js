@@ -15,13 +15,12 @@ var newtypeStoreT = {
     }
 };
 var functorStoreT = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return {
         map: function (f) {
             return function (v) {
-                return new Data_Tuple.Tuple(map(function (h) {
-                    return function ($36) {
-                        return f(h($36));
+                return new Data_Tuple.Tuple(Data_Functor.map(dictFunctor)(function (h) {
+                    return function ($31) {
+                        return f(h($31));
                     };
                 })(v.value0), v.value1);
             };
@@ -29,12 +28,11 @@ var functorStoreT = function (dictFunctor) {
     };
 };
 var extendStoreT = function (dictExtend) {
-    var extend = Control_Extend.extend(dictExtend);
     var functorStoreT1 = functorStoreT(dictExtend.Functor0());
     return {
         extend: function (f) {
             return function (v) {
-                return new Data_Tuple.Tuple(extend(function (w$prime) {
+                return new Data_Tuple.Tuple(Control_Extend.extend(dictExtend)(function (w$prime) {
                     return function (s$prime) {
                         return f(new Data_Tuple.Tuple(w$prime, s$prime));
                     };
@@ -48,20 +46,19 @@ var extendStoreT = function (dictExtend) {
 };
 var comonadTransStoreT = {
     lower: function (dictComonad) {
-        var map = Data_Functor.map((dictComonad.Extend0()).Functor0());
+        var Functor0 = (dictComonad.Extend0()).Functor0();
         return function (v) {
-            return map(function (v1) {
+            return Data_Functor.map(Functor0)(function (v1) {
                 return v1(v.value1);
             })(v.value0);
         };
     }
 };
 var comonadStoreT = function (dictComonad) {
-    var extract = Control_Comonad.extract(dictComonad);
     var extendStoreT1 = extendStoreT(dictComonad.Extend0());
     return {
         extract: function (v) {
-            return extract(v.value0)(v.value1);
+            return Control_Comonad.extract(dictComonad)(v.value0)(v.value1);
         },
         Extend0: function () {
             return extendStoreT1;

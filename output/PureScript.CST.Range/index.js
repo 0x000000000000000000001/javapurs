@@ -10,11 +10,6 @@ import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Void from "../Data.Void/index.js";
 import * as PureScript_CST_Range_TokenList from "../PureScript.CST.Range.TokenList/index.js";
 import * as PureScript_CST_Types from "../PureScript.CST.Types/index.js";
-var foldMap = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableArray)(PureScript_CST_Range_TokenList.monoidTokenList);
-var defer = /* #__PURE__ */ Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList);
-var append = /* #__PURE__ */ Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList);
-var foldMap1 = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList);
-var foldMap2 = /* #__PURE__ */ Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(PureScript_CST_Range_TokenList.monoidTokenList);
 var tokensOfVoid = {
     tokensOf: Data_Void.absurd
 };
@@ -36,14 +31,11 @@ var tokensOfName = {
 var tokensOf = function (dict) {
     return dict.tokensOf;
 };
-var tokensOf1 = /* #__PURE__ */ tokensOf(tokensOfQualifiedName);
-var tokensOf2 = /* #__PURE__ */ tokensOf(tokensOfName);
 var tokensOfArray = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(dictTokensOf);
     return {
-        tokensOf: foldMap(function (a) {
-            return defer(function (v) {
-                return tokensOf9(a);
+        tokensOf: Data_Foldable.foldMap(Data_Foldable.foldableArray)(PureScript_CST_Range_TokenList.monoidTokenList)(function (a) {
+            return Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v) {
+                return tokensOf(dictTokensOf)(a);
             });
         })
     };
@@ -51,22 +43,19 @@ var tokensOfArray = function (dictTokensOf) {
 var tokensOfFixityOp = {
     tokensOf: function (v) {
         if (v instanceof PureScript_CST_Types.FixityValue) {
-            return append(tokensOf1(v.value0))(append(PureScript_CST_Range_TokenList.singleton(v.value1))(tokensOf2(v.value2)));
+            return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfQualifiedName)(v.value0))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.value1))(tokensOf(tokensOfName)(v.value2)));
         };
         if (v instanceof PureScript_CST_Types.FixityType) {
-            return PureScript_CST_Range_TokenList.cons(v.value0)(append(tokensOf1(v.value1))(append(PureScript_CST_Range_TokenList.singleton(v.value2))(tokensOf2(v.value3))));
+            return PureScript_CST_Range_TokenList.cons(v.value0)(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfQualifiedName)(v.value1))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.value2))(tokensOf(tokensOfName)(v.value3))));
         };
         throw new Error("Failed pattern match at PureScript.CST.Range (line 643, column 14 - line 647, column 59): " + [ v.constructor.name ]);
     }
 };
-var tokensOf3 = /* #__PURE__ */ tokensOf(tokensOfFixityOp);
 var tokensOfLabeled = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(dictTokensOf);
     return function (dictTokensOf1) {
-        var tokensOf10 = tokensOf(dictTokensOf1);
         return {
             tokensOf: function (v) {
-                return append(tokensOf9(v.label))(append(PureScript_CST_Range_TokenList.singleton(v.separator))(tokensOf10(v.value)));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(dictTokensOf)(v.label))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.separator))(tokensOf(dictTokensOf1)(v.value)));
             }
         };
     };
@@ -74,42 +63,40 @@ var tokensOfLabeled = function (dictTokensOf) {
 var tokensOfLabeled1 = /* #__PURE__ */ tokensOfLabeled(tokensOfName);
 var tokensOfMaybe = function (dictTokensOf) {
     return {
-        tokensOf: foldMap1(tokensOf(dictTokensOf))
+        tokensOf: Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(tokensOf(dictTokensOf))
     };
 };
 var tokensOfNonEmptyArray = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(dictTokensOf);
     return {
-        tokensOf: foldMap2(function (a) {
-            return defer(function (v) {
-                return tokensOf9(a);
+        tokensOf: Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(PureScript_CST_Range_TokenList.monoidTokenList)(function (a) {
+            return Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v) {
+                return tokensOf(dictTokensOf)(a);
             });
         })
     };
 };
-var tokensOf4 = /* #__PURE__ */ tokensOf(/* #__PURE__ */ tokensOfNonEmptyArray(tokensOfName));
+var tokensOfNonEmptyArray1 = /* #__PURE__ */ tokensOfNonEmptyArray(tokensOfName);
 var tokensOfClassFundep = {
     tokensOf: function (v) {
         if (v instanceof PureScript_CST_Types.FundepDetermined) {
-            return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf4(v.value1));
+            return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf(tokensOfNonEmptyArray1)(v.value1));
         };
         if (v instanceof PureScript_CST_Types.FundepDetermines) {
-            return append(tokensOf4(v.value0))(append(PureScript_CST_Range_TokenList.singleton(v.value1))(tokensOf4(v.value2)));
+            return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfNonEmptyArray1)(v.value0))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.value1))(tokensOf(tokensOfNonEmptyArray1)(v.value2)));
         };
         throw new Error("Failed pattern match at PureScript.CST.Range (line 564, column 14 - line 568, column 50): " + [ v.constructor.name ]);
     }
 };
 var tokensOfPrefixed = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(dictTokensOf);
     return {
         tokensOf: function (v) {
             if (v.prefix instanceof Data_Maybe.Just) {
-                return PureScript_CST_Range_TokenList.cons(v.prefix.value0)(defer(function (v1) {
-                    return tokensOf9(v.value);
+                return PureScript_CST_Range_TokenList.cons(v.prefix.value0)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return tokensOf(dictTokensOf)(v.value);
                 }));
             };
             if (v.prefix instanceof Data_Maybe.Nothing) {
-                return tokensOf9(v.value);
+                return tokensOf(dictTokensOf)(v.value);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 136, column 5 - line 140, column 23): " + [ v.prefix.constructor.name ]);
         }
@@ -117,15 +104,14 @@ var tokensOfPrefixed = function (dictTokensOf) {
 };
 var tokensOfPrefixed1 = /* #__PURE__ */ tokensOfPrefixed(tokensOfName);
 var tokensOfRecordLabeled = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(dictTokensOf);
     return {
         tokensOf: function (v) {
             if (v instanceof PureScript_CST_Types.RecordPun) {
-                return tokensOf2(v.value0);
+                return tokensOf(tokensOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.RecordField) {
-                return append(tokensOf2(v.value0))(defer(function (v1) {
-                    return PureScript_CST_Range_TokenList.cons(v.value1)(tokensOf9(v.value2));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return PureScript_CST_Range_TokenList.cons(v.value1)(tokensOf(dictTokensOf)(v.value2));
                 }));
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 1012, column 14 - line 1016, column 52): " + [ v.constructor.name ]);
@@ -133,13 +119,12 @@ var tokensOfRecordLabeled = function (dictTokensOf) {
     };
 };
 var tokensOfSeparated = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(dictTokensOf);
     return {
         tokensOf: function (v) {
-            return append(tokensOf9(v.head))(defer(function (v1) {
-                return foldMap(function (v2) {
-                    return PureScript_CST_Range_TokenList.cons(v2.value0)(defer(function (v3) {
-                        return tokensOf9(v2.value1);
+            return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(dictTokensOf)(v.head))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                return Data_Foldable.foldMap(Data_Foldable.foldableArray)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v2) {
+                    return PureScript_CST_Range_TokenList.cons(v2.value0)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v3) {
+                        return tokensOf(dictTokensOf)(v2.value1);
                     }));
                 })(v.tail);
             }));
@@ -147,124 +132,117 @@ var tokensOfSeparated = function (dictTokensOf) {
     };
 };
 var tokensOfSeparated1 = /* #__PURE__ */ tokensOfSeparated(tokensOfName);
-var tokensOf5 = /* #__PURE__ */ tokensOf(tokensOfSeparated1);
-var tokensOf6 = /* #__PURE__ */ tokensOf(/* #__PURE__ */ tokensOfSeparated(tokensOfClassFundep));
+var tokensOfSeparated2 = /* #__PURE__ */ tokensOfSeparated(tokensOfClassFundep);
 var tokensOfTuple = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(dictTokensOf);
     return function (dictTokensOf1) {
-        var tokensOf10 = tokensOf(dictTokensOf1);
         return {
             tokensOf: function (v) {
-                return append(tokensOf9(v.value0))(tokensOf10(v.value1));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(dictTokensOf)(v.value0))(tokensOf(dictTokensOf1)(v.value1));
             }
         };
     };
 };
 var tokensOfTuple1 = /* #__PURE__ */ tokensOfTuple(tokensOfQualifiedName);
 var tokensOfWrapped = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(dictTokensOf);
     return {
         tokensOf: function (v) {
-            return PureScript_CST_Range_TokenList.wrap(v.open)(defer(function (v1) {
-                return tokensOf9(v.value);
+            return PureScript_CST_Range_TokenList.wrap(v.open)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                return tokensOf(dictTokensOf)(v.value);
             }))(v.close);
         }
     };
 };
-var tokensOf7 = /* #__PURE__ */ tokensOf(/* #__PURE__ */ tokensOfWrapped(/* #__PURE__ */ tokensOfMaybe(tokensOfSeparated1)));
+var tokensOfWrapped1 = /* #__PURE__ */ tokensOfWrapped(/* #__PURE__ */ tokensOfMaybe(/* #__PURE__ */ tokensOfSeparated(tokensOfName)));
 var tokensOfDataMembers = {
     tokensOf: function (v) {
         if (v instanceof PureScript_CST_Types.DataAll) {
             return PureScript_CST_Range_TokenList.singleton(v.value0);
         };
         if (v instanceof PureScript_CST_Types.DataEnumerated) {
-            return tokensOf7(v.value0);
+            return tokensOf(tokensOfWrapped1)(v.value0);
         };
         throw new Error("Failed pattern match at PureScript.CST.Range (line 329, column 14 - line 333, column 17): " + [ v.constructor.name ]);
     }
 };
-var tokensOf8 = /* #__PURE__ */ tokensOf(tokensOfDataMembers);
+var tokensOf1 = /* #__PURE__ */ tokensOf(tokensOfDataMembers);
 var tokensOfExport = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(dictTokensOf);
     return {
         tokensOf: function (v) {
             if (v instanceof PureScript_CST_Types.ExportValue) {
-                return tokensOf2(v.value0);
+                return tokensOf(tokensOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExportOp) {
-                return tokensOf2(v.value0);
+                return tokensOf(tokensOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExportType) {
-                return append(tokensOf2(v.value0))(foldMap1(tokensOf8)(v.value1));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.value0))(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(tokensOf1)(v.value1));
             };
             if (v instanceof PureScript_CST_Types.ExportTypeOp) {
-                return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf2(v.value1));
+                return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf(tokensOfName)(v.value1));
             };
             if (v instanceof PureScript_CST_Types.ExportClass) {
-                return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf2(v.value1));
+                return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf(tokensOfName)(v.value1));
             };
             if (v instanceof PureScript_CST_Types.ExportModule) {
-                return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf2(v.value1));
+                return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf(tokensOfName)(v.value1));
             };
             if (v instanceof PureScript_CST_Types.ExportError) {
-                return tokensOf9(v.value0);
+                return tokensOf(dictTokensOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 305, column 14 - line 319, column 17): " + [ v.constructor.name ]);
         }
     };
 };
 var tokensOfImport = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(dictTokensOf);
     return {
         tokensOf: function (v) {
             if (v instanceof PureScript_CST_Types.ImportValue) {
-                return tokensOf2(v.value0);
+                return tokensOf(tokensOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ImportOp) {
-                return tokensOf2(v.value0);
+                return tokensOf(tokensOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ImportType) {
-                return append(tokensOf2(v.value0))(foldMap1(tokensOf8)(v.value1));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.value0))(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(tokensOf1)(v.value1));
             };
             if (v instanceof PureScript_CST_Types.ImportTypeOp) {
-                return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf2(v.value1));
+                return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf(tokensOfName)(v.value1));
             };
             if (v instanceof PureScript_CST_Types.ImportClass) {
-                return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf2(v.value1));
+                return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf(tokensOfName)(v.value1));
             };
             if (v instanceof PureScript_CST_Types.ImportError) {
-                return tokensOf9(v.value0);
+                return tokensOf(dictTokensOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 384, column 14 - line 396, column 17): " + [ v.constructor.name ]);
         }
     };
 };
 var tokensOfImportDecl = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(tokensOfWrapped(tokensOfSeparated(tokensOfImport(dictTokensOf))));
+    var tokensOfWrapped2 = tokensOfWrapped(tokensOfSeparated(tokensOfImport(dictTokensOf)));
     return {
         tokensOf: function (v) {
-            return PureScript_CST_Range_TokenList.cons(v.keyword)(defer(function (v1) {
-                return append(tokensOf2(v.module))(append(foldMap1(function (v2) {
-                    return append(foldMap1(PureScript_CST_Range_TokenList.singleton)(v2.value0))(defer(function (v3) {
-                        return tokensOf9(v2.value1);
+            return PureScript_CST_Range_TokenList.cons(v.keyword)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.module))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v2) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(PureScript_CST_Range_TokenList.singleton)(v2.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v3) {
+                        return tokensOf(tokensOfWrapped2)(v2.value1);
                     }));
-                })(v.names))(foldMap1(function (v2) {
-                    return append(PureScript_CST_Range_TokenList.singleton(v2.value0))(tokensOf2(v2.value1));
+                })(v.names))(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v2) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v2.value0))(tokensOf(tokensOfName)(v2.value1));
                 })(v.qualified)));
             }));
         }
     };
 };
 var tokensOfOneOrDelimited = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(dictTokensOf);
-    var tokensOf10 = tokensOf(tokensOfWrapped(tokensOfSeparated(dictTokensOf)));
+    var tokensOfWrapped2 = tokensOfWrapped(tokensOfSeparated(dictTokensOf));
     return {
         tokensOf: function (v) {
             if (v instanceof PureScript_CST_Types.One) {
-                return tokensOf9(v.value0);
+                return tokensOf(dictTokensOf)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.Many) {
-                return tokensOf10(v.value0);
+                return tokensOf(tokensOfWrapped2)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 148, column 14 - line 150, column 27): " + [ v.constructor.name ]);
         }
@@ -272,7 +250,6 @@ var tokensOfOneOrDelimited = function (dictTokensOf) {
 };
 var tokensOfTypeVarBinding = function (dictTokensOf) {
     var tokensOfLabeled2 = tokensOfLabeled(dictTokensOf);
-    var tokensOf9 = tokensOf(dictTokensOf);
     return function (dictTokensOf1) {
         return {
             tokensOf: function (v) {
@@ -280,7 +257,7 @@ var tokensOfTypeVarBinding = function (dictTokensOf) {
                     return tokensOf(tokensOfWrapped(tokensOfLabeled2(tokensOfType(dictTokensOf1))))(v.value0);
                 };
                 if (v instanceof PureScript_CST_Types.TypeVarName) {
-                    return tokensOf9(v.value0);
+                    return tokensOf(dictTokensOf)(v.value0);
                 };
                 throw new Error("Failed pattern match at PureScript.CST.Range (line 269, column 14 - line 273, column 17): " + [ v.constructor.name ]);
             }
@@ -288,26 +265,25 @@ var tokensOfTypeVarBinding = function (dictTokensOf) {
     };
 };
 var tokensOfType = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(dictTokensOf);
     return {
         tokensOf: function (v) {
             if (v instanceof PureScript_CST_Types.TypeVar) {
-                return tokensOf2(v.value0);
+                return tokensOf(tokensOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.TypeConstructor) {
-                return tokensOf1(v.value0);
+                return tokensOf(tokensOfQualifiedName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.TypeWildcard) {
                 return PureScript_CST_Range_TokenList.singleton(v.value0);
             };
             if (v instanceof PureScript_CST_Types.TypeHole) {
-                return tokensOf2(v.value0);
+                return tokensOf(tokensOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.TypeString) {
                 return PureScript_CST_Range_TokenList.singleton(v.value0);
             };
             if (v instanceof PureScript_CST_Types.TypeInt) {
-                return append(foldMap1(PureScript_CST_Range_TokenList.singleton)(v.value0))(PureScript_CST_Range_TokenList.singleton(v.value1));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(PureScript_CST_Range_TokenList.singleton)(v.value0))(PureScript_CST_Range_TokenList.singleton(v.value1));
             };
             if (v instanceof PureScript_CST_Types.TypeRow) {
                 return tokensOf(tokensOfWrapped(tokensOfRow(dictTokensOf)))(v.value0);
@@ -316,48 +292,48 @@ var tokensOfType = function (dictTokensOf) {
                 return tokensOf(tokensOfWrapped(tokensOfRow(dictTokensOf)))(v.value0);
             };
             if (v instanceof PureScript_CST_Types.TypeForall) {
-                return PureScript_CST_Range_TokenList.cons(v.value0)(defer(function (v1) {
-                    return append(tokensOf(tokensOfNonEmptyArray(tokensOfTypeVarBinding(tokensOfPrefixed1)(dictTokensOf)))(v.value1))(append(PureScript_CST_Range_TokenList.singleton(v.value2))(tokensOf(tokensOfType(dictTokensOf))(v.value3)));
+                return PureScript_CST_Range_TokenList.cons(v.value0)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfNonEmptyArray(tokensOfTypeVarBinding(tokensOfPrefixed1)(dictTokensOf)))(v.value1))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.value2))(tokensOf(tokensOfType(dictTokensOf))(v.value3)));
                 }));
             };
             if (v instanceof PureScript_CST_Types.TypeKinded) {
-                return append(tokensOf(tokensOfType(dictTokensOf))(v.value0))(defer(function (v1) {
-                    return append(PureScript_CST_Range_TokenList.singleton(v.value1))(tokensOf(tokensOfType(dictTokensOf))(v.value2));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfType(dictTokensOf))(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.value1))(tokensOf(tokensOfType(dictTokensOf))(v.value2));
                 }));
             };
             if (v instanceof PureScript_CST_Types.TypeApp) {
-                return append(tokensOf(tokensOfType(dictTokensOf))(v.value0))(defer(function (v1) {
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfType(dictTokensOf))(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
                     return tokensOf(tokensOfNonEmptyArray(tokensOfType(dictTokensOf)))(v.value1);
                 }));
             };
             if (v instanceof PureScript_CST_Types.TypeOp) {
-                return append(tokensOf(tokensOfType(dictTokensOf))(v.value0))(defer(function (v1) {
-                    return foldMap2(function (v2) {
-                        return append(tokensOf1(v2.value0))(tokensOf(tokensOfType(dictTokensOf))(v2.value1));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfType(dictTokensOf))(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v2) {
+                        return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfQualifiedName)(v2.value0))(tokensOf(tokensOfType(dictTokensOf))(v2.value1));
                     })(v.value1);
                 }));
             };
             if (v instanceof PureScript_CST_Types.TypeOpName) {
-                return tokensOf1(v.value0);
+                return tokensOf(tokensOfQualifiedName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.TypeArrow) {
-                return append(tokensOf(tokensOfType(dictTokensOf))(v.value0))(defer(function (v1) {
-                    return append(PureScript_CST_Range_TokenList.singleton(v.value1))(tokensOf(tokensOfType(dictTokensOf))(v.value2));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfType(dictTokensOf))(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.value1))(tokensOf(tokensOfType(dictTokensOf))(v.value2));
                 }));
             };
             if (v instanceof PureScript_CST_Types.TypeArrowName) {
                 return PureScript_CST_Range_TokenList.singleton(v.value0);
             };
             if (v instanceof PureScript_CST_Types.TypeConstrained) {
-                return append(tokensOf(tokensOfType(dictTokensOf))(v.value0))(defer(function (v1) {
-                    return append(PureScript_CST_Range_TokenList.singleton(v.value1))(tokensOf(tokensOfType(dictTokensOf))(v.value2));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfType(dictTokensOf))(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.value1))(tokensOf(tokensOfType(dictTokensOf))(v.value2));
                 }));
             };
             if (v instanceof PureScript_CST_Types.TypeParens) {
                 return tokensOf(tokensOfWrapped(tokensOfType(dictTokensOf)))(v.value0);
             };
             if (v instanceof PureScript_CST_Types["TypeError"]) {
-                return tokensOf9(v.value0);
+                return tokensOf(dictTokensOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 210, column 14 - line 254, column 17): " + [ v.constructor.name ]);
         }
@@ -366,7 +342,7 @@ var tokensOfType = function (dictTokensOf) {
 var tokensOfRow = function (dictTokensOf) {
     return {
         tokensOf: function (v) {
-            return append(foldMap1(tokensOf(tokensOfSeparated(tokensOfLabeled1(tokensOfType(dictTokensOf)))))(v.labels))(foldMap1(function (v1) {
+            return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(tokensOf(tokensOfSeparated(tokensOfLabeled1(tokensOfType(dictTokensOf)))))(v.labels))(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v1) {
                 return PureScript_CST_Range_TokenList.cons(v1.value0)(tokensOf(tokensOfType(dictTokensOf))(v1.value1));
             })(v.tail));
         }
@@ -374,18 +350,17 @@ var tokensOfRow = function (dictTokensOf) {
 };
 var tokensOfTypeVarBinding1 = /* #__PURE__ */ tokensOfTypeVarBinding(tokensOfName);
 var tokensOfAppSpine = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(tokensOfType(dictTokensOf));
+    var tokensOfType1 = tokensOfType(dictTokensOf);
     return function (dictTokensOf1) {
-        var tokensOf10 = tokensOf(dictTokensOf1);
         return {
             tokensOf: function (v) {
                 if (v instanceof PureScript_CST_Types.AppType) {
-                    return PureScript_CST_Range_TokenList.cons(v.value0)(defer(function (v1) {
-                        return tokensOf9(v.value1);
+                    return PureScript_CST_Range_TokenList.cons(v.value0)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                        return tokensOf(tokensOfType1)(v.value1);
                     }));
                 };
                 if (v instanceof PureScript_CST_Types.AppTerm) {
-                    return tokensOf10(v.value0);
+                    return tokensOf(dictTokensOf1)(v.value0);
                 };
                 throw new Error("Failed pattern match at PureScript.CST.Range (line 856, column 14 - line 860, column 17): " + [ v.constructor.name ]);
             }
@@ -393,23 +368,22 @@ var tokensOfAppSpine = function (dictTokensOf) {
     };
 };
 var tokensOfBinder = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(tokensOfType(dictTokensOf));
-    var tokensOf10 = tokensOf(dictTokensOf);
+    var tokensOfType1 = tokensOfType(dictTokensOf);
     return {
         tokensOf: function (v) {
             if (v instanceof PureScript_CST_Types.BinderWildcard) {
                 return PureScript_CST_Range_TokenList.singleton(v.value0);
             };
             if (v instanceof PureScript_CST_Types.BinderVar) {
-                return tokensOf2(v.value0);
+                return tokensOf(tokensOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.BinderNamed) {
-                return append(tokensOf2(v.value0))(defer(function (v1) {
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
                     return PureScript_CST_Range_TokenList.cons(v.value1)(tokensOf(tokensOfBinder(dictTokensOf))(v.value2));
                 }));
             };
             if (v instanceof PureScript_CST_Types.BinderConstructor) {
-                return append(tokensOf1(v.value0))(defer(function (v1) {
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfQualifiedName)(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
                     return tokensOf(tokensOfArray(tokensOfBinder(dictTokensOf)))(v.value1);
                 }));
             };
@@ -423,10 +397,10 @@ var tokensOfBinder = function (dictTokensOf) {
                 return PureScript_CST_Range_TokenList.singleton(v.value0);
             };
             if (v instanceof PureScript_CST_Types.BinderInt) {
-                return append(foldMap1(PureScript_CST_Range_TokenList.singleton)(v.value0))(PureScript_CST_Range_TokenList.singleton(v.value1));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(PureScript_CST_Range_TokenList.singleton)(v.value0))(PureScript_CST_Range_TokenList.singleton(v.value1));
             };
             if (v instanceof PureScript_CST_Types.BinderNumber) {
-                return append(foldMap1(PureScript_CST_Range_TokenList.singleton)(v.value0))(PureScript_CST_Range_TokenList.singleton(v.value1));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(PureScript_CST_Range_TokenList.singleton)(v.value0))(PureScript_CST_Range_TokenList.singleton(v.value1));
             };
             if (v instanceof PureScript_CST_Types.BinderArray) {
                 return tokensOf(tokensOfWrapped(tokensOfMaybe(tokensOfSeparated(tokensOfBinder(dictTokensOf)))))(v.value0);
@@ -438,42 +412,42 @@ var tokensOfBinder = function (dictTokensOf) {
                 return tokensOf(tokensOfWrapped(tokensOfBinder(dictTokensOf)))(v.value0);
             };
             if (v instanceof PureScript_CST_Types.BinderTyped) {
-                return append(tokensOf(tokensOfBinder(dictTokensOf))(v.value0))(defer(function (v1) {
-                    return PureScript_CST_Range_TokenList.cons(v.value1)(tokensOf9(v.value2));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfBinder(dictTokensOf))(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return PureScript_CST_Range_TokenList.cons(v.value1)(tokensOf(tokensOfType1)(v.value2));
                 }));
             };
             if (v instanceof PureScript_CST_Types.BinderOp) {
-                return append(tokensOf(tokensOfBinder(dictTokensOf))(v.value0))(defer(function (v1) {
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfBinder(dictTokensOf))(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
                     return tokensOf(tokensOfNonEmptyArray(tokensOfTuple1(tokensOfBinder(dictTokensOf))))(v.value1);
                 }));
             };
             if (v instanceof PureScript_CST_Types.BinderError) {
-                return tokensOf10(v.value0);
+                return tokensOf(dictTokensOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 979, column 14 - line 1009, column 17): " + [ v.constructor.name ]);
         }
     };
 };
 var tokensOfDataCtor = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(tokensOfArray(tokensOfType(dictTokensOf)));
+    var tokensOfArray1 = tokensOfArray(tokensOfType(dictTokensOf));
     return {
         tokensOf: function (v) {
-            return append(tokensOf2(v.name))(tokensOf9(v.fields));
+            return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.name))(tokensOf(tokensOfArray1)(v.fields));
         }
     };
 };
 var tokensOfForeign = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(tokensOfLabeled1(tokensOfType(dictTokensOf)));
+    var tokensOfLabeled2 = tokensOfLabeled1(tokensOfType(dictTokensOf));
     return {
         tokensOf: function (v) {
             if (v instanceof PureScript_CST_Types.ForeignValue) {
-                return tokensOf9(v.value0);
+                return tokensOf(tokensOfLabeled2)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ForeignData) {
-                return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf9(v.value1));
+                return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf(tokensOfLabeled2)(v.value1));
             };
             if (v instanceof PureScript_CST_Types.ForeignKind) {
-                return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf2(v.value1));
+                return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf(tokensOfName)(v.value1));
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 663, column 14 - line 669, column 26): " + [ v.constructor.name ]);
         }
@@ -482,8 +456,8 @@ var tokensOfForeign = function (dictTokensOf) {
 var tokensOfWhere = function (dictTokensOf) {
     return {
         tokensOf: function (v) {
-            return append(tokensOf(tokensOfExpr(dictTokensOf))(v.expr))(defer(function (v1) {
-                return foldMap1(function (v2) {
+            return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfExpr(dictTokensOf))(v.expr))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                return Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v2) {
                     return PureScript_CST_Range_TokenList.cons(v2.value0)(tokensOf(tokensOfNonEmptyArray(tokensOfLetBinding(dictTokensOf)))(v2.value1));
                 })(v.bindings);
             }));
@@ -494,48 +468,46 @@ var tokensOfRecordUpdate = function (dictTokensOf) {
     return {
         tokensOf: function (v) {
             if (v instanceof PureScript_CST_Types.RecordUpdateLeaf) {
-                return append(tokensOf2(v.value0))(append(PureScript_CST_Range_TokenList.singleton(v.value1))(tokensOf(tokensOfExpr(dictTokensOf))(v.value2)));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.value0))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.value1))(tokensOf(tokensOfExpr(dictTokensOf))(v.value2)));
             };
             if (v instanceof PureScript_CST_Types.RecordUpdateBranch) {
-                return append(tokensOf2(v.value0))(tokensOf(tokensOfWrapped(tokensOfSeparated(tokensOfRecordUpdate(dictTokensOf))))(v.value1));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.value0))(tokensOf(tokensOfWrapped(tokensOfSeparated(tokensOfRecordUpdate(dictTokensOf))))(v.value1));
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 863, column 14 - line 867, column 32): " + [ v.constructor.name ]);
         }
     };
 };
 var tokensOfPatternGuard = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(tokensOfBinder(dictTokensOf));
+    var tokensOfBinder1 = tokensOfBinder(dictTokensOf);
     return {
         tokensOf: function (v) {
-            return append(foldMap1(function (v1) {
-                return append(tokensOf9(v1.value0))(PureScript_CST_Range_TokenList.singleton(v1.value1));
+            return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v1) {
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfBinder1)(v1.value0))(PureScript_CST_Range_TokenList.singleton(v1.value1));
             })(v.binder))(tokensOf(tokensOfExpr(dictTokensOf))(v.expr));
         }
     };
 };
 var tokensOfLetBinding = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(tokensOfLabeled1(tokensOfType(dictTokensOf)));
+    var tokensOfLabeled2 = tokensOfLabeled1(tokensOfType(dictTokensOf));
+    var tokensOfArray1 = tokensOfArray(tokensOfBinder(dictTokensOf));
     var tokensOfBinder1 = tokensOfBinder(dictTokensOf);
-    var tokensOf10 = tokensOf(tokensOfArray(tokensOfBinder1));
-    var tokensOf11 = tokensOf(tokensOfBinder1);
-    var tokensOf12 = tokensOf(dictTokensOf);
     return {
         tokensOf: function (v) {
             if (v instanceof PureScript_CST_Types.LetBindingSignature) {
-                return tokensOf9(v.value0);
+                return tokensOf(tokensOfLabeled2)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.LetBindingName) {
-                return append(tokensOf2(v.value0.name))(defer(function (v1) {
-                    return append(tokensOf10(v.value0.binders))(tokensOf(tokensOfGuarded(dictTokensOf))(v.value0.guarded));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.value0.name))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfArray1)(v.value0.binders))(tokensOf(tokensOfGuarded(dictTokensOf))(v.value0.guarded));
                 }));
             };
             if (v instanceof PureScript_CST_Types.LetBindingPattern) {
-                return append(tokensOf11(v.value0))(defer(function (v1) {
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfBinder1)(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
                     return PureScript_CST_Range_TokenList.cons(v.value1)(tokensOf(tokensOfWhere(dictTokensOf))(v.value2));
                 }));
             };
             if (v instanceof PureScript_CST_Types.LetBindingError) {
-                return tokensOf12(v.value0);
+                return tokensOf(dictTokensOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 911, column 14 - line 919, column 17): " + [ v.constructor.name ]);
         }
@@ -544,8 +516,8 @@ var tokensOfLetBinding = function (dictTokensOf) {
 var tokensOfGuardedExpr = function (dictTokensOf) {
     return {
         tokensOf: function (v) {
-            return PureScript_CST_Range_TokenList.cons(v.bar)(defer(function (v1) {
-                return append(tokensOf(tokensOfSeparated(tokensOfPatternGuard(dictTokensOf)))(v.patterns))(append(PureScript_CST_Range_TokenList.singleton(v.separator))(tokensOf(tokensOfWhere(dictTokensOf))(v.where)));
+            return PureScript_CST_Range_TokenList.cons(v.bar)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfSeparated(tokensOfPatternGuard(dictTokensOf)))(v.patterns))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.separator))(tokensOf(tokensOfWhere(dictTokensOf))(v.where)));
             }));
         }
     };
@@ -564,25 +536,24 @@ var tokensOfGuarded = function (dictTokensOf) {
     };
 };
 var tokensOfExpr = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(tokensOfType(dictTokensOf));
+    var tokensOfType1 = tokensOfType(dictTokensOf);
     var tokensOfAppSpine1 = tokensOfAppSpine(dictTokensOf);
     var tokensOfBinder1 = tokensOfBinder(dictTokensOf);
-    var tokensOf10 = tokensOf(tokensOfNonEmptyArray(tokensOfBinder1));
+    var tokensOfNonEmptyArray2 = tokensOfNonEmptyArray(tokensOfBinder1);
     var tokensOfTuple2 = tokensOfTuple(tokensOfSeparated(tokensOfBinder1));
-    var tokensOf11 = tokensOf(dictTokensOf);
     return {
         tokensOf: function (v) {
             if (v instanceof PureScript_CST_Types.ExprHole) {
-                return tokensOf2(v.value0);
+                return tokensOf(tokensOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExprSection) {
                 return PureScript_CST_Range_TokenList.singleton(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExprIdent) {
-                return tokensOf1(v.value0);
+                return tokensOf(tokensOfQualifiedName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExprConstructor) {
-                return tokensOf1(v.value0);
+                return tokensOf(tokensOfQualifiedName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExprBoolean) {
                 return PureScript_CST_Range_TokenList.singleton(v.value0);
@@ -609,85 +580,84 @@ var tokensOfExpr = function (dictTokensOf) {
                 return tokensOf(tokensOfWrapped(tokensOfExpr(dictTokensOf)))(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExprTyped) {
-                return append(tokensOf(tokensOfExpr(dictTokensOf))(v.value0))(defer(function (v1) {
-                    return PureScript_CST_Range_TokenList.cons(v.value1)(tokensOf9(v.value2));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfExpr(dictTokensOf))(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return PureScript_CST_Range_TokenList.cons(v.value1)(tokensOf(tokensOfType1)(v.value2));
                 }));
             };
             if (v instanceof PureScript_CST_Types.ExprInfix) {
-                return append(tokensOf(tokensOfExpr(dictTokensOf))(v.value0))(defer(function (v1) {
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfExpr(dictTokensOf))(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
                     return tokensOf(tokensOfNonEmptyArray(tokensOfTuple(tokensOfWrapped(tokensOfExpr(dictTokensOf)))(tokensOfExpr(dictTokensOf))))(v.value1);
                 }));
             };
             if (v instanceof PureScript_CST_Types.ExprOp) {
-                return append(tokensOf(tokensOfExpr(dictTokensOf))(v.value0))(defer(function (v1) {
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfExpr(dictTokensOf))(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
                     return tokensOf(tokensOfNonEmptyArray(tokensOfTuple1(tokensOfExpr(dictTokensOf))))(v.value1);
                 }));
             };
             if (v instanceof PureScript_CST_Types.ExprOpName) {
-                return tokensOf1(v.value0);
+                return tokensOf(tokensOfQualifiedName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExprNegate) {
                 return PureScript_CST_Range_TokenList.cons(v.value0)(tokensOf(tokensOfExpr(dictTokensOf))(v.value1));
             };
             if (v instanceof PureScript_CST_Types.ExprRecordAccessor) {
-                return append(tokensOf(tokensOfExpr(dictTokensOf))(v.value0.expr))(defer(function (v1) {
-                    return PureScript_CST_Range_TokenList.cons(v.value0.dot)(tokensOf5(v.value0.path));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfExpr(dictTokensOf))(v.value0.expr))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return PureScript_CST_Range_TokenList.cons(v.value0.dot)(tokensOf(tokensOfSeparated1)(v.value0.path));
                 }));
             };
             if (v instanceof PureScript_CST_Types.ExprRecordUpdate) {
-                return append(tokensOf(tokensOfExpr(dictTokensOf))(v.value0))(defer(function (v1) {
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfExpr(dictTokensOf))(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
                     return tokensOf(tokensOfWrapped(tokensOfSeparated(tokensOfRecordUpdate(dictTokensOf))))(v.value1);
                 }));
             };
             if (v instanceof PureScript_CST_Types.ExprApp) {
-                return append(tokensOf(tokensOfExpr(dictTokensOf))(v.value0))(defer(function (v1) {
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfExpr(dictTokensOf))(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
                     return tokensOf(tokensOfNonEmptyArray(tokensOfAppSpine1(tokensOfExpr(dictTokensOf))))(v.value1);
                 }));
             };
             if (v instanceof PureScript_CST_Types.ExprLambda) {
-                return PureScript_CST_Range_TokenList.cons(v.value0.symbol)(defer(function (v1) {
-                    return append(tokensOf10(v.value0.binders))(append(PureScript_CST_Range_TokenList.singleton(v.value0.arrow))(tokensOf(tokensOfExpr(dictTokensOf))(v.value0.body)));
+                return PureScript_CST_Range_TokenList.cons(v.value0.symbol)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfNonEmptyArray2)(v.value0.binders))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.value0.arrow))(tokensOf(tokensOfExpr(dictTokensOf))(v.value0.body)));
                 }));
             };
             if (v instanceof PureScript_CST_Types.ExprIf) {
-                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(defer(function (v1) {
-                    return append(tokensOf(tokensOfExpr(dictTokensOf))(v.value0.cond))(append(PureScript_CST_Range_TokenList.singleton(v.value0.then))(append(tokensOf(tokensOfExpr(dictTokensOf))(v["value0"]["true"]))(append(PureScript_CST_Range_TokenList.singleton(v["value0"]["else"]))(tokensOf(tokensOfExpr(dictTokensOf))(v["value0"]["false"])))));
+                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfExpr(dictTokensOf))(v.value0.cond))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.value0.then))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfExpr(dictTokensOf))(v["value0"]["true"]))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v["value0"]["else"]))(tokensOf(tokensOfExpr(dictTokensOf))(v["value0"]["false"])))));
                 }));
             };
             if (v instanceof PureScript_CST_Types.ExprCase) {
-                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(defer(function (v1) {
-                    return append(tokensOf(tokensOfSeparated(tokensOfExpr(dictTokensOf)))(v.value0.head))(append(PureScript_CST_Range_TokenList.singleton(v.value0.of))(tokensOf(tokensOfNonEmptyArray(tokensOfTuple2(tokensOfGuarded(dictTokensOf))))(v.value0.branches)));
+                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfSeparated(tokensOfExpr(dictTokensOf)))(v.value0.head))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.value0.of))(tokensOf(tokensOfNonEmptyArray(tokensOfTuple2(tokensOfGuarded(dictTokensOf))))(v.value0.branches)));
                 }));
             };
             if (v instanceof PureScript_CST_Types.ExprLet) {
-                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(defer(function (v1) {
-                    return append(tokensOf(tokensOfNonEmptyArray(tokensOfLetBinding(dictTokensOf)))(v.value0.bindings))(append(PureScript_CST_Range_TokenList.singleton(v["value0"]["in"]))(tokensOf(tokensOfExpr(dictTokensOf))(v.value0.body)));
+                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfNonEmptyArray(tokensOfLetBinding(dictTokensOf)))(v.value0.bindings))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v["value0"]["in"]))(tokensOf(tokensOfExpr(dictTokensOf))(v.value0.body)));
                 }));
             };
             if (v instanceof PureScript_CST_Types.ExprDo) {
-                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(defer(function (v1) {
+                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
                     return tokensOf(tokensOfNonEmptyArray(tokensOfDoStatement(dictTokensOf)))(v.value0.statements);
                 }));
             };
             if (v instanceof PureScript_CST_Types.ExprAdo) {
-                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(defer(function (v1) {
-                    return append(tokensOf(tokensOfArray(tokensOfDoStatement(dictTokensOf)))(v.value0.statements))(append(PureScript_CST_Range_TokenList.singleton(v["value0"]["in"]))(tokensOf(tokensOfExpr(dictTokensOf))(v.value0.result)));
+                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfArray(tokensOfDoStatement(dictTokensOf)))(v.value0.statements))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v["value0"]["in"]))(tokensOf(tokensOfExpr(dictTokensOf))(v.value0.result)));
                 }));
             };
             if (v instanceof PureScript_CST_Types.ExprError) {
-                return tokensOf11(v.value0);
+                return tokensOf(dictTokensOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 773, column 14 - line 844, column 17): " + [ v.constructor.name ]);
         }
     };
 };
 var tokensOfDoStatement = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(tokensOfBinder(dictTokensOf));
-    var tokensOf10 = tokensOf(dictTokensOf);
+    var tokensOfBinder1 = tokensOfBinder(dictTokensOf);
     return {
         tokensOf: function (v) {
             if (v instanceof PureScript_CST_Types.DoLet) {
-                return PureScript_CST_Range_TokenList.cons(v.value0)(defer(function (v1) {
+                return PureScript_CST_Range_TokenList.cons(v.value0)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
                     return tokensOf(tokensOfNonEmptyArray(tokensOfLetBinding(dictTokensOf)))(v.value1);
                 }));
             };
@@ -695,28 +665,28 @@ var tokensOfDoStatement = function (dictTokensOf) {
                 return tokensOf(tokensOfExpr(dictTokensOf))(v.value0);
             };
             if (v instanceof PureScript_CST_Types.DoBind) {
-                return append(tokensOf9(v.value0))(defer(function (v1) {
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfBinder1)(v.value0))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
                     return PureScript_CST_Range_TokenList.cons(v.value1)(tokensOf(tokensOfExpr(dictTokensOf))(v.value2));
                 }));
             };
             if (v instanceof PureScript_CST_Types.DoError) {
-                return tokensOf10(v.value0);
+                return tokensOf(dictTokensOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 885, column 14 - line 893, column 17): " + [ v.constructor.name ]);
         }
     };
 };
 var tokensOfInstanceBinding = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(tokensOfLabeled1(tokensOfType(dictTokensOf)));
-    var tokensOf10 = tokensOf(tokensOfArray(tokensOfBinder(dictTokensOf)));
-    var tokensOf11 = tokensOf(tokensOfGuarded(dictTokensOf));
+    var tokensOfLabeled2 = tokensOfLabeled1(tokensOfType(dictTokensOf));
+    var tokensOfArray1 = tokensOfArray(tokensOfBinder(dictTokensOf));
+    var tokensOfGuarded1 = tokensOfGuarded(dictTokensOf);
     return {
         tokensOf: function (v) {
             if (v instanceof PureScript_CST_Types.InstanceBindingSignature) {
-                return tokensOf9(v.value0);
+                return tokensOf(tokensOfLabeled2)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.InstanceBindingName) {
-                return append(tokensOf2(v.value0.name))(append(tokensOf10(v.value0.binders))(tokensOf11(v.value0.guarded)));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.value0.name))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfArray1)(v.value0.binders))(tokensOf(tokensOfGuarded1)(v.value0.guarded)));
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 681, column 14 - line 687, column 28): " + [ v.constructor.name ]);
         }
@@ -724,129 +694,127 @@ var tokensOfInstanceBinding = function (dictTokensOf) {
 };
 var tokensOfInstance = function (dictTokensOf) {
     var tokensOfType1 = tokensOfType(dictTokensOf);
-    var tokensOf9 = tokensOf(tokensOfOneOrDelimited(tokensOfType1));
-    var tokensOf10 = tokensOf(tokensOfArray(tokensOfType1));
-    var tokensOf11 = tokensOf(tokensOfNonEmptyArray(tokensOfInstanceBinding(dictTokensOf)));
+    var tokensOfOneOrDelimited1 = tokensOfOneOrDelimited(tokensOfType1);
+    var tokensOfArray1 = tokensOfArray(tokensOfType1);
+    var tokensOfNonEmptyArray2 = tokensOfNonEmptyArray(tokensOfInstanceBinding(dictTokensOf));
     return {
         tokensOf: function (v) {
-            return PureScript_CST_Range_TokenList.cons(v.head.keyword)(defer(function (v1) {
-                return append(foldMap1(function (v2) {
-                    return append(tokensOf2(v2.value0))(PureScript_CST_Range_TokenList.singleton(v2.value1));
-                })(v.head.name))(append(foldMap1(function (v2) {
-                    return append(tokensOf9(v2.value0))(PureScript_CST_Range_TokenList.singleton(v2.value1));
-                })(v.head.constraints))(append(tokensOf1(v.head.className))(append(tokensOf10(v.head.types))(foldMap1(function (v2) {
-                    return PureScript_CST_Range_TokenList.cons(v2.value0)(tokensOf11(v2.value1));
+            return PureScript_CST_Range_TokenList.cons(v.head.keyword)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v2) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v2.value0))(PureScript_CST_Range_TokenList.singleton(v2.value1));
+                })(v.head.name))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v2) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfOneOrDelimited1)(v2.value0))(PureScript_CST_Range_TokenList.singleton(v2.value1));
+                })(v.head.constraints))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfQualifiedName)(v.head.className))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfArray1)(v.head.types))(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v2) {
+                    return PureScript_CST_Range_TokenList.cons(v2.value0)(tokensOf(tokensOfNonEmptyArray2)(v2.value1));
                 })(v.body)))));
             }));
         }
     };
 };
 var tokensOfDecl = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(tokensOfArray(tokensOfTypeVarBinding1(dictTokensOf)));
-    var tokensOf10 = tokensOf(tokensOfSeparated(tokensOfDataCtor(dictTokensOf)));
+    var tokensOfArray1 = tokensOfArray(tokensOfTypeVarBinding1(dictTokensOf));
+    var tokensOfSeparated3 = tokensOfSeparated(tokensOfDataCtor(dictTokensOf));
     var tokensOfType1 = tokensOfType(dictTokensOf);
-    var tokensOf11 = tokensOf(tokensOfType1);
-    var tokensOf12 = tokensOf(tokensOfOneOrDelimited(tokensOfType1));
-    var tokensOfLabeled2 = tokensOfLabeled1(tokensOfType1);
-    var tokensOf13 = tokensOf(tokensOfNonEmptyArray(tokensOfLabeled2));
-    var tokensOf14 = tokensOf(tokensOfSeparated(tokensOfInstance(dictTokensOf)));
-    var tokensOf15 = tokensOf(tokensOfArray(tokensOfType1));
-    var tokensOf16 = tokensOf(tokensOfLabeled2);
-    var tokensOf17 = tokensOf(tokensOfArray(tokensOfBinder(dictTokensOf)));
-    var tokensOf18 = tokensOf(tokensOfGuarded(dictTokensOf));
-    var tokensOf19 = tokensOf(tokensOfForeign(dictTokensOf));
-    var tokensOf20 = tokensOf(dictTokensOf);
+    var tokensOfType2 = tokensOfType(dictTokensOf);
+    var tokensOfOneOrDelimited1 = tokensOfOneOrDelimited(tokensOfType2);
+    var tokensOfNonEmptyArray2 = tokensOfNonEmptyArray(tokensOfLabeled1(tokensOfType2));
+    var tokensOfSeparated4 = tokensOfSeparated(tokensOfInstance(dictTokensOf));
+    var tokensOfArray2 = tokensOfArray(tokensOfType2);
+    var tokensOfLabeled2 = tokensOfLabeled1(tokensOfType2);
+    var tokensOfArray3 = tokensOfArray(tokensOfBinder(dictTokensOf));
+    var tokensOfGuarded1 = tokensOfGuarded(dictTokensOf);
+    var tokensOfForeign1 = tokensOfForeign(dictTokensOf);
     return {
         tokensOf: function (v) {
             if (v instanceof PureScript_CST_Types.DeclData) {
-                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(defer(function (v1) {
-                    return append(tokensOf2(v.value0.name))(append(tokensOf9(v.value0.vars))(foldMap1(function (v2) {
-                        return PureScript_CST_Range_TokenList.cons(v2.value0)(tokensOf10(v2.value1));
+                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.value0.name))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfArray1)(v.value0.vars))(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v2) {
+                        return PureScript_CST_Range_TokenList.cons(v2.value0)(tokensOf(tokensOfSeparated3)(v2.value1));
                     })(v.value1)));
                 }));
             };
             if (v instanceof PureScript_CST_Types.DeclType) {
-                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(defer(function (v1) {
-                    return append(tokensOf2(v.value0.name))(append(tokensOf9(v.value0.vars))(append(PureScript_CST_Range_TokenList.singleton(v.value1))(tokensOf11(v.value2))));
+                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.value0.name))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfArray1)(v.value0.vars))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.value1))(tokensOf(tokensOfType1)(v.value2))));
                 }));
             };
             if (v instanceof PureScript_CST_Types.DeclNewtype) {
-                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(defer(function (v1) {
-                    return append(tokensOf2(v.value0.name))(append(tokensOf9(v.value0.vars))(append(PureScript_CST_Range_TokenList.singleton(v.value1))(append(tokensOf2(v.value2))(tokensOf11(v.value3)))));
+                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.value0.name))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfArray1)(v.value0.vars))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.value1))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.value2))(tokensOf(tokensOfType1)(v.value3)))));
                 }));
             };
             if (v instanceof PureScript_CST_Types.DeclClass) {
-                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(defer(function (v1) {
-                    return append(foldMap1(function (v2) {
-                        return append(tokensOf12(v2.value0))(PureScript_CST_Range_TokenList.singleton(v2.value1));
-                    })(v["value0"]["super"]))(append(tokensOf2(v.value0.name))(append(tokensOf9(v.value0.vars))(append(foldMap1(function (v2) {
-                        return PureScript_CST_Range_TokenList.cons(v2.value0)(tokensOf6(v2.value1));
-                    })(v.value0.fundeps))(foldMap1(function (v2) {
-                        return PureScript_CST_Range_TokenList.cons(v2.value0)(tokensOf13(v2.value1));
+                return PureScript_CST_Range_TokenList.cons(v.value0.keyword)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v2) {
+                        return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfOneOrDelimited1)(v2.value0))(PureScript_CST_Range_TokenList.singleton(v2.value1));
+                    })(v["value0"]["super"]))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.value0.name))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfArray1)(v.value0.vars))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v2) {
+                        return PureScript_CST_Range_TokenList.cons(v2.value0)(tokensOf(tokensOfSeparated2)(v2.value1));
+                    })(v.value0.fundeps))(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v2) {
+                        return PureScript_CST_Range_TokenList.cons(v2.value0)(tokensOf(tokensOfNonEmptyArray2)(v2.value1));
                     })(v.value1)))));
                 }));
             };
             if (v instanceof PureScript_CST_Types.DeclInstanceChain) {
-                return tokensOf14(v.value0);
+                return tokensOf(tokensOfSeparated4)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.DeclDerive) {
-                return PureScript_CST_Range_TokenList.cons(v.value0)(defer(function (v1) {
-                    return append(foldMap1(PureScript_CST_Range_TokenList.singleton)(v.value1))(append(PureScript_CST_Range_TokenList.singleton(v.value2.keyword))(append(foldMap1(function (v2) {
-                        return append(tokensOf2(v2.value0))(PureScript_CST_Range_TokenList.singleton(v2.value1));
-                    })(v.value2.name))(append(foldMap1(function (v2) {
-                        return append(tokensOf12(v2.value0))(PureScript_CST_Range_TokenList.singleton(v2.value1));
-                    })(v.value2.constraints))(append(tokensOf1(v.value2.className))(tokensOf15(v.value2.types))))));
+                return PureScript_CST_Range_TokenList.cons(v.value0)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(PureScript_CST_Range_TokenList.singleton)(v.value1))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.value2.keyword))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v2) {
+                        return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v2.value0))(PureScript_CST_Range_TokenList.singleton(v2.value1));
+                    })(v.value2.name))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v2) {
+                        return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfOneOrDelimited1)(v2.value0))(PureScript_CST_Range_TokenList.singleton(v2.value1));
+                    })(v.value2.constraints))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfQualifiedName)(v.value2.className))(tokensOf(tokensOfArray2)(v.value2.types))))));
                 }));
             };
             if (v instanceof PureScript_CST_Types.DeclKindSignature) {
-                return PureScript_CST_Range_TokenList.cons(v.value0)(defer(function (v1) {
-                    return tokensOf16(v.value1);
+                return PureScript_CST_Range_TokenList.cons(v.value0)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return tokensOf(tokensOfLabeled2)(v.value1);
                 }));
             };
             if (v instanceof PureScript_CST_Types.DeclSignature) {
-                return tokensOf16(v.value0);
+                return tokensOf(tokensOfLabeled2)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.DeclValue) {
-                return append(tokensOf2(v.value0.name))(defer(function (v1) {
-                    return append(tokensOf17(v.value0.binders))(tokensOf18(v.value0.guarded));
+                return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.value0.name))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfArray3)(v.value0.binders))(tokensOf(tokensOfGuarded1)(v.value0.guarded));
                 }));
             };
             if (v instanceof PureScript_CST_Types.DeclFixity) {
-                return PureScript_CST_Range_TokenList.cons(v.value0.keyword.value0)(defer(function (v1) {
-                    return PureScript_CST_Range_TokenList.cons(v.value0.prec.value0)(tokensOf3(v.value0.operator));
+                return PureScript_CST_Range_TokenList.cons(v.value0.keyword.value0)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return PureScript_CST_Range_TokenList.cons(v.value0.prec.value0)(tokensOf(tokensOfFixityOp)(v.value0.operator));
                 }));
             };
             if (v instanceof PureScript_CST_Types.DeclForeign) {
-                return PureScript_CST_Range_TokenList.cons(v.value0)(defer(function (v1) {
-                    return PureScript_CST_Range_TokenList.cons(v.value1)(tokensOf19(v.value2));
+                return PureScript_CST_Range_TokenList.cons(v.value0)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return PureScript_CST_Range_TokenList.cons(v.value1)(tokensOf(tokensOfForeign1)(v.value2));
                 }));
             };
             if (v instanceof PureScript_CST_Types.DeclRole) {
-                return PureScript_CST_Range_TokenList.cons(v.value0)(defer(function (v1) {
-                    return append(PureScript_CST_Range_TokenList.singleton(v.value1))(append(tokensOf2(v.value2))(foldMap2(function (v2) {
+                return PureScript_CST_Range_TokenList.cons(v.value0)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                    return Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.value1))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.value2))(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(PureScript_CST_Range_TokenList.monoidTokenList)(function (v2) {
                         return PureScript_CST_Range_TokenList.singleton(v2.value0);
                     })(v.value3)));
                 }));
             };
             if (v instanceof PureScript_CST_Types.DeclError) {
-                return tokensOf20(v.value0);
+                return tokensOf(dictTokensOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 494, column 14 - line 550, column 17): " + [ v.constructor.name ]);
         }
     };
 };
 var tokensOfModule = function (dictTokensOf) {
-    var tokensOf9 = tokensOf(tokensOfWrapped(tokensOfSeparated(tokensOfExport(dictTokensOf))));
-    var tokensOf10 = tokensOf(tokensOfImportDecl(dictTokensOf));
-    var tokensOf11 = tokensOf(tokensOfDecl(dictTokensOf));
+    var tokensOf2 = tokensOf(tokensOfWrapped(tokensOfSeparated(tokensOfExport(dictTokensOf))));
+    var tokensOf3 = tokensOf(tokensOfImportDecl(dictTokensOf));
+    var tokensOf4 = tokensOf(tokensOfDecl(dictTokensOf));
     return {
         tokensOf: function (v) {
-            return PureScript_CST_Range_TokenList.cons(v.header.keyword)(append(tokensOf2(v.header.name))(append(defer(function (v1) {
-                return foldMap1(tokensOf9)(v.header.exports);
-            }))(append(PureScript_CST_Range_TokenList.singleton(v.header.where))(append(defer(function (v1) {
-                return foldMap(tokensOf10)(v.header.imports);
-            }))(defer(function (v1) {
-                return foldMap(tokensOf11)(v.body.decls);
+            return PureScript_CST_Range_TokenList.cons(v.header.keyword)(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(tokensOf(tokensOfName)(v.header.name))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                return Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(PureScript_CST_Range_TokenList.monoidTokenList)(tokensOf2)(v.header.exports);
+            }))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(PureScript_CST_Range_TokenList.singleton(v.header.where))(Data_Semigroup.append(PureScript_CST_Range_TokenList.semigroupTokenList)(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                return Data_Foldable.foldMap(Data_Foldable.foldableArray)(PureScript_CST_Range_TokenList.monoidTokenList)(tokensOf3)(v.header.imports);
+            }))(Control_Lazy.defer(PureScript_CST_Range_TokenList.lazyTokenList)(function (v1) {
+                return Data_Foldable.foldMap(Data_Foldable.foldableArray)(PureScript_CST_Range_TokenList.monoidTokenList)(tokensOf4)(v.body.decls);
             }))))));
         }
     };
@@ -901,21 +869,18 @@ var rangeOfModule = {
 var rangeOf = function (dict) {
     return dict.rangeOf;
 };
-var rangeOf1 = /* #__PURE__ */ rangeOf(rangeOfName);
-var rangeOf2 = /* #__PURE__ */ rangeOf(rangeOfWrapped);
-var rangeOf3 = /* #__PURE__ */ rangeOf(rangeOfQualifiedName);
 var rangeOfClassFundep = {
     rangeOf: function (v) {
         if (v instanceof PureScript_CST_Types.FundepDetermined) {
             return {
                 start: v.value0.range.start,
-                end: (rangeOf1(Data_Array_NonEmpty.last(v.value1))).end
+                end: (rangeOf(rangeOfName)(Data_Array_NonEmpty.last(v.value1))).end
             };
         };
         if (v instanceof PureScript_CST_Types.FundepDetermines) {
             return {
-                start: (rangeOf1(Data_Array_NonEmpty.head(v.value0))).start,
-                end: (rangeOf1(Data_Array_NonEmpty.last(v.value2))).end
+                start: (rangeOf(rangeOfName)(Data_Array_NonEmpty.head(v.value0))).start,
+                end: (rangeOf(rangeOfName)(Data_Array_NonEmpty.last(v.value2))).end
             };
         };
         throw new Error("Failed pattern match at PureScript.CST.Range (line 553, column 13 - line 561, column 8): " + [ v.constructor.name ]);
@@ -927,30 +892,28 @@ var rangeOfDataMembers = {
             return v.value0.range;
         };
         if (v instanceof PureScript_CST_Types.DataEnumerated) {
-            return rangeOf2(v.value0);
+            return rangeOf(rangeOfWrapped)(v.value0);
         };
         throw new Error("Failed pattern match at PureScript.CST.Range (line 322, column 13 - line 326, column 16): " + [ v.constructor.name ]);
     }
 };
-var rangeOf4 = /* #__PURE__ */ rangeOf(rangeOfDataMembers);
 var rangeOfExport = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(dictRangeOf);
     return {
         rangeOf: function (v) {
             if (v instanceof PureScript_CST_Types.ExportValue) {
-                return rangeOf1(v.value0);
+                return rangeOf(rangeOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExportOp) {
-                return rangeOf1(v.value0);
+                return rangeOf(rangeOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExportType) {
                 if (v.value1 instanceof Data_Maybe.Nothing) {
-                    return rangeOf1(v.value0);
+                    return rangeOf(rangeOfName)(v.value0);
                 };
                 if (v.value1 instanceof Data_Maybe.Just) {
                     return {
-                        start: (rangeOf1(v.value0)).start,
-                        end: (rangeOf4(v.value1.value0)).end
+                        start: (rangeOf(rangeOfName)(v.value0)).start,
+                        end: (rangeOf(rangeOfDataMembers)(v.value1.value0)).end
                     };
                 };
                 throw new Error("Failed pattern match at PureScript.CST.Range (line 282, column 7 - line 288, column 12): " + [ v.value1.constructor.name ]);
@@ -958,23 +921,23 @@ var rangeOfExport = function (dictRangeOf) {
             if (v instanceof PureScript_CST_Types.ExportTypeOp) {
                 return {
                     start: v.value0.range.start,
-                    end: (rangeOf1(v.value1)).end
+                    end: (rangeOf(rangeOfName)(v.value1)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.ExportClass) {
                 return {
                     start: v.value0.range.start,
-                    end: (rangeOf1(v.value1)).end
+                    end: (rangeOf(rangeOfName)(v.value1)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.ExportModule) {
                 return {
                     start: v.value0.range.start,
-                    end: (rangeOf1(v.value1)).end
+                    end: (rangeOf(rangeOfName)(v.value1)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.ExportError) {
-                return rangeOf9(v.value0);
+                return rangeOf(dictRangeOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 276, column 13 - line 302, column 16): " + [ v.constructor.name ]);
         }
@@ -984,38 +947,36 @@ var rangeOfFixityOp = {
     rangeOf: function (v) {
         if (v instanceof PureScript_CST_Types.FixityValue) {
             return {
-                start: (rangeOf3(v.value0)).start,
-                end: (rangeOf1(v.value2)).end
+                start: (rangeOf(rangeOfQualifiedName)(v.value0)).start,
+                end: (rangeOf(rangeOfName)(v.value2)).end
             };
         };
         if (v instanceof PureScript_CST_Types.FixityType) {
             return {
                 start: v.value0.range.start,
-                end: (rangeOf1(v.value3)).end
+                end: (rangeOf(rangeOfName)(v.value3)).end
             };
         };
         throw new Error("Failed pattern match at PureScript.CST.Range (line 632, column 13 - line 640, column 8): " + [ v.constructor.name ]);
     }
 };
-var rangeOf5 = /* #__PURE__ */ rangeOf(rangeOfFixityOp);
 var rangeOfImport = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(dictRangeOf);
     return {
         rangeOf: function (v) {
             if (v instanceof PureScript_CST_Types.ImportValue) {
-                return rangeOf1(v.value0);
+                return rangeOf(rangeOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ImportOp) {
-                return rangeOf1(v.value0);
+                return rangeOf(rangeOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ImportType) {
                 if (v.value1 instanceof Data_Maybe.Nothing) {
-                    return rangeOf1(v.value0);
+                    return rangeOf(rangeOfName)(v.value0);
                 };
                 if (v.value1 instanceof Data_Maybe.Just) {
                     return {
-                        start: (rangeOf1(v.value0)).start,
-                        end: (rangeOf4(v.value1.value0)).end
+                        start: (rangeOf(rangeOfName)(v.value0)).start,
+                        end: (rangeOf(rangeOfDataMembers)(v.value1.value0)).end
                     };
                 };
                 throw new Error("Failed pattern match at PureScript.CST.Range (line 365, column 7 - line 371, column 12): " + [ v.value1.constructor.name ]);
@@ -1023,17 +984,17 @@ var rangeOfImport = function (dictRangeOf) {
             if (v instanceof PureScript_CST_Types.ImportTypeOp) {
                 return {
                     start: v.value0.range.start,
-                    end: (rangeOf1(v.value1)).end
+                    end: (rangeOf(rangeOfName)(v.value1)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.ImportClass) {
                 return {
                     start: v.value0.range.start,
-                    end: (rangeOf1(v.value1)).end
+                    end: (rangeOf(rangeOfName)(v.value1)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.ImportError) {
-                return rangeOf9(v.value0);
+                return rangeOf(dictRangeOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 359, column 13 - line 381, column 16): " + [ v.constructor.name ]);
         }
@@ -1044,15 +1005,15 @@ var rangeOfImportDecl = {
         var v1 = (function () {
             if (v.qualified instanceof Data_Maybe.Nothing) {
                 if (v.names instanceof Data_Maybe.Nothing) {
-                    return rangeOf1(v.module);
+                    return rangeOf(rangeOfName)(v.module);
                 };
                 if (v.names instanceof Data_Maybe.Just) {
-                    return rangeOf2(v.names.value0.value1);
+                    return rangeOf(rangeOfWrapped)(v.names.value0.value1);
                 };
                 throw new Error("Failed pattern match at PureScript.CST.Range (line 340, column 11 - line 344, column 30): " + [ v.names.constructor.name ]);
             };
             if (v.qualified instanceof Data_Maybe.Just) {
-                return rangeOf1(v.qualified.value0.value1);
+                return rangeOf(rangeOfName)(v.qualified.value0.value1);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 338, column 17 - line 346, column 20): " + [ v.qualified.constructor.name ]);
         })();
@@ -1063,14 +1024,12 @@ var rangeOfImportDecl = {
     }
 };
 var rangeOfLabeled = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(dictRangeOf);
     return function (dictRangeOf1) {
-        var rangeOf10 = rangeOf(dictRangeOf1);
         return {
             rangeOf: function (v) {
                 return {
-                    start: (rangeOf9(v.label)).start,
-                    end: (rangeOf10(v.value)).end
+                    start: (rangeOf(dictRangeOf)(v.label)).start,
+                    end: (rangeOf(dictRangeOf1)(v.value)).end
                 };
             }
         };
@@ -1078,71 +1037,67 @@ var rangeOfLabeled = function (dictRangeOf) {
 };
 var rangeOfLabeled1 = /* #__PURE__ */ rangeOfLabeled(rangeOfName);
 var rangeOfOneOrDelimited = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(dictRangeOf);
     return {
         rangeOf: function (v) {
             if (v instanceof PureScript_CST_Types.One) {
-                return rangeOf9(v.value0);
+                return rangeOf(dictRangeOf)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.Many) {
-                return rangeOf2(v.value0);
+                return rangeOf(rangeOfWrapped)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 143, column 13 - line 145, column 26): " + [ v.constructor.name ]);
         }
     };
 };
 var rangeOfPrefixed = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(dictRangeOf);
     return {
         rangeOf: function (v) {
             if (v.prefix instanceof Data_Maybe.Just) {
                 return {
                     start: v.prefix.value0.range.start,
-                    end: (rangeOf9(v.value)).end
+                    end: (rangeOf(dictRangeOf)(v.value)).end
                 };
             };
             if (v.prefix instanceof Data_Maybe.Nothing) {
-                return rangeOf9(v.value);
+                return rangeOf(dictRangeOf)(v.value);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 126, column 5 - line 132, column 22): " + [ v.prefix.constructor.name ]);
         }
     };
 };
 var rangeOfSeparated = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(dictRangeOf);
     return {
         rangeOf: function (v) {
             var v1 = Data_Array.last(v.tail);
             if (v1 instanceof Data_Maybe.Just) {
                 return {
-                    start: (rangeOf9(v.head)).start,
-                    end: (rangeOf9(v1.value0.value1)).end
+                    start: (rangeOf(dictRangeOf)(v.head)).start,
+                    end: (rangeOf(dictRangeOf)(v1.value0.value1)).end
                 };
             };
             if (v1 instanceof Data_Maybe.Nothing) {
-                return rangeOf9(v.head);
+                return rangeOf(dictRangeOf)(v.head);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 101, column 5 - line 107, column 21): " + [ v1.constructor.name ]);
         }
     };
 };
-var rangeOf6 = /* #__PURE__ */ rangeOf(/* #__PURE__ */ rangeOfSeparated(rangeOfName));
-var rangeOf7 = /* #__PURE__ */ rangeOf(/* #__PURE__ */ rangeOfSeparated(rangeOfClassFundep));
+var rangeOfSeparated1 = /* #__PURE__ */ rangeOfSeparated(rangeOfName);
+var rangeOfSeparated2 = /* #__PURE__ */ rangeOfSeparated(rangeOfClassFundep);
 var rangeOfType = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(dictRangeOf);
     return {
         rangeOf: function (v) {
             if (v instanceof PureScript_CST_Types.TypeVar) {
-                return rangeOf1(v.value0);
+                return rangeOf(rangeOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.TypeConstructor) {
-                return rangeOf3(v.value0);
+                return rangeOf(rangeOfQualifiedName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.TypeWildcard) {
                 return v.value0.range;
             };
             if (v instanceof PureScript_CST_Types.TypeHole) {
-                return rangeOf1(v.value0);
+                return rangeOf(rangeOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.TypeString) {
                 return v.value0.range;
@@ -1160,10 +1115,10 @@ var rangeOfType = function (dictRangeOf) {
                 throw new Error("Failed pattern match at PureScript.CST.Range (line 165, column 7 - line 171, column 12): " + [ v.value0.constructor.name ]);
             };
             if (v instanceof PureScript_CST_Types.TypeRow) {
-                return rangeOf2(v.value0);
+                return rangeOf(rangeOfWrapped)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.TypeRecord) {
-                return rangeOf2(v.value0);
+                return rangeOf(rangeOfWrapped)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.TypeForall) {
                 return {
@@ -1190,7 +1145,7 @@ var rangeOfType = function (dictRangeOf) {
                 };
             };
             if (v instanceof PureScript_CST_Types.TypeOpName) {
-                return rangeOf3(v.value0);
+                return rangeOf(rangeOfQualifiedName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.TypeArrow) {
                 return {
@@ -1208,29 +1163,28 @@ var rangeOfType = function (dictRangeOf) {
                 };
             };
             if (v instanceof PureScript_CST_Types.TypeParens) {
-                return rangeOf2(v.value0);
+                return rangeOf(rangeOfWrapped)(v.value0);
             };
             if (v instanceof PureScript_CST_Types["TypeError"]) {
-                return rangeOf9(v.value0);
+                return rangeOf(dictRangeOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 153, column 13 - line 207, column 16): " + [ v.constructor.name ]);
         }
     };
 };
 var rangeOfAppSpine = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(rangeOfType(dictRangeOf));
+    var rangeOfType1 = rangeOfType(dictRangeOf);
     return function (dictRangeOf1) {
-        var rangeOf10 = rangeOf(dictRangeOf1);
         return {
             rangeOf: function (v) {
                 if (v instanceof PureScript_CST_Types.AppType) {
                     return {
                         start: v.value0.range.start,
-                        end: (rangeOf9(v.value1)).end
+                        end: (rangeOf(rangeOfType1)(v.value1)).end
                     };
                 };
                 if (v instanceof PureScript_CST_Types.AppTerm) {
-                    return rangeOf10(v.value0);
+                    return rangeOf(dictRangeOf1)(v.value0);
                 };
                 throw new Error("Failed pattern match at PureScript.CST.Range (line 847, column 13 - line 853, column 16): " + [ v.constructor.name ]);
             }
@@ -1238,30 +1192,29 @@ var rangeOfAppSpine = function (dictRangeOf) {
     };
 };
 var rangeOfBinder = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(rangeOfType(dictRangeOf));
-    var rangeOf10 = rangeOf(dictRangeOf);
+    var rangeOfType1 = rangeOfType(dictRangeOf);
     return {
         rangeOf: function (v) {
             if (v instanceof PureScript_CST_Types.BinderWildcard) {
                 return v.value0.range;
             };
             if (v instanceof PureScript_CST_Types.BinderVar) {
-                return rangeOf1(v.value0);
+                return rangeOf(rangeOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.BinderNamed) {
                 return {
-                    start: (rangeOf1(v.value0)).start,
+                    start: (rangeOf(rangeOfName)(v.value0)).start,
                     end: (rangeOf(rangeOfBinder(dictRangeOf))(v.value2)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.BinderConstructor) {
                 var v1 = Data_Array.last(v.value1);
                 if (v1 instanceof Data_Maybe.Nothing) {
-                    return rangeOf3(v.value0);
+                    return rangeOf(rangeOfQualifiedName)(v.value0);
                 };
                 if (v1 instanceof Data_Maybe.Just) {
                     return {
-                        start: (rangeOf3(v.value0)).start,
+                        start: (rangeOf(rangeOfQualifiedName)(v.value0)).start,
                         end: (rangeOf(rangeOfBinder(dictRangeOf))(v1.value0)).end
                     };
                 };
@@ -1301,18 +1254,18 @@ var rangeOfBinder = function (dictRangeOf) {
                 throw new Error("Failed pattern match at PureScript.CST.Range (line 954, column 7 - line 960, column 12): " + [ v.value0.constructor.name ]);
             };
             if (v instanceof PureScript_CST_Types.BinderArray) {
-                return rangeOf2(v.value0);
+                return rangeOf(rangeOfWrapped)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.BinderRecord) {
-                return rangeOf2(v.value0);
+                return rangeOf(rangeOfWrapped)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.BinderParens) {
-                return rangeOf2(v.value0);
+                return rangeOf(rangeOfWrapped)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.BinderTyped) {
                 return {
                     start: (rangeOf(rangeOfBinder(dictRangeOf))(v.value0)).start,
-                    end: (rangeOf9(v.value2)).end
+                    end: (rangeOf(rangeOfType1)(v.value2)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.BinderOp) {
@@ -1322,50 +1275,50 @@ var rangeOfBinder = function (dictRangeOf) {
                 };
             };
             if (v instanceof PureScript_CST_Types.BinderError) {
-                return rangeOf10(v.value0);
+                return rangeOf(dictRangeOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 922, column 13 - line 976, column 16): " + [ v.constructor.name ]);
         }
     };
 };
 var rangeOfDataCtor = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(rangeOfType(dictRangeOf));
+    var rangeOfType1 = rangeOfType(dictRangeOf);
     return {
         rangeOf: function (v) {
             var v1 = (function () {
                 var v2 = Data_Array.last(v.fields);
                 if (v2 instanceof Data_Maybe.Nothing) {
-                    return rangeOf1(v.name);
+                    return rangeOf(rangeOfName)(v.name);
                 };
                 if (v2 instanceof Data_Maybe.Just) {
-                    return rangeOf9(v2.value0);
+                    return rangeOf(rangeOfType1)(v2.value0);
                 };
                 throw new Error("Failed pattern match at PureScript.CST.Range (line 401, column 17 - line 405, column 21): " + [ v2.constructor.name ]);
             })();
             return {
-                start: (rangeOf1(v.name)).start,
+                start: (rangeOf(rangeOfName)(v.name)).start,
                 end: v1.end
             };
         }
     };
 };
 var rangeOfForeign = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(rangeOfLabeled1(rangeOfType(dictRangeOf)));
+    var rangeOfLabeled2 = rangeOfLabeled1(rangeOfType(dictRangeOf));
     return {
         rangeOf: function (v) {
             if (v instanceof PureScript_CST_Types.ForeignValue) {
-                return rangeOf9(v.value0);
+                return rangeOf(rangeOfLabeled2)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ForeignData) {
                 return {
                     start: v.value0.range.start,
-                    end: (rangeOf9(v.value1)).end
+                    end: (rangeOf(rangeOfLabeled2)(v.value1)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.ForeignKind) {
                 return {
                     start: v.value0.range.start,
-                    end: (rangeOf1(v.value1)).end
+                    end: (rangeOf(rangeOfName)(v.value1)).end
                 };
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 650, column 13 - line 660, column 8): " + [ v.constructor.name ]);
@@ -1373,20 +1326,19 @@ var rangeOfForeign = function (dictRangeOf) {
     };
 };
 var rangeOfTypeVarBinding = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(dictRangeOf);
     return {
         rangeOf: function (v) {
             if (v instanceof PureScript_CST_Types.TypeVarKinded) {
-                return rangeOf2(v.value0);
+                return rangeOf(rangeOfWrapped)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.TypeVarName) {
-                return rangeOf9(v.value0);
+                return rangeOf(dictRangeOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 262, column 13 - line 266, column 16): " + [ v.constructor.name ]);
         }
     };
 };
-var rangeOf8 = /* #__PURE__ */ rangeOf(/* #__PURE__ */ rangeOfTypeVarBinding(rangeOfName));
+var rangeOfTypeVarBinding1 = /* #__PURE__ */ rangeOfTypeVarBinding(rangeOfName);
 var rangeOfWhere = function (dictRangeOf) {
     return {
         rangeOf: function (v) {
@@ -1404,28 +1356,27 @@ var rangeOfWhere = function (dictRangeOf) {
     };
 };
 var rangeOfLetBinding = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(rangeOfLabeled1(rangeOfType(dictRangeOf)));
-    var rangeOf10 = rangeOf(rangeOfBinder(dictRangeOf));
-    var rangeOf11 = rangeOf(dictRangeOf);
+    var rangeOfLabeled2 = rangeOfLabeled1(rangeOfType(dictRangeOf));
+    var rangeOfBinder1 = rangeOfBinder(dictRangeOf);
     return {
         rangeOf: function (v) {
             if (v instanceof PureScript_CST_Types.LetBindingSignature) {
-                return rangeOf9(v.value0);
+                return rangeOf(rangeOfLabeled2)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.LetBindingName) {
                 return {
-                    start: (rangeOf1(v.value0.name)).start,
+                    start: (rangeOf(rangeOfName)(v.value0.name)).start,
                     end: (rangeOf(rangeOfGuarded(dictRangeOf))(v.value0.guarded)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.LetBindingPattern) {
                 return {
-                    start: (rangeOf10(v.value0)).start,
+                    start: (rangeOf(rangeOfBinder1)(v.value0)).start,
                     end: (rangeOf(rangeOfWhere(dictRangeOf))(v.value2)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.LetBindingError) {
-                return rangeOf11(v.value0);
+                return rangeOf(dictRangeOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 896, column 13 - line 908, column 16): " + [ v.constructor.name ]);
         }
@@ -1461,22 +1412,21 @@ var rangeOfGuarded = function (dictRangeOf) {
     };
 };
 var rangeOfExpr = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(rangeOfType(dictRangeOf));
+    var rangeOfType1 = rangeOfType(dictRangeOf);
     var rangeOfAppSpine1 = rangeOfAppSpine(dictRangeOf);
-    var rangeOf10 = rangeOf(dictRangeOf);
     return {
         rangeOf: function (v) {
             if (v instanceof PureScript_CST_Types.ExprHole) {
-                return rangeOf1(v.value0);
+                return rangeOf(rangeOfName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExprSection) {
                 return v.value0.range;
             };
             if (v instanceof PureScript_CST_Types.ExprIdent) {
-                return rangeOf3(v.value0);
+                return rangeOf(rangeOfQualifiedName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExprConstructor) {
-                return rangeOf3(v.value0);
+                return rangeOf(rangeOfQualifiedName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExprBoolean) {
                 return v.value0.range;
@@ -1494,18 +1444,18 @@ var rangeOfExpr = function (dictRangeOf) {
                 return v.value0.range;
             };
             if (v instanceof PureScript_CST_Types.ExprArray) {
-                return rangeOf2(v.value0);
+                return rangeOf(rangeOfWrapped)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExprRecord) {
-                return rangeOf2(v.value0);
+                return rangeOf(rangeOfWrapped)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExprParens) {
-                return rangeOf2(v.value0);
+                return rangeOf(rangeOfWrapped)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExprTyped) {
                 return {
                     start: (rangeOf(rangeOfExpr(dictRangeOf))(v.value0)).start,
-                    end: (rangeOf9(v.value2)).end
+                    end: (rangeOf(rangeOfType1)(v.value2)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.ExprInfix) {
@@ -1521,7 +1471,7 @@ var rangeOfExpr = function (dictRangeOf) {
                 };
             };
             if (v instanceof PureScript_CST_Types.ExprOpName) {
-                return rangeOf3(v.value0);
+                return rangeOf(rangeOfQualifiedName)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.ExprNegate) {
                 return {
@@ -1532,13 +1482,13 @@ var rangeOfExpr = function (dictRangeOf) {
             if (v instanceof PureScript_CST_Types.ExprRecordAccessor) {
                 return {
                     start: (rangeOf(rangeOfExpr(dictRangeOf))(v.value0.expr)).start,
-                    end: (rangeOf6(v.value0.path)).end
+                    end: (rangeOf(rangeOfSeparated1)(v.value0.path)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.ExprRecordUpdate) {
                 return {
                     start: (rangeOf(rangeOfExpr(dictRangeOf))(v.value0)).start,
-                    end: (rangeOf2(v.value1)).end
+                    end: (rangeOf(rangeOfWrapped)(v.value1)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.ExprApp) {
@@ -1584,15 +1534,14 @@ var rangeOfExpr = function (dictRangeOf) {
                 };
             };
             if (v instanceof PureScript_CST_Types.ExprError) {
-                return rangeOf10(v.value0);
+                return rangeOf(dictRangeOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 690, column 13 - line 770, column 16): " + [ v.constructor.name ]);
         }
     };
 };
 var rangeOfDoStatement = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(rangeOfBinder(dictRangeOf));
-    var rangeOf10 = rangeOf(dictRangeOf);
+    var rangeOfBinder1 = rangeOfBinder(dictRangeOf);
     return {
         rangeOf: function (v) {
             if (v instanceof PureScript_CST_Types.DoLet) {
@@ -1606,29 +1555,29 @@ var rangeOfDoStatement = function (dictRangeOf) {
             };
             if (v instanceof PureScript_CST_Types.DoBind) {
                 return {
-                    start: (rangeOf9(v.value0)).start,
+                    start: (rangeOf(rangeOfBinder1)(v.value0)).start,
                     end: (rangeOf(rangeOfExpr(dictRangeOf))(v.value2)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.DoError) {
-                return rangeOf10(v.value0);
+                return rangeOf(dictRangeOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 870, column 13 - line 882, column 16): " + [ v.constructor.name ]);
         }
     };
 };
 var rangeOfInstanceBinding = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(rangeOfLabeled1(rangeOfType(dictRangeOf)));
-    var rangeOf10 = rangeOf(rangeOfGuarded(dictRangeOf));
+    var rangeOfLabeled2 = rangeOfLabeled1(rangeOfType(dictRangeOf));
+    var rangeOfGuarded1 = rangeOfGuarded(dictRangeOf);
     return {
         rangeOf: function (v) {
             if (v instanceof PureScript_CST_Types.InstanceBindingSignature) {
-                return rangeOf9(v.value0);
+                return rangeOf(rangeOfLabeled2)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.InstanceBindingName) {
                 return {
-                    start: (rangeOf1(v.value0.name)).start,
-                    end: (rangeOf10(v.value0.guarded)).end
+                    start: (rangeOf(rangeOfName)(v.value0.name)).start,
+                    end: (rangeOf(rangeOfGuarded1)(v.value0.guarded)).end
                 };
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 672, column 13 - line 678, column 8): " + [ v.constructor.name ]);
@@ -1636,23 +1585,23 @@ var rangeOfInstanceBinding = function (dictRangeOf) {
     };
 };
 var rangeOfInstance = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(rangeOfType(dictRangeOf));
-    var rangeOf10 = rangeOf(rangeOfInstanceBinding(dictRangeOf));
+    var rangeOfType1 = rangeOfType(dictRangeOf);
+    var rangeOfInstanceBinding1 = rangeOfInstanceBinding(dictRangeOf);
     return {
         rangeOf: function (v) {
             var v1 = (function () {
                 if (v.body instanceof Data_Maybe.Nothing) {
                     var v2 = Data_Array.last(v.head.types);
                     if (v2 instanceof Data_Maybe.Nothing) {
-                        return rangeOf3(v.head.className);
+                        return rangeOf(rangeOfQualifiedName)(v.head.className);
                     };
                     if (v2 instanceof Data_Maybe.Just) {
-                        return rangeOf9(v2.value0);
+                        return rangeOf(rangeOfType1)(v2.value0);
                     };
                     throw new Error("Failed pattern match at PureScript.CST.Range (line 575, column 11 - line 579, column 25): " + [ v2.constructor.name ]);
                 };
                 if (v.body instanceof Data_Maybe.Just) {
-                    return rangeOf10(Data_Array_NonEmpty.last(v.body.value0.value1));
+                    return rangeOf(rangeOfInstanceBinding1)(Data_Array_NonEmpty.last(v.body.value0.value1));
                 };
                 throw new Error("Failed pattern match at PureScript.CST.Range (line 573, column 17 - line 581, column 42): " + [ v.body.constructor.name ]);
             })();
@@ -1664,14 +1613,12 @@ var rangeOfInstance = function (dictRangeOf) {
     };
 };
 var rangeOfDecl = function (dictRangeOf) {
-    var rangeOf9 = rangeOf(rangeOfDataCtor(dictRangeOf));
+    var rangeOf1 = rangeOf(rangeOfDataCtor(dictRangeOf));
     var rangeOfType1 = rangeOfType(dictRangeOf);
-    var rangeOf10 = rangeOf(rangeOfType1);
-    var rangeOf11 = rangeOf(rangeOfLabeled1(rangeOfType1));
-    var rangeOf12 = rangeOf(rangeOfSeparated(rangeOfInstance(dictRangeOf)));
-    var rangeOf13 = rangeOf(rangeOfGuarded(dictRangeOf));
-    var rangeOf14 = rangeOf(rangeOfForeign(dictRangeOf));
-    var rangeOf15 = rangeOf(dictRangeOf);
+    var rangeOfLabeled2 = rangeOfLabeled1(rangeOfType(dictRangeOf));
+    var rangeOfSeparated3 = rangeOfSeparated(rangeOfInstance(dictRangeOf));
+    var rangeOfGuarded1 = rangeOfGuarded(dictRangeOf);
+    var rangeOfForeign1 = rangeOfForeign(dictRangeOf);
     return {
         rangeOf: function (v) {
             if (v instanceof PureScript_CST_Types.DeclData) {
@@ -1679,15 +1626,15 @@ var rangeOfDecl = function (dictRangeOf) {
                     if (v.value1 instanceof Data_Maybe.Nothing) {
                         var v2 = Data_Array.last(v.value0.vars);
                         if (v2 instanceof Data_Maybe.Nothing) {
-                            return rangeOf1(v.value0.name);
+                            return rangeOf(rangeOfName)(v.value0.name);
                         };
                         if (v2 instanceof Data_Maybe.Just) {
-                            return rangeOf8(v2.value0);
+                            return rangeOf(rangeOfTypeVarBinding1)(v2.value0);
                         };
                         throw new Error("Failed pattern match at PureScript.CST.Range (line 420, column 13 - line 424, column 28): " + [ v2.constructor.name ]);
                     };
                     if (v.value1 instanceof Data_Maybe.Just) {
-                        return rangeOf9(Data_Maybe.maybe(v.value1.value0.value1.head)(Data_Tuple.snd)(Data_Array.last(v.value1.value0.value1.tail)));
+                        return rangeOf1(Data_Maybe.maybe(v.value1.value0.value1.head)(Data_Tuple.snd)(Data_Array.last(v.value1.value0.value1.tail)));
                     };
                     throw new Error("Failed pattern match at PureScript.CST.Range (line 418, column 19 - line 426, column 55): " + [ v.value1.constructor.name ]);
                 })();
@@ -1699,13 +1646,13 @@ var rangeOfDecl = function (dictRangeOf) {
             if (v instanceof PureScript_CST_Types.DeclType) {
                 return {
                     start: v.value0.keyword.range.start,
-                    end: (rangeOf10(v.value2)).end
+                    end: (rangeOf(rangeOfType1)(v.value2)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.DeclNewtype) {
                 return {
                     start: v.value0.keyword.range.start,
-                    end: (rangeOf10(v.value3)).end
+                    end: (rangeOf(rangeOfType1)(v.value3)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.DeclClass) {
@@ -1714,20 +1661,20 @@ var rangeOfDecl = function (dictRangeOf) {
                         if (v.value0.fundeps instanceof Data_Maybe.Nothing) {
                             var v2 = Data_Array.last(v.value0.vars);
                             if (v2 instanceof Data_Maybe.Nothing) {
-                                return rangeOf1(v.value0.name);
+                                return rangeOf(rangeOfName)(v.value0.name);
                             };
                             if (v2 instanceof Data_Maybe.Just) {
-                                return rangeOf8(v2.value0);
+                                return rangeOf(rangeOfTypeVarBinding1)(v2.value0);
                             };
                             throw new Error("Failed pattern match at PureScript.CST.Range (line 444, column 17 - line 448, column 32): " + [ v2.constructor.name ]);
                         };
                         if (v.value0.fundeps instanceof Data_Maybe.Just) {
-                            return rangeOf7(v.value0.fundeps.value0.value1);
+                            return rangeOf(rangeOfSeparated2)(v.value0.fundeps.value0.value1);
                         };
                         throw new Error("Failed pattern match at PureScript.CST.Range (line 442, column 13 - line 450, column 32): " + [ v.value0.fundeps.constructor.name ]);
                     };
                     if (v.value1 instanceof Data_Maybe.Just) {
-                        return rangeOf11(Data_Array_NonEmpty.last(v.value1.value0.value1));
+                        return rangeOf(rangeOfLabeled2)(Data_Array_NonEmpty.last(v.value1.value0.value1));
                     };
                     throw new Error("Failed pattern match at PureScript.CST.Range (line 440, column 19 - line 452, column 44): " + [ v.value1.constructor.name ]);
                 })();
@@ -1737,16 +1684,16 @@ var rangeOfDecl = function (dictRangeOf) {
                 };
             };
             if (v instanceof PureScript_CST_Types.DeclInstanceChain) {
-                return rangeOf12(v.value0);
+                return rangeOf(rangeOfSeparated3)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.DeclDerive) {
                 var v1 = (function () {
                     var v2 = Data_Array.last(v.value2.types);
                     if (v2 instanceof Data_Maybe.Nothing) {
-                        return rangeOf3(v.value2.className);
+                        return rangeOf(rangeOfQualifiedName)(v.value2.className);
                     };
                     if (v2 instanceof Data_Maybe.Just) {
-                        return rangeOf10(v2.value0);
+                        return rangeOf(rangeOfType1)(v2.value0);
                     };
                     throw new Error("Failed pattern match at PureScript.CST.Range (line 460, column 19 - line 464, column 23): " + [ v2.constructor.name ]);
                 })();
@@ -1758,28 +1705,28 @@ var rangeOfDecl = function (dictRangeOf) {
             if (v instanceof PureScript_CST_Types.DeclKindSignature) {
                 return {
                     start: v.value0.range.start,
-                    end: (rangeOf11(v.value1)).end
+                    end: (rangeOf(rangeOfLabeled2)(v.value1)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.DeclSignature) {
-                return rangeOf11(v.value0);
+                return rangeOf(rangeOfLabeled2)(v.value0);
             };
             if (v instanceof PureScript_CST_Types.DeclValue) {
                 return {
-                    start: (rangeOf1(v.value0.name)).start,
-                    end: (rangeOf13(v.value0.guarded)).end
+                    start: (rangeOf(rangeOfName)(v.value0.name)).start,
+                    end: (rangeOf(rangeOfGuarded1)(v.value0.guarded)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.DeclFixity) {
                 return {
                     start: v.value0.keyword.value0.range.start,
-                    end: (rangeOf5(v.value0.operator)).end
+                    end: (rangeOf(rangeOfFixityOp)(v.value0.operator)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.DeclForeign) {
                 return {
                     start: v.value0.range.start,
-                    end: (rangeOf14(v.value2)).end
+                    end: (rangeOf(rangeOfForeign1)(v.value2)).end
                 };
             };
             if (v instanceof PureScript_CST_Types.DeclRole) {
@@ -1789,7 +1736,7 @@ var rangeOfDecl = function (dictRangeOf) {
                 };
             };
             if (v instanceof PureScript_CST_Types.DeclError) {
-                return rangeOf15(v.value0);
+                return rangeOf(dictRangeOf)(v.value0);
             };
             throw new Error("Failed pattern match at PureScript.CST.Range (line 415, column 13 - line 491, column 16): " + [ v.constructor.name ]);
         }

@@ -18,12 +18,7 @@ import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Unfoldable from "../Data.Unfoldable/index.js";
 import * as Partial_Unsafe from "../Partial.Unsafe/index.js";
-var sequence1 = /* #__PURE__ */ Data_Semigroup_Traversable.sequence1(Data_List_Types.traversable1NonEmptyList);
-var map = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
-var map1 = /* #__PURE__ */ Data_Functor.map(Data_List_Types.functorNonEmptyList);
-var bind = /* #__PURE__ */ Control_Bind.bind(Data_List_Types.bindNonEmptyList);
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var append1 = /* #__PURE__ */ Data_Semigroup.append(Data_List_Types.semigroupList);
 var zipWith = function (f) {
     return function (v) {
         return function (v1) {
@@ -32,11 +27,11 @@ var zipWith = function (f) {
     };
 };
 var zipWithA = function (dictApplicative) {
-    var sequence11 = sequence1(dictApplicative.Apply0());
+    var Apply0 = dictApplicative.Apply0();
     return function (f) {
         return function (xs) {
             return function (ys) {
-                return sequence11(zipWith(f)(xs)(ys));
+                return Data_Semigroup_Traversable.sequence1(Data_List_Types.traversable1NonEmptyList)(Apply0)(zipWith(f)(xs)(ys));
             };
         };
     };
@@ -81,10 +76,10 @@ var updateAt = function (i) {
                 return new Data_Maybe.Just(new Data_NonEmpty.NonEmpty(a, v.value1));
             };
             if (Data_Boolean.otherwise) {
-                return map(function ($194) {
+                return Data_Functor.map(Data_Maybe.functorMaybe)(function ($177) {
                     return Data_List_Types.NonEmptyList((function (v1) {
                         return new Data_NonEmpty.NonEmpty(v.value0, v1);
-                    })($194));
+                    })($177));
                 })(Data_List.updateAt(i - 1 | 0)(a)(v.value1));
             };
             throw new Error("Failed pattern match at Data.List.NonEmpty (line 198, column 1 - line 198, column 75): " + [ i.constructor.name, a.constructor.name, v.constructor.name ]);
@@ -92,7 +87,7 @@ var updateAt = function (i) {
     };
 };
 var unzip = function (ts) {
-    return new Data_Tuple.Tuple(map1(Data_Tuple.fst)(ts), map1(Data_Tuple.snd)(ts));
+    return new Data_Tuple.Tuple(Data_Functor.map(Data_List_Types.functorNonEmptyList)(Data_Tuple.fst)(ts), Data_Functor.map(Data_List_Types.functorNonEmptyList)(Data_Tuple.snd)(ts));
 };
 var unsnoc = function (v) {
     var v1 = Data_List.unsnoc(v.value1);
@@ -111,9 +106,9 @@ var unsnoc = function (v) {
     throw new Error("Failed pattern match at Data.List.NonEmpty (line 160, column 35 - line 162, column 50): " + [ v1.constructor.name ]);
 };
 var unionBy = /* #__PURE__ */ (function () {
-    var $195 = wrappedOperation2("unionBy");
-    return function ($196) {
-        return $195(Data_List.unionBy($196));
+    var $178 = wrappedOperation2("unionBy");
+    return function ($179) {
+        return $178(Data_List.unionBy($179));
     };
 })();
 var union = function (dictEq) {
@@ -129,22 +124,22 @@ var toList = function (v) {
     return new Data_List_Types.Cons(v.value0, v.value1);
 };
 var toUnfoldable = function (dictUnfoldable) {
-    var $197 = Data_Unfoldable.unfoldr(dictUnfoldable)(function (xs) {
-        return map(function (rec) {
+    var $180 = Data_Unfoldable.unfoldr(dictUnfoldable)(function (xs) {
+        return Data_Functor.map(Data_Maybe.functorMaybe)(function (rec) {
             return new Data_Tuple.Tuple(rec.head, rec.tail);
         })(Data_List.uncons(xs));
     });
-    return function ($198) {
-        return $197(toList($198));
+    return function ($181) {
+        return $180(toList($181));
     };
 };
 var tail = function (v) {
     return v.value1;
 };
 var sortBy = /* #__PURE__ */ (function () {
-    var $199 = wrappedOperation("sortBy");
-    return function ($200) {
-        return $199(Data_List.sortBy($200));
+    var $182 = wrappedOperation("sortBy");
+    return function ($183) {
+        return $182(Data_List.sortBy($183));
     };
 })();
 var sort = function (dictOrd) {
@@ -159,9 +154,9 @@ var snoc = function (v) {
     };
 };
 var singleton = /* #__PURE__ */ (function () {
-    var $201 = Data_NonEmpty.singleton(Data_List_Types.plusList);
-    return function ($202) {
-        return Data_List_Types.NonEmptyList($201($202));
+    var $184 = Data_NonEmpty.singleton(Data_List_Types.plusList);
+    return function ($185) {
+        return Data_List_Types.NonEmptyList($184($185));
     };
 })();
 var snoc$prime = function (v) {
@@ -180,15 +175,15 @@ var nubEq = function (dictEq) {
     return wrappedOperation("nubEq")(Data_List.nubEq(dictEq));
 };
 var nubByEq = /* #__PURE__ */ (function () {
-    var $203 = wrappedOperation("nubByEq");
-    return function ($204) {
-        return $203(Data_List.nubByEq($204));
+    var $186 = wrappedOperation("nubByEq");
+    return function ($187) {
+        return $186(Data_List.nubByEq($187));
     };
 })();
 var nubBy = /* #__PURE__ */ (function () {
-    var $205 = wrappedOperation("nubBy");
-    return function ($206) {
-        return $205(Data_List.nubBy($206));
+    var $188 = wrappedOperation("nubBy");
+    return function ($189) {
+        return $188(Data_List.nubBy($189));
     };
 })();
 var nub = function (dictOrd) {
@@ -201,10 +196,10 @@ var modifyAt = function (i) {
                 return new Data_Maybe.Just(new Data_NonEmpty.NonEmpty(f(v.value0), v.value1));
             };
             if (Data_Boolean.otherwise) {
-                return map(function ($207) {
+                return Data_Functor.map(Data_Maybe.functorMaybe)(function ($190) {
                     return Data_List_Types.NonEmptyList((function (v1) {
                         return new Data_NonEmpty.NonEmpty(v.value0, v1);
-                    })($207));
+                    })($190));
                 })(Data_List.modifyAt(i - 1 | 0)(f)(v.value1));
             };
             throw new Error("Failed pattern match at Data.List.NonEmpty (line 203, column 1 - line 203, column 82): " + [ i.constructor.name, f.constructor.name, v.constructor.name ]);
@@ -216,20 +211,20 @@ var lift = function (f) {
         return f(new Data_List_Types.Cons(v.value0, v.value1));
     };
 };
-var mapMaybe = function ($208) {
-    return lift(Data_List.mapMaybe($208));
+var mapMaybe = function ($191) {
+    return lift(Data_List.mapMaybe($191));
 };
-var partition = function ($209) {
-    return lift(Data_List.partition($209));
+var partition = function ($192) {
+    return lift(Data_List.partition($192));
 };
-var span = function ($210) {
-    return lift(Data_List.span($210));
+var span = function ($193) {
+    return lift(Data_List.span($193));
 };
-var take = function ($211) {
-    return lift(Data_List.take($211));
+var take = function ($194) {
+    return lift(Data_List.take($194));
 };
-var takeWhile = function ($212) {
-    return lift(Data_List.takeWhile($212));
+var takeWhile = function ($195) {
+    return lift(Data_List.takeWhile($195));
 };
 var length = function (v) {
     return 1 + Data_List.length(v.value1) | 0;
@@ -238,9 +233,9 @@ var last = function (v) {
     return Data_Maybe.fromMaybe(v.value0)(Data_List.last(v.value1));
 };
 var intersectBy = /* #__PURE__ */ (function () {
-    var $213 = wrappedOperation2("intersectBy");
-    return function ($214) {
-        return $213(Data_List.intersectBy($214));
+    var $196 = wrappedOperation2("intersectBy");
+    return function ($197) {
+        return $196(Data_List.intersectBy($197));
     };
 })();
 var intersect = function (dictEq) {
@@ -253,10 +248,10 @@ var insertAt = function (i) {
                 return new Data_Maybe.Just(new Data_NonEmpty.NonEmpty(a, new Data_List_Types.Cons(v.value0, v.value1)));
             };
             if (Data_Boolean.otherwise) {
-                return map(function ($215) {
+                return Data_Functor.map(Data_Maybe.functorMaybe)(function ($198) {
                     return Data_List_Types.NonEmptyList((function (v1) {
                         return new Data_NonEmpty.NonEmpty(v.value0, v1);
-                    })($215));
+                    })($198));
                 })(Data_List.insertAt(i - 1 | 0)(a)(v.value1));
             };
             throw new Error("Failed pattern match at Data.List.NonEmpty (line 193, column 1 - line 193, column 75): " + [ i.constructor.name, a.constructor.name, v.constructor.name ]);
@@ -283,15 +278,15 @@ var head = function (v) {
     return v.value0;
 };
 var groupBy = /* #__PURE__ */ (function () {
-    var $216 = wrappedOperation("groupBy");
-    return function ($217) {
-        return $216(Data_List.groupBy($217));
+    var $199 = wrappedOperation("groupBy");
+    return function ($200) {
+        return $199(Data_List.groupBy($200));
     };
 })();
 var groupAllBy = /* #__PURE__ */ (function () {
-    var $218 = wrappedOperation("groupAllBy");
-    return function ($219) {
-        return $218(Data_List.groupAllBy($219));
+    var $201 = wrappedOperation("groupAllBy");
+    return function ($202) {
+        return $201(Data_List.groupAllBy($202));
     };
 })();
 var groupAll = function (dictOrd) {
@@ -310,19 +305,18 @@ var fromList = function (v) {
     throw new Error("Failed pattern match at Data.List.NonEmpty (line 121, column 1 - line 121, column 57): " + [ v.constructor.name ]);
 };
 var fromFoldable = function (dictFoldable) {
-    var $220 = Data_List.fromFoldable(dictFoldable);
-    return function ($221) {
-        return fromList($220($221));
+    var $203 = Data_List.fromFoldable(dictFoldable);
+    return function ($204) {
+        return fromList($203($204));
     };
 };
 var foldM = function (dictMonad) {
-    var bind1 = Control_Bind.bind(dictMonad.Bind1());
-    var foldM1 = Data_List.foldM(dictMonad);
+    var Bind1 = dictMonad.Bind1();
     return function (f) {
         return function (b) {
             return function (v) {
-                return bind1(f(b)(v.value0))(function (b$prime) {
-                    return foldM1(f)(b$prime)(v.value1);
+                return Control_Bind.bind(Bind1)(f(b)(v.value0))(function (b$prime) {
+                    return Data_List.foldM(dictMonad)(f)(b$prime)(v.value1);
                 });
             };
         };
@@ -351,7 +345,7 @@ var findIndex = function (f) {
             return new Data_Maybe.Just(0);
         };
         if (Data_Boolean.otherwise) {
-            return map(function (v1) {
+            return Data_Functor.map(Data_Maybe.functorMaybe)(function (v1) {
                 return v1 + 1 | 0;
             })(Data_List.findIndex(f)(v.value1));
         };
@@ -359,35 +353,33 @@ var findIndex = function (f) {
     };
 };
 var filterM = function (dictMonad) {
-    var $222 = Data_List.filterM(dictMonad);
-    return function ($223) {
-        return lift($222($223));
+    var $205 = Data_List.filterM(dictMonad);
+    return function ($206) {
+        return lift($205($206));
     };
 };
-var filter = function ($224) {
-    return lift(Data_List.filter($224));
+var filter = function ($207) {
+    return lift(Data_List.filter($207));
 };
 var elemLastIndex = function (dictEq) {
-    var eq1 = Data_Eq.eq(dictEq);
     return function (x) {
         return findLastIndex(function (v) {
-            return eq1(v)(x);
+            return Data_Eq.eq(dictEq)(v)(x);
         });
     };
 };
 var elemIndex = function (dictEq) {
-    var eq1 = Data_Eq.eq(dictEq);
     return function (x) {
         return findIndex(function (v) {
-            return eq1(v)(x);
+            return Data_Eq.eq(dictEq)(v)(x);
         });
     };
 };
-var dropWhile = function ($225) {
-    return lift(Data_List.dropWhile($225));
+var dropWhile = function ($208) {
+    return lift(Data_List.dropWhile($208));
 };
-var drop = function ($226) {
-    return lift(Data_List.drop($226));
+var drop = function ($209) {
+    return lift(Data_List.drop($209));
 };
 var cons$prime = function (x) {
     return function (xs) {
@@ -401,14 +393,13 @@ var cons = function (y) {
 };
 var concatMap = /* #__PURE__ */ Data_Function.flip(/* #__PURE__ */ Control_Bind.bind(Data_List_Types.bindNonEmptyList));
 var concat = function (v) {
-    return bind(v)(identity);
+    return Control_Bind.bind(Data_List_Types.bindNonEmptyList)(v)(identity);
 };
 var catMaybes = /* #__PURE__ */ lift(Data_List.catMaybes);
 var appendFoldable = function (dictFoldable) {
-    var fromFoldable1 = Data_List.fromFoldable(dictFoldable);
     return function (v) {
         return function (ys) {
-            return new Data_NonEmpty.NonEmpty(v.value0, append1(v.value1)(fromFoldable1(ys)));
+            return new Data_NonEmpty.NonEmpty(v.value0, Data_Semigroup.append(Data_List_Types.semigroupList)(v.value1)(Data_List.fromFoldable(dictFoldable)(ys)));
         };
     };
 };

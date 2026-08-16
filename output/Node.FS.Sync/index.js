@@ -16,15 +16,12 @@ import * as Node_Encoding from "../Node.Encoding/index.js";
 import * as Node_FS from "../Node.FS/index.js";
 import * as Node_FS_Constants from "../Node.FS.Constants/index.js";
 import * as Node_FS_Perms from "../Node.FS.Perms/index.js";
-var show = /* #__PURE__ */ Data_Show.show(Node_Encoding.showEncoding);
-var div = /* #__PURE__ */ Data_EuclideanRing.div(Data_EuclideanRing.euclideanRingInt);
-var map = /* #__PURE__ */ Data_Functor.map(Effect.functorEffect);
 var writeTextFile = function (encoding) {
     return function (file) {
         return function (text) {
             return function () {
                 return $foreign.writeFileSyncImpl(file, text, {
-                    encoding: show(encoding)
+                    encoding: Data_Show.show(Node_Encoding.showEncoding)(encoding)
                 });
             };
         };
@@ -40,14 +37,14 @@ var writeFile = function (file) {
 var utimes = function (file) {
     return function (atime) {
         return function (mtime) {
-            var toEpochMilliseconds = function ($12) {
-                return Data_DateTime_Instant.unInstant(Data_DateTime_Instant.fromDateTime($12));
+            var toEpochMilliseconds = function ($7) {
+                return Data_DateTime_Instant.unInstant(Data_DateTime_Instant.fromDateTime($7));
             };
             var ms = function (v) {
                 return Data_Int.round(v);
             };
             var fromDate = function (date) {
-                return div(ms(toEpochMilliseconds(date)))(1000);
+                return Data_EuclideanRing.div(Data_EuclideanRing.euclideanRingInt)(ms(toEpochMilliseconds(date)))(1000);
             };
             return function () {
                 return $foreign.utimesSyncImpl(file, fromDate(atime), fromDate(mtime));
@@ -142,7 +139,7 @@ var readTextFile = function (encoding) {
     return function (file) {
         return function () {
             return $foreign.readFileSyncImpl(file, {
-                encoding: show(encoding)
+                encoding: Data_Show.show(Node_Encoding.showEncoding)(encoding)
             });
         };
     };
@@ -293,7 +290,7 @@ var appendTextFile = function (encoding) {
         return function (buff) {
             return function () {
                 return $foreign.appendFileSyncImpl(file, buff, {
-                    encoding: show(encoding)
+                    encoding: Data_Show.show(Node_Encoding.showEncoding)(encoding)
                 });
             };
         };
@@ -308,7 +305,7 @@ var appendFile = function (file) {
 };
 var access$prime = function (path) {
     return function (mode) {
-        return map(Data_Either.blush)(Effect_Exception["try"](function () {
+        return Data_Functor.map(Effect.functorEffect)(Data_Either.blush)(Effect_Exception["try"](function () {
             return $foreign.accessImpl(path, mode);
         }));
     };

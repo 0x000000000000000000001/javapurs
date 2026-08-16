@@ -74,21 +74,21 @@ var unsafeClamp = function (x) {
     };
     throw new Error("Failed pattern match at Data.Int (line 72, column 1 - line 72, column 29): " + [ x.constructor.name ]);
 };
-var round = function ($37) {
-    return unsafeClamp(Data_Number.round($37));
+var round = function ($27) {
+    return unsafeClamp(Data_Number.round($27));
 };
-var trunc = function ($38) {
-    return unsafeClamp(Data_Number.trunc($38));
+var trunc = function ($28) {
+    return unsafeClamp(Data_Number.trunc($28));
 };
-var floor = function ($39) {
-    return unsafeClamp(Data_Number.floor($39));
+var floor = function ($29) {
+    return unsafeClamp(Data_Number.floor($29));
 };
 var even = function (x) {
     return (x & 1) === 0;
 };
 var parity = function (n) {
-    var $28 = even(n);
-    if ($28) {
+    var $18 = even(n);
+    if ($18) {
         return Even.value;
     };
     return Odd.value;
@@ -106,7 +106,6 @@ var eqParity = {
         };
     }
 };
-var eq1 = /* #__PURE__ */ Data_Eq.eq(eqParity);
 var ordParity = {
     compare: function (x) {
         return function (y) {
@@ -134,8 +133,8 @@ var semiringParity = /* #__PURE__ */ (function () {
         zero: Even.value,
         add: function (x) {
             return function (y) {
-                var $33 = eq1(x)(y);
-                if ($33) {
+                var $23 = Data_Eq.eq(eqParity)(x)(y);
+                if ($23) {
                     return Even.value;
                 };
                 return Odd.value;
@@ -194,8 +193,8 @@ var euclideanRingParity = {
         return commutativeRingParity;
     }
 };
-var ceil = function ($40) {
-    return unsafeClamp(Data_Number.ceil($40));
+var ceil = function ($30) {
+    return unsafeClamp(Data_Number.ceil($30));
 };
 var boundedParity = /* #__PURE__ */ (function () {
     return {

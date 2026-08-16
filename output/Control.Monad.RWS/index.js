@@ -9,9 +9,7 @@ import * as Data_Newtype from "../Data.Newtype/index.js";
 var pure = /* #__PURE__ */ Control_Applicative.pure(Data_Identity.applicativeIdentity);
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
 var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
-var execRWST = /* #__PURE__ */ Control_Monad_RWS_Trans.execRWST(Data_Identity.monadIdentity);
 var unwrap2 = /* #__PURE__ */ Data_Newtype.unwrap();
-var evalRWST = /* #__PURE__ */ Control_Monad_RWS_Trans.evalRWST(Data_Identity.monadIdentity);
 var withRWS = Control_Monad_RWS_Trans.withRWST;
 var rws = function (f) {
     return function (r) {
@@ -29,21 +27,21 @@ var runRWS = function (m) {
     };
 };
 var mapRWS = function (f) {
-    return Control_Monad_RWS_Trans.mapRWST(function ($10) {
-        return Data_Identity.Identity(f(unwrap($10)));
+    return Control_Monad_RWS_Trans.mapRWST(function ($7) {
+        return Data_Identity.Identity(f(unwrap($7)));
     });
 };
 var execRWS = function (m) {
     return function (r) {
         return function (s) {
-            return unwrap1(execRWST(m)(r)(s));
+            return unwrap1(Control_Monad_RWS_Trans.execRWST(Data_Identity.monadIdentity)(m)(r)(s));
         };
     };
 };
 var evalRWS = function (m) {
     return function (r) {
         return function (s) {
-            return unwrap2(evalRWST(m)(r)(s));
+            return unwrap2(Control_Monad_RWS_Trans.evalRWST(Data_Identity.monadIdentity)(m)(r)(s));
         };
     };
 };

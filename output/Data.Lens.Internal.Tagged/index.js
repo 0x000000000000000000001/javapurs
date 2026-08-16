@@ -83,16 +83,16 @@ var foldableTagged = {
 };
 var traversableTagged = {
     sequence: function (dictApplicative) {
-        var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         return function (v) {
-            return map(Tagged)(v);
+            return Data_Functor.map(Functor0)(Tagged)(v);
         };
     },
     traverse: function (dictApplicative) {
-        var map = Data_Functor.map((dictApplicative.Apply0()).Functor0());
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         return function (f) {
             return function (v) {
-                return map(Tagged)(f(v));
+                return Data_Functor.map(Functor0)(Tagged)(f(v));
             };
         };
     },
@@ -104,22 +104,20 @@ var traversableTagged = {
     }
 };
 var eqTagged = function (dictEq) {
-    var eq = Data_Eq.eq(dictEq);
     return {
         eq: function (x) {
             return function (y) {
-                return eq(x)(y);
+                return Data_Eq.eq(dictEq)(x)(y);
             };
         }
     };
 };
 var ordTagged = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     var eqTagged1 = eqTagged(dictOrd.Eq0());
     return {
         compare: function (x) {
             return function (y) {
-                return compare(x)(y);
+                return Data_Ord.compare(dictOrd)(x)(y);
             };
         },
         Eq0: function () {

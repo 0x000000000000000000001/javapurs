@@ -64,7 +64,6 @@ var eq1 = function (dict) {
 var eq = function (dict) {
     return dict.eq;
 };
-var eq2 = /* #__PURE__ */ eq(eqBoolean);
 var eqArray = function (dictEq) {
     return {
         eq: $foreign.eqArrayImpl(eq(dictEq))
@@ -76,20 +75,17 @@ var eq1Array = {
     }
 };
 var eqRowCons = function (dictEqRecord) {
-    var eqRecord1 = eqRecord(dictEqRecord);
     return function () {
         return function (dictIsSymbol) {
-            var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
             return function (dictEq) {
-                var eq3 = eq(dictEq);
                 return {
                     eqRecord: function (v) {
                         return function (ra) {
                             return function (rb) {
-                                var tail = eqRecord1(Type_Proxy["Proxy"].value)(ra)(rb);
-                                var key = reflectSymbol(Type_Proxy["Proxy"].value);
+                                var tail = eqRecord(dictEqRecord)(Type_Proxy["Proxy"].value)(ra)(rb);
+                                var key = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
                                 var get = Record_Unsafe.unsafeGet(key);
-                                return eq3(get(ra))(get(rb)) && tail;
+                                return eq(dictEq)(get(ra))(get(rb)) && tail;
                             };
                         };
                     }
@@ -99,20 +95,17 @@ var eqRowCons = function (dictEqRecord) {
     };
 };
 var notEq = function (dictEq) {
-    var eq3 = eq(dictEq);
     return function (x) {
         return function (y) {
-            return eq2(eq3(x)(y))(false);
+            return eq(eqBoolean)(eq(dictEq)(x)(y))(false);
         };
     };
 };
 var notEq1 = function (dictEq1) {
-    var eq11 = eq1(dictEq1);
     return function (dictEq) {
-        var eq12 = eq11(dictEq);
         return function (x) {
             return function (y) {
-                return eq2(eq12(x)(y))(false);
+                return eq(eqBoolean)(eq1(dictEq1)(dictEq)(x)(y))(false);
             };
         };
     };

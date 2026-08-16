@@ -5,9 +5,8 @@ import * as Data_Argonaut_Decode_Combinators from "../Data.Argonaut.Decode.Combi
 import * as Data_Argonaut_Decode_Error from "../Data.Argonaut.Decode.Error/index.js";
 import * as Data_Argonaut_Decode_Parser from "../Data.Argonaut.Decode.Parser/index.js";
 import * as Data_Either from "../Data.Either/index.js";
-var composeKleisli = /* #__PURE__ */ Control_Bind.composeKleisli(Data_Either.bindEither);
 var fromJsonString = function (dictDecodeJson) {
-    return composeKleisli(Data_Argonaut_Decode_Parser.parseJson)(Data_Argonaut_Decode_Class.decodeJson(dictDecodeJson));
+    return Control_Bind.composeKleisli(Data_Either.bindEither)(Data_Argonaut_Decode_Parser.parseJson)(Data_Argonaut_Decode_Class.decodeJson(dictDecodeJson));
 };
 export {
     fromJsonString

@@ -7,20 +7,20 @@ import * as Data_Newtype from "../Data.Newtype/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
 var writer = /* #__PURE__ */ (function () {
-    var $4 = Control_Applicative.pure(Data_Identity.applicativeIdentity);
-    return function ($5) {
-        return Control_Monad_Writer_Trans.WriterT($4($5));
+    var $3 = Control_Applicative.pure(Data_Identity.applicativeIdentity);
+    return function ($4) {
+        return Control_Monad_Writer_Trans.WriterT($3($4));
     };
 })();
 var runWriter = /* #__PURE__ */ (function () {
-    var $6 = Data_Newtype.unwrap();
-    return function ($7) {
-        return $6(Control_Monad_Writer_Trans.runWriterT($7));
+    var $5 = Data_Newtype.unwrap();
+    return function ($6) {
+        return $5(Control_Monad_Writer_Trans.runWriterT($6));
     };
 })();
 var mapWriter = function (f) {
-    return Control_Monad_Writer_Trans.mapWriterT(function ($8) {
-        return Data_Identity.Identity(f(unwrap($8)));
+    return Control_Monad_Writer_Trans.mapWriterT(function ($7) {
+        return Data_Identity.Identity(f(unwrap($7)));
     });
 };
 var execWriter = function (m) {

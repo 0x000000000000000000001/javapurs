@@ -33,11 +33,10 @@ var Just = /* #__PURE__ */ (function () {
     return Just;
 })();
 var showMaybe = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
             if (v instanceof Just) {
-                return "(Just " + (show(v.value0) + ")");
+                return "(Just " + (Data_Show.show(dictShow)(v.value0) + ")");
             };
             if (v instanceof Nothing) {
                 return "Nothing";
@@ -47,7 +46,6 @@ var showMaybe = function (dictShow) {
     };
 };
 var semigroupMaybe = function (dictSemigroup) {
-    var append1 = Data_Semigroup.append(dictSemigroup);
     return {
         append: function (v) {
             return function (v1) {
@@ -58,7 +56,7 @@ var semigroupMaybe = function (dictSemigroup) {
                     return v;
                 };
                 if (v instanceof Just && v1 instanceof Just) {
-                    return new Just(append1(v.value0)(v1.value0));
+                    return new Just(Data_Semigroup.append(dictSemigroup)(v.value0)(v1.value0));
                 };
                 throw new Error("Failed pattern match at Data.Maybe (line 182, column 1 - line 185, column 43): " + [ v.constructor.name, v1.constructor.name ]);
             };
@@ -66,12 +64,10 @@ var semigroupMaybe = function (dictSemigroup) {
     };
 };
 var optional = function (dictAlt) {
-    var alt = Control_Alt.alt(dictAlt);
-    var map1 = Data_Functor.map(dictAlt.Functor0());
+    var Functor0 = dictAlt.Functor0();
     return function (dictApplicative) {
-        var pure = Control_Applicative.pure(dictApplicative);
         return function (a) {
-            return alt(map1(Just.create)(a))(pure(Nothing.value));
+            return Control_Alt.alt(dictAlt)(Data_Functor.map(Functor0)(Just.create)(a))(Control_Applicative.pure(dictApplicative)(Nothing.value));
         };
     };
 };
@@ -142,7 +138,6 @@ var functorMaybe = {
         };
     }
 };
-var map = /* #__PURE__ */ Data_Functor.map(functorMaybe);
 var invariantMaybe = {
     imap: /* #__PURE__ */ Data_Functor_Invariant.imapF(functorMaybe)
 };
@@ -174,7 +169,6 @@ var extendMaybe = {
     }
 };
 var eqMaybe = function (dictEq) {
-    var eq = Data_Eq.eq(dictEq);
     return {
         eq: function (x) {
             return function (y) {
@@ -182,7 +176,7 @@ var eqMaybe = function (dictEq) {
                     return true;
                 };
                 if (x instanceof Just && y instanceof Just) {
-                    return eq(x.value0)(y.value0);
+                    return Data_Eq.eq(dictEq)(x.value0)(y.value0);
                 };
                 return false;
             };
@@ -190,7 +184,6 @@ var eqMaybe = function (dictEq) {
     };
 };
 var ordMaybe = function (dictOrd) {
-    var compare = Data_Ord.compare(dictOrd);
     var eqMaybe1 = eqMaybe(dictOrd.Eq0());
     return {
         compare: function (x) {
@@ -205,7 +198,7 @@ var ordMaybe = function (dictOrd) {
                     return Data_Ordering.GT.value;
                 };
                 if (x instanceof Just && y instanceof Just) {
-                    return compare(x.value0)(y.value0);
+                    return Data_Ord.compare(dictOrd)(x.value0)(y.value0);
                 };
                 throw new Error("Failed pattern match at Data.Maybe (line 0, column 0 - line 0, column 0): " + [ x.constructor.name, y.constructor.name ]);
             };
@@ -242,7 +235,7 @@ var applyMaybe = {
     apply: function (v) {
         return function (v1) {
             if (v instanceof Just) {
-                return map(v.value0)(v1);
+                return Data_Functor.map(functorMaybe)(v.value0)(v1);
             };
             if (v instanceof Nothing) {
                 return Nothing.value;
@@ -254,7 +247,6 @@ var applyMaybe = {
         return functorMaybe;
     }
 };
-var apply = /* #__PURE__ */ Control_Apply.apply(applyMaybe);
 var bindMaybe = {
     bind: function (v) {
         return function (v1) {
@@ -272,7 +264,6 @@ var bindMaybe = {
     }
 };
 var semiringMaybe = function (dictSemiring) {
-    var add = Data_Semiring.add(dictSemiring);
     var mul = Data_Semiring.mul(dictSemiring);
     return {
         zero: Nothing.value,
@@ -286,14 +277,14 @@ var semiringMaybe = function (dictSemiring) {
                     return v;
                 };
                 if (v instanceof Just && v1 instanceof Just) {
-                    return new Just(add(v.value0)(v1.value0));
+                    return new Just(Data_Semiring.add(dictSemiring)(v.value0)(v1.value0));
                 };
                 throw new Error("Failed pattern match at Data.Maybe (line 190, column 1 - line 198, column 28): " + [ v.constructor.name, v1.constructor.name ]);
             };
         },
         mul: function (x) {
             return function (y) {
-                return apply(map(mul)(x))(y);
+                return Control_Apply.apply(applyMaybe)(Data_Functor.map(functorMaybe)(mul)(x))(y);
             };
         }
     };

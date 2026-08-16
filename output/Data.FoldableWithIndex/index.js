@@ -42,28 +42,23 @@ var foldMap6 = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableConj)
 var foldr7 = /* #__PURE__ */ Data_Foldable.foldr(Data_Foldable.foldableAdditive);
 var foldl7 = /* #__PURE__ */ Data_Foldable.foldl(Data_Foldable.foldableAdditive);
 var foldMap7 = /* #__PURE__ */ Data_Foldable.foldMap(Data_Foldable.foldableAdditive);
-var foldr8 = /* #__PURE__ */ Data_Foldable.foldr(Data_Foldable.foldableArray);
-var mapWithIndex = /* #__PURE__ */ Data_FunctorWithIndex.mapWithIndex(Data_FunctorWithIndex.functorWithIndexArray);
-var foldl8 = /* #__PURE__ */ Data_Foldable.foldl(Data_Foldable.foldableArray);
-var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
+var monoidDual = /* #__PURE__ */ Data_Monoid_Dual.monoidDual(/* #__PURE__ */ Data_Monoid_Endo.monoidEndo(Control_Category.categoryFn));
 var monoidEndo = /* #__PURE__ */ Data_Monoid_Endo.monoidEndo(Control_Category.categoryFn);
-var monoidDual = /* #__PURE__ */ Data_Monoid_Dual.monoidDual(monoidEndo);
-var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
+var monoidEndo1 = /* #__PURE__ */ Data_Monoid_Endo.monoidEndo(Control_Category.categoryFn);
+var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
 var foldrWithIndex = function (dict) {
     return dict.foldrWithIndex;
 };
 var traverseWithIndex_ = function (dictApplicative) {
     var applySecond = Control_Apply.applySecond(dictApplicative.Apply0());
-    var pure = Control_Applicative.pure(dictApplicative);
     return function (dictFoldableWithIndex) {
-        var foldrWithIndex1 = foldrWithIndex(dictFoldableWithIndex);
         return function (f) {
-            return foldrWithIndex1(function (i) {
-                var $290 = f(i);
-                return function ($291) {
-                    return applySecond($290($291));
+            return foldrWithIndex(dictFoldableWithIndex)(function (i) {
+                var $235 = f(i);
+                return function ($236) {
+                    return applySecond($235($236));
                 };
-            })(pure(Data_Unit.unit));
+            })(Control_Applicative.pure(dictApplicative)(Data_Unit.unit));
         };
     };
 };
@@ -74,18 +69,16 @@ var forWithIndex_ = function (dictApplicative) {
     };
 };
 var foldrDefault = function (dictFoldableWithIndex) {
-    var foldrWithIndex1 = foldrWithIndex(dictFoldableWithIndex);
     return function (f) {
-        return foldrWithIndex1(Data_Function["const"](f));
+        return foldrWithIndex(dictFoldableWithIndex)(Data_Function["const"](f));
     };
 };
 var foldlWithIndex = function (dict) {
     return dict.foldlWithIndex;
 };
 var foldlDefault = function (dictFoldableWithIndex) {
-    var foldlWithIndex1 = foldlWithIndex(dictFoldableWithIndex);
     return function (f) {
-        return foldlWithIndex1(Data_Function["const"](f));
+        return foldlWithIndex(dictFoldableWithIndex)(Data_Function["const"](f));
     };
 };
 var foldableWithIndexTuple = {
@@ -349,33 +342,31 @@ var foldableWithIndexAdditive = {
     }
 };
 var foldWithIndexM = function (dictFoldableWithIndex) {
-    var foldlWithIndex1 = foldlWithIndex(dictFoldableWithIndex);
     return function (dictMonad) {
-        var bind = Control_Bind.bind(dictMonad.Bind1());
-        var pure = Control_Applicative.pure(dictMonad.Applicative0());
+        var Bind1 = dictMonad.Bind1();
+        var Applicative0 = dictMonad.Applicative0();
         return function (f) {
             return function (a0) {
-                return foldlWithIndex1(function (i) {
+                return foldlWithIndex(dictFoldableWithIndex)(function (i) {
                     return function (ma) {
                         return function (b) {
-                            return bind(ma)(Data_Function.flip(f(i))(b));
+                            return Control_Bind.bind(Bind1)(ma)(Data_Function.flip(f(i))(b));
                         };
                     };
-                })(pure(a0));
+                })(Control_Applicative.pure(Applicative0)(a0));
             };
         };
     };
 };
 var foldMapWithIndexDefaultR = function (dictFoldableWithIndex) {
-    var foldrWithIndex1 = foldrWithIndex(dictFoldableWithIndex);
     return function (dictMonoid) {
-        var append = Data_Semigroup.append(dictMonoid.Semigroup0());
+        var Semigroup0 = dictMonoid.Semigroup0();
         var mempty = Data_Monoid.mempty(dictMonoid);
         return function (f) {
-            return foldrWithIndex1(function (i) {
+            return foldrWithIndex(dictFoldableWithIndex)(function (i) {
                 return function (x) {
                     return function (acc) {
-                        return append(f(i)(x))(acc);
+                        return Data_Semigroup.append(Semigroup0)(f(i)(x))(acc);
                     };
                 };
             })(mempty);
@@ -385,27 +376,27 @@ var foldMapWithIndexDefaultR = function (dictFoldableWithIndex) {
 var foldableWithIndexArray = {
     foldrWithIndex: function (f) {
         return function (z) {
-            var $292 = foldr8(function (v) {
+            var $237 = Data_Foldable.foldr(Data_Foldable.foldableArray)(function (v) {
                 return function (y) {
                     return f(v.value0)(v.value1)(y);
                 };
             })(z);
-            var $293 = mapWithIndex(Data_Tuple.Tuple.create);
-            return function ($294) {
-                return $292($293($294));
+            var $238 = Data_FunctorWithIndex.mapWithIndex(Data_FunctorWithIndex.functorWithIndexArray)(Data_Tuple.Tuple.create);
+            return function ($239) {
+                return $237($238($239));
             };
         };
     },
     foldlWithIndex: function (f) {
         return function (z) {
-            var $295 = foldl8(function (y) {
+            var $240 = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (y) {
                 return function (v) {
                     return f(v.value0)(y)(v.value1);
                 };
             })(z);
-            var $296 = mapWithIndex(Data_Tuple.Tuple.create);
-            return function ($297) {
-                return $295($296($297));
+            var $241 = Data_FunctorWithIndex.mapWithIndex(Data_FunctorWithIndex.functorWithIndexArray)(Data_Tuple.Tuple.create);
+            return function ($242) {
+                return $240($241($242));
             };
         };
     },
@@ -417,15 +408,14 @@ var foldableWithIndexArray = {
     }
 };
 var foldMapWithIndexDefaultL = function (dictFoldableWithIndex) {
-    var foldlWithIndex1 = foldlWithIndex(dictFoldableWithIndex);
     return function (dictMonoid) {
-        var append = Data_Semigroup.append(dictMonoid.Semigroup0());
+        var Semigroup0 = dictMonoid.Semigroup0();
         var mempty = Data_Monoid.mempty(dictMonoid);
         return function (f) {
-            return foldlWithIndex1(function (i) {
+            return foldlWithIndex(dictFoldableWithIndex)(function (i) {
                 return function (acc) {
                     return function (x) {
-                        return append(acc)(f(i)(x));
+                        return Data_Semigroup.append(Semigroup0)(acc)(f(i)(x));
                     };
                 };
             })(mempty);
@@ -436,30 +426,26 @@ var foldMapWithIndex = function (dict) {
     return dict.foldMapWithIndex;
 };
 var foldableWithIndexApp = function (dictFoldableWithIndex) {
-    var foldrWithIndex1 = foldrWithIndex(dictFoldableWithIndex);
-    var foldlWithIndex1 = foldlWithIndex(dictFoldableWithIndex);
-    var foldMapWithIndex1 = foldMapWithIndex(dictFoldableWithIndex);
     var foldableApp = Data_Foldable.foldableApp(dictFoldableWithIndex.Foldable0());
     return {
         foldrWithIndex: function (f) {
             return function (z) {
                 return function (v) {
-                    return foldrWithIndex1(f)(z)(v);
+                    return foldrWithIndex(dictFoldableWithIndex)(f)(z)(v);
                 };
             };
         },
         foldlWithIndex: function (f) {
             return function (z) {
                 return function (v) {
-                    return foldlWithIndex1(f)(z)(v);
+                    return foldlWithIndex(dictFoldableWithIndex)(f)(z)(v);
                 };
             };
         },
         foldMapWithIndex: function (dictMonoid) {
-            var foldMapWithIndex2 = foldMapWithIndex1(dictMonoid);
             return function (f) {
                 return function (v) {
-                    return foldMapWithIndex2(f)(v);
+                    return foldMapWithIndex(dictFoldableWithIndex)(dictMonoid)(f)(v);
                 };
             };
         },
@@ -469,21 +455,17 @@ var foldableWithIndexApp = function (dictFoldableWithIndex) {
     };
 };
 var foldableWithIndexCompose = function (dictFoldableWithIndex) {
-    var foldrWithIndex1 = foldrWithIndex(dictFoldableWithIndex);
-    var foldlWithIndex1 = foldlWithIndex(dictFoldableWithIndex);
-    var foldMapWithIndex1 = foldMapWithIndex(dictFoldableWithIndex);
     var foldableCompose = Data_Foldable.foldableCompose(dictFoldableWithIndex.Foldable0());
     return function (dictFoldableWithIndex1) {
-        var foldrWithIndex2 = foldrWithIndex(dictFoldableWithIndex1);
-        var foldlWithIndex2 = foldlWithIndex(dictFoldableWithIndex1);
-        var foldMapWithIndex2 = foldMapWithIndex(dictFoldableWithIndex1);
+        var foldlWithIndex1 = foldlWithIndex(dictFoldableWithIndex1);
+        var foldMapWithIndex1 = foldMapWithIndex(dictFoldableWithIndex1);
         var foldableCompose1 = foldableCompose(dictFoldableWithIndex1.Foldable0());
         return {
             foldrWithIndex: function (f) {
                 return function (i) {
                     return function (v) {
-                        return foldrWithIndex1(function (a) {
-                            return Data_Function.flip(foldrWithIndex2(Data_Tuple.curry(f)(a)));
+                        return foldrWithIndex(dictFoldableWithIndex)(function (a) {
+                            return Data_Function.flip(foldrWithIndex(dictFoldableWithIndex1)(Data_Tuple.curry(f)(a)));
                         })(i)(v);
                     };
                 };
@@ -491,24 +473,23 @@ var foldableWithIndexCompose = function (dictFoldableWithIndex) {
             foldlWithIndex: function (f) {
                 return function (i) {
                     return function (v) {
-                        return foldlWithIndex1((function () {
-                            var $298 = Data_Tuple.curry(f);
-                            return function ($299) {
-                                return foldlWithIndex2($298($299));
+                        return foldlWithIndex(dictFoldableWithIndex)((function () {
+                            var $243 = Data_Tuple.curry(f);
+                            return function ($244) {
+                                return foldlWithIndex1($243($244));
                             };
                         })())(i)(v);
                     };
                 };
             },
             foldMapWithIndex: function (dictMonoid) {
-                var foldMapWithIndex3 = foldMapWithIndex1(dictMonoid);
-                var foldMapWithIndex4 = foldMapWithIndex2(dictMonoid);
+                var foldMapWithIndex2 = foldMapWithIndex1(dictMonoid);
                 return function (f) {
                     return function (v) {
-                        return foldMapWithIndex3((function () {
-                            var $300 = Data_Tuple.curry(f);
-                            return function ($301) {
-                                return foldMapWithIndex4($300($301));
+                        return foldMapWithIndex(dictFoldableWithIndex)(dictMonoid)((function () {
+                            var $245 = Data_Tuple.curry(f);
+                            return function ($246) {
+                                return foldMapWithIndex2($245($246));
                             };
                         })())(v);
                     };
@@ -521,42 +502,34 @@ var foldableWithIndexCompose = function (dictFoldableWithIndex) {
     };
 };
 var foldableWithIndexCoproduct = function (dictFoldableWithIndex) {
-    var foldrWithIndex1 = foldrWithIndex(dictFoldableWithIndex);
-    var foldlWithIndex1 = foldlWithIndex(dictFoldableWithIndex);
-    var foldMapWithIndex1 = foldMapWithIndex(dictFoldableWithIndex);
     var foldableCoproduct = Data_Foldable.foldableCoproduct(dictFoldableWithIndex.Foldable0());
     return function (dictFoldableWithIndex1) {
-        var foldrWithIndex2 = foldrWithIndex(dictFoldableWithIndex1);
-        var foldlWithIndex2 = foldlWithIndex(dictFoldableWithIndex1);
-        var foldMapWithIndex2 = foldMapWithIndex(dictFoldableWithIndex1);
         var foldableCoproduct1 = foldableCoproduct(dictFoldableWithIndex1.Foldable0());
         return {
             foldrWithIndex: function (f) {
                 return function (z) {
-                    return Data_Functor_Coproduct.coproduct(foldrWithIndex1(function ($302) {
-                        return f(Data_Either.Left.create($302));
-                    })(z))(foldrWithIndex2(function ($303) {
-                        return f(Data_Either.Right.create($303));
+                    return Data_Functor_Coproduct.coproduct(foldrWithIndex(dictFoldableWithIndex)(function ($247) {
+                        return f(Data_Either.Left.create($247));
+                    })(z))(foldrWithIndex(dictFoldableWithIndex1)(function ($248) {
+                        return f(Data_Either.Right.create($248));
                     })(z));
                 };
             },
             foldlWithIndex: function (f) {
                 return function (z) {
-                    return Data_Functor_Coproduct.coproduct(foldlWithIndex1(function ($304) {
-                        return f(Data_Either.Left.create($304));
-                    })(z))(foldlWithIndex2(function ($305) {
-                        return f(Data_Either.Right.create($305));
+                    return Data_Functor_Coproduct.coproduct(foldlWithIndex(dictFoldableWithIndex)(function ($249) {
+                        return f(Data_Either.Left.create($249));
+                    })(z))(foldlWithIndex(dictFoldableWithIndex1)(function ($250) {
+                        return f(Data_Either.Right.create($250));
                     })(z));
                 };
             },
             foldMapWithIndex: function (dictMonoid) {
-                var foldMapWithIndex3 = foldMapWithIndex1(dictMonoid);
-                var foldMapWithIndex4 = foldMapWithIndex2(dictMonoid);
                 return function (f) {
-                    return Data_Functor_Coproduct.coproduct(foldMapWithIndex3(function ($306) {
-                        return f(Data_Either.Left.create($306));
-                    }))(foldMapWithIndex4(function ($307) {
-                        return f(Data_Either.Right.create($307));
+                    return Data_Functor_Coproduct.coproduct(foldMapWithIndex(dictFoldableWithIndex)(dictMonoid)(function ($251) {
+                        return f(Data_Either.Left.create($251));
+                    }))(foldMapWithIndex(dictFoldableWithIndex1)(dictMonoid)(function ($252) {
+                        return f(Data_Either.Right.create($252));
                     }));
                 };
             },
@@ -567,23 +540,17 @@ var foldableWithIndexCoproduct = function (dictFoldableWithIndex) {
     };
 };
 var foldableWithIndexProduct = function (dictFoldableWithIndex) {
-    var foldrWithIndex1 = foldrWithIndex(dictFoldableWithIndex);
-    var foldlWithIndex1 = foldlWithIndex(dictFoldableWithIndex);
-    var foldMapWithIndex1 = foldMapWithIndex(dictFoldableWithIndex);
     var foldableProduct = Data_Foldable.foldableProduct(dictFoldableWithIndex.Foldable0());
     return function (dictFoldableWithIndex1) {
-        var foldrWithIndex2 = foldrWithIndex(dictFoldableWithIndex1);
-        var foldlWithIndex2 = foldlWithIndex(dictFoldableWithIndex1);
-        var foldMapWithIndex2 = foldMapWithIndex(dictFoldableWithIndex1);
         var foldableProduct1 = foldableProduct(dictFoldableWithIndex1.Foldable0());
         return {
             foldrWithIndex: function (f) {
                 return function (z) {
                     return function (v) {
-                        return foldrWithIndex1(function ($308) {
-                            return f(Data_Either.Left.create($308));
-                        })(foldrWithIndex2(function ($309) {
-                            return f(Data_Either.Right.create($309));
+                        return foldrWithIndex(dictFoldableWithIndex)(function ($253) {
+                            return f(Data_Either.Left.create($253));
+                        })(foldrWithIndex(dictFoldableWithIndex1)(function ($254) {
+                            return f(Data_Either.Right.create($254));
                         })(z)(v.value1))(v.value0);
                     };
                 };
@@ -591,24 +558,22 @@ var foldableWithIndexProduct = function (dictFoldableWithIndex) {
             foldlWithIndex: function (f) {
                 return function (z) {
                     return function (v) {
-                        return foldlWithIndex2(function ($310) {
-                            return f(Data_Either.Right.create($310));
-                        })(foldlWithIndex1(function ($311) {
-                            return f(Data_Either.Left.create($311));
+                        return foldlWithIndex(dictFoldableWithIndex1)(function ($255) {
+                            return f(Data_Either.Right.create($255));
+                        })(foldlWithIndex(dictFoldableWithIndex)(function ($256) {
+                            return f(Data_Either.Left.create($256));
                         })(z)(v.value0))(v.value1);
                     };
                 };
             },
             foldMapWithIndex: function (dictMonoid) {
-                var append = Data_Semigroup.append(dictMonoid.Semigroup0());
-                var foldMapWithIndex3 = foldMapWithIndex1(dictMonoid);
-                var foldMapWithIndex4 = foldMapWithIndex2(dictMonoid);
+                var Semigroup0 = dictMonoid.Semigroup0();
                 return function (f) {
                     return function (v) {
-                        return append(foldMapWithIndex3(function ($312) {
-                            return f(Data_Either.Left.create($312));
-                        })(v.value0))(foldMapWithIndex4(function ($313) {
-                            return f(Data_Either.Right.create($313));
+                        return Data_Semigroup.append(Semigroup0)(foldMapWithIndex(dictFoldableWithIndex)(dictMonoid)(function ($257) {
+                            return f(Data_Either.Left.create($257));
+                        })(v.value0))(foldMapWithIndex(dictFoldableWithIndex1)(dictMonoid)(function ($258) {
+                            return f(Data_Either.Right.create($258));
                         })(v.value1));
                     };
                 };
@@ -620,14 +585,13 @@ var foldableWithIndexProduct = function (dictFoldableWithIndex) {
     };
 };
 var foldlWithIndexDefault = function (dictFoldableWithIndex) {
-    var foldMapWithIndex1 = foldMapWithIndex(dictFoldableWithIndex)(monoidDual);
     return function (c) {
         return function (u) {
             return function (xs) {
-                return unwrap(unwrap(foldMapWithIndex1(function (i) {
-                    var $314 = Data_Function.flip(c(i));
-                    return function ($315) {
-                        return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($314($315)));
+                return Data_Newtype.unwrap()(Data_Newtype.unwrap()(foldMapWithIndex(dictFoldableWithIndex)(monoidDual)(function (i) {
+                    var $259 = Data_Function.flip(c(i));
+                    return function ($260) {
+                        return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($259($260)));
                     };
                 })(xs)))(u);
             };
@@ -635,14 +599,13 @@ var foldlWithIndexDefault = function (dictFoldableWithIndex) {
     };
 };
 var foldrWithIndexDefault = function (dictFoldableWithIndex) {
-    var foldMapWithIndex1 = foldMapWithIndex(dictFoldableWithIndex)(monoidEndo);
     return function (c) {
         return function (u) {
             return function (xs) {
-                return unwrap(foldMapWithIndex1(function (i) {
-                    var $316 = c(i);
-                    return function ($317) {
-                        return Data_Monoid_Endo.Endo($316($317));
+                return Data_Newtype.unwrap()(foldMapWithIndex(dictFoldableWithIndex)(monoidEndo)(function (i) {
+                    var $261 = c(i);
+                    return function ($262) {
+                        return Data_Monoid_Endo.Endo($261($262));
                     };
                 })(xs))(u);
             };
@@ -650,36 +613,31 @@ var foldrWithIndexDefault = function (dictFoldableWithIndex) {
     };
 };
 var surroundMapWithIndex = function (dictFoldableWithIndex) {
-    var foldMapWithIndex1 = foldMapWithIndex(dictFoldableWithIndex)(monoidEndo);
     return function (dictSemigroup) {
-        var append = Data_Semigroup.append(dictSemigroup);
         return function (d) {
             return function (t) {
                 return function (f) {
                     var joined = function (i) {
                         return function (a) {
                             return function (m) {
-                                return append(d)(append(t(i)(a))(m));
+                                return Data_Semigroup.append(dictSemigroup)(d)(Data_Semigroup.append(dictSemigroup)(t(i)(a))(m));
                             };
                         };
                     };
-                    return unwrap(foldMapWithIndex1(joined)(f))(d);
+                    return Data_Newtype.unwrap()(foldMapWithIndex(dictFoldableWithIndex)(monoidEndo1)(joined)(f))(d);
                 };
             };
         };
     };
 };
 var foldMapDefault = function (dictFoldableWithIndex) {
-    var foldMapWithIndex1 = foldMapWithIndex(dictFoldableWithIndex);
     return function (dictMonoid) {
-        var foldMapWithIndex2 = foldMapWithIndex1(dictMonoid);
         return function (f) {
-            return foldMapWithIndex2(Data_Function["const"](f));
+            return foldMapWithIndex(dictFoldableWithIndex)(dictMonoid)(Data_Function["const"](f));
         };
     };
 };
 var findWithIndex = function (dictFoldableWithIndex) {
-    var foldlWithIndex1 = foldlWithIndex(dictFoldableWithIndex);
     return function (p) {
         var go = function (v) {
             return function (v1) {
@@ -694,11 +652,10 @@ var findWithIndex = function (dictFoldableWithIndex) {
                 };
             };
         };
-        return foldlWithIndex1(go)(Data_Maybe.Nothing.value);
+        return foldlWithIndex(dictFoldableWithIndex)(go)(Data_Maybe.Nothing.value);
     };
 };
 var findMapWithIndex = function (dictFoldableWithIndex) {
-    var foldlWithIndex1 = foldlWithIndex(dictFoldableWithIndex);
     return function (f) {
         var go = function (v) {
             return function (v1) {
@@ -710,39 +667,37 @@ var findMapWithIndex = function (dictFoldableWithIndex) {
                 };
             };
         };
-        return foldlWithIndex1(go)(Data_Maybe.Nothing.value);
+        return foldlWithIndex(dictFoldableWithIndex)(go)(Data_Maybe.Nothing.value);
     };
 };
 var anyWithIndex = function (dictFoldableWithIndex) {
-    var foldMapWithIndex1 = foldMapWithIndex(dictFoldableWithIndex);
     return function (dictHeytingAlgebra) {
-        var foldMapWithIndex2 = foldMapWithIndex1(Data_Monoid_Disj.monoidDisj(dictHeytingAlgebra));
+        var monoidDisj = Data_Monoid_Disj.monoidDisj(dictHeytingAlgebra);
         return function (t) {
-            var $318 = foldMapWithIndex2(function (i) {
-                var $320 = t(i);
-                return function ($321) {
-                    return Data_Monoid_Disj.Disj($320($321));
+            var $263 = foldMapWithIndex(dictFoldableWithIndex)(monoidDisj)(function (i) {
+                var $265 = t(i);
+                return function ($266) {
+                    return Data_Monoid_Disj.Disj($265($266));
                 };
             });
-            return function ($319) {
-                return unwrap1($318($319));
+            return function ($264) {
+                return unwrap($263($264));
             };
         };
     };
 };
 var allWithIndex = function (dictFoldableWithIndex) {
-    var foldMapWithIndex1 = foldMapWithIndex(dictFoldableWithIndex);
     return function (dictHeytingAlgebra) {
-        var foldMapWithIndex2 = foldMapWithIndex1(Data_Monoid_Conj.monoidConj(dictHeytingAlgebra));
+        var monoidConj = Data_Monoid_Conj.monoidConj(dictHeytingAlgebra);
         return function (t) {
-            var $322 = foldMapWithIndex2(function (i) {
-                var $324 = t(i);
-                return function ($325) {
-                    return Data_Monoid_Conj.Conj($324($325));
+            var $267 = foldMapWithIndex(dictFoldableWithIndex)(monoidConj)(function (i) {
+                var $269 = t(i);
+                return function ($270) {
+                    return Data_Monoid_Conj.Conj($269($270));
                 };
             });
-            return function ($323) {
-                return unwrap1($322($323));
+            return function ($268) {
+                return unwrap($267($268));
             };
         };
     };

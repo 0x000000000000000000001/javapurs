@@ -36,11 +36,8 @@ var $runtime_lazy = function (name, moduleName, init) {
         return val;
     };
 };
-var pure = /* #__PURE__ */ Control_Applicative.pure(Effect.applicativeEffect);
 var $$void = /* #__PURE__ */ Data_Functor["void"](Effect.functorEffect);
-var map = /* #__PURE__ */ Data_Functor.map(Effect.functorEffect);
 var void1 = /* #__PURE__ */ Data_Functor["void"](Effect.functorEffect);
-var pure1 = /* #__PURE__ */ Control_Applicative.pure(Data_Either.applicativeEither);
 var Fiber = function (x) {
     return x;
 };
@@ -62,7 +59,6 @@ var functorParAff = {
 var functorAff = {
     map: $foreign["_map"]
 };
-var map1 = /* #__PURE__ */ Data_Functor.map(functorAff);
 var forkAff = /* #__PURE__ */ $foreign["_fork"](true);
 var ffiUtil = /* #__PURE__ */ (function () {
     var unsafeFromRight = function (v) {
@@ -110,8 +106,8 @@ var launchAff = function (aff) {
         return fiber;
     };
 };
-var launchAff_ = function ($83) {
-    return $$void(launchAff($83));
+var launchAff_ = function ($55) {
+    return $$void(launchAff($55));
 };
 var launchSuspendedAff = makeFiber;
 var delay = function (v) {
@@ -132,10 +128,9 @@ var applyParAff = {
         return functorParAff;
     }
 };
-var lift2 = /* #__PURE__ */ Control_Apply.lift2(applyParAff);
 var semigroupParAff = function (dictSemigroup) {
     return {
-        append: lift2(Data_Semigroup.append(dictSemigroup))
+        append: Control_Apply.lift2(applyParAff)(Data_Semigroup.append(dictSemigroup))
     };
 };
 var monadAff = {
@@ -167,37 +162,31 @@ var $lazy_applyAff = /* #__PURE__ */ $runtime_lazy("applyAff", "Effect.Aff", fun
     };
 });
 var applyAff = /* #__PURE__ */ $lazy_applyAff(73);
-var pure2 = /* #__PURE__ */ Control_Applicative.pure(applicativeAff);
-var pure3 = /* #__PURE__ */ Control_Applicative.pure(applicativeAff);
-var pure4 = /* #__PURE__ */ Control_Applicative.pure(applicativeAff);
-var bind1 = /* #__PURE__ */ Control_Bind.bind(bindAff);
-var lift21 = /* #__PURE__ */ Control_Apply.lift2(applyAff);
-var apply = /* #__PURE__ */ Control_Apply.apply(applyAff);
-var bindFlipped = /* #__PURE__ */ Control_Bind.bindFlipped(bindAff);
+var pure = /* #__PURE__ */ Control_Applicative.pure(applicativeAff);
 var cancelWith = function (aff) {
     return function (v) {
-        return $foreign.generalBracket(pure2(Data_Unit.unit))({
+        return $foreign.generalBracket(Control_Applicative.pure(applicativeAff)(Data_Unit.unit))({
             killed: function (e) {
                 return function (v1) {
                     return v(e);
                 };
             },
-            failed: Data_Function["const"](pure3),
-            completed: Data_Function["const"](pure3)
+            failed: Data_Function["const"](Control_Applicative.pure(applicativeAff)),
+            completed: Data_Function["const"](Control_Applicative.pure(applicativeAff))
         })(Data_Function["const"](aff));
     };
 };
 var $$finally = function (fin) {
     return function (a) {
-        return bracket(pure2(Data_Unit.unit))(Data_Function["const"](fin))(Data_Function["const"](a));
+        return bracket(Control_Applicative.pure(applicativeAff)(Data_Unit.unit))(Data_Function["const"](fin))(Data_Function["const"](a));
     };
 };
 var invincible = function (a) {
-    return bracket(a)(Data_Function["const"](pure2(Data_Unit.unit)))(pure4);
+    return bracket(a)(Data_Function["const"](Control_Applicative.pure(applicativeAff)(Data_Unit.unit)))(pure);
 };
 var lazyAff = {
     defer: function (f) {
-        return bind1(pure2(Data_Unit.unit))(f);
+        return Control_Bind.bind(bindAff)(Control_Applicative.pure(applicativeAff)(Data_Unit.unit))(f);
     }
 };
 var parallelAff = {
@@ -212,22 +201,20 @@ var parallelAff = {
 };
 var applicativeParAff = {
     pure: /* #__PURE__ */ (function () {
-        var $84 = Control_Parallel_Class.parallel(parallelAff);
-        var $85 = Control_Applicative.pure(applicativeAff);
-        return function ($86) {
-            return $84($85($86));
+        var $56 = Control_Parallel_Class.parallel(parallelAff);
+        var $57 = Control_Applicative.pure(applicativeAff);
+        return function ($58) {
+            return $56($57($58));
         };
     })(),
     Apply0: function () {
         return applyParAff;
     }
 };
-var pure5 = /* #__PURE__ */ Control_Applicative.pure(applicativeParAff);
-var parSequence_ = /* #__PURE__ */ Control_Parallel.parSequence_(parallelAff)(applicativeParAff)(Data_Foldable.foldableArray);
 var monoidParAff = function (dictMonoid) {
     var semigroupParAff1 = semigroupParAff(dictMonoid.Semigroup0());
     return {
-        mempty: pure5(Data_Monoid.mempty(dictMonoid)),
+        mempty: Control_Applicative.pure(applicativeParAff)(Data_Monoid.mempty(dictMonoid)),
         Semigroup0: function () {
             return semigroupParAff1;
         }
@@ -237,14 +224,14 @@ var semigroupCanceler = {
     append: function (v) {
         return function (v1) {
             return function (err) {
-                return parSequence_([ v(err), v1(err) ]);
+                return Control_Parallel.parSequence_(parallelAff)(applicativeParAff)(Data_Foldable.foldableArray)([ v(err), v1(err) ]);
             };
         };
     }
 };
 var semigroupAff = function (dictSemigroup) {
     return {
-        append: lift21(Data_Semigroup.append(dictSemigroup))
+        append: Control_Apply.lift2(applyAff)(Data_Semigroup.append(dictSemigroup))
     };
 };
 var monadEffectAff = {
@@ -254,26 +241,25 @@ var monadEffectAff = {
     }
 };
 var liftEffect = /* #__PURE__ */ Effect_Class.liftEffect(monadEffectAff);
-var liftEffect1 = /* #__PURE__ */ Effect_Class.liftEffect(monadEffectAff);
-var effectCanceler = function ($87) {
-    return Canceler(Data_Function["const"](liftEffect($87)));
+var effectCanceler = function ($59) {
+    return Canceler(Data_Function["const"](liftEffect($59)));
 };
 var joinFiber = function (v) {
     return $foreign.makeAff(function (k) {
-        return map(effectCanceler)(v.join(k));
+        return Data_Functor.map(Effect.functorEffect)(effectCanceler)(v.join(k));
     });
 };
 var functorFiber = {
     map: function (f) {
         return function (t) {
-            return Effect_Unsafe.unsafePerformEffect(makeFiber(map1(f)(joinFiber(t))));
+            return Effect_Unsafe.unsafePerformEffect(makeFiber(Data_Functor.map(functorAff)(f)(joinFiber(t))));
         };
     }
 };
 var applyFiber = {
     apply: function (t1) {
         return function (t2) {
-            return Effect_Unsafe.unsafePerformEffect(makeFiber(apply(joinFiber(t1))(joinFiber(t2))));
+            return Effect_Unsafe.unsafePerformEffect(makeFiber(Control_Apply.apply(applyAff)(joinFiber(t1))(joinFiber(t2))));
         };
     },
     Functor0: function () {
@@ -282,7 +268,7 @@ var applyFiber = {
 };
 var applicativeFiber = {
     pure: function (a) {
-        return Effect_Unsafe.unsafePerformEffect(makeFiber(pure2(a)));
+        return Effect_Unsafe.unsafePerformEffect(makeFiber(Control_Applicative.pure(applicativeAff)(a)));
     },
     Apply0: function () {
         return applyFiber;
@@ -290,20 +276,20 @@ var applicativeFiber = {
 };
 var killFiber = function (e) {
     return function (v) {
-        return bind1(liftEffect1(v.isSuspended))(function (suspended) {
+        return Control_Bind.bind(bindAff)(Effect_Class.liftEffect(monadEffectAff)(v.isSuspended))(function (suspended) {
             if (suspended) {
-                return liftEffect(void1(v.kill(e, Data_Function["const"](pure(Data_Unit.unit)))));
+                return liftEffect(void1(v.kill(e, Data_Function["const"](Control_Applicative.pure(Effect.applicativeEffect)(Data_Unit.unit)))));
             };
             return $foreign.makeAff(function (k) {
-                return map(effectCanceler)(v.kill(e, k));
+                return Data_Functor.map(Effect.functorEffect)(effectCanceler)(v.kill(e, k));
             });
         });
     };
 };
 var fiberCanceler = /* #__PURE__ */ (function () {
-    var $88 = Data_Function.flip(killFiber);
-    return function ($89) {
-        return Canceler($88($89));
+    var $60 = Data_Function.flip(killFiber);
+    return function ($61) {
+        return Canceler($60($61));
     };
 })();
 var supervise = function (aff) {
@@ -311,7 +297,7 @@ var supervise = function (aff) {
     var killAll = function (err) {
         return function (sup) {
             return $foreign.makeAff(function (k) {
-                return $foreign["_killAll"](err, sup.supervisor, k(pure1(Data_Unit.unit)));
+                return $foreign["_killAll"](err, sup.supervisor, k(Control_Applicative.pure(Data_Either.applicativeEither)(Data_Unit.unit)));
             });
         };
     };
@@ -320,26 +306,26 @@ var supervise = function (aff) {
         sup.fiber.run();
         return sup;
     };
-    return $foreign.generalBracket(liftEffect1(acquire))({
+    return $foreign.generalBracket(Effect_Class.liftEffect(monadEffectAff)(acquire))({
         killed: function (err) {
             return function (sup) {
-                return parSequence_([ killFiber(err)(sup.fiber), killAll(err)(sup) ]);
+                return Control_Parallel.parSequence_(parallelAff)(applicativeParAff)(Data_Foldable.foldableArray)([ killFiber(err)(sup.fiber), killAll(err)(sup) ]);
             };
         },
         failed: Data_Function["const"](killAll(killError)),
         completed: Data_Function["const"](killAll(killError))
-    })(function ($90) {
+    })(function ($62) {
         return joinFiber((function (v) {
             return v.fiber;
-        })($90));
+        })($62));
     });
 };
 var monadSTAff = {
     liftST: /* #__PURE__ */ (function () {
-        var $91 = Effect_Class.liftEffect(monadEffectAff);
-        var $92 = Control_Monad_ST_Class.liftST(Control_Monad_ST_Class.monadSTEffect);
-        return function ($93) {
-            return $91($92($93));
+        var $63 = Effect_Class.liftEffect(monadEffectAff);
+        var $64 = Control_Monad_ST_Class.liftST(Control_Monad_ST_Class.monadSTEffect);
+        return function ($65) {
+            return $63($64($65));
         };
     })(),
     Monad0: function () {
@@ -358,14 +344,12 @@ var monadErrorAff = {
         return monadThrowAff;
     }
 };
-var $$try = /* #__PURE__ */ Control_Monad_Error_Class["try"](monadErrorAff);
-var catchError = /* #__PURE__ */ Control_Monad_Error_Class.catchError(monadErrorAff);
 var attempt = /* #__PURE__ */ Control_Monad_Error_Class["try"](monadErrorAff);
 var runAff = function (k) {
     return function (aff) {
-        return launchAff(bindFlipped(function ($94) {
-            return liftEffect(k($94));
-        })($$try(aff)));
+        return launchAff(Control_Bind.bindFlipped(bindAff)(function ($66) {
+            return liftEffect(k($66));
+        })(Control_Monad_Error_Class["try"](monadErrorAff)(aff)));
     };
 };
 var runAff_ = function (k) {
@@ -375,17 +359,17 @@ var runAff_ = function (k) {
 };
 var runSuspendedAff = function (k) {
     return function (aff) {
-        return launchSuspendedAff(bindFlipped(function ($95) {
-            return liftEffect(k($95));
-        })($$try(aff)));
+        return launchSuspendedAff(Control_Bind.bindFlipped(bindAff)(function ($67) {
+            return liftEffect(k($67));
+        })(Control_Monad_Error_Class["try"](monadErrorAff)(aff)));
     };
 };
 var monadRecAff = {
     tailRecM: function (k) {
         var go = function (a) {
-            return bind1(k(a))(function (res) {
+            return Control_Bind.bind(bindAff)(k(a))(function (res) {
                 if (res instanceof Control_Monad_Rec_Class.Done) {
-                    return pure2(res.value0);
+                    return Control_Applicative.pure(applicativeAff)(res.value0);
                 };
                 if (res instanceof Control_Monad_Rec_Class.Loop) {
                     return go(res.value0);
@@ -402,27 +386,26 @@ var monadRecAff = {
 var monoidAff = function (dictMonoid) {
     var semigroupAff1 = semigroupAff(dictMonoid.Semigroup0());
     return {
-        mempty: pure2(Data_Monoid.mempty(dictMonoid)),
+        mempty: Control_Applicative.pure(applicativeAff)(Data_Monoid.mempty(dictMonoid)),
         Semigroup0: function () {
             return semigroupAff1;
         }
     };
 };
-var nonCanceler = /* #__PURE__ */ Data_Function["const"](/* #__PURE__ */ pure2(Data_Unit.unit));
+var nonCanceler = /* #__PURE__ */ Data_Function["const"](/* #__PURE__ */ Control_Applicative.pure(applicativeAff)(Data_Unit.unit));
 var monoidCanceler = {
     mempty: nonCanceler,
     Semigroup0: function () {
         return semigroupCanceler;
     }
 };
-var mempty = /* #__PURE__ */ Data_Monoid.mempty(monoidCanceler);
 var never = /* #__PURE__ */ $foreign.makeAff(function (v) {
-    return pure(mempty);
+    return Control_Applicative.pure(Effect.applicativeEffect)(Data_Monoid.mempty(monoidCanceler));
 });
 var apathize = /* #__PURE__ */ (function () {
-    var $96 = map1(Data_Function["const"](Data_Unit.unit));
-    return function ($97) {
-        return $96(attempt($97));
+    var $68 = Data_Functor.map(functorAff)(Data_Function["const"](Data_Unit.unit));
+    return function ($69) {
+        return $68(attempt($69));
     };
 })();
 var altParAff = {
@@ -434,7 +417,7 @@ var altParAff = {
 var altAff = {
     alt: function (a1) {
         return function (a2) {
-            return catchError(a1)(Data_Function["const"](a2));
+            return Control_Monad_Error_Class.catchError(monadErrorAff)(a1)(Data_Function["const"](a2));
         };
     },
     Functor0: function () {

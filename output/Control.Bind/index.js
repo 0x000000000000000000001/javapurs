@@ -45,21 +45,19 @@ var bindFlipped = function (dictBind) {
     return Data_Function.flip(bind(dictBind));
 };
 var composeKleisliFlipped = function (dictBind) {
-    var bindFlipped1 = bindFlipped(dictBind);
     return function (f) {
         return function (g) {
             return function (a) {
-                return bindFlipped1(f)(g(a));
+                return bindFlipped(dictBind)(f)(g(a));
             };
         };
     };
 };
 var composeKleisli = function (dictBind) {
-    var bind1 = bind(dictBind);
     return function (f) {
         return function (g) {
             return function (a) {
-                return bind1(f(a))(g);
+                return bind(dictBind)(f(a))(g);
             };
         };
     };
@@ -75,11 +73,10 @@ var discardUnit = {
     }
 };
 var ifM = function (dictBind) {
-    var bind1 = bind(dictBind);
     return function (cond) {
         return function (t) {
             return function (f) {
-                return bind1(cond)(function (cond$prime) {
+                return bind(dictBind)(cond)(function (cond$prime) {
                     if (cond$prime) {
                         return t;
                     };
@@ -90,9 +87,8 @@ var ifM = function (dictBind) {
     };
 };
 var join = function (dictBind) {
-    var bind1 = bind(dictBind);
     return function (m) {
-        return bind1(m)(identity);
+        return bind(dictBind)(m)(identity);
     };
 };
 export {

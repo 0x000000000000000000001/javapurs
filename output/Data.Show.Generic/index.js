@@ -5,17 +5,15 @@ import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Show from "../Data.Show/index.js";
 import * as Data_Symbol from "../Data.Symbol/index.js";
 import * as Type_Proxy from "../Type.Proxy/index.js";
-var append = /* #__PURE__ */ Data_Semigroup.append(Data_Semigroup.semigroupArray);
 var genericShowArgsNoArguments = {
     genericShowArgs: function (v) {
         return [  ];
     }
 };
 var genericShowArgsArgument = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         genericShowArgs: function (v) {
-            return [ show(v) ];
+            return [ Data_Show.show(dictShow)(v) ];
         }
     };
 };
@@ -23,28 +21,24 @@ var genericShowArgs = function (dict) {
     return dict.genericShowArgs;
 };
 var genericShowArgsProduct = function (dictGenericShowArgs) {
-    var genericShowArgs1 = genericShowArgs(dictGenericShowArgs);
     return function (dictGenericShowArgs1) {
-        var genericShowArgs2 = genericShowArgs(dictGenericShowArgs1);
         return {
             genericShowArgs: function (v) {
-                return append(genericShowArgs1(v.value0))(genericShowArgs2(v.value1));
+                return Data_Semigroup.append(Data_Semigroup.semigroupArray)(genericShowArgs(dictGenericShowArgs)(v.value0))(genericShowArgs(dictGenericShowArgs1)(v.value1));
             }
         };
     };
 };
 var genericShowConstructor = function (dictGenericShowArgs) {
-    var genericShowArgs1 = genericShowArgs(dictGenericShowArgs);
     return function (dictIsSymbol) {
-        var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
         return {
             "genericShow'": function (v) {
-                var ctor = reflectSymbol(Type_Proxy["Proxy"].value);
-                var v1 = genericShowArgs1(v);
+                var ctor = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
+                var v1 = genericShowArgs(dictGenericShowArgs)(v);
                 if (v1.length === 0) {
                     return ctor;
                 };
-                return "(" + ($foreign.intercalate(" ")(append([ ctor ])(v1)) + ")");
+                return "(" + ($foreign.intercalate(" ")(Data_Semigroup.append(Data_Semigroup.semigroupArray)([ ctor ])(v1)) + ")");
             }
         };
     };
@@ -58,16 +52,14 @@ var genericShowNoConstructors = {
     }
 };
 var genericShowSum = function (dictGenericShow) {
-    var genericShow$prime1 = genericShow$prime(dictGenericShow);
     return function (dictGenericShow1) {
-        var genericShow$prime2 = genericShow$prime(dictGenericShow1);
         return {
             "genericShow'": function (v) {
                 if (v instanceof Data_Generic_Rep.Inl) {
-                    return genericShow$prime1(v.value0);
+                    return genericShow$prime(dictGenericShow)(v.value0);
                 };
                 if (v instanceof Data_Generic_Rep.Inr) {
-                    return genericShow$prime2(v.value0);
+                    return genericShow$prime(dictGenericShow1)(v.value0);
                 };
                 throw new Error("Failed pattern match at Data.Show.Generic (line 26, column 1 - line 28, column 40): " + [ v.constructor.name ]);
             }
@@ -75,11 +67,9 @@ var genericShowSum = function (dictGenericShow) {
     };
 };
 var genericShow = function (dictGeneric) {
-    var from = Data_Generic_Rep.from(dictGeneric);
     return function (dictGenericShow) {
-        var genericShow$prime1 = genericShow$prime(dictGenericShow);
         return function (x) {
-            return genericShow$prime1(from(x));
+            return genericShow$prime(dictGenericShow)(Data_Generic_Rep.from(dictGeneric)(x));
         };
     };
 };

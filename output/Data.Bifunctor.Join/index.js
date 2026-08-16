@@ -7,10 +7,9 @@ var Join = function (x) {
     return x;
 };
 var showJoin = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
-            return "(Join " + (show(v) + ")");
+            return "(Join " + (Data_Show.show(dictShow)(v) + ")");
         }
     };
 };
@@ -26,22 +25,20 @@ var eqJoin = function (dictEq) {
     return dictEq;
 };
 var bifunctorJoin = function (dictBifunctor) {
-    var bimap = Data_Bifunctor.bimap(dictBifunctor);
     return {
         map: function (f) {
             return function (v) {
-                return bimap(f)(f)(v);
+                return Data_Bifunctor.bimap(dictBifunctor)(f)(f)(v);
             };
         }
     };
 };
 var biapplyJoin = function (dictBiapply) {
-    var biapply = Control_Biapply.biapply(dictBiapply);
     var bifunctorJoin1 = bifunctorJoin(dictBiapply.Bifunctor0());
     return {
         apply: function (v) {
             return function (v1) {
-                return biapply(v)(v1);
+                return Control_Biapply.biapply(dictBiapply)(v)(v1);
             };
         },
         Functor0: function () {
@@ -50,11 +47,10 @@ var biapplyJoin = function (dictBiapply) {
     };
 };
 var biapplicativeJoin = function (dictBiapplicative) {
-    var bipure = Control_Biapplicative.bipure(dictBiapplicative);
     var biapplyJoin1 = biapplyJoin(dictBiapplicative.Biapply0());
     return {
         pure: function (a) {
-            return bipure(a)(a);
+            return Control_Biapplicative.bipure(dictBiapplicative)(a)(a);
         },
         Apply0: function () {
             return biapplyJoin1;

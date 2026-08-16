@@ -16,14 +16,7 @@ import * as Dodo from "../Dodo/index.js";
 import * as Dodo_Internal from "../Dodo.Internal/index.js";
 import * as Partial_Unsafe from "../Partial.Unsafe/index.js";
 import * as Safe_Coerce from "../Safe.Coerce/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(Dodo_Internal.functorDoc);
-var max = /* #__PURE__ */ Data_Ord.max(Data_Ord.ordInt);
-var coerce = /* #__PURE__ */ Safe_Coerce.coerce();
-var append = /* #__PURE__ */ Data_Semigroup.append(Dodo_Internal.semigroupDoc);
-var power = /* #__PURE__ */ Data_Monoid.power(Dodo_Internal.monoidDoc);
 var mempty = /* #__PURE__ */ Data_Monoid.mempty(Dodo_Internal.monoidDoc);
-var under = /* #__PURE__ */ Data_Newtype.under()();
-var mempty1 = /* #__PURE__ */ Data_Monoid.mempty(Dodo_Internal.monoidDoc);
 var LinePad = /* #__PURE__ */ (function () {
     function LinePad(value0) {
         this.value0 = value0;
@@ -379,7 +372,7 @@ var functorDocBox = {
     map: function (f) {
         return function (m) {
             if (m instanceof DocLine) {
-                return new DocLine(map(f)(m.value0), m.value1);
+                return new DocLine(Data_Functor.map(Dodo_Internal.functorDoc)(f)(m.value0), m.value1);
             };
             if (m instanceof DocVApp) {
                 return new DocVApp(Data_Functor.map(functorDocBox)(f)(m.value0), Data_Functor.map(functorDocBox)(f)(m.value1), m.value2);
@@ -501,7 +494,7 @@ var vappend = /* #__PURE__ */ (function () {
     var scale = function (sizea) {
         return function (sizeb) {
             return {
-                width: max(sizea.width)(sizeb.width),
+                width: Data_Ord.max(Data_Ord.ordInt)(sizea.width)(sizeb.width),
                 height: sizea.height + sizeb.height | 0
             };
         };
@@ -525,7 +518,7 @@ var vertical = function (dictFoldable) {
     return Data_Foldable.foldr(dictFoldable)(vappend)(DocEmpty.value);
 };
 var semigroupVertical = {
-    append: /* #__PURE__ */ coerce(vappend)
+    append: /* #__PURE__ */ Safe_Coerce.coerce()(vappend)
 };
 var monoidVertical = /* #__PURE__ */ (function () {
     return {
@@ -535,7 +528,7 @@ var monoidVertical = /* #__PURE__ */ (function () {
         }
     };
 })();
-var power1 = /* #__PURE__ */ Data_Monoid.power(monoidVertical);
+var power = /* #__PURE__ */ Data_Monoid.power(monoidVertical);
 var resume = /* #__PURE__ */ (function () {
     var go = function ($copy_cmd) {
         return function ($copy_stack) {
@@ -558,8 +551,8 @@ var resume = /* #__PURE__ */ (function () {
                         return;
                     };
                     if (cmd.value0 instanceof StpPad) {
-                        var $137 = cmd.value0.value1 === 0;
-                        if ($137) {
+                        var $117 = cmd.value0.value1 === 0;
+                        if ($117) {
                             $tco_var_cmd = new ResumeEnter(cmd.value0.value2);
                             $copy_stack = stack;
                             return;
@@ -611,9 +604,9 @@ var resume = /* #__PURE__ */ (function () {
             return $tco_result;
         };
     };
-    var $278 = Data_Function.flip(go)(ResumeNil.value);
-    return function ($279) {
-        return $278(ResumeEnter.create($279));
+    var $258 = Data_Function.flip(go)(ResumeNil.value);
+    return function ($259) {
+        return $258(ResumeEnter.create($259));
     };
 })();
 var padWithAlign = function (appendFn) {
@@ -660,7 +653,7 @@ var happend = /* #__PURE__ */ (function () {
         return function (sizeb) {
             return {
                 width: sizea.width + sizeb.width | 0,
-                height: max(sizea.height)(sizeb.height)
+                height: Data_Ord.max(Data_Ord.ordInt)(sizea.height)(sizeb.height)
             };
         };
     };
@@ -683,9 +676,8 @@ var horizontal = function (dictFoldable) {
     return Data_Foldable.foldr(dictFoldable)(happend)(DocEmpty.value);
 };
 var horizontalWithAlign = function (dictFoldable) {
-    var foldr = Data_Foldable.foldr(dictFoldable);
     return function (align) {
-        return foldr(function (a) {
+        return Data_Foldable.foldr(dictFoldable)(function (a) {
             return function (b) {
                 return happend(valign(align)(a))(b);
             };
@@ -693,7 +685,7 @@ var horizontalWithAlign = function (dictFoldable) {
     };
 };
 var semigroupHorizontal = {
-    append: /* #__PURE__ */ coerce(happend)
+    append: /* #__PURE__ */ Safe_Coerce.coerce()(happend)
 };
 var monoidHorizontal = /* #__PURE__ */ (function () {
     return {
@@ -762,9 +754,8 @@ var resize = function (newSize) {
     };
 };
 var verticalWithAlign = function (dictFoldable) {
-    var foldr = Data_Foldable.foldr(dictFoldable);
     return function (align) {
-        return foldr(function (a) {
+        return Data_Foldable.foldr(dictFoldable)(function (a) {
             return function (b) {
                 return vappend(halign(align)(a))(b);
             };
@@ -790,13 +781,13 @@ var formatLine = /* #__PURE__ */ (function () {
                             return;
                         };
                         if (Data_Boolean.otherwise) {
-                            $tco_var_acc = append(power(Dodo.space)(v.value0.value0))(acc);
+                            $tco_var_acc = Data_Semigroup.append(Dodo_Internal.semigroupDoc)(Data_Monoid.power(Dodo_Internal.monoidDoc)(Dodo.space)(v.value0.value0))(acc);
                             $copy_v = v.value1;
                             return;
                         };
                     };
                     if (v.value0 instanceof LineDoc) {
-                        $tco_var_acc = append(v.value0.value0)(acc);
+                        $tco_var_acc = Data_Semigroup.append(Dodo_Internal.semigroupDoc)(v.value0.value0)(acc);
                         $copy_v = v.value1;
                         return;
                     };
@@ -815,20 +806,20 @@ var formatLine = /* #__PURE__ */ (function () {
             return $tco_result;
         };
     };
-    var $280 = go(mempty);
-    return function ($281) {
-        return $280(Data_List.singleton($281));
+    var $260 = go(mempty);
+    return function ($261) {
+        return $260(Data_List.singleton($261));
     };
 })();
 var fill = function (ch) {
     return function (v) {
         var line = (function () {
             if (ch instanceof Dodo_Internal.Annotate) {
-                return new DocLine(Dodo.annotate(ch.value0)(power(ch.value1)(v.width)), v.width);
+                return new DocLine(Dodo.annotate(ch.value0)(Data_Monoid.power(Dodo_Internal.monoidDoc)(ch.value1)(v.width)), v.width);
             };
-            return new DocLine(power(ch)(v.width), v.width);
+            return new DocLine(Data_Monoid.power(Dodo_Internal.monoidDoc)(ch)(v.width), v.width);
         })();
-        return under(Vertical)(Data_Function.flip(power1)(v.height))(line);
+        return Data_Newtype.under()()(Vertical)(Data_Function.flip(power)(v.height))(line);
     };
 };
 var empty = /* #__PURE__ */ (function () {
@@ -841,7 +832,7 @@ var docBox = /* #__PURE__ */ (function () {
                 var doc$prime = new Dodo_Internal.Text(width, text);
                 var line = (function () {
                     if (v.currentLine instanceof Data_List_Types.Cons && v.currentLine.value0 instanceof Data_Either.Right) {
-                        return new Data_List_Types.Cons(new Data_Either.Right(append(v.currentLine.value0.value0)(doc$prime)), v.currentLine.value1);
+                        return new Data_List_Types.Cons(new Data_Either.Right(Data_Semigroup.append(Dodo_Internal.semigroupDoc)(v.currentLine.value0.value0)(doc$prime)), v.currentLine.value1);
                     };
                     return new Data_List_Types.Cons(new Data_Either.Right(doc$prime), v.currentLine);
                 })();
@@ -861,7 +852,7 @@ var docBox = /* #__PURE__ */ (function () {
                 return {
                     currentLine: v.currentLine,
                     lines: v.lines,
-                    currentIndent: append(v.currentIndent)(doc),
+                    currentIndent: Data_Semigroup.append(Dodo_Internal.semigroupDoc)(v.currentIndent)(doc),
                     currentWidth: v.currentWidth + width | 0
                 };
             };
@@ -873,7 +864,7 @@ var docBox = /* #__PURE__ */ (function () {
                 return Dodo.annotate(v.value0)(doc);
             };
             if (v instanceof Data_Either.Right) {
-                return append(v.value0)(doc);
+                return Data_Semigroup.append(Dodo_Internal.semigroupDoc)(v.value0)(doc);
             };
             throw new Error("Failed pattern match at Dodo.Box (line 521, column 15 - line 525, column 22): " + [ v.constructor.name ]);
         };
@@ -884,7 +875,7 @@ var docBox = /* #__PURE__ */ (function () {
             currentIndent: mempty,
             currentLine: Data_List.filter(Data_Either.isLeft)(v.currentLine),
             currentWidth: 0,
-            lines: vappend(v.lines)(new DocLine(append(v.currentIndent)(line), v.currentWidth))
+            lines: vappend(v.lines)(new DocLine(Data_Semigroup.append(Dodo_Internal.semigroupDoc)(v.currentIndent)(line), v.currentWidth))
         };
     };
     var leaveAnnotation = function (v) {
@@ -914,7 +905,7 @@ var docBox = /* #__PURE__ */ (function () {
         };
         if (Data_Boolean.otherwise) {
             var line = stkToDoc(v.currentLine);
-            return vappend(v.lines)(new DocLine(append(v.currentIndent)(line), v.currentWidth));
+            return vappend(v.lines)(new DocLine(Data_Semigroup.append(Dodo_Internal.semigroupDoc)(v.currentIndent)(line), v.currentWidth));
         };
         throw new Error("Failed pattern match at Dodo.Box (line 511, column 3 - line 511, column 44): " + [ v.constructor.name ]);
     };
@@ -1065,7 +1056,7 @@ var toDoc = /* #__PURE__ */ (function () {
                     return acc;
                 };
                 if (v instanceof Data_Maybe.Just) {
-                    $tco_var_acc = append(acc)(append(Dodo["break"])(formatLine(v.value0.line)));
+                    $tco_var_acc = Data_Semigroup.append(Dodo_Internal.semigroupDoc)(acc)(Data_Semigroup.append(Dodo_Internal.semigroupDoc)(Dodo["break"])(formatLine(v.value0.line)));
                     $copy_v = resume(v.value0.next);
                     return;
                 };
@@ -1079,16 +1070,16 @@ var toDoc = /* #__PURE__ */ (function () {
     };
     var go1 = function (v) {
         if (v instanceof Data_Maybe.Nothing) {
-            return mempty1;
+            return Data_Monoid.mempty(Dodo_Internal.monoidDoc);
         };
         if (v instanceof Data_Maybe.Just) {
             return go2(formatLine(v.value0.line))(resume(v.value0.next));
         };
         throw new Error("Failed pattern match at Dodo.Box (line 273, column 9 - line 276, column 42): " + [ v.constructor.name ]);
     };
-    var $282 = build(AsIs.value)(StpDone.value);
-    return function ($283) {
-        return go1(resume($282($283)));
+    var $262 = build(AsIs.value)(StpDone.value);
+    return function ($263) {
+        return go1(resume($262($263)));
     };
 })();
 export {

@@ -18,13 +18,10 @@ import * as Data_Monoid from "../Data.Monoid/index.js";
 import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Effect_Class from "../Effect.Class/index.js";
-var map = /* #__PURE__ */ Data_Functor.map(Data_Either.functorEither);
-var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var ExceptT = function (x) {
     return x;
 };
 var withExceptT = function (dictFunctor) {
-    var map1 = Data_Functor.map(dictFunctor);
     return function (f) {
         return function (v) {
             var mapLeft = function (v1) {
@@ -38,7 +35,7 @@ var withExceptT = function (dictFunctor) {
                     throw new Error("Failed pattern match at Control.Monad.Except.Trans (line 43, column 3 - line 43, column 32): " + [ v1.constructor.name, v2.constructor.name ]);
                 };
             };
-            return map1(mapLeft(f))(v);
+            return Data_Functor.map(dictFunctor)(mapLeft(f))(v);
         };
     };
 };
@@ -52,34 +49,32 @@ var newtypeExceptT = {
 };
 var monadTransExceptT = {
     lift: function (dictMonad) {
-        var bind = Control_Bind.bind(dictMonad.Bind1());
+        var Bind1 = dictMonad.Bind1();
         var pure = Control_Applicative.pure(dictMonad.Applicative0());
         return function (m) {
-            return bind(m)(function (a) {
+            return Control_Bind.bind(Bind1)(m)(function (a) {
                 return pure(new Data_Either.Right(a));
             });
         };
     }
 };
 var lift = /* #__PURE__ */ Control_Monad_Trans_Class.lift(monadTransExceptT);
-var lift1 = /* #__PURE__ */ Control_Monad_Trans_Class.lift(monadTransExceptT);
 var mapExceptT = function (f) {
     return function (v) {
         return f(v);
     };
 };
 var functorExceptT = function (dictFunctor) {
-    var map1 = Data_Functor.map(dictFunctor);
     return {
         map: function (f) {
-            return mapExceptT(map1(map(f)));
+            return mapExceptT(Data_Functor.map(dictFunctor)(Data_Functor.map(Data_Either.functorEither)(f)));
         }
     };
 };
 var except = function (dictApplicative) {
-    var $193 = Control_Applicative.pure(dictApplicative);
-    return function ($194) {
-        return ExceptT($193($194));
+    var $169 = Control_Applicative.pure(dictApplicative);
+    return function ($170) {
+        return ExceptT($169($170));
     };
 };
 var monadExceptT = function (dictMonad) {
@@ -93,13 +88,13 @@ var monadExceptT = function (dictMonad) {
     };
 };
 var bindExceptT = function (dictMonad) {
-    var bind = Control_Bind.bind(dictMonad.Bind1());
+    var Bind1 = dictMonad.Bind1();
     var pure = Control_Applicative.pure(dictMonad.Applicative0());
     return {
         bind: function (v) {
             return function (k) {
-                return bind(v)(Data_Either.either(function ($195) {
-                    return pure(Data_Either.Left.create($195));
+                return Control_Bind.bind(Bind1)(v)(Data_Either.either(function ($171) {
+                    return pure(Data_Either.Left.create($171));
                 })(function (a) {
                     var v1 = k(a);
                     return v1;
@@ -123,9 +118,9 @@ var applyExceptT = function (dictMonad) {
 var applicativeExceptT = function (dictMonad) {
     return {
         pure: (function () {
-            var $196 = Control_Applicative.pure(dictMonad.Applicative0());
-            return function ($197) {
-                return ExceptT($196(Data_Either.Right.create($197)));
+            var $172 = Control_Applicative.pure(dictMonad.Applicative0());
+            return function ($173) {
+                return ExceptT($172(Data_Either.Right.create($173)));
             };
         })(),
         Apply0: function () {
@@ -134,29 +129,27 @@ var applicativeExceptT = function (dictMonad) {
     };
 };
 var semigroupExceptT = function (dictMonad) {
-    var lift2 = Control_Apply.lift2(applyExceptT(dictMonad));
+    var applyExceptT1 = applyExceptT(dictMonad);
     return function (dictSemigroup) {
         return {
-            append: lift2(Data_Semigroup.append(dictSemigroup))
+            append: Control_Apply.lift2(applyExceptT1)(Data_Semigroup.append(dictSemigroup))
         };
     };
 };
 var monadAskExceptT = function (dictMonadAsk) {
-    var Monad0 = dictMonadAsk.Monad0();
-    var monadExceptT1 = monadExceptT(Monad0);
+    var monadExceptT1 = monadExceptT(dictMonadAsk.Monad0());
     return {
-        ask: lift(Monad0)(Control_Monad_Reader_Class.ask(dictMonadAsk)),
+        ask: Control_Monad_Trans_Class.lift(monadTransExceptT)(dictMonadAsk.Monad0())(Control_Monad_Reader_Class.ask(dictMonadAsk)),
         Monad0: function () {
             return monadExceptT1;
         }
     };
 };
 var monadReaderExceptT = function (dictMonadReader) {
-    var local = Control_Monad_Reader_Class.local(dictMonadReader);
     var monadAskExceptT1 = monadAskExceptT(dictMonadReader.MonadAsk0());
     return {
         local: function (f) {
-            return mapExceptT(local(f));
+            return mapExceptT(Control_Monad_Reader_Class.local(dictMonadReader)(f));
         },
         MonadAsk0: function () {
             return monadAskExceptT1;
@@ -164,11 +157,10 @@ var monadReaderExceptT = function (dictMonadReader) {
     };
 };
 var monadContExceptT = function (dictMonadCont) {
-    var callCC = Control_Monad_Cont_Class.callCC(dictMonadCont);
     var monadExceptT1 = monadExceptT(dictMonadCont.Monad0());
     return {
         callCC: function (f) {
-            return callCC(function (c) {
+            return Control_Monad_Cont_Class.callCC(dictMonadCont)(function (c) {
                 var v = f(function (a) {
                     return c(new Data_Either.Right(a));
                 });
@@ -185,10 +177,10 @@ var monadEffectExceptT = function (dictMonadEffect) {
     var monadExceptT1 = monadExceptT(Monad0);
     return {
         liftEffect: (function () {
-            var $198 = lift1(Monad0);
-            var $199 = Effect_Class.liftEffect(dictMonadEffect);
-            return function ($200) {
-                return $198($199($200));
+            var $174 = lift(Monad0);
+            var $175 = Effect_Class.liftEffect(dictMonadEffect);
+            return function ($176) {
+                return $174($175($176));
             };
         })(),
         Monad0: function () {
@@ -197,17 +189,16 @@ var monadEffectExceptT = function (dictMonadEffect) {
     };
 };
 var monadRecExceptT = function (dictMonadRec) {
-    var tailRecM = Control_Monad_Rec_Class.tailRecM(dictMonadRec);
     var Monad0 = dictMonadRec.Monad0();
-    var bind = Control_Bind.bind(Monad0.Bind1());
-    var pure = Control_Applicative.pure(Monad0.Applicative0());
+    var Bind1 = Monad0.Bind1();
+    var Applicative0 = Monad0.Applicative0();
     var monadExceptT1 = monadExceptT(Monad0);
     return {
         tailRecM: function (f) {
-            var $201 = tailRecM(function (a) {
+            var $177 = Control_Monad_Rec_Class.tailRecM(dictMonadRec)(function (a) {
                 var v = f(a);
-                return bind(v)(function (m$prime) {
-                    return pure((function () {
+                return Control_Bind.bind(Bind1)(v)(function (m$prime) {
+                    return Control_Applicative.pure(Applicative0)((function () {
                         if (m$prime instanceof Data_Either.Left) {
                             return new Control_Monad_Rec_Class.Done(new Data_Either.Left(m$prime.value0));
                         };
@@ -221,8 +212,8 @@ var monadRecExceptT = function (dictMonadRec) {
                     })());
                 });
             });
-            return function ($202) {
-                return ExceptT($201($202));
+            return function ($178) {
+                return ExceptT($177($178));
             };
         },
         Monad0: function () {
@@ -232,12 +223,10 @@ var monadRecExceptT = function (dictMonadRec) {
 };
 var monadStateExceptT = function (dictMonadState) {
     var Monad0 = dictMonadState.Monad0();
-    var lift2 = lift(Monad0);
-    var state = Control_Monad_State_Class.state(dictMonadState);
-    var monadExceptT1 = monadExceptT(Monad0);
+    var monadExceptT1 = monadExceptT(dictMonadState.Monad0());
     return {
         state: function (f) {
-            return lift2(state(f));
+            return Control_Monad_Trans_Class.lift(monadTransExceptT)(Monad0)(Control_Monad_State_Class.state(dictMonadState)(f));
         },
         Monad0: function () {
             return monadExceptT1;
@@ -250,10 +239,10 @@ var monadTellExceptT = function (dictMonadTell) {
     var monadExceptT1 = monadExceptT(Monad1);
     return {
         tell: (function () {
-            var $203 = lift1(Monad1);
-            var $204 = Control_Monad_Writer_Class.tell(dictMonadTell);
-            return function ($205) {
-                return $203($204($205));
+            var $179 = lift(Monad1);
+            var $180 = Control_Monad_Writer_Class.tell(dictMonadTell);
+            return function ($181) {
+                return $179($180($181));
             };
         })(),
         Semigroup0: function () {
@@ -267,27 +256,24 @@ var monadTellExceptT = function (dictMonadTell) {
 var monadWriterExceptT = function (dictMonadWriter) {
     var MonadTell1 = dictMonadWriter.MonadTell1();
     var Monad1 = MonadTell1.Monad1();
-    var bind = Control_Bind.bind(Monad1.Bind1());
-    var listen = Control_Monad_Writer_Class.listen(dictMonadWriter);
+    var Bind1 = Monad1.Bind1();
+    var pure = Control_Applicative.pure(Monad1.Applicative0());
     var Applicative0 = Monad1.Applicative0();
-    var pure = Control_Applicative.pure(Applicative0);
-    var pass = Control_Monad_Writer_Class.pass(dictMonadWriter);
-    var pure1 = Control_Applicative.pure(Applicative0);
     var Monoid0 = dictMonadWriter.Monoid0();
     var monadTellExceptT1 = monadTellExceptT(MonadTell1);
     return {
         listen: mapExceptT(function (m) {
-            return bind(listen(m))(function (v) {
-                return pure(map(function (r) {
+            return Control_Bind.bind(Bind1)(Control_Monad_Writer_Class.listen(dictMonadWriter)(m))(function (v) {
+                return pure(Data_Functor.map(Data_Either.functorEither)(function (r) {
                     return new Data_Tuple.Tuple(r, v.value1);
                 })(v.value0));
             });
         }),
         pass: mapExceptT(function (m) {
-            return pass(bind(m)(function (a) {
-                return pure1((function () {
+            return Control_Monad_Writer_Class.pass(dictMonadWriter)(Control_Bind.bind(Bind1)(m)(function (a) {
+                return Control_Applicative.pure(Applicative0)((function () {
                     if (a instanceof Data_Either.Left) {
-                        return new Data_Tuple.Tuple(new Data_Either.Left(a.value0), identity);
+                        return new Data_Tuple.Tuple(new Data_Either.Left(a.value0), Control_Category.identity(Control_Category.categoryFn));
                     };
                     if (a instanceof Data_Either.Right) {
                         return new Data_Tuple.Tuple(new Data_Either.Right(a.value0.value0), a.value0.value1);
@@ -308,9 +294,9 @@ var monadThrowExceptT = function (dictMonad) {
     var monadExceptT1 = monadExceptT(dictMonad);
     return {
         throwError: (function () {
-            var $206 = Control_Applicative.pure(dictMonad.Applicative0());
-            return function ($207) {
-                return ExceptT($206(Data_Either.Left.create($207)));
+            var $182 = Control_Applicative.pure(dictMonad.Applicative0());
+            return function ($183) {
+                return ExceptT($182(Data_Either.Left.create($183)));
             };
         })(),
         Monad0: function () {
@@ -319,17 +305,17 @@ var monadThrowExceptT = function (dictMonad) {
     };
 };
 var monadErrorExceptT = function (dictMonad) {
-    var bind = Control_Bind.bind(dictMonad.Bind1());
+    var Bind1 = dictMonad.Bind1();
     var pure = Control_Applicative.pure(dictMonad.Applicative0());
     var monadThrowExceptT1 = monadThrowExceptT(dictMonad);
     return {
         catchError: function (v) {
             return function (k) {
-                return bind(v)(Data_Either.either(function (a) {
+                return Control_Bind.bind(Bind1)(v)(Data_Either.either(function (a) {
                     var v1 = k(a);
                     return v1;
-                })(function ($208) {
-                    return pure(Data_Either.Right.create($208));
+                })(function ($184) {
+                    return pure(Data_Either.Right.create($184));
                 }));
             };
         },
@@ -343,10 +329,10 @@ var monadSTExceptT = function (dictMonadST) {
     var monadExceptT1 = monadExceptT(Monad0);
     return {
         liftST: (function () {
-            var $209 = lift1(Monad0);
-            var $210 = Control_Monad_ST_Class.liftST(dictMonadST);
-            return function ($211) {
-                return $209($210($211));
+            var $185 = lift(Monad0);
+            var $186 = Control_Monad_ST_Class.liftST(dictMonadST);
+            return function ($187) {
+                return $185($186($187));
             };
         })(),
         Monad0: function () {
@@ -355,12 +341,12 @@ var monadSTExceptT = function (dictMonadST) {
     };
 };
 var monoidExceptT = function (dictMonad) {
-    var pure = Control_Applicative.pure(applicativeExceptT(dictMonad));
+    var applicativeExceptT1 = applicativeExceptT(dictMonad);
     var semigroupExceptT1 = semigroupExceptT(dictMonad);
     return function (dictMonoid) {
         var semigroupExceptT2 = semigroupExceptT1(dictMonoid.Semigroup0());
         return {
-            mempty: pure(Data_Monoid.mempty(dictMonoid)),
+            mempty: Control_Applicative.pure(applicativeExceptT1)(Data_Monoid.mempty(dictMonoid)),
             Semigroup0: function () {
                 return semigroupExceptT2;
             }
@@ -368,26 +354,24 @@ var monoidExceptT = function (dictMonad) {
     };
 };
 var altExceptT = function (dictSemigroup) {
-    var append = Data_Semigroup.append(dictSemigroup);
     return function (dictMonad) {
         var Bind1 = dictMonad.Bind1();
-        var bind = Control_Bind.bind(Bind1);
-        var pure = Control_Applicative.pure(dictMonad.Applicative0());
-        var functorExceptT1 = functorExceptT((Bind1.Apply0()).Functor0());
+        var Applicative0 = dictMonad.Applicative0();
+        var functorExceptT1 = functorExceptT(((dictMonad.Bind1()).Apply0()).Functor0());
         return {
             alt: function (v) {
                 return function (v1) {
-                    return bind(v)(function (rm) {
+                    return Control_Bind.bind(Bind1)(v)(function (rm) {
                         if (rm instanceof Data_Either.Right) {
-                            return pure(new Data_Either.Right(rm.value0));
+                            return Control_Applicative.pure(Applicative0)(new Data_Either.Right(rm.value0));
                         };
                         if (rm instanceof Data_Either.Left) {
-                            return bind(v1)(function (rn) {
+                            return Control_Bind.bind(Bind1)(v1)(function (rn) {
                                 if (rn instanceof Data_Either.Right) {
-                                    return pure(new Data_Either.Right(rn.value0));
+                                    return Control_Applicative.pure(Applicative0)(new Data_Either.Right(rn.value0));
                                 };
                                 if (rn instanceof Data_Either.Left) {
-                                    return pure(new Data_Either.Left(append(rm.value0)(rn.value0)));
+                                    return Control_Applicative.pure(Applicative0)(new Data_Either.Left(Data_Semigroup.append(dictSemigroup)(rm.value0)(rn.value0)));
                                 };
                                 throw new Error("Failed pattern match at Control.Monad.Except.Trans (line 87, column 9 - line 89, column 49): " + [ rn.constructor.name ]);
                             });

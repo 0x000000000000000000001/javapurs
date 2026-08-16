@@ -13,25 +13,23 @@ var listen = function (dict) {
 };
 var listens = function (dictMonadWriter) {
     var Monad1 = (dictMonadWriter.MonadTell1()).Monad1();
-    var bind = Control_Bind.bind(Monad1.Bind1());
-    var listen1 = listen(dictMonadWriter);
+    var Bind1 = Monad1.Bind1();
     var pure = Control_Applicative.pure(Monad1.Applicative0());
     return function (f) {
         return function (m) {
-            return bind(listen1(m))(function (v) {
+            return Control_Bind.bind(Bind1)(listen(dictMonadWriter)(m))(function (v) {
                 return pure(new Data_Tuple.Tuple(v.value0, f(v.value1)));
             });
         };
     };
 };
 var censor = function (dictMonadWriter) {
-    var pass1 = pass(dictMonadWriter);
     var Monad1 = (dictMonadWriter.MonadTell1()).Monad1();
-    var bind = Control_Bind.bind(Monad1.Bind1());
+    var Bind1 = Monad1.Bind1();
     var pure = Control_Applicative.pure(Monad1.Applicative0());
     return function (f) {
         return function (m) {
-            return pass1(bind(m)(function (a) {
+            return pass(dictMonadWriter)(Control_Bind.bind(Bind1)(m)(function (a) {
                 return pure(new Data_Tuple.Tuple(a, f));
             }));
         };

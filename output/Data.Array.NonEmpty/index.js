@@ -16,8 +16,6 @@ import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Unfoldable1 from "../Data.Unfoldable1/index.js";
 import * as Safe_Coerce from "../Safe.Coerce/index.js";
 import * as Unsafe_Coerce from "../Unsafe.Coerce/index.js";
-var max = /* #__PURE__ */ Data_Ord.max(Data_Ord.ordInt);
-var append = /* #__PURE__ */ Data_Semigroup.append(Data_Semigroup.semigroupArray);
 var intercalate1 = /* #__PURE__ */ Data_Semigroup_Foldable.intercalate(Data_Array_NonEmpty_Internal.foldable1NonEmptyArray);
 var foldMap11 = /* #__PURE__ */ Data_Semigroup_Foldable.foldMap1(Data_Array_NonEmpty_Internal.foldable1NonEmptyArray);
 var fold11 = /* #__PURE__ */ Data_Semigroup_Foldable.fold1(Data_Array_NonEmpty_Internal.foldable1NonEmptyArray);
@@ -26,10 +24,10 @@ var unsafeIndex1 = /* #__PURE__ */ Data_Array.unsafeIndex();
 var unsafeFromArrayF = Unsafe_Coerce.unsafeCoerce;
 var unsafeFromArray = Data_Array_NonEmpty_Internal.NonEmptyArray;
 var transpose = /* #__PURE__ */ (function () {
-    var $101 = Safe_Coerce.coerce();
-    var $102 = Safe_Coerce.coerce();
-    return function ($103) {
-        return $101(Data_Array.transpose($102($103)));
+    var $75 = Safe_Coerce.coerce();
+    var $76 = Safe_Coerce.coerce();
+    return function ($77) {
+        return $75(Data_Array.transpose($76($77)));
     };
 })();
 var toArray = function (v) {
@@ -37,9 +35,9 @@ var toArray = function (v) {
 };
 var unionBy$prime = function (eq) {
     return function (xs) {
-        var $104 = Data_Array.unionBy(eq)(toArray(xs));
-        return function ($105) {
-            return unsafeFromArray($104($105));
+        var $78 = Data_Array.unionBy(eq)(toArray(xs));
+        return function ($79) {
+            return unsafeFromArray($78($79));
         };
     };
 };
@@ -48,9 +46,9 @@ var union$prime = function (dictEq) {
 };
 var unionBy = function (eq) {
     return function (xs) {
-        var $106 = unionBy$prime(eq)(xs);
-        return function ($107) {
-            return $106(toArray($107));
+        var $80 = unionBy$prime(eq)(xs);
+        return function ($81) {
+            return $80(toArray($81));
         };
     };
 };
@@ -58,16 +56,16 @@ var union = function (dictEq) {
     return unionBy(Data_Eq.eq(dictEq));
 };
 var unzip = /* #__PURE__ */ (function () {
-    var $108 = Data_Bifunctor.bimap(Data_Bifunctor.bifunctorTuple)(unsafeFromArray)(unsafeFromArray);
-    return function ($109) {
-        return $108(Data_Array.unzip(toArray($109)));
+    var $82 = Data_Bifunctor.bimap(Data_Bifunctor.bifunctorTuple)(unsafeFromArray)(unsafeFromArray);
+    return function ($83) {
+        return $82(Data_Array.unzip(toArray($83)));
     };
 })();
 var updateAt = function (i) {
     return function (x) {
-        var $110 = Data_Array.updateAt(i)(x);
-        return function ($111) {
-            return unsafeFromArrayF($110(toArray($111)));
+        var $84 = Data_Array.updateAt(i)(x);
+        return function ($85) {
+            return unsafeFromArrayF($84(toArray($85)));
         };
     };
 };
@@ -84,11 +82,10 @@ var zipWith = function (f) {
     };
 };
 var zipWithA = function (dictApplicative) {
-    var zipWithA1 = Data_Array.zipWithA(dictApplicative);
     return function (f) {
         return function (xs) {
             return function (ys) {
-                return unsafeFromArrayF(zipWithA1(f)(toArray(xs))(toArray(ys)));
+                return unsafeFromArrayF(Data_Array.zipWithA(dictApplicative)(f)(toArray(xs))(toArray(ys)));
             };
         };
     };
@@ -101,9 +98,9 @@ var splitAt = function (i) {
 var some = function (dictAlternative) {
     var some1 = Data_Array.some(dictAlternative);
     return function (dictLazy) {
-        var $112 = some1(dictLazy);
-        return function ($113) {
-            return unsafeFromArrayF($112($113));
+        var $86 = some1(dictLazy);
+        return function ($87) {
+            return unsafeFromArrayF($86($87));
         };
     };
 };
@@ -117,12 +114,12 @@ var snoc = function (xs) {
         return unsafeFromArray(Data_Array.snoc(toArray(xs))(x));
     };
 };
-var singleton = function ($114) {
-    return unsafeFromArray(Data_Array.singleton($114));
+var singleton = function ($88) {
+    return unsafeFromArray(Data_Array.singleton($88));
 };
 var replicate = function (i) {
     return function (x) {
-        return unsafeFromArray(Data_Array.replicate(max(1)(i))(x));
+        return unsafeFromArray(Data_Array.replicate(Data_Ord.max(Data_Ord.ordInt)(1)(i))(x));
     };
 };
 var range = function (x) {
@@ -132,14 +129,14 @@ var range = function (x) {
 };
 var prependArray = function (xs) {
     return function (ys) {
-        return unsafeFromArray(append(xs)(toArray(ys)));
+        return unsafeFromArray(Data_Semigroup.append(Data_Semigroup.semigroupArray)(xs)(toArray(ys)));
     };
 };
 var modifyAt = function (i) {
     return function (f) {
-        var $115 = Data_Array.modifyAt(i)(f);
-        return function ($116) {
-            return unsafeFromArrayF($115(toArray($116)));
+        var $89 = Data_Array.modifyAt(i)(f);
+        return function ($90) {
+            return unsafeFromArrayF($89(toArray($90)));
         };
     };
 };
@@ -150,9 +147,9 @@ var intersectBy$prime = function (eq) {
 };
 var intersectBy = function (eq) {
     return function (xs) {
-        var $117 = intersectBy$prime(eq)(xs);
-        return function ($118) {
-            return $117(toArray($118));
+        var $91 = intersectBy$prime(eq)(xs);
+        return function ($92) {
+            return $91(toArray($92));
         };
     };
 };
@@ -167,16 +164,16 @@ var intercalate = function (dictSemigroup) {
 };
 var insertAt = function (i) {
     return function (x) {
-        var $119 = Data_Array.insertAt(i)(x);
-        return function ($120) {
-            return unsafeFromArrayF($119(toArray($120)));
+        var $93 = Data_Array.insertAt(i)(x);
+        return function ($94) {
+            return unsafeFromArrayF($93(toArray($94)));
         };
     };
 };
 var fromFoldable1 = function (dictFoldable1) {
-    var $121 = Data_Array.fromFoldable(dictFoldable1.Foldable0());
-    return function ($122) {
-        return unsafeFromArray($121($122));
+    var $95 = Data_Array.fromFoldable(dictFoldable1.Foldable0());
+    return function ($96) {
+        return unsafeFromArray($95($96));
     };
 };
 var fromArray = function (xs) {
@@ -189,15 +186,15 @@ var fromArray = function (xs) {
     throw new Error("Failed pattern match at Data.Array.NonEmpty (line 161, column 1 - line 161, column 58): " + [ xs.constructor.name ]);
 };
 var fromFoldable = function (dictFoldable) {
-    var $123 = Data_Array.fromFoldable(dictFoldable);
-    return function ($124) {
-        return fromArray($123($124));
+    var $97 = Data_Array.fromFoldable(dictFoldable);
+    return function ($98) {
+        return fromArray($97($98));
     };
 };
 var transpose$prime = /* #__PURE__ */ (function () {
-    var $125 = Safe_Coerce.coerce();
-    return function ($126) {
-        return fromArray(Data_Array.transpose($125($126)));
+    var $99 = Safe_Coerce.coerce();
+    return function ($100) {
+        return fromArray(Data_Array.transpose($99($100)));
     };
 })();
 var foldr1 = /* #__PURE__ */ Data_Semigroup_Foldable.foldr1(Data_Array_NonEmpty_Internal.foldable1NonEmptyArray);
@@ -224,27 +221,27 @@ var fromNonEmpty = function (v) {
 };
 var concatMap = /* #__PURE__ */ Data_Function.flip(/* #__PURE__ */ Control_Bind.bind(Data_Array_NonEmpty_Internal.bindNonEmptyArray));
 var concat = /* #__PURE__ */ (function () {
-    var $127 = Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(toArray);
-    return function ($128) {
-        return unsafeFromArray(Data_Array.concat(toArray($127($128))));
+    var $101 = Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(toArray);
+    return function ($102) {
+        return unsafeFromArray(Data_Array.concat(toArray($101($102))));
     };
 })();
 var appendArray = function (xs) {
     return function (ys) {
-        return unsafeFromArray(append(toArray(xs))(ys));
+        return unsafeFromArray(Data_Semigroup.append(Data_Semigroup.semigroupArray)(toArray(xs))(ys));
     };
 };
 var alterAt = function (i) {
     return function (f) {
-        var $129 = Data_Array.alterAt(i)(f);
-        return function ($130) {
-            return $129(toArray($130));
+        var $103 = Data_Array.alterAt(i)(f);
+        return function ($104) {
+            return $103(toArray($104));
         };
     };
 };
 var adaptMaybe = function (f) {
-    return function ($131) {
-        return fromJust(f(toArray($131)));
+    return function ($105) {
+        return fromJust(f(toArray($105)));
     };
 };
 var head = /* #__PURE__ */ adaptMaybe(Data_Array.head);
@@ -252,15 +249,15 @@ var init = /* #__PURE__ */ adaptMaybe(Data_Array.init);
 var last = /* #__PURE__ */ adaptMaybe(Data_Array.last);
 var tail = /* #__PURE__ */ adaptMaybe(Data_Array.tail);
 var uncons = /* #__PURE__ */ adaptMaybe(Data_Array.uncons);
-var toNonEmpty = function ($132) {
+var toNonEmpty = function ($106) {
     return (function (v) {
         return new Data_NonEmpty.NonEmpty(v.head, v.tail);
-    })(uncons($132));
+    })(uncons($106));
 };
 var unsnoc = /* #__PURE__ */ adaptMaybe(Data_Array.unsnoc);
 var adaptAny = function (f) {
-    return function ($133) {
-        return f(toArray($133));
+    return function ($107) {
+        return f(toArray($107));
     };
 };
 var all = function (p) {
@@ -271,9 +268,8 @@ var any = function (p) {
 };
 var catMaybes = /* #__PURE__ */ adaptAny(Data_Array.catMaybes);
 var $$delete = function (dictEq) {
-    var delete1 = Data_Array["delete"](dictEq);
     return function (x) {
-        return adaptAny(delete1(x));
+        return adaptAny(Data_Array["delete"](dictEq)(x));
     };
 };
 var deleteAt = function (i) {
@@ -285,9 +281,8 @@ var deleteBy = function (f) {
     };
 };
 var difference = function (dictEq) {
-    var difference$prime1 = difference$prime(dictEq);
     return function (xs) {
-        return adaptAny(difference$prime1(xs));
+        return adaptAny(difference$prime(dictEq)(xs));
     };
 };
 var drop = function (i) {
@@ -300,30 +295,26 @@ var dropWhile = function (f) {
     return adaptAny(Data_Array.dropWhile(f));
 };
 var elem = function (dictEq) {
-    var elem1 = Data_Array.elem(dictEq);
     return function (x) {
-        return adaptAny(elem1(x));
+        return adaptAny(Data_Array.elem(dictEq)(x));
     };
 };
 var elemIndex = function (dictEq) {
-    var elemIndex1 = Data_Array.elemIndex(dictEq);
     return function (x) {
-        return adaptAny(elemIndex1(x));
+        return adaptAny(Data_Array.elemIndex(dictEq)(x));
     };
 };
 var elemLastIndex = function (dictEq) {
-    var elemLastIndex1 = Data_Array.elemLastIndex(dictEq);
     return function (x) {
-        return adaptAny(elemLastIndex1(x));
+        return adaptAny(Data_Array.elemLastIndex(dictEq)(x));
     };
 };
 var filter = function (f) {
     return adaptAny(Data_Array.filter(f));
 };
 var filterA = function (dictApplicative) {
-    var filterA1 = Data_Array.filterA(dictApplicative);
     return function (f) {
-        return adaptAny(filterA1(f));
+        return adaptAny(Data_Array.filterA(dictApplicative)(f));
     };
 };
 var find = function (p) {
@@ -339,18 +330,16 @@ var findMap = function (p) {
     return adaptAny(Data_Array.findMap(p));
 };
 var foldM = function (dictMonad) {
-    var foldM1 = Data_Array.foldM(dictMonad);
     return function (f) {
         return function (acc) {
-            return adaptAny(foldM1(f)(acc));
+            return adaptAny(Data_Array.foldM(dictMonad)(f)(acc));
         };
     };
 };
 var foldRecM = function (dictMonadRec) {
-    var foldRecM1 = Data_Array.foldRecM(dictMonadRec);
     return function (f) {
         return function (acc) {
-            return adaptAny(foldRecM1(f)(acc));
+            return adaptAny(Data_Array.foldRecM(dictMonadRec)(f)(acc));
         };
     };
 };
@@ -360,9 +349,8 @@ var mapMaybe = function (f) {
     return adaptAny(Data_Array.mapMaybe(f));
 };
 var notElem = function (dictEq) {
-    var notElem1 = Data_Array.notElem(dictEq);
     return function (x) {
-        return adaptAny(notElem1(x));
+        return adaptAny(Data_Array.notElem(dictEq)(x));
     };
 };
 var partition = function (f) {
@@ -389,9 +377,9 @@ var toUnfoldable = function (dictUnfoldable) {
     return adaptAny(Data_Array.toUnfoldable(dictUnfoldable));
 };
 var unsafeAdapt = function (f) {
-    var $134 = adaptAny(f);
-    return function ($135) {
-        return unsafeFromArray($134($135));
+    var $108 = adaptAny(f);
+    return function ($109) {
+        return unsafeFromArray($108($109));
     };
 };
 var cons = function (x) {
@@ -410,9 +398,8 @@ var groupBy = function (op) {
     return unsafeAdapt(Data_Array.groupBy(op));
 };
 var insert = function (dictOrd) {
-    var insert1 = Data_Array.insert(dictOrd);
     return function (x) {
-        return unsafeAdapt(insert1(x));
+        return unsafeAdapt(Data_Array.insert(dictOrd)(x));
     };
 };
 var insertBy = function (f) {
@@ -427,10 +414,9 @@ var mapWithIndex = function (f) {
     return unsafeAdapt(Data_Array.mapWithIndex(f));
 };
 var modifyAtIndices = function (dictFoldable) {
-    var modifyAtIndices1 = Data_Array.modifyAtIndices(dictFoldable);
     return function (is) {
         return function (f) {
-            return unsafeAdapt(modifyAtIndices1(is)(f));
+            return unsafeAdapt(Data_Array.modifyAtIndices(dictFoldable)(is)(f));
         };
     };
 };
@@ -464,35 +450,31 @@ var sortBy = function (f) {
     return unsafeAdapt(Data_Array.sortBy(f));
 };
 var sortWith = function (dictOrd) {
-    var sortWith1 = Data_Array.sortWith(dictOrd);
     return function (f) {
-        return unsafeAdapt(sortWith1(f));
+        return unsafeAdapt(Data_Array.sortWith(dictOrd)(f));
     };
 };
 var updateAtIndices = function (dictFoldable) {
-    var updateAtIndices1 = Data_Array.updateAtIndices(dictFoldable);
     return function (pairs) {
-        return unsafeAdapt(updateAtIndices1(pairs));
+        return unsafeAdapt(Data_Array.updateAtIndices(dictFoldable)(pairs));
     };
 };
 var unsafeIndex = function () {
     return adaptAny(unsafeIndex1);
 };
-var unsafeIndex2 = /* #__PURE__ */ unsafeIndex();
 var toUnfoldable1 = function (dictUnfoldable1) {
-    var unfoldr1 = Data_Unfoldable1.unfoldr1(dictUnfoldable1);
     return function (xs) {
         var len = length(xs);
         var f = function (i) {
-            return new Data_Tuple.Tuple(unsafeIndex2(xs)(i), (function () {
-                var $100 = i < (len - 1 | 0);
-                if ($100) {
+            return new Data_Tuple.Tuple(unsafeIndex()(xs)(i), (function () {
+                var $74 = i < (len - 1 | 0);
+                if ($74) {
                     return new Data_Maybe.Just(i + 1 | 0);
                 };
                 return Data_Maybe.Nothing.value;
             })());
         };
-        return unfoldr1(f)(0);
+        return Data_Unfoldable1.unfoldr1(dictUnfoldable1)(f)(0);
     };
 };
 export {

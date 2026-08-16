@@ -30,8 +30,6 @@ var $runtime_lazy = function (name, moduleName, init) {
         return val;
     };
 };
-var append = /* #__PURE__ */ Data_Semigroup.append(Data_CatList.semigroupCatList);
-var map = /* #__PURE__ */ Data_Functor.map(Data_Functor.functorFn);
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var ExpF = function (x) {
     return x;
@@ -78,7 +76,7 @@ var toView = function ($copy_v) {
         };
         var concatF = function (v2) {
             return function (r) {
-                return new Free(v2.value0, append(v2.value1)(r));
+                return new Free(v2.value0, Data_Semigroup.append(Data_CatList.semigroupCatList)(v2.value1)(r));
             };
         };
         if (v.value0 instanceof Return) {
@@ -107,29 +105,26 @@ var toView = function ($copy_v) {
     return $tco_result;
 };
 var runFreeM = function (dictFunctor) {
-    var map1 = Data_Functor.map(dictFunctor);
     return function (dictMonadRec) {
         var Monad0 = dictMonadRec.Monad0();
-        var map2 = Data_Functor.map(((Monad0.Bind1()).Apply0()).Functor0());
-        var pure3 = Control_Applicative.pure(Monad0.Applicative0());
-        var tailRecM = Control_Monad_Rec_Class.tailRecM(dictMonadRec);
+        var Functor0 = ((Monad0.Bind1()).Apply0()).Functor0();
+        var Applicative0 = Monad0.Applicative0();
         return function (k) {
             var go = function (f) {
                 var v = toView(f);
                 if (v instanceof Return) {
-                    return map2(Control_Monad_Rec_Class.Done.create)(pure3(v.value0));
+                    return Data_Functor.map(Functor0)(Control_Monad_Rec_Class.Done.create)(Control_Applicative.pure(Applicative0)(v.value0));
                 };
                 if (v instanceof Bind) {
-                    return map2(Control_Monad_Rec_Class.Loop.create)(k(map1(v.value1)(v.value0)));
+                    return Data_Functor.map(Functor0)(Control_Monad_Rec_Class.Loop.create)(k(Data_Functor.map(dictFunctor)(v.value1)(v.value0)));
                 };
                 throw new Error("Failed pattern match at Control.Monad.Free (line 194, column 10 - line 196, column 37): " + [ v.constructor.name ]);
             };
-            return tailRecM(go);
+            return Control_Monad_Rec_Class.tailRecM(dictMonadRec)(go);
         };
     };
 };
 var runFree = function (dictFunctor) {
-    var map1 = Data_Functor.map(dictFunctor);
     return function (k) {
         var go = function ($copy_f) {
             var $tco_done = false;
@@ -141,7 +136,7 @@ var runFree = function (dictFunctor) {
                     return v.value0;
                 };
                 if (v instanceof Bind) {
-                    $copy_f = k(map1(v.value1)(v.value0));
+                    $copy_f = k(Data_Functor.map(dictFunctor)(v.value1)(v.value0));
                     return;
                 };
                 throw new Error("Failed pattern match at Control.Monad.Free (line 178, column 10 - line 180, column 33): " + [ v.constructor.name ]);
@@ -169,10 +164,9 @@ var resume$prime = function (k) {
     };
 };
 var resume = function (dictFunctor) {
-    var map1 = Data_Functor.map(dictFunctor);
     return resume$prime(function (g) {
         return function (i) {
-            return new Data_Either.Left(map1(i)(g));
+            return new Data_Either.Left(Data_Functor.map(dictFunctor)(i)(g));
         };
     })(Data_Either.Right.create);
 };
@@ -183,9 +177,8 @@ var wrap = function (f) {
     return fromView(new Bind(f, Unsafe_Coerce.unsafeCoerce));
 };
 var suspendF = function (dictApplicative) {
-    var pure3 = Control_Applicative.pure(dictApplicative);
     return function (f) {
-        return wrap(pure3(f));
+        return wrap(Control_Applicative.pure(dictApplicative)(f));
     };
 };
 var freeMonad = {
@@ -200,9 +193,9 @@ var freeFunctor = {
     map: function (k) {
         return function (f) {
             return Control_Bind.bindFlipped(freeBind)((function () {
-                var $191 = Control_Applicative.pure(freeApplicative);
-                return function ($192) {
-                    return $191(k($192));
+                var $160 = Control_Applicative.pure(freeApplicative);
+                return function ($161) {
+                    return $160(k($161));
                 };
             })())(f);
         };
@@ -219,8 +212,8 @@ var freeBind = {
     }
 };
 var freeApplicative = {
-    pure: function ($193) {
-        return fromView(Return.create($193));
+    pure: function ($162) {
+        return fromView(Return.create($162));
     },
     Apply0: function () {
         return $lazy_freeApply(0);
@@ -235,26 +228,23 @@ var $lazy_freeApply = /* #__PURE__ */ $runtime_lazy("freeApply", "Control.Monad.
     };
 });
 var freeApply = /* #__PURE__ */ $lazy_freeApply(77);
-var lift2 = /* #__PURE__ */ Control_Apply.lift2(freeApply);
-var bind = /* #__PURE__ */ Control_Bind.bind(freeBind);
 var pure = /* #__PURE__ */ Control_Applicative.pure(freeApplicative);
-var pure1 = /* #__PURE__ */ Control_Applicative.pure(freeApplicative);
 var join = /* #__PURE__ */ Control_Bind.join(freeBind);
-var pure2 = /* #__PURE__ */ Control_Applicative.pure(freeApplicative);
+var pure1 = /* #__PURE__ */ Control_Applicative.pure(freeApplicative);
 var semigroupFree = function (dictSemigroup) {
     return {
-        append: lift2(Data_Semigroup.append(dictSemigroup))
+        append: Control_Apply.lift2(freeApply)(Data_Semigroup.append(dictSemigroup))
     };
 };
 var freeMonadRec = {
     tailRecM: function (k) {
         return function (a) {
-            return bind(k(a))(function (v) {
+            return Control_Bind.bind(freeBind)(k(a))(function (v) {
                 if (v instanceof Control_Monad_Rec_Class.Loop) {
                     return Control_Monad_Rec_Class.tailRecM(freeMonadRec)(k)(v.value0);
                 };
                 if (v instanceof Control_Monad_Rec_Class.Done) {
-                    return pure(v.value0);
+                    return Control_Applicative.pure(freeApplicative)(v.value0);
                 };
                 throw new Error("Failed pattern match at Control.Monad.Free (line 86, column 26 - line 88, column 21): " + [ v.constructor.name ]);
             });
@@ -265,8 +255,8 @@ var freeMonadRec = {
     }
 };
 var liftF = function (f) {
-    return fromView(new Bind(f, function ($194) {
-        return pure1($194);
+    return fromView(new Bind(f, function ($163) {
+        return pure($163);
     }));
 };
 var freeMonadTrans = {
@@ -277,7 +267,7 @@ var freeMonadTrans = {
 var monoidFree = function (dictMonoid) {
     var semigroupFree1 = semigroupFree(dictMonoid.Semigroup0());
     return {
-        mempty: pure(Data_Monoid.mempty(dictMonoid)),
+        mempty: Control_Applicative.pure(freeApplicative)(Data_Monoid.mempty(dictMonoid)),
         Semigroup0: function () {
             return semigroupFree1;
         }
@@ -287,41 +277,37 @@ var substFree = function (k) {
     var go = function (f) {
         var v = toView(f);
         if (v instanceof Return) {
-            return pure(v.value0);
+            return Control_Applicative.pure(freeApplicative)(v.value0);
         };
         if (v instanceof Bind) {
-            return bind(k(v.value0))(map(go)(v.value1));
+            return Control_Bind.bind(freeBind)(k(v.value0))(Data_Functor.map(Data_Functor.functorFn)(go)(v.value1));
         };
         throw new Error("Failed pattern match at Control.Monad.Free (line 168, column 10 - line 170, column 33): " + [ v.constructor.name ]);
     };
     return go;
 };
 var hoistFree = function (k) {
-    return substFree(function ($195) {
-        return liftF(k($195));
+    return substFree(function ($164) {
+        return liftF(k($164));
     });
 };
 var foldableFree = function (dictFunctor) {
     var resume1 = resume(dictFunctor);
     return function (dictFoldable) {
-        var foldMap = Data_Foldable.foldMap(dictFoldable);
-        var foldl = Data_Foldable.foldl(dictFoldable);
-        var foldr = Data_Foldable.foldr(dictFoldable);
         return {
             foldMap: function (dictMonoid) {
-                var foldMap1 = foldMap(dictMonoid);
                 return function (f) {
                     var $lazy_go = $runtime_lazy("go", "Control.Monad.Free", function () {
-                        return function ($196) {
+                        return function ($165) {
                             return (function (v) {
                                 if (v instanceof Data_Either.Left) {
-                                    return foldMap1($lazy_go(94))(v.value0);
+                                    return Data_Foldable.foldMap(dictFoldable)(dictMonoid)($lazy_go(94))(v.value0);
                                 };
                                 if (v instanceof Data_Either.Right) {
                                     return f(v.value0);
                                 };
                                 throw new Error("Failed pattern match at Control.Monad.Free (line 93, column 21 - line 95, column 21): " + [ v.constructor.name ]);
-                            })(resume1($196));
+                            })(resume1($165));
                         };
                     });
                     var go = $lazy_go(93);
@@ -330,32 +316,32 @@ var foldableFree = function (dictFunctor) {
             },
             foldl: function (f) {
                 var go = function (r) {
-                    return function ($197) {
+                    return function ($166) {
                         return (function (v) {
                             if (v instanceof Data_Either.Left) {
-                                return foldl(go)(r)(v.value0);
+                                return Data_Foldable.foldl(dictFoldable)(go)(r)(v.value0);
                             };
                             if (v instanceof Data_Either.Right) {
                                 return f(r)(v.value0);
                             };
                             throw new Error("Failed pattern match at Control.Monad.Free (line 98, column 23 - line 100, column 23): " + [ v.constructor.name ]);
-                        })(resume1($197));
+                        })(resume1($166));
                     };
                 };
                 return go;
             },
             foldr: function (f) {
                 var go = function (r) {
-                    return function ($198) {
+                    return function ($167) {
                         return (function (v) {
                             if (v instanceof Data_Either.Left) {
-                                return foldr(Data_Function.flip(go))(r)(v.value0);
+                                return Data_Foldable.foldr(dictFoldable)(Data_Function.flip(go))(r)(v.value0);
                             };
                             if (v instanceof Data_Either.Right) {
                                 return f(v.value0)(r);
                             };
                             throw new Error("Failed pattern match at Control.Monad.Free (line 103, column 23 - line 105, column 23): " + [ v.constructor.name ]);
-                        })(resume1($198));
+                        })(resume1($167));
                     };
                 };
                 return go;
@@ -366,26 +352,24 @@ var foldableFree = function (dictFunctor) {
 var traversableFree = function (dictTraversable) {
     var Functor0 = dictTraversable.Functor0();
     var resume1 = resume(Functor0);
-    var traverse = Data_Traversable.traverse(dictTraversable);
     var foldableFree1 = foldableFree(Functor0)(dictTraversable.Foldable1());
     return {
         traverse: function (dictApplicative) {
-            var map1 = Data_Functor.map((dictApplicative.Apply0()).Functor0());
-            var traverse1 = traverse(dictApplicative);
+            var Functor01 = (dictApplicative.Apply0()).Functor0();
             return function (f) {
                 var $lazy_go = $runtime_lazy("go", "Control.Monad.Free", function () {
-                    return function ($199) {
+                    return function ($168) {
                         return (function (v) {
                             if (v instanceof Data_Either.Left) {
-                                return map1(function ($200) {
-                                    return join(liftF($200));
-                                })(traverse1($lazy_go(111))(v.value0));
+                                return Data_Functor.map(Functor01)(function ($169) {
+                                    return join(liftF($169));
+                                })(Data_Traversable.traverse(dictTraversable)(dictApplicative)($lazy_go(111))(v.value0));
                             };
                             if (v instanceof Data_Either.Right) {
-                                return map1(pure2)(f(v.value0));
+                                return Data_Functor.map(Functor01)(pure1)(f(v.value0));
                             };
                             throw new Error("Failed pattern match at Control.Monad.Free (line 110, column 21 - line 112, column 30): " + [ v.constructor.name ]);
-                        })(resume1($199));
+                        })(resume1($168));
                     };
                 });
                 var go = $lazy_go(110);
@@ -407,41 +391,37 @@ var traversableFree = function (dictTraversable) {
 };
 var foldFree = function (dictMonadRec) {
     var Monad0 = dictMonadRec.Monad0();
-    var map1 = Data_Functor.map(((Monad0.Bind1()).Apply0()).Functor0());
-    var pure3 = Control_Applicative.pure(Monad0.Applicative0());
-    var tailRecM = Control_Monad_Rec_Class.tailRecM(dictMonadRec);
+    var Functor0 = ((Monad0.Bind1()).Apply0()).Functor0();
+    var Applicative0 = Monad0.Applicative0();
     return function (k) {
         var go = function (f) {
             var v = toView(f);
             if (v instanceof Return) {
-                return map1(Control_Monad_Rec_Class.Done.create)(pure3(v.value0));
+                return Data_Functor.map(Functor0)(Control_Monad_Rec_Class.Done.create)(Control_Applicative.pure(Applicative0)(v.value0));
             };
             if (v instanceof Bind) {
-                return map1(function ($201) {
-                    return Control_Monad_Rec_Class.Loop.create(v.value1($201));
+                return Data_Functor.map(Functor0)(function ($170) {
+                    return Control_Monad_Rec_Class.Loop.create(v.value1($170));
                 })(k(v.value0));
             };
             throw new Error("Failed pattern match at Control.Monad.Free (line 158, column 10 - line 160, column 37): " + [ v.constructor.name ]);
         };
-        return tailRecM(go);
+        return Control_Monad_Rec_Class.tailRecM(dictMonadRec)(go);
     };
 };
 var eqFree = function (dictFunctor) {
-    var resume1 = resume(dictFunctor);
     return function (dictEq1) {
-        var eq1 = Data_Eq.eq1(dictEq1);
         return function (dictEq) {
-            var eq = Data_Eq.eq(dictEq);
             return {
                 eq: function (x) {
                     return function (y) {
-                        var v = resume1(y);
-                        var v1 = resume1(x);
+                        var v = resume(dictFunctor)(y);
+                        var v1 = resume(dictFunctor)(x);
                         if (v1 instanceof Data_Either.Left && v instanceof Data_Either.Left) {
-                            return eq1(eqFree(dictFunctor)(dictEq1)(dictEq))(v1.value0)(v.value0);
+                            return Data_Eq.eq1(dictEq1)(eqFree(dictFunctor)(dictEq1)(dictEq))(v1.value0)(v.value0);
                         };
                         if (v1 instanceof Data_Either.Right && v instanceof Data_Either.Right) {
-                            return eq(v1.value0)(v.value0);
+                            return Data_Eq.eq(dictEq)(v1.value0)(v.value0);
                         };
                         return false;
                     };
@@ -451,21 +431,18 @@ var eqFree = function (dictFunctor) {
     };
 };
 var ordFree = function (dictFunctor) {
-    var resume1 = resume(dictFunctor);
     var eqFree1 = eqFree(dictFunctor);
     return function (dictOrd1) {
-        var compare1 = Data_Ord.compare1(dictOrd1);
         var eqFree2 = eqFree1(dictOrd1.Eq10());
         return function (dictOrd) {
-            var compare = Data_Ord.compare(dictOrd);
             var eqFree3 = eqFree2(dictOrd.Eq0());
             return {
                 compare: function (x) {
                     return function (y) {
-                        var v = resume1(y);
-                        var v1 = resume1(x);
+                        var v = resume(dictFunctor)(y);
+                        var v1 = resume(dictFunctor)(x);
                         if (v1 instanceof Data_Either.Left && v instanceof Data_Either.Left) {
-                            return compare1(ordFree(dictFunctor)(dictOrd1)(dictOrd))(v1.value0)(v.value0);
+                            return Data_Ord.compare1(dictOrd1)(ordFree(dictFunctor)(dictOrd1)(dictOrd))(v1.value0)(v.value0);
                         };
                         if (v1 instanceof Data_Either.Left) {
                             return Data_Ordering.LT.value;
@@ -474,7 +451,7 @@ var ordFree = function (dictFunctor) {
                             return Data_Ordering.GT.value;
                         };
                         if (v1 instanceof Data_Either.Right && v instanceof Data_Either.Right) {
-                            return compare(v1.value0)(v.value0);
+                            return Data_Ord.compare(dictOrd)(v1.value0)(v.value0);
                         };
                         throw new Error("Failed pattern match at Control.Monad.Free (line 56, column 17 - line 60, column 36): " + [ v1.constructor.name, v.constructor.name ]);
                     };

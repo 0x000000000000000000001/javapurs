@@ -5,12 +5,10 @@ import * as Control_Semigroupoid from "../Control.Semigroupoid/index.js";
 import * as Data_Lens_Types from "../Data.Lens.Types/index.js";
 import * as Data_Newtype from "../Data.Newtype/index.js";
 import * as Data_Profunctor_Strong from "../Data.Profunctor.Strong/index.js";
-var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var fanout = /* #__PURE__ */ Data_Profunctor_Strong.fanout(Control_Semigroupoid.semigroupoidFn)(Data_Profunctor_Strong.strongFn);
 var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var view = function (l) {
-    return unwrap(l(identity));
+    return Data_Newtype.unwrap()(l(identity));
 };
 var viewOn = function (s) {
     return function (l) {
@@ -18,33 +16,31 @@ var viewOn = function (s) {
     };
 };
 var use = function (dictMonadState) {
-    var gets = Control_Monad_State_Class.gets(dictMonadState);
     return function (p) {
-        return gets(function (v) {
+        return Control_Monad_State_Class.gets(dictMonadState)(function (v) {
             return viewOn(v)(p);
         });
     };
 };
 var to = function (f) {
     return function (p) {
-        var $11 = unwrap(p);
-        return function ($12) {
-            return $11(f($12));
+        var $5 = Data_Newtype.unwrap()(p);
+        return function ($6) {
+            return $5(f($6));
         };
     };
 };
 var takeBoth = function (l) {
     return function (r) {
-        return to(fanout(view(l))(view(r)));
+        return to(Data_Profunctor_Strong.fanout(Control_Semigroupoid.semigroupoidFn)(Data_Profunctor_Strong.strongFn)(view(l))(view(r)));
     };
 };
 var iview = function (l) {
-    return unwrap(l(identity1));
+    return Data_Newtype.unwrap()(l(identity1));
 };
 var iuse = function (dictMonadState) {
-    var gets = Control_Monad_State_Class.gets(dictMonadState);
     return function (p) {
-        return gets(iview(p));
+        return Control_Monad_State_Class.gets(dictMonadState)(iview(p));
     };
 };
 var cloneGetter = function (g) {

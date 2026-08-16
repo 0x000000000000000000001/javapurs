@@ -7,29 +7,26 @@ import * as Data_Functor_Contravariant from "../Data.Functor.Contravariant/index
 import * as Data_Functor_Invariant from "../Data.Functor.Invariant/index.js";
 import * as Data_Profunctor from "../Data.Profunctor/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
-var lcmap = /* #__PURE__ */ Data_Profunctor.lcmap(Data_Profunctor.profunctorFn);
 var Costar = function (x) {
     return x;
 };
 var semigroupoidCostar = function (dictExtend) {
-    var composeCoKleisliFlipped = Control_Extend.composeCoKleisliFlipped(dictExtend);
     return {
         compose: function (v) {
             return function (v1) {
-                return composeCoKleisliFlipped(v)(v1);
+                return Control_Extend.composeCoKleisliFlipped(dictExtend)(v)(v1);
             };
         }
     };
 };
 var profunctorCostar = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return {
         dimap: function (f) {
             return function (g) {
                 return function (v) {
-                    var $65 = map(f);
-                    return function ($66) {
-                        return g(v($65($66)));
+                    var $55 = Data_Functor.map(dictFunctor)(f);
+                    return function ($56) {
+                        return g(v($55($56)));
                     };
                 };
             };
@@ -37,19 +34,18 @@ var profunctorCostar = function (dictFunctor) {
     };
 };
 var strongCostar = function (dictComonad) {
-    var Functor0 = (dictComonad.Extend0()).Functor0();
-    var map = Data_Functor.map(Functor0);
-    var extract = Control_Comonad.extract(dictComonad);
-    var profunctorCostar1 = profunctorCostar(Functor0);
+    var Extend0 = dictComonad.Extend0();
+    var Functor0 = Extend0.Functor0();
+    var profunctorCostar1 = profunctorCostar(Extend0.Functor0());
     return {
         first: function (v) {
             return function (x) {
-                return new Data_Tuple.Tuple(v(map(Data_Tuple.fst)(x)), Data_Tuple.snd(extract(x)));
+                return new Data_Tuple.Tuple(v(Data_Functor.map(Functor0)(Data_Tuple.fst)(x)), Data_Tuple.snd(Control_Comonad.extract(dictComonad)(x)));
             };
         },
         second: function (v) {
             return function (x) {
-                return new Data_Tuple.Tuple(Data_Tuple.fst(extract(x)), v(map(Data_Tuple.snd)(x)));
+                return new Data_Tuple.Tuple(Data_Tuple.fst(Control_Comonad.extract(dictComonad)(x)), v(Data_Functor.map(Functor0)(Data_Tuple.snd)(x)));
             };
         },
         Profunctor0: function () {
@@ -64,14 +60,14 @@ var newtypeCostar = {
 };
 var hoistCostar = function (f) {
     return function (v) {
-        return lcmap(f)(v);
+        return Data_Profunctor.lcmap(Data_Profunctor.profunctorFn)(f)(v);
     };
 };
 var functorCostar = {
     map: function (f) {
         return function (v) {
-            return function ($67) {
-                return f(v($67));
+            return function ($57) {
+                return f(v($57));
             };
         };
     }
@@ -81,22 +77,20 @@ var invariantCostar = {
 };
 var distributiveCostar = {
     distribute: function (dictFunctor) {
-        var map = Data_Functor.map(dictFunctor);
         return function (f) {
             return function (a) {
-                return map(function (v) {
+                return Data_Functor.map(dictFunctor)(function (v) {
                     return v(a);
                 })(f);
             };
         };
     },
     collect: function (dictFunctor) {
-        var map = Data_Functor.map(dictFunctor);
         return function (f) {
-            var $68 = Data_Distributive.distribute(distributiveCostar)(dictFunctor);
-            var $69 = map(f);
-            return function ($70) {
-                return $68($69($70));
+            var $58 = Data_Distributive.distribute(distributiveCostar)(dictFunctor);
+            var $59 = Data_Functor.map(dictFunctor)(f);
+            return function ($60) {
+                return $58($59($60));
             };
         };
     },
@@ -105,13 +99,12 @@ var distributiveCostar = {
     }
 };
 var closedCostar = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     var profunctorCostar1 = profunctorCostar(dictFunctor);
     return {
         closed: function (v) {
             return function (g) {
                 return function (x) {
-                    return v(map(function (v1) {
+                    return v(Data_Functor.map(dictFunctor)(function (v1) {
                         return v1(x);
                     })(g));
                 };
@@ -132,14 +125,13 @@ var categoryCostar = function (dictComonad) {
     };
 };
 var bifunctorCostar = function (dictContravariant) {
-    var cmap = Data_Functor_Contravariant.cmap(dictContravariant);
     return {
         bimap: function (f) {
             return function (g) {
                 return function (v) {
-                    var $71 = cmap(f);
-                    return function ($72) {
-                        return g(v($71($72)));
+                    var $61 = Data_Functor_Contravariant.cmap(dictContravariant)(f);
+                    return function ($62) {
+                        return g(v($61($62)));
                     };
                 };
             };

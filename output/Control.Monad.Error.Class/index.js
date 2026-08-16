@@ -8,7 +8,6 @@ import * as Data_Maybe from "../Data.Maybe/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
 import * as Effect from "../Effect/index.js";
 import * as Effect_Exception from "../Effect.Exception/index.js";
-var discard = /* #__PURE__ */ Control_Bind.discard(Control_Bind.discardUnit);
 var throwError = function (dict) {
     return dict.throwError;
 };
@@ -73,10 +72,9 @@ var monadErrorEffect = {
     }
 };
 var liftMaybe = function (dictMonadThrow) {
-    var throwError1 = throwError(dictMonadThrow);
     var pure = Control_Applicative.pure((dictMonadThrow.Monad0()).Applicative0());
     return function (error) {
-        return Data_Maybe.maybe(throwError1(error))(pure);
+        return Data_Maybe.maybe(throwError(dictMonadThrow)(error))(pure);
     };
 };
 var liftEither = function (dictMonadThrow) {
@@ -86,34 +84,32 @@ var catchError = function (dict) {
     return dict.catchError;
 };
 var catchJust = function (dictMonadError) {
-    var throwError1 = throwError(dictMonadError.MonadThrow0());
-    var catchError1 = catchError(dictMonadError);
+    var MonadThrow0 = dictMonadError.MonadThrow0();
     return function (p) {
         return function (act) {
             return function (handler) {
                 var handle = function (e) {
                     var v = p(e);
                     if (v instanceof Data_Maybe.Nothing) {
-                        return throwError1(e);
+                        return throwError(MonadThrow0)(e);
                     };
                     if (v instanceof Data_Maybe.Just) {
                         return handler(v.value0);
                     };
                     throw new Error("Failed pattern match at Control.Monad.Error.Class (line 57, column 5 - line 59, column 26): " + [ v.constructor.name ]);
                 };
-                return catchError1(act)(handle);
+                return catchError(dictMonadError)(act)(handle);
             };
         };
     };
 };
 var $$try = function (dictMonadError) {
-    var catchError1 = catchError(dictMonadError);
     var Monad0 = (dictMonadError.MonadThrow0()).Monad0();
-    var map = Data_Functor.map(((Monad0.Bind1()).Apply0()).Functor0());
+    var Functor0 = ((Monad0.Bind1()).Apply0()).Functor0();
     var pure = Control_Applicative.pure(Monad0.Applicative0());
     return function (a) {
-        return catchError1(map(Data_Either.Right.create)(a))(function ($52) {
-            return pure(Data_Either.Left.create($52));
+        return catchError(dictMonadError)(Data_Functor.map(Functor0)(Data_Either.Right.create)(a))(function ($43) {
+            return pure(Data_Either.Left.create($43));
         });
     };
 };
@@ -121,17 +117,15 @@ var withResource = function (dictMonadError) {
     var MonadThrow0 = dictMonadError.MonadThrow0();
     var Monad0 = MonadThrow0.Monad0();
     var Bind1 = Monad0.Bind1();
-    var bind = Control_Bind.bind(Bind1);
     var try1 = $$try(dictMonadError);
-    var discard1 = discard(Bind1);
     var throwError1 = throwError(MonadThrow0);
     var pure = Control_Applicative.pure(Monad0.Applicative0());
     return function (acquire) {
         return function (release) {
             return function (kleisli) {
-                return bind(acquire)(function (resource) {
-                    return bind(try1(kleisli(resource)))(function (result) {
-                        return discard1(release(resource))(function () {
+                return Control_Bind.bind(Bind1)(acquire)(function (resource) {
+                    return Control_Bind.bind(Bind1)(try1(kleisli(resource)))(function (result) {
+                        return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(release(resource))(function () {
                             return Data_Either.either(throwError1)(pure)(result);
                         });
                     });

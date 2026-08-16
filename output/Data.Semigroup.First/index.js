@@ -6,10 +6,9 @@ var First = function (x) {
     return x;
 };
 var showFirst = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
-            return "(First " + (show(v) + ")");
+            return "(First " + (Data_Show.show(dictShow)(v) + ")");
         }
     };
 };

@@ -9,10 +9,9 @@ var Const = function (x) {
     return x;
 };
 var showConst = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
-            return "(Const " + (show(v) + ")");
+            return "(Const " + (Data_Show.show(dictShow)(v) + ")");
         }
     };
 };
@@ -92,11 +91,10 @@ var booleanAlgebraConst = function (dictBooleanAlgebra) {
     return dictBooleanAlgebra;
 };
 var applyConst = function (dictSemigroup) {
-    var append1 = Data_Semigroup.append(dictSemigroup);
     return {
         apply: function (v) {
             return function (v1) {
-                return append1(v)(v1);
+                return Data_Semigroup.append(dictSemigroup)(v)(v1);
             };
         },
         Functor0: function () {
@@ -105,11 +103,10 @@ var applyConst = function (dictSemigroup) {
     };
 };
 var applicativeConst = function (dictMonoid) {
-    var mempty = Data_Monoid.mempty(dictMonoid);
     var applyConst1 = applyConst(dictMonoid.Semigroup0());
     return {
         pure: function (v) {
-            return mempty;
+            return Data_Monoid.mempty(dictMonoid);
         },
         Apply0: function () {
             return applyConst1;

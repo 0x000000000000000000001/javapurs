@@ -3,9 +3,9 @@ import * as Data_Argonaut_Core from "../Data.Argonaut.Core/index.js";
 import * as Data_Argonaut_Encode_Class from "../Data.Argonaut.Encode.Class/index.js";
 import * as Data_Argonaut_Encode_Combinators from "../Data.Argonaut.Encode.Combinators/index.js";
 var toJsonString = function (dictEncodeJson) {
-    var $3 = Data_Argonaut_Encode_Class.encodeJson(dictEncodeJson);
-    return function ($4) {
-        return Data_Argonaut_Core.stringify($3($4));
+    var $2 = Data_Argonaut_Encode_Class.encodeJson(dictEncodeJson);
+    return function ($3) {
+        return Data_Argonaut_Core.stringify($2($3));
     };
 };
 export {

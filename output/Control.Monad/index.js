@@ -4,23 +4,23 @@ import * as Control_Apply from "../Control.Apply/index.js";
 import * as Control_Bind from "../Control.Bind/index.js";
 import * as Data_Functor from "../Data.Functor/index.js";
 var whenM = function (dictMonad) {
-    var bind = Control_Bind.bind(dictMonad.Bind1());
-    var when = Control_Applicative.when(dictMonad.Applicative0());
+    var Bind1 = dictMonad.Bind1();
+    var Applicative0 = dictMonad.Applicative0();
     return function (mb) {
         return function (m) {
-            return bind(mb)(function (b) {
-                return when(b)(m);
+            return Control_Bind.bind(Bind1)(mb)(function (b) {
+                return Control_Applicative.when(Applicative0)(b)(m);
             });
         };
     };
 };
 var unlessM = function (dictMonad) {
-    var bind = Control_Bind.bind(dictMonad.Bind1());
-    var unless = Control_Applicative.unless(dictMonad.Applicative0());
+    var Bind1 = dictMonad.Bind1();
+    var Applicative0 = dictMonad.Applicative0();
     return function (mb) {
         return function (m) {
-            return bind(mb)(function (b) {
-                return unless(b)(m);
+            return Control_Bind.bind(Bind1)(mb)(function (b) {
+                return Control_Applicative.unless(Applicative0)(b)(m);
             });
         };
     };
@@ -50,24 +50,24 @@ var monadArray = {
     }
 };
 var liftM1 = function (dictMonad) {
-    var bind = Control_Bind.bind(dictMonad.Bind1());
-    var pure = Control_Applicative.pure(dictMonad.Applicative0());
+    var Bind1 = dictMonad.Bind1();
+    var Applicative0 = dictMonad.Applicative0();
     return function (f) {
         return function (a) {
-            return bind(a)(function (a$prime) {
-                return pure(f(a$prime));
+            return Control_Bind.bind(Bind1)(a)(function (a$prime) {
+                return Control_Applicative.pure(Applicative0)(f(a$prime));
             });
         };
     };
 };
 var ap = function (dictMonad) {
-    var bind = Control_Bind.bind(dictMonad.Bind1());
-    var pure = Control_Applicative.pure(dictMonad.Applicative0());
+    var Bind1 = dictMonad.Bind1();
+    var Applicative0 = dictMonad.Applicative0();
     return function (f) {
         return function (a) {
-            return bind(f)(function (f$prime) {
-                return bind(a)(function (a$prime) {
-                    return pure(f$prime(a$prime));
+            return Control_Bind.bind(Bind1)(f)(function (f$prime) {
+                return Control_Bind.bind(Bind1)(a)(function (a$prime) {
+                    return Control_Applicative.pure(Applicative0)(f$prime(a$prime));
                 });
             });
         };

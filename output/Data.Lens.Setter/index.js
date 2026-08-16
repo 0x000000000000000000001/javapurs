@@ -19,62 +19,59 @@ var set = function (l) {
     };
 };
 var setJust = function (p) {
-    var $59 = set(p);
-    return function ($60) {
-        return $59(Data_Maybe.Just.create($60));
+    var $46 = set(p);
+    return function ($47) {
+        return $46(Data_Maybe.Just.create($47));
     };
 };
 var subOver = function (dictRing) {
     var sub = Data_Ring.sub(dictRing);
     return function (p) {
-        var $61 = over(p);
-        var $62 = Data_Function.flip(sub);
-        return function ($63) {
-            return $61($62($63));
+        var $48 = over(p);
+        var $49 = Data_Function.flip(sub);
+        return function ($50) {
+            return $48($49($50));
         };
     };
 };
 var mulOver = function (dictSemiring) {
     var mul = Data_Semiring.mul(dictSemiring);
     return function (p) {
-        var $64 = over(p);
-        var $65 = Data_Function.flip(mul);
-        return function ($66) {
-            return $64($65($66));
+        var $51 = over(p);
+        var $52 = Data_Function.flip(mul);
+        return function ($53) {
+            return $51($52($53));
         };
     };
 };
 var modifying = function (dictMonadState) {
-    var $$void = Data_Functor["void"]((((dictMonadState.Monad0()).Bind1()).Apply0()).Functor0());
-    var modify = Control_Monad_State_Class.modify(dictMonadState);
+    var Functor0 = (((dictMonadState.Monad0()).Bind1()).Apply0()).Functor0();
     return function (p) {
         return function (f) {
-            return $$void(modify(over(p)(f)));
+            return Data_Functor["void"](Functor0)(Control_Monad_State_Class.modify(dictMonadState)(over(p)(f)));
         };
     };
 };
 var mulModifying = function (dictMonadState) {
-    var modifying1 = modifying(dictMonadState);
     return function (dictSemiring) {
         var mul = Data_Semiring.mul(dictSemiring);
         return function (p) {
-            var $67 = modifying1(p);
-            var $68 = Data_Function.flip(mul);
-            return function ($69) {
-                return $67($68($69));
+            var $54 = modifying(dictMonadState)(p);
+            var $55 = Data_Function.flip(mul);
+            return function ($56) {
+                return $54($55($56));
             };
         };
     };
 };
 var subModifying = function (dictMonadState) {
-    var modifying1 = modifying(dictMonadState);
     return function (dictRing) {
         var sub = Data_Ring.sub(dictRing);
         return function (p) {
-            var $70 = modifying1(p);
-            var $71 = Data_Function.flip(sub);
-            return function ($72) {
-                return $70($71($72));
+            var $57 = modifying(dictMonadState)(p);
+            var $58 = Data_Function.flip(sub);
+            return function ($59) {
+                return $57($58($59));
             };
         };
     };
@@ -87,22 +84,21 @@ var iover = function (l) {
 var divOver = function (dictEuclideanRing) {
     var div = Data_EuclideanRing.div(dictEuclideanRing);
     return function (p) {
-        var $73 = over(p);
-        var $74 = Data_Function.flip(div);
-        return function ($75) {
-            return $73($74($75));
+        var $60 = over(p);
+        var $61 = Data_Function.flip(div);
+        return function ($62) {
+            return $60($61($62));
         };
     };
 };
 var divModifying = function (dictMonadState) {
-    var modifying1 = modifying(dictMonadState);
     return function (dictEuclideanRing) {
         var div = Data_EuclideanRing.div(dictEuclideanRing);
         return function (p) {
-            var $76 = modifying1(p);
-            var $77 = Data_Function.flip(div);
-            return function ($78) {
-                return $76($77($78));
+            var $63 = modifying(dictMonadState)(p);
+            var $64 = Data_Function.flip(div);
+            return function ($65) {
+                return $63($64($65));
             };
         };
     };
@@ -110,22 +106,21 @@ var divModifying = function (dictMonadState) {
 var disjOver = function (dictHeytingAlgebra) {
     var disj = Data_HeytingAlgebra.disj(dictHeytingAlgebra);
     return function (p) {
-        var $79 = over(p);
-        var $80 = Data_Function.flip(disj);
-        return function ($81) {
-            return $79($80($81));
+        var $66 = over(p);
+        var $67 = Data_Function.flip(disj);
+        return function ($68) {
+            return $66($67($68));
         };
     };
 };
 var disjModifying = function (dictMonadState) {
-    var modifying1 = modifying(dictMonadState);
     return function (dictHeytingAlgebra) {
         var disj = Data_HeytingAlgebra.disj(dictHeytingAlgebra);
         return function (p) {
-            var $82 = modifying1(p);
-            var $83 = Data_Function.flip(disj);
-            return function ($84) {
-                return $82($83($84));
+            var $69 = modifying(dictMonadState)(p);
+            var $70 = Data_Function.flip(disj);
+            return function ($71) {
+                return $69($70($71));
             };
         };
     };
@@ -133,63 +128,59 @@ var disjModifying = function (dictMonadState) {
 var conjOver = function (dictHeytingAlgebra) {
     var conj = Data_HeytingAlgebra.conj(dictHeytingAlgebra);
     return function (p) {
-        var $85 = over(p);
-        var $86 = Data_Function.flip(conj);
-        return function ($87) {
-            return $85($86($87));
+        var $72 = over(p);
+        var $73 = Data_Function.flip(conj);
+        return function ($74) {
+            return $72($73($74));
         };
     };
 };
 var conjModifying = function (dictMonadState) {
-    var modifying1 = modifying(dictMonadState);
     return function (dictHeytingAlgebra) {
         var conj = Data_HeytingAlgebra.conj(dictHeytingAlgebra);
         return function (p) {
-            var $88 = modifying1(p);
-            var $89 = Data_Function.flip(conj);
-            return function ($90) {
-                return $88($89($90));
+            var $75 = modifying(dictMonadState)(p);
+            var $76 = Data_Function.flip(conj);
+            return function ($77) {
+                return $75($76($77));
             };
         };
     };
 };
 var assign = function (dictMonadState) {
-    var $$void = Data_Functor["void"]((((dictMonadState.Monad0()).Bind1()).Apply0()).Functor0());
-    var modify = Control_Monad_State_Class.modify(dictMonadState);
+    var Functor0 = (((dictMonadState.Monad0()).Bind1()).Apply0()).Functor0();
     return function (p) {
         return function (b) {
-            return $$void(modify(set(p)(b)));
+            return Data_Functor["void"](Functor0)(Control_Monad_State_Class.modify(dictMonadState)(set(p)(b)));
         };
     };
 };
 var assignJust = function (dictMonadState) {
-    var assign1 = assign(dictMonadState);
     return function (p) {
-        var $91 = assign1(p);
-        return function ($92) {
-            return $91(Data_Maybe.Just.create($92));
+        var $78 = assign(dictMonadState)(p);
+        return function ($79) {
+            return $78(Data_Maybe.Just.create($79));
         };
     };
 };
 var appendOver = function (dictSemigroup) {
     var append = Data_Semigroup.append(dictSemigroup);
     return function (p) {
-        var $93 = over(p);
-        var $94 = Data_Function.flip(append);
-        return function ($95) {
-            return $93($94($95));
+        var $80 = over(p);
+        var $81 = Data_Function.flip(append);
+        return function ($82) {
+            return $80($81($82));
         };
     };
 };
 var appendModifying = function (dictMonadState) {
-    var modifying1 = modifying(dictMonadState);
     return function (dictSemigroup) {
         var append = Data_Semigroup.append(dictSemigroup);
         return function (p) {
-            var $96 = modifying1(p);
-            var $97 = Data_Function.flip(append);
-            return function ($98) {
-                return $96($97($98));
+            var $83 = modifying(dictMonadState)(p);
+            var $84 = Data_Function.flip(append);
+            return function ($85) {
+                return $83($84($85));
             };
         };
     };
@@ -197,20 +188,19 @@ var appendModifying = function (dictMonadState) {
 var addOver = function (dictSemiring) {
     var add = Data_Semiring.add(dictSemiring);
     return function (p) {
-        var $99 = over(p);
-        return function ($100) {
-            return $99(add($100));
+        var $86 = over(p);
+        return function ($87) {
+            return $86(add($87));
         };
     };
 };
 var addModifying = function (dictMonadState) {
-    var modifying1 = modifying(dictMonadState);
     return function (dictSemiring) {
         var add = Data_Semiring.add(dictSemiring);
         return function (p) {
-            var $101 = modifying1(p);
-            return function ($102) {
-                return $101(add($102));
+            var $88 = modifying(dictMonadState)(p);
+            return function ($89) {
+                return $88(add($89));
             };
         };
     };

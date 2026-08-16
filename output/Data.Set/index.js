@@ -12,23 +12,17 @@ import * as Data_Show from "../Data.Show/index.js";
 import * as Data_Unfoldable from "../Data.Unfoldable/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
 import * as Safe_Coerce from "../Safe.Coerce/index.js";
-var coerce = /* #__PURE__ */ Safe_Coerce.coerce();
-var foldMap = /* #__PURE__ */ Data_Foldable.foldMap(Data_List_Types.foldableList);
-var foldl = /* #__PURE__ */ Data_Foldable.foldl(Data_List_Types.foldableList);
-var foldr = /* #__PURE__ */ Data_Foldable.foldr(Data_List_Types.foldableList);
-var map1 = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var $$Set = function (x) {
     return x;
 };
 var union = function (dictOrd) {
-    return coerce(Data_Map_Internal.union(dictOrd));
+    return Safe_Coerce.coerce()(Data_Map_Internal.union(dictOrd));
 };
 var toggle = function (dictOrd) {
-    var alter = Data_Map_Internal.alter(dictOrd);
     return function (a) {
         return function (v) {
-            return alter(Data_Maybe.maybe(new Data_Maybe.Just(Data_Unit.unit))(function (v1) {
+            return Data_Map_Internal.alter(dictOrd)(Data_Maybe.maybe(new Data_Maybe.Just(Data_Unit.unit))(function (v1) {
                 return Data_Maybe.Nothing.value;
             }))(a)(v);
         };
@@ -41,21 +35,20 @@ var toList = function (v) {
     return Data_Map_Internal.keys(v);
 };
 var toUnfoldable = function (dictUnfoldable) {
-    var $96 = Data_List.toUnfoldable(dictUnfoldable);
-    return function ($97) {
-        return $96(toList($97));
+    var $70 = Data_List.toUnfoldable(dictUnfoldable);
+    return function ($71) {
+        return $70(toList($71));
     };
 };
-var toUnfoldable1 = /* #__PURE__ */ toUnfoldable(Data_Unfoldable.unfoldableArray);
-var size = /* #__PURE__ */ coerce(Data_Map_Internal.size);
+var size = /* #__PURE__ */ Safe_Coerce.coerce()(Data_Map_Internal.size);
 var singleton = function (a) {
     return Data_Map_Internal.singleton(a)(Data_Unit.unit);
 };
 var showSet = function (dictShow) {
-    var show = Data_Show.show(Data_Show.showArray(dictShow));
+    var showArray = Data_Show.showArray(dictShow);
     return {
         show: function (s) {
-            return "(fromFoldable " + (show(toUnfoldable1(s)) + ")");
+            return "(fromFoldable " + (Data_Show.show(showArray)(toUnfoldable(Data_Unfoldable.unfoldableArray)(s)) + ")");
         }
     };
 };
@@ -65,80 +58,76 @@ var semigroupSet = function (dictOrd) {
     };
 };
 var member = function (dictOrd) {
-    return coerce(Data_Map_Internal.member(dictOrd));
+    return Safe_Coerce.coerce()(Data_Map_Internal.member(dictOrd));
 };
-var isEmpty = /* #__PURE__ */ coerce(Data_Map_Internal.isEmpty);
+var isEmpty = /* #__PURE__ */ Safe_Coerce.coerce()(Data_Map_Internal.isEmpty);
 var intersection = function (dictOrd) {
-    return coerce(Data_Map_Internal.intersection(dictOrd));
+    return Safe_Coerce.coerce()(Data_Map_Internal.intersection(dictOrd));
 };
 var insert = function (dictOrd) {
-    var insert1 = Data_Map_Internal.insert(dictOrd);
     return function (a) {
         return function (v) {
-            return insert1(a)(Data_Unit.unit)(v);
+            return Data_Map_Internal.insert(dictOrd)(a)(Data_Unit.unit)(v);
         };
     };
 };
 var fromMap = $$Set;
 var foldableSet = {
     foldMap: function (dictMonoid) {
-        var foldMap1 = foldMap(dictMonoid);
         return function (f) {
-            var $98 = foldMap1(f);
-            return function ($99) {
-                return $98(toList($99));
+            var $72 = Data_Foldable.foldMap(Data_List_Types.foldableList)(dictMonoid)(f);
+            return function ($73) {
+                return $72(toList($73));
             };
         };
     },
     foldl: function (f) {
         return function (x) {
-            var $100 = foldl(f)(x);
-            return function ($101) {
-                return $100(toList($101));
+            var $74 = Data_Foldable.foldl(Data_List_Types.foldableList)(f)(x);
+            return function ($75) {
+                return $74(toList($75));
             };
         };
     },
     foldr: function (f) {
         return function (x) {
-            var $102 = foldr(f)(x);
-            return function ($103) {
-                return $102(toList($103));
+            var $76 = Data_Foldable.foldr(Data_List_Types.foldableList)(f)(x);
+            return function ($77) {
+                return $76(toList($77));
             };
         };
     }
 };
-var foldl1 = /* #__PURE__ */ Data_Foldable.foldl(foldableSet);
-var foldr1 = /* #__PURE__ */ Data_Foldable.foldr(foldableSet);
 var findMin = function (v) {
-    return map1(function (v1) {
+    return Data_Functor.map(Data_Maybe.functorMaybe)(function (v1) {
         return v1.key;
     })(Data_Map_Internal.findMin(v));
 };
 var findMax = function (v) {
-    return map1(function (v1) {
+    return Data_Functor.map(Data_Maybe.functorMaybe)(function (v1) {
         return v1.key;
     })(Data_Map_Internal.findMax(v));
 };
 var filter = function (dictOrd) {
-    return coerce(Data_Map_Internal.filterKeys(dictOrd));
+    return Safe_Coerce.coerce()(Data_Map_Internal.filterKeys(dictOrd));
 };
 var eqSet = function (dictEq) {
-    var eq = Data_Eq.eq(Data_Map_Internal.eqMap(dictEq)(Data_Eq.eqUnit));
+    var eqMap = Data_Map_Internal.eqMap(dictEq)(Data_Eq.eqUnit);
     return {
         eq: function (v) {
             return function (v1) {
-                return eq(v)(v1);
+                return Data_Eq.eq(eqMap)(v)(v1);
             };
         }
     };
 };
 var ordSet = function (dictOrd) {
-    var compare = Data_Ord.compare(Data_List_Types.ordList(dictOrd));
+    var ordList = Data_List_Types.ordList(dictOrd);
     var eqSet1 = eqSet(dictOrd.Eq0());
     return {
         compare: function (s1) {
             return function (s2) {
-                return compare(toList(s1))(toList(s2));
+                return Data_Ord.compare(ordList)(toList(s1))(toList(s2));
             };
         },
         Eq0: function () {
@@ -161,33 +150,29 @@ var ord1Set = {
 };
 var empty = Data_Map_Internal.empty;
 var fromFoldable = function (dictFoldable) {
-    var foldl2 = Data_Foldable.foldl(dictFoldable);
     return function (dictOrd) {
-        var insert1 = insert(dictOrd);
-        return foldl2(function (m) {
+        return Data_Foldable.foldl(dictFoldable)(function (m) {
             return function (a) {
-                return insert1(a)(m);
+                return insert(dictOrd)(a)(m);
             };
         })(empty);
     };
 };
 var map = function (dictOrd) {
-    var insert1 = insert(dictOrd);
     return function (f) {
-        return foldl1(function (m) {
+        return Data_Foldable.foldl(foldableSet)(function (m) {
             return function (a) {
-                return insert1(f(a))(m);
+                return insert(dictOrd)(f(a))(m);
             };
         })(empty);
     };
 };
 var mapMaybe = function (dictOrd) {
-    var insert1 = insert(dictOrd);
     return function (f) {
-        return foldr1(function (a) {
+        return Data_Foldable.foldr(foldableSet)(function (a) {
             return function (acc) {
                 return Data_Maybe.maybe(acc)(function (b) {
-                    return insert1(b)(acc);
+                    return insert(dictOrd)(b)(acc);
                 })(f(a));
             };
         })(empty);
@@ -203,35 +188,32 @@ var monoidSet = function (dictOrd) {
     };
 };
 var unions = function (dictFoldable) {
-    var foldl2 = Data_Foldable.foldl(dictFoldable);
     return function (dictOrd) {
-        return foldl2(union(dictOrd))(empty);
+        return Data_Foldable.foldl(dictFoldable)(union(dictOrd))(empty);
     };
 };
 var difference = function (dictOrd) {
-    return coerce(Data_Map_Internal.difference(dictOrd));
+    return Safe_Coerce.coerce()(Data_Map_Internal.difference(dictOrd));
 };
 var subset = function (dictOrd) {
-    var difference1 = difference(dictOrd);
     return function (s1) {
         return function (s2) {
-            return isEmpty(difference1(s1)(s2));
+            return isEmpty(difference(dictOrd)(s1)(s2));
         };
     };
 };
 var properSubset = function (dictOrd) {
-    var subset1 = subset(dictOrd);
     return function (s1) {
         return function (s2) {
-            return size(s1) !== size(s2) && subset1(s1)(s2);
+            return size(s1) !== size(s2) && subset(dictOrd)(s1)(s2);
         };
     };
 };
 var $$delete = function (dictOrd) {
-    return coerce(Data_Map_Internal["delete"](dictOrd));
+    return Safe_Coerce.coerce()(Data_Map_Internal["delete"](dictOrd));
 };
 var checkValid = function (dictOrd) {
-    return coerce(Data_Map_Internal.checkValid(dictOrd));
+    return Safe_Coerce.coerce()(Data_Map_Internal.checkValid(dictOrd));
 };
 var catMaybes = function (dictOrd) {
     return mapMaybe(dictOrd)(identity);

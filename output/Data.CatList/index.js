@@ -46,14 +46,13 @@ var CatCons = /* #__PURE__ */ (function () {
     return CatCons;
 })();
 var showCatList = function (dictShow) {
-    var show = Data_Show.show(dictShow);
     return {
         show: function (v) {
             if (v instanceof CatNil) {
                 return "CatNil";
             };
             if (v instanceof CatCons) {
-                return "(CatList " + (show(v.value0) + (" " + (Data_Show.show(Data_CatQueue.showCatQueue(showCatList(dictShow)))(v.value1) + ")")));
+                return "(CatList " + (Data_Show.show(dictShow)(v.value0) + (" " + (Data_Show.show(Data_CatQueue.showCatQueue(showCatList(dictShow)))(v.value1) + ")")));
             };
             throw new Error("Failed pattern match at Data.CatList (line 147, column 1 - line 149, column 71): " + [ v.constructor.name ]);
         }
@@ -147,8 +146,8 @@ var uncons = function (v) {
     };
     if (v instanceof CatCons) {
         return new Data_Maybe.Just(new Data_Tuple.Tuple(v.value0, (function () {
-            var $66 = Data_CatQueue["null"](v.value1);
-            if ($66) {
+            var $57 = Data_CatQueue["null"](v.value1);
+            if ($57) {
                 return CatNil.value;
             };
             return foldr(link)(CatNil.value)(v.value1);
@@ -198,7 +197,7 @@ var foldableCatList = {
 var length = /* #__PURE__ */ Data_Foldable.length(foldableCatList)(Data_Semiring.semiringInt);
 var foldMap = function (dictMonoid) {
     var mempty = Data_Monoid.mempty(dictMonoid);
-    var append2 = Data_Semigroup.append(dictMonoid.Semigroup0());
+    var Semigroup0 = dictMonoid.Semigroup0();
     return function (v) {
         return function (v1) {
             if (v1 instanceof CatNil) {
@@ -206,13 +205,13 @@ var foldMap = function (dictMonoid) {
             };
             if (v1 instanceof CatCons) {
                 var d = (function () {
-                    var $75 = Data_CatQueue["null"](v1.value1);
-                    if ($75) {
+                    var $66 = Data_CatQueue["null"](v1.value1);
+                    if ($66) {
                         return CatNil.value;
                     };
                     return foldr(link)(CatNil.value)(v1.value1);
                 })();
-                return append2(v(v1.value0))(foldMap(dictMonoid)(v)(d));
+                return Data_Semigroup.append(Semigroup0)(v(v1.value0))(foldMap(dictMonoid)(v)(d));
             };
             throw new Error("Failed pattern match at Data.CatList (line 134, column 1 - line 134, column 62): " + [ v.constructor.name, v1.constructor.name ]);
         };
@@ -235,8 +234,8 @@ var functorCatList = {
             };
             if (v1 instanceof CatCons) {
                 var d = (function () {
-                    var $80 = Data_CatQueue["null"](v1.value1);
-                    if ($80) {
+                    var $71 = Data_CatQueue["null"](v1.value1);
+                    if ($71) {
                         return CatNil.value;
                     };
                     return foldr(link)(CatNil.value)(v1.value1);
@@ -252,47 +251,43 @@ var singleton = function (a) {
 };
 var traversableCatList = {
     traverse: function (dictApplicative) {
-        var pure = Control_Applicative.pure(dictApplicative);
         var Apply0 = dictApplicative.Apply0();
-        var apply = Control_Apply.apply(Apply0);
-        var map = Data_Functor.map(Apply0.Functor0());
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         return function (v) {
             return function (v1) {
                 if (v1 instanceof CatNil) {
-                    return pure(CatNil.value);
+                    return Control_Applicative.pure(dictApplicative)(CatNil.value);
                 };
                 if (v1 instanceof CatCons) {
                     var d = (function () {
-                        var $85 = Data_CatQueue["null"](v1.value1);
-                        if ($85) {
+                        var $76 = Data_CatQueue["null"](v1.value1);
+                        if ($76) {
                             return CatNil.value;
                         };
                         return foldr(link)(CatNil.value)(v1.value1);
                     })();
-                    return apply(map(cons)(v(v1.value0)))(Data_Traversable.traverse(traversableCatList)(dictApplicative)(v)(d));
+                    return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(cons)(v(v1.value0)))(Data_Traversable.traverse(traversableCatList)(dictApplicative)(v)(d));
                 };
                 throw new Error("Failed pattern match at Data.CatList (line 174, column 1 - line 182, column 33): " + [ v.constructor.name, v1.constructor.name ]);
             };
         };
     },
     sequence: function (dictApplicative) {
-        var pure = Control_Applicative.pure(dictApplicative);
         var Apply0 = dictApplicative.Apply0();
-        var apply = Control_Apply.apply(Apply0);
-        var map = Data_Functor.map(Apply0.Functor0());
+        var Functor0 = (dictApplicative.Apply0()).Functor0();
         return function (v) {
             if (v instanceof CatNil) {
-                return pure(CatNil.value);
+                return Control_Applicative.pure(dictApplicative)(CatNil.value);
             };
             if (v instanceof CatCons) {
                 var d = (function () {
-                    var $89 = Data_CatQueue["null"](v.value1);
-                    if ($89) {
+                    var $80 = Data_CatQueue["null"](v.value1);
+                    if ($80) {
                         return CatNil.value;
                     };
                     return foldr(link)(CatNil.value)(v.value1);
                 })();
-                return apply(map(cons)(v.value0))(Data_Traversable.sequence(traversableCatList)(dictApplicative)(d));
+                return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(cons)(v.value0))(Data_Traversable.sequence(traversableCatList)(dictApplicative)(d));
             };
             throw new Error("Failed pattern match at Data.CatList (line 174, column 1 - line 182, column 33): " + [ v.constructor.name ]);
         };
@@ -345,9 +340,8 @@ var $lazy_applyCatList = /* #__PURE__ */ $runtime_lazy("applyCatList", "Data.Cat
 });
 var applyCatList = /* #__PURE__ */ $lazy_applyCatList(190);
 var fromFoldable = function (dictFoldable) {
-    var foldMap1 = Data_Foldable.foldMap(dictFoldable)(monoidCatList);
     return function (f) {
-        return foldMap1(singleton)(f);
+        return Data_Foldable.foldMap(dictFoldable)(monoidCatList)(singleton)(f);
     };
 };
 var snoc = function (cat) {

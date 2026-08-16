@@ -28,10 +28,9 @@ var showRecordFields = function (dict) {
 var showRecord = function () {
     return function () {
         return function (dictShowRecordFields) {
-            var showRecordFields1 = showRecordFields(dictShowRecordFields);
             return {
                 show: function (record) {
-                    return "{" + (showRecordFields1(Type_Proxy["Proxy"].value)(record) + "}");
+                    return "{" + (showRecordFields(dictShowRecordFields)(Type_Proxy["Proxy"].value)(record) + "}");
                 }
             };
         };
@@ -71,18 +70,15 @@ var showArray = function (dictShow) {
     };
 };
 var showRecordFieldsCons = function (dictIsSymbol) {
-    var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
     return function (dictShowRecordFields) {
-        var showRecordFields1 = showRecordFields(dictShowRecordFields);
         return function (dictShow) {
-            var show1 = show(dictShow);
             return {
                 showRecordFields: function (v) {
                     return function (record) {
-                        var tail = showRecordFields1(Type_Proxy["Proxy"].value)(record);
-                        var key = reflectSymbol(Type_Proxy["Proxy"].value);
+                        var tail = showRecordFields(dictShowRecordFields)(Type_Proxy["Proxy"].value)(record);
+                        var key = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
                         var focus = Record_Unsafe.unsafeGet(key)(record);
-                        return " " + (key + (": " + (show1(focus) + ("," + tail))));
+                        return " " + (key + (": " + (show(dictShow)(focus) + ("," + tail))));
                     };
                 }
             };
@@ -90,15 +86,13 @@ var showRecordFieldsCons = function (dictIsSymbol) {
     };
 };
 var showRecordFieldsConsNil = function (dictIsSymbol) {
-    var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
     return function (dictShow) {
-        var show1 = show(dictShow);
         return {
             showRecordFields: function (v) {
                 return function (record) {
-                    var key = reflectSymbol(Type_Proxy["Proxy"].value);
+                    var key = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
                     var focus = Record_Unsafe.unsafeGet(key)(record);
-                    return " " + (key + (": " + (show1(focus) + " ")));
+                    return " " + (key + (": " + (show(dictShow)(focus) + " ")));
                 };
             }
         };

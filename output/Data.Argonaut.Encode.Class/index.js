@@ -20,11 +20,10 @@ var encodeVoid = {
     encodeJson: Data_Argonaut_Encode_Encoders.encodeVoid
 };
 var encodeRecord = function (dictGEncodeJson) {
-    var gEncodeJson1 = gEncodeJson(dictGEncodeJson);
     return function () {
         return {
             encodeJson: function (rec) {
-                return Data_Argonaut_Core.fromObject(gEncodeJson1(rec)(Type_Proxy["Proxy"].value));
+                return Data_Argonaut_Core.fromObject(gEncodeJson(dictGEncodeJson)(rec)(Type_Proxy["Proxy"].value));
             }
         };
     };
@@ -111,36 +110,31 @@ var encodeJsonTuple = function (dictEncodeJson) {
     };
 };
 var encodeMap = function (dictOrd) {
-    var encodeMap1 = Data_Argonaut_Encode_Encoders.encodeMap(dictOrd);
     return function (dictEncodeJson) {
         var encodeJson1 = encodeJson(dictEncodeJson);
         return function (dictEncodeJson1) {
             return {
-                encodeJson: encodeMap1(encodeJson1)(encodeJson(dictEncodeJson1))
+                encodeJson: Data_Argonaut_Encode_Encoders.encodeMap(dictOrd)(encodeJson1)(encodeJson(dictEncodeJson1))
             };
         };
     };
 };
 var encodeSet = function (dictOrd) {
-    var encodeSet1 = Data_Argonaut_Encode_Encoders.encodeSet(dictOrd);
     return function (dictEncodeJson) {
         return {
-            encodeJson: encodeSet1(encodeJson(dictEncodeJson))
+            encodeJson: Data_Argonaut_Encode_Encoders.encodeSet(dictOrd)(encodeJson(dictEncodeJson))
         };
     };
 };
 var gEncodeJsonCons = function (dictEncodeJson) {
     var encodeJson1 = encodeJson(dictEncodeJson);
     return function (dictGEncodeJson) {
-        var gEncodeJson1 = gEncodeJson(dictGEncodeJson);
         return function (dictIsSymbol) {
-            var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
-            var get = Record.get(dictIsSymbol)();
             return function () {
                 return {
                     gEncodeJson: function (row) {
                         return function (v) {
-                            return Foreign_Object.insert(reflectSymbol(Type_Proxy["Proxy"].value))(encodeJson1(get(Type_Proxy["Proxy"].value)(row)))(gEncodeJson1(row)(Type_Proxy["Proxy"].value));
+                            return Foreign_Object.insert(Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value))(encodeJson1(Record.get(dictIsSymbol)()(Type_Proxy["Proxy"].value)(row)))(gEncodeJson(dictGEncodeJson)(row)(Type_Proxy["Proxy"].value));
                         };
                     }
                 };

@@ -30,14 +30,13 @@ var newtypeWriterT = {
     }
 };
 var monadTransWriterT = function (dictMonoid) {
-    var mempty = Data_Monoid.mempty(dictMonoid);
     return {
         lift: function (dictMonad) {
-            var bind = Control_Bind.bind(dictMonad.Bind1());
+            var Bind1 = dictMonad.Bind1();
             var pure = Control_Applicative.pure(dictMonad.Applicative0());
             return function (m) {
-                return bind(m)(function (a) {
-                    return pure(new Data_Tuple.Tuple(a, mempty));
+                return Control_Bind.bind(Bind1)(m)(function (a) {
+                    return pure(new Data_Tuple.Tuple(a, Data_Monoid.mempty(dictMonoid)));
                 });
             };
         }
@@ -49,37 +48,32 @@ var mapWriterT = function (f) {
     };
 };
 var functorWriterT = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return {
         map: function (f) {
-            return mapWriterT(map(function (v) {
+            return mapWriterT(Data_Functor.map(dictFunctor)(function (v) {
                 return new Data_Tuple.Tuple(f(v.value0), v.value1);
             }));
         }
     };
 };
 var execWriterT = function (dictFunctor) {
-    var map = Data_Functor.map(dictFunctor);
     return function (v) {
-        return map(Data_Tuple.snd)(v);
+        return Data_Functor.map(dictFunctor)(Data_Tuple.snd)(v);
     };
 };
 var applyWriterT = function (dictSemigroup) {
-    var append = Data_Semigroup.append(dictSemigroup);
     return function (dictApply) {
-        var apply = Control_Apply.apply(dictApply);
         var Functor0 = dictApply.Functor0();
-        var map = Data_Functor.map(Functor0);
-        var functorWriterT1 = functorWriterT(Functor0);
+        var functorWriterT1 = functorWriterT(dictApply.Functor0());
         return {
             apply: function (v) {
                 return function (v1) {
                     var k = function (v3) {
                         return function (v4) {
-                            return new Data_Tuple.Tuple(v3.value0(v4.value0), append(v3.value1)(v4.value1));
+                            return new Data_Tuple.Tuple(v3.value0(v4.value0), Data_Semigroup.append(dictSemigroup)(v3.value1)(v4.value1));
                         };
                     };
-                    return apply(map(k)(v))(v1);
+                    return Control_Apply.apply(dictApply)(Data_Functor.map(Functor0)(k)(v))(v1);
                 };
             },
             Functor0: function () {
@@ -89,20 +83,18 @@ var applyWriterT = function (dictSemigroup) {
     };
 };
 var bindWriterT = function (dictSemigroup) {
-    var append = Data_Semigroup.append(dictSemigroup);
     var applyWriterT1 = applyWriterT(dictSemigroup);
     return function (dictBind) {
-        var bind = Control_Bind.bind(dictBind);
         var Apply0 = dictBind.Apply0();
-        var map = Data_Functor.map(Apply0.Functor0());
+        var Functor0 = Apply0.Functor0();
         var applyWriterT2 = applyWriterT1(Apply0);
         return {
             bind: function (v) {
                 return function (k) {
-                    return bind(v)(function (v1) {
+                    return Control_Bind.bind(dictBind)(v)(function (v1) {
                         var v2 = k(v1.value0);
-                        return map(function (v3) {
-                            return new Data_Tuple.Tuple(v3.value0, append(v1.value1)(v3.value1));
+                        return Data_Functor.map(Functor0)(function (v3) {
+                            return new Data_Tuple.Tuple(v3.value0, Data_Semigroup.append(dictSemigroup)(v1.value1)(v3.value1));
                         })(v2);
                     });
                 };
@@ -115,23 +107,22 @@ var bindWriterT = function (dictSemigroup) {
 };
 var semigroupWriterT = function (dictApply) {
     return function (dictSemigroup) {
-        var lift2 = Control_Apply.lift2(applyWriterT(dictSemigroup)(dictApply));
+        var applyWriterT1 = applyWriterT(dictSemigroup)(dictApply);
         return function (dictSemigroup1) {
             return {
-                append: lift2(Data_Semigroup.append(dictSemigroup1))
+                append: Control_Apply.lift2(applyWriterT1)(Data_Semigroup.append(dictSemigroup1))
             };
         };
     };
 };
 var applicativeWriterT = function (dictMonoid) {
-    var mempty = Data_Monoid.mempty(dictMonoid);
     var applyWriterT1 = applyWriterT(dictMonoid.Semigroup0());
     return function (dictApplicative) {
         var pure = Control_Applicative.pure(dictApplicative);
         var applyWriterT2 = applyWriterT1(dictApplicative.Apply0());
         return {
             pure: function (a) {
-                return pure(new Data_Tuple.Tuple(a, mempty));
+                return pure(new Data_Tuple.Tuple(a, Data_Monoid.mempty(dictMonoid)));
             },
             Apply0: function () {
                 return applyWriterT2;
@@ -156,13 +147,12 @@ var monadWriterT = function (dictMonoid) {
     };
 };
 var monadAskWriterT = function (dictMonoid) {
-    var lift = Control_Monad_Trans_Class.lift(monadTransWriterT(dictMonoid));
+    var monadTransWriterT1 = monadTransWriterT(dictMonoid);
     var monadWriterT1 = monadWriterT(dictMonoid);
     return function (dictMonadAsk) {
-        var Monad0 = dictMonadAsk.Monad0();
-        var monadWriterT2 = monadWriterT1(Monad0);
+        var monadWriterT2 = monadWriterT1(dictMonadAsk.Monad0());
         return {
-            ask: lift(Monad0)(Control_Monad_Reader_Class.ask(dictMonadAsk)),
+            ask: Control_Monad_Trans_Class.lift(monadTransWriterT1)(dictMonadAsk.Monad0())(Control_Monad_Reader_Class.ask(dictMonadAsk)),
             Monad0: function () {
                 return monadWriterT2;
             }
@@ -172,11 +162,10 @@ var monadAskWriterT = function (dictMonoid) {
 var monadReaderWriterT = function (dictMonoid) {
     var monadAskWriterT1 = monadAskWriterT(dictMonoid);
     return function (dictMonadReader) {
-        var local = Control_Monad_Reader_Class.local(dictMonadReader);
         var monadAskWriterT2 = monadAskWriterT1(dictMonadReader.MonadAsk0());
         return {
             local: function (f) {
-                return mapWriterT(local(f));
+                return mapWriterT(Control_Monad_Reader_Class.local(dictMonadReader)(f));
             },
             MonadAsk0: function () {
                 return monadAskWriterT2;
@@ -185,16 +174,14 @@ var monadReaderWriterT = function (dictMonoid) {
     };
 };
 var monadContWriterT = function (dictMonoid) {
-    var mempty = Data_Monoid.mempty(dictMonoid);
     var monadWriterT1 = monadWriterT(dictMonoid);
     return function (dictMonadCont) {
-        var callCC = Control_Monad_Cont_Class.callCC(dictMonadCont);
         var monadWriterT2 = monadWriterT1(dictMonadCont.Monad0());
         return {
             callCC: function (f) {
-                return callCC(function (c) {
+                return Control_Monad_Cont_Class.callCC(dictMonadCont)(function (c) {
                     var v = f(function (a) {
-                        return c(new Data_Tuple.Tuple(a, mempty));
+                        return c(new Data_Tuple.Tuple(a, Data_Monoid.mempty(dictMonoid)));
                     });
                     return v;
                 });
@@ -213,10 +200,10 @@ var monadEffectWriter = function (dictMonoid) {
         var monadWriterT2 = monadWriterT1(Monad0);
         return {
             liftEffect: (function () {
-                var $260 = lift(Monad0);
-                var $261 = Effect_Class.liftEffect(dictMonadEffect);
-                return function ($262) {
-                    return $260($261($262));
+                var $230 = lift(Monad0);
+                var $231 = Effect_Class.liftEffect(dictMonadEffect);
+                return function ($232) {
+                    return $230($231($232));
                 };
             })(),
             Monad0: function () {
@@ -226,33 +213,31 @@ var monadEffectWriter = function (dictMonoid) {
     };
 };
 var monadRecWriterT = function (dictMonoid) {
-    var append = Data_Semigroup.append(dictMonoid.Semigroup0());
-    var mempty = Data_Monoid.mempty(dictMonoid);
+    var Semigroup0 = dictMonoid.Semigroup0();
     var monadWriterT1 = monadWriterT(dictMonoid);
     return function (dictMonadRec) {
         var Monad0 = dictMonadRec.Monad0();
-        var bind = Control_Bind.bind(Monad0.Bind1());
-        var pure = Control_Applicative.pure(Monad0.Applicative0());
-        var tailRecM = Control_Monad_Rec_Class.tailRecM(dictMonadRec);
+        var Bind1 = Monad0.Bind1();
+        var Applicative0 = Monad0.Applicative0();
         var monadWriterT2 = monadWriterT1(Monad0);
         return {
             tailRecM: function (f) {
                 return function (a) {
                     var f$prime = function (v) {
                         var v1 = f(v.value0);
-                        return bind(v1)(function (v2) {
-                            return pure((function () {
+                        return Control_Bind.bind(Bind1)(v1)(function (v2) {
+                            return Control_Applicative.pure(Applicative0)((function () {
                                 if (v2.value0 instanceof Control_Monad_Rec_Class.Loop) {
-                                    return new Control_Monad_Rec_Class.Loop(new Data_Tuple.Tuple(v2.value0.value0, append(v.value1)(v2.value1)));
+                                    return new Control_Monad_Rec_Class.Loop(new Data_Tuple.Tuple(v2.value0.value0, Data_Semigroup.append(Semigroup0)(v.value1)(v2.value1)));
                                 };
                                 if (v2.value0 instanceof Control_Monad_Rec_Class.Done) {
-                                    return new Control_Monad_Rec_Class.Done(new Data_Tuple.Tuple(v2.value0.value0, append(v.value1)(v2.value1)));
+                                    return new Control_Monad_Rec_Class.Done(new Data_Tuple.Tuple(v2.value0.value0, Data_Semigroup.append(Semigroup0)(v.value1)(v2.value1)));
                                 };
                                 throw new Error("Failed pattern match at Control.Monad.Writer.Trans (line 84, column 16 - line 86, column 47): " + [ v2.value0.constructor.name ]);
                             })());
                         });
                     };
-                    return tailRecM(f$prime)(new Data_Tuple.Tuple(a, mempty));
+                    return Control_Monad_Rec_Class.tailRecM(dictMonadRec)(f$prime)(new Data_Tuple.Tuple(a, Data_Monoid.mempty(dictMonoid)));
                 };
             },
             Monad0: function () {
@@ -262,16 +247,14 @@ var monadRecWriterT = function (dictMonoid) {
     };
 };
 var monadStateWriterT = function (dictMonoid) {
-    var lift = Control_Monad_Trans_Class.lift(monadTransWriterT(dictMonoid));
+    var monadTransWriterT1 = monadTransWriterT(dictMonoid);
     var monadWriterT1 = monadWriterT(dictMonoid);
     return function (dictMonadState) {
         var Monad0 = dictMonadState.Monad0();
-        var lift1 = lift(Monad0);
-        var state = Control_Monad_State_Class.state(dictMonadState);
-        var monadWriterT2 = monadWriterT1(Monad0);
+        var monadWriterT2 = monadWriterT1(dictMonadState.Monad0());
         return {
             state: function (f) {
-                return lift1(state(f));
+                return Control_Monad_Trans_Class.lift(monadTransWriterT1)(Monad0)(Control_Monad_State_Class.state(dictMonadState)(f));
             },
             Monad0: function () {
                 return monadWriterT2;
@@ -286,10 +269,10 @@ var monadTellWriterT = function (dictMonoid) {
         var monadWriterT2 = monadWriterT1(dictMonad);
         return {
             tell: (function () {
-                var $263 = Control_Applicative.pure(dictMonad.Applicative0());
-                var $264 = Data_Tuple.Tuple.create(Data_Unit.unit);
-                return function ($265) {
-                    return WriterT($263($264($265)));
+                var $233 = Control_Applicative.pure(dictMonad.Applicative0());
+                var $234 = Data_Tuple.Tuple.create(Data_Unit.unit);
+                return function ($235) {
+                    return WriterT($233($234($235)));
                 };
             })(),
             Semigroup0: function () {
@@ -304,19 +287,19 @@ var monadTellWriterT = function (dictMonoid) {
 var monadWriterWriterT = function (dictMonoid) {
     var monadTellWriterT1 = monadTellWriterT(dictMonoid);
     return function (dictMonad) {
-        var bind = Control_Bind.bind(dictMonad.Bind1());
+        var Bind1 = dictMonad.Bind1();
         var Applicative0 = dictMonad.Applicative0();
         var pure = Control_Applicative.pure(Applicative0);
         var pure1 = Control_Applicative.pure(Applicative0);
         var monadTellWriterT2 = monadTellWriterT1(dictMonad);
         return {
             listen: function (v) {
-                return bind(v)(function (v1) {
+                return Control_Bind.bind(Bind1)(v)(function (v1) {
                     return pure(new Data_Tuple.Tuple(new Data_Tuple.Tuple(v1.value0, v1.value1), v1.value1));
                 });
             },
             pass: function (v) {
-                return bind(v)(function (v1) {
+                return Control_Bind.bind(Bind1)(v)(function (v1) {
                     return pure1(new Data_Tuple.Tuple(v1.value0.value0, v1.value0.value1(v1.value1)));
                 });
             },
@@ -330,16 +313,14 @@ var monadWriterWriterT = function (dictMonoid) {
     };
 };
 var monadThrowWriterT = function (dictMonoid) {
-    var lift = Control_Monad_Trans_Class.lift(monadTransWriterT(dictMonoid));
+    var monadTransWriterT1 = monadTransWriterT(dictMonoid);
     var monadWriterT1 = monadWriterT(dictMonoid);
     return function (dictMonadThrow) {
         var Monad0 = dictMonadThrow.Monad0();
-        var lift1 = lift(Monad0);
-        var throwError = Control_Monad_Error_Class.throwError(dictMonadThrow);
-        var monadWriterT2 = monadWriterT1(Monad0);
+        var monadWriterT2 = monadWriterT1(dictMonadThrow.Monad0());
         return {
             throwError: function (e) {
-                return lift1(throwError(e));
+                return Control_Monad_Trans_Class.lift(monadTransWriterT1)(Monad0)(Control_Monad_Error_Class.throwError(dictMonadThrow)(e));
             },
             Monad0: function () {
                 return monadWriterT2;
@@ -350,12 +331,11 @@ var monadThrowWriterT = function (dictMonoid) {
 var monadErrorWriterT = function (dictMonoid) {
     var monadThrowWriterT1 = monadThrowWriterT(dictMonoid);
     return function (dictMonadError) {
-        var catchError = Control_Monad_Error_Class.catchError(dictMonadError);
         var monadThrowWriterT2 = monadThrowWriterT1(dictMonadError.MonadThrow0());
         return {
             catchError: function (v) {
                 return function (h) {
-                    return catchError(v)(function (e) {
+                    return Control_Monad_Error_Class.catchError(dictMonadError)(v)(function (e) {
                         var v1 = h(e);
                         return v1;
                     });
@@ -375,10 +355,10 @@ var monadSTWriterT = function (dictMonoid) {
         var monadWriterT2 = monadWriterT1(Monad0);
         return {
             liftST: (function () {
-                var $266 = lift(Monad0);
-                var $267 = Control_Monad_ST_Class.liftST(dictMonadST);
-                return function ($268) {
-                    return $266($267($268));
+                var $236 = lift(Monad0);
+                var $237 = Control_Monad_ST_Class.liftST(dictMonadST);
+                return function ($238) {
+                    return $236($237($238));
                 };
             })(),
             Monad0: function () {
@@ -390,12 +370,12 @@ var monadSTWriterT = function (dictMonoid) {
 var monoidWriterT = function (dictApplicative) {
     var semigroupWriterT1 = semigroupWriterT(dictApplicative.Apply0());
     return function (dictMonoid) {
-        var pure = Control_Applicative.pure(applicativeWriterT(dictMonoid)(dictApplicative));
+        var applicativeWriterT1 = applicativeWriterT(dictMonoid)(dictApplicative);
         var semigroupWriterT2 = semigroupWriterT1(dictMonoid.Semigroup0());
         return function (dictMonoid1) {
             var semigroupWriterT3 = semigroupWriterT2(dictMonoid1.Semigroup0());
             return {
-                mempty: pure(Data_Monoid.mempty(dictMonoid1)),
+                mempty: Control_Applicative.pure(applicativeWriterT1)(Data_Monoid.mempty(dictMonoid1)),
                 Semigroup0: function () {
                     return semigroupWriterT3;
                 }
@@ -404,12 +384,11 @@ var monoidWriterT = function (dictApplicative) {
     };
 };
 var altWriterT = function (dictAlt) {
-    var alt = Control_Alt.alt(dictAlt);
     var functorWriterT1 = functorWriterT(dictAlt.Functor0());
     return {
         alt: function (v) {
             return function (v1) {
-                return alt(v)(v1);
+                return Control_Alt.alt(dictAlt)(v)(v1);
             };
         },
         Functor0: function () {

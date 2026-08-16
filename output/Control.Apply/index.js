@@ -4,7 +4,6 @@ import * as Control_Category from "../Control.Category/index.js";
 import * as Data_Function from "../Data.Function/index.js";
 import * as Data_Functor from "../Data.Functor/index.js";
 import * as Type_Proxy from "../Type.Proxy/index.js";
-var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var applyProxy = {
     apply: function (v) {
         return function (v1) {
@@ -37,56 +36,51 @@ var apply = function (dict) {
     return dict.apply;
 };
 var applyFirst = function (dictApply) {
-    var apply1 = apply(dictApply);
-    var map = Data_Functor.map(dictApply.Functor0());
+    var Functor0 = dictApply.Functor0();
     return function (a) {
         return function (b) {
-            return apply1(map(Data_Function["const"])(a))(b);
+            return apply(dictApply)(Data_Functor.map(Functor0)(Data_Function["const"])(a))(b);
         };
     };
 };
 var applySecond = function (dictApply) {
-    var apply1 = apply(dictApply);
-    var map = Data_Functor.map(dictApply.Functor0());
+    var Functor0 = dictApply.Functor0();
     return function (a) {
         return function (b) {
-            return apply1(map(Data_Function["const"](identity))(a))(b);
+            return apply(dictApply)(Data_Functor.map(Functor0)(Data_Function["const"](Control_Category.identity(Control_Category.categoryFn)))(a))(b);
         };
     };
 };
 var lift2 = function (dictApply) {
-    var apply1 = apply(dictApply);
-    var map = Data_Functor.map(dictApply.Functor0());
+    var Functor0 = dictApply.Functor0();
     return function (f) {
         return function (a) {
             return function (b) {
-                return apply1(map(f)(a))(b);
+                return apply(dictApply)(Data_Functor.map(Functor0)(f)(a))(b);
             };
         };
     };
 };
 var lift3 = function (dictApply) {
-    var apply1 = apply(dictApply);
-    var map = Data_Functor.map(dictApply.Functor0());
+    var Functor0 = dictApply.Functor0();
     return function (f) {
         return function (a) {
             return function (b) {
                 return function (c) {
-                    return apply1(apply1(map(f)(a))(b))(c);
+                    return apply(dictApply)(apply(dictApply)(Data_Functor.map(Functor0)(f)(a))(b))(c);
                 };
             };
         };
     };
 };
 var lift4 = function (dictApply) {
-    var apply1 = apply(dictApply);
-    var map = Data_Functor.map(dictApply.Functor0());
+    var Functor0 = dictApply.Functor0();
     return function (f) {
         return function (a) {
             return function (b) {
                 return function (c) {
                     return function (d) {
-                        return apply1(apply1(apply1(map(f)(a))(b))(c))(d);
+                        return apply(dictApply)(apply(dictApply)(apply(dictApply)(Data_Functor.map(Functor0)(f)(a))(b))(c))(d);
                     };
                 };
             };
@@ -94,15 +88,14 @@ var lift4 = function (dictApply) {
     };
 };
 var lift5 = function (dictApply) {
-    var apply1 = apply(dictApply);
-    var map = Data_Functor.map(dictApply.Functor0());
+    var Functor0 = dictApply.Functor0();
     return function (f) {
         return function (a) {
             return function (b) {
                 return function (c) {
                     return function (d) {
                         return function (e) {
-                            return apply1(apply1(apply1(apply1(map(f)(a))(b))(c))(d))(e);
+                            return apply(dictApply)(apply(dictApply)(apply(dictApply)(apply(dictApply)(Data_Functor.map(Functor0)(f)(a))(b))(c))(d))(e);
                         };
                     };
                 };

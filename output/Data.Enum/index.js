@@ -17,17 +17,10 @@ import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Unfoldable from "../Data.Unfoldable/index.js";
 import * as Data_Unfoldable1 from "../Data.Unfoldable1/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
-var apply = /* #__PURE__ */ Control_Apply.apply(Control_Apply.applyFn);
-var show = /* #__PURE__ */ Data_Show.show(Data_Show.showInt);
-var map = /* #__PURE__ */ Data_Functor.map(Data_Maybe.functorMaybe);
-var top = /* #__PURE__ */ Data_Bounded.top(Data_Bounded.boundedInt);
 var bottom = /* #__PURE__ */ Data_Bounded.bottom(Data_Bounded.boundedInt);
-var bind = /* #__PURE__ */ Control_Bind.bind(Data_Maybe.bindMaybe);
-var voidLeft = /* #__PURE__ */ Data_Functor.voidLeft(Data_Maybe.functorMaybe);
-var guard = /* #__PURE__ */ Control_Alternative.guard(Data_Maybe.alternativeMaybe);
 var fromJust = /* #__PURE__ */ Data_Maybe.fromJust();
 var bottom1 = /* #__PURE__ */ Data_Bounded.bottom(Data_Bounded.boundedChar);
-var top1 = /* #__PURE__ */ Data_Bounded.top(Data_Bounded.boundedChar);
+var top = /* #__PURE__ */ Data_Bounded.top(Data_Bounded.boundedChar);
 var Cardinality = function (x) {
     return x;
 };
@@ -40,12 +33,12 @@ var succ = function (dict) {
 var upFromIncluding = function (dictEnum) {
     var succ1 = succ(dictEnum);
     return function (dictUnfoldable1) {
-        return Data_Unfoldable1.unfoldr1(dictUnfoldable1)(apply(Data_Tuple.Tuple.create)(succ1));
+        return Data_Unfoldable1.unfoldr1(dictUnfoldable1)(Control_Apply.apply(Control_Apply.applyFn)(Data_Tuple.Tuple.create)(succ1));
     };
 };
 var showCardinality = {
     show: function (v) {
-        return "(Cardinality " + (show(v) + ")");
+        return "(Cardinality " + (Data_Show.show(Data_Show.showInt)(v) + ")");
     }
 };
 var pred = function (dict) {
@@ -61,19 +54,17 @@ var fromEnum = function (dict) {
     return dict.fromEnum;
 };
 var toEnumWithDefaults = function (dictBoundedEnum) {
-    var toEnum1 = toEnum(dictBoundedEnum);
-    var fromEnum1 = fromEnum(dictBoundedEnum);
     var bottom2 = Data_Bounded.bottom(dictBoundedEnum.Bounded0());
     return function (low) {
         return function (high) {
             return function (x) {
-                var v = toEnum1(x);
+                var v = toEnum(dictBoundedEnum)(x);
                 if (v instanceof Data_Maybe.Just) {
                     return v.value0;
                 };
                 if (v instanceof Data_Maybe.Nothing) {
-                    var $140 = x < fromEnum1(bottom2);
-                    if ($140) {
+                    var $95 = x < fromEnum(dictBoundedEnum)(bottom2);
+                    if ($95) {
                         return low;
                     };
                     return high;
@@ -94,33 +85,27 @@ var enumUnit = /* #__PURE__ */ (function () {
     };
 })();
 var enumTuple = function (dictEnum) {
-    var succ1 = succ(dictEnum);
-    var pred1 = pred(dictEnum);
     var ordTuple = Data_Tuple.ordTuple(dictEnum.Ord0());
     return function (dictBoundedEnum) {
         var Bounded0 = dictBoundedEnum.Bounded0();
-        var bottom2 = Data_Bounded.bottom(Bounded0);
         var Enum1 = dictBoundedEnum.Enum1();
-        var succ2 = succ(Enum1);
-        var top2 = Data_Bounded.top(Bounded0);
-        var pred2 = pred(Enum1);
-        var ordTuple1 = ordTuple(Enum1.Ord0());
+        var ordTuple1 = ordTuple((dictBoundedEnum.Enum1()).Ord0());
         return {
             succ: function (v) {
-                return Data_Maybe.maybe(map(Data_Function.flip(Data_Tuple.Tuple.create)(bottom2))(succ1(v.value0)))((function () {
-                    var $183 = Data_Tuple.Tuple.create(v.value0);
-                    return function ($184) {
-                        return Data_Maybe.Just.create($183($184));
+                return Data_Maybe.maybe(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Function.flip(Data_Tuple.Tuple.create)(Data_Bounded.bottom(Bounded0)))(succ(dictEnum)(v.value0)))((function () {
+                    var $138 = Data_Tuple.Tuple.create(v.value0);
+                    return function ($139) {
+                        return Data_Maybe.Just.create($138($139));
                     };
-                })())(succ2(v.value1));
+                })())(succ(Enum1)(v.value1));
             },
             pred: function (v) {
-                return Data_Maybe.maybe(map(Data_Function.flip(Data_Tuple.Tuple.create)(top2))(pred1(v.value0)))((function () {
-                    var $185 = Data_Tuple.Tuple.create(v.value0);
-                    return function ($186) {
-                        return Data_Maybe.Just.create($185($186));
+                return Data_Maybe.maybe(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Function.flip(Data_Tuple.Tuple.create)(Data_Bounded.top(Bounded0)))(pred(dictEnum)(v.value0)))((function () {
+                    var $140 = Data_Tuple.Tuple.create(v.value0);
+                    return function ($141) {
+                        return Data_Maybe.Just.create($140($141));
                     };
-                })())(pred2(v.value1));
+                })())(pred(Enum1)(v.value1));
             },
             Ord0: function () {
                 return ordTuple1;
@@ -158,18 +143,16 @@ var enumOrdering = {
     }
 };
 var enumMaybe = function (dictBoundedEnum) {
-    var bottom2 = Data_Bounded.bottom(dictBoundedEnum.Bounded0());
+    var Bounded0 = dictBoundedEnum.Bounded0();
     var Enum1 = dictBoundedEnum.Enum1();
-    var succ1 = succ(Enum1);
-    var pred1 = pred(Enum1);
-    var ordMaybe = Data_Maybe.ordMaybe(Enum1.Ord0());
+    var ordMaybe = Data_Maybe.ordMaybe((dictBoundedEnum.Enum1()).Ord0());
     return {
         succ: function (v) {
             if (v instanceof Data_Maybe.Nothing) {
-                return new Data_Maybe.Just(new Data_Maybe.Just(bottom2));
+                return new Data_Maybe.Just(new Data_Maybe.Just(Data_Bounded.bottom(Bounded0)));
             };
             if (v instanceof Data_Maybe.Just) {
-                return map(Data_Maybe.Just.create)(succ1(v.value0));
+                return Data_Functor.map(Data_Maybe.functorMaybe)(Data_Maybe.Just.create)(succ(Enum1)(v.value0));
             };
             throw new Error("Failed pattern match at Data.Enum (line 80, column 1 - line 84, column 32): " + [ v.constructor.name ]);
         },
@@ -178,7 +161,7 @@ var enumMaybe = function (dictBoundedEnum) {
                 return Data_Maybe.Nothing.value;
             };
             if (v instanceof Data_Maybe.Just) {
-                return new Data_Maybe.Just(pred1(v.value0));
+                return new Data_Maybe.Just(pred(Enum1)(v.value0));
             };
             throw new Error("Failed pattern match at Data.Enum (line 80, column 1 - line 84, column 32): " + [ v.constructor.name ]);
         },
@@ -189,15 +172,15 @@ var enumMaybe = function (dictBoundedEnum) {
 };
 var enumInt = {
     succ: function (n) {
-        var $153 = n < top;
-        if ($153) {
+        var $108 = n < Data_Bounded.top(Data_Bounded.boundedInt);
+        if ($108) {
             return new Data_Maybe.Just(n + 1 | 0);
         };
         return Data_Maybe.Nothing.value;
     },
     pred: function (n) {
-        var $154 = n > bottom;
-        if ($154) {
+        var $109 = n > bottom;
+        if ($109) {
             return new Data_Maybe.Just(n - 1 | 0);
         };
         return Data_Maybe.Nothing.value;
@@ -208,21 +191,19 @@ var enumInt = {
 };
 var enumFromTo = function (dictEnum) {
     var Ord0 = dictEnum.Ord0();
-    var eq1 = Data_Eq.eq(Ord0.Eq0());
-    var lessThan1 = Data_Ord.lessThan(Ord0);
+    var Eq0 = Ord0.Eq0();
+    var Ord01 = dictEnum.Ord0();
     var succ1 = succ(dictEnum);
-    var lessThanOrEq1 = Data_Ord.lessThanOrEq(Ord0);
+    var lessThanOrEq = Data_Ord.lessThanOrEq(Ord0);
     var pred1 = pred(dictEnum);
-    var greaterThanOrEq1 = Data_Ord.greaterThanOrEq(Ord0);
+    var greaterThanOrEq = Data_Ord.greaterThanOrEq(Ord0);
     return function (dictUnfoldable1) {
-        var singleton = Data_Unfoldable1.singleton(dictUnfoldable1);
-        var unfoldr1 = Data_Unfoldable1.unfoldr1(dictUnfoldable1);
         var go = function (step) {
             return function (op) {
                 return function (to) {
                     return function (a) {
-                        return new Data_Tuple.Tuple(a, bind(step(a))(function (a$prime) {
-                            return voidLeft(guard(op(a$prime)(to)))(a$prime);
+                        return new Data_Tuple.Tuple(a, Control_Bind.bind(Data_Maybe.bindMaybe)(step(a))(function (a$prime) {
+                            return Data_Functor.voidLeft(Data_Maybe.functorMaybe)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(op(a$prime)(to)))(a$prime);
                         }));
                     };
                 };
@@ -230,14 +211,14 @@ var enumFromTo = function (dictEnum) {
         };
         return function (v) {
             return function (v1) {
-                if (eq1(v)(v1)) {
-                    return singleton(v);
+                if (Data_Eq.eq(Eq0)(v)(v1)) {
+                    return Data_Unfoldable1.singleton(dictUnfoldable1)(v);
                 };
-                if (lessThan1(v)(v1)) {
-                    return unfoldr1(go(succ1)(lessThanOrEq1)(v1))(v);
+                if (Data_Ord.lessThan(Ord01)(v)(v1)) {
+                    return Data_Unfoldable1.unfoldr1(dictUnfoldable1)(go(succ1)(lessThanOrEq)(v1))(v);
                 };
                 if (Data_Boolean.otherwise) {
-                    return unfoldr1(go(pred1)(greaterThanOrEq1)(v1))(v);
+                    return Data_Unfoldable1.unfoldr1(dictUnfoldable1)(go(pred1)(greaterThanOrEq)(v1))(v);
                 };
                 throw new Error("Failed pattern match at Data.Enum (line 186, column 14 - line 190, column 51): " + [ v.constructor.name, v1.constructor.name ]);
             };
@@ -245,11 +226,8 @@ var enumFromTo = function (dictEnum) {
     };
 };
 var enumFromThenTo = function (dictUnfoldable) {
-    var unfoldr = Data_Unfoldable.unfoldr(dictUnfoldable);
     return function (dictFunctor) {
-        var map1 = Data_Functor.map(dictFunctor);
         return function (dictBoundedEnum) {
-            var fromEnum1 = fromEnum(dictBoundedEnum);
             var toEnum1 = toEnum(dictBoundedEnum);
             var go = function (step) {
                 return function (to) {
@@ -267,12 +245,12 @@ var enumFromThenTo = function (dictUnfoldable) {
             return function (a) {
                 return function (b) {
                     return function (c) {
-                        var c$prime = fromEnum1(c);
-                        var b$prime = fromEnum1(b);
-                        var a$prime = fromEnum1(a);
-                        return map1(function ($187) {
-                            return fromJust(toEnum1($187));
-                        })(unfoldr(go(b$prime - a$prime | 0)(c$prime))(a$prime));
+                        var c$prime = fromEnum(dictBoundedEnum)(c);
+                        var b$prime = fromEnum(dictBoundedEnum)(b);
+                        var a$prime = fromEnum(dictBoundedEnum)(a);
+                        return Data_Functor.map(dictFunctor)(function ($142) {
+                            return fromJust(toEnum1($142));
+                        })(Data_Unfoldable.unfoldr(dictUnfoldable)(go(b$prime - a$prime | 0)(c$prime))(a$prime));
                     };
                 };
             };
@@ -281,40 +259,36 @@ var enumFromThenTo = function (dictUnfoldable) {
 };
 var enumEither = function (dictBoundedEnum) {
     var Enum1 = dictBoundedEnum.Enum1();
-    var succ1 = succ(Enum1);
-    var pred1 = pred(Enum1);
-    var top2 = Data_Bounded.top(dictBoundedEnum.Bounded0());
-    var ordEither = Data_Either.ordEither(Enum1.Ord0());
+    var Bounded0 = dictBoundedEnum.Bounded0();
+    var ordEither = Data_Either.ordEither((dictBoundedEnum.Enum1()).Ord0());
     return function (dictBoundedEnum1) {
-        var bottom2 = Data_Bounded.bottom(dictBoundedEnum1.Bounded0());
+        var Bounded01 = dictBoundedEnum1.Bounded0();
         var Enum11 = dictBoundedEnum1.Enum1();
-        var succ2 = succ(Enum11);
-        var pred2 = pred(Enum11);
-        var ordEither1 = ordEither(Enum11.Ord0());
+        var ordEither1 = ordEither((dictBoundedEnum1.Enum1()).Ord0());
         return {
             succ: function (v) {
                 if (v instanceof Data_Either.Left) {
-                    return Data_Maybe.maybe(new Data_Maybe.Just(new Data_Either.Right(bottom2)))(function ($188) {
-                        return Data_Maybe.Just.create(Data_Either.Left.create($188));
-                    })(succ1(v.value0));
+                    return Data_Maybe.maybe(new Data_Maybe.Just(new Data_Either.Right(Data_Bounded.bottom(Bounded01))))(function ($143) {
+                        return Data_Maybe.Just.create(Data_Either.Left.create($143));
+                    })(succ(Enum1)(v.value0));
                 };
                 if (v instanceof Data_Either.Right) {
-                    return Data_Maybe.maybe(Data_Maybe.Nothing.value)(function ($189) {
-                        return Data_Maybe.Just.create(Data_Either.Right.create($189));
-                    })(succ2(v.value0));
+                    return Data_Maybe.maybe(Data_Maybe.Nothing.value)(function ($144) {
+                        return Data_Maybe.Just.create(Data_Either.Right.create($144));
+                    })(succ(Enum11)(v.value0));
                 };
                 throw new Error("Failed pattern match at Data.Enum (line 86, column 1 - line 90, column 69): " + [ v.constructor.name ]);
             },
             pred: function (v) {
                 if (v instanceof Data_Either.Left) {
-                    return Data_Maybe.maybe(Data_Maybe.Nothing.value)(function ($190) {
-                        return Data_Maybe.Just.create(Data_Either.Left.create($190));
-                    })(pred1(v.value0));
+                    return Data_Maybe.maybe(Data_Maybe.Nothing.value)(function ($145) {
+                        return Data_Maybe.Just.create(Data_Either.Left.create($145));
+                    })(pred(Enum1)(v.value0));
                 };
                 if (v instanceof Data_Either.Right) {
-                    return Data_Maybe.maybe(new Data_Maybe.Just(new Data_Either.Left(top2)))(function ($191) {
-                        return Data_Maybe.Just.create(Data_Either.Right.create($191));
-                    })(pred2(v.value0));
+                    return Data_Maybe.maybe(new Data_Maybe.Just(new Data_Either.Left(Data_Bounded.top(Bounded0))))(function ($146) {
+                        return Data_Maybe.Just.create(Data_Either.Right.create($146));
+                    })(pred(Enum11)(v.value0));
                 };
                 throw new Error("Failed pattern match at Data.Enum (line 86, column 1 - line 90, column 69): " + [ v.constructor.name ]);
             },
@@ -344,7 +318,7 @@ var enumBoolean = {
 var downFromIncluding = function (dictEnum) {
     var pred1 = pred(dictEnum);
     return function (dictUnfoldable1) {
-        return Data_Unfoldable1.unfoldr1(dictUnfoldable1)(apply(Data_Tuple.Tuple.create)(pred1));
+        return Data_Unfoldable1.unfoldr1(dictUnfoldable1)(Control_Apply.apply(Control_Apply.applyFn)(Data_Tuple.Tuple.create)(pred1));
     };
 };
 var diag = function (a) {
@@ -354,9 +328,9 @@ var downFrom = function (dictEnum) {
     var pred1 = pred(dictEnum);
     return function (dictUnfoldable) {
         return Data_Unfoldable.unfoldr(dictUnfoldable)((function () {
-            var $192 = map(diag);
-            return function ($193) {
-                return $192(pred1($193));
+            var $147 = Data_Functor.map(Data_Maybe.functorMaybe)(diag);
+            return function ($148) {
+                return $147(pred1($148));
             };
         })());
     };
@@ -365,17 +339,15 @@ var upFrom = function (dictEnum) {
     var succ1 = succ(dictEnum);
     return function (dictUnfoldable) {
         return Data_Unfoldable.unfoldr(dictUnfoldable)((function () {
-            var $194 = map(diag);
-            return function ($195) {
-                return $194(succ1($195));
+            var $149 = Data_Functor.map(Data_Maybe.functorMaybe)(diag);
+            return function ($150) {
+                return $149(succ1($150));
             };
         })());
     };
 };
 var defaultToEnum = function (dictBounded) {
-    var bottom2 = Data_Bounded.bottom(dictBounded);
     return function (dictEnum) {
-        var succ1 = succ(dictEnum);
         return function (i$prime) {
             var go = function ($copy_i) {
                 return function ($copy_x) {
@@ -383,12 +355,12 @@ var defaultToEnum = function (dictBounded) {
                     var $tco_done = false;
                     var $tco_result;
                     function $tco_loop(i, x) {
-                        var $168 = i === 0;
-                        if ($168) {
+                        var $123 = i === 0;
+                        if ($123) {
                             $tco_done = true;
                             return new Data_Maybe.Just(x);
                         };
-                        var v = succ1(x);
+                        var v = succ(dictEnum)(x);
                         if (v instanceof Data_Maybe.Just) {
                             $tco_var_i = i - 1 | 0;
                             $copy_x = v.value0;
@@ -406,11 +378,11 @@ var defaultToEnum = function (dictBounded) {
                     return $tco_result;
                 };
             };
-            var $171 = i$prime < 0;
-            if ($171) {
+            var $126 = i$prime < 0;
+            if ($126) {
                 return Data_Maybe.Nothing.value;
             };
-            return go(i$prime)(bottom2);
+            return go(i$prime)(Data_Bounded.bottom(dictBounded));
         };
     };
 };
@@ -429,14 +401,13 @@ var defaultPred = function (toEnum$prime) {
     };
 };
 var defaultFromEnum = function (dictEnum) {
-    var pred1 = pred(dictEnum);
     var go = function ($copy_i) {
         return function ($copy_x) {
             var $tco_var_i = $copy_i;
             var $tco_done = false;
             var $tco_result;
             function $tco_loop(i, x) {
-                var v = pred1(x);
+                var v = pred(dictEnum)(x);
                 if (v instanceof Data_Maybe.Just) {
                     $tco_var_i = i + 1 | 0;
                     $copy_x = v.value0;
@@ -459,14 +430,13 @@ var defaultFromEnum = function (dictEnum) {
 var defaultCardinality = function (dictBounded) {
     var bottom2 = Data_Bounded.bottom(dictBounded);
     return function (dictEnum) {
-        var succ1 = succ(dictEnum);
         var go = function ($copy_i) {
             return function ($copy_x) {
                 var $tco_var_i = $copy_i;
                 var $tco_done = false;
                 var $tco_result;
                 function $tco_loop(i, x) {
-                    var v = succ1(x);
+                    var v = succ(dictEnum)(x);
                     if (v instanceof Data_Maybe.Just) {
                         $tco_var_i = i + 1 | 0;
                         $copy_x = v.value0;
@@ -488,7 +458,7 @@ var defaultCardinality = function (dictBounded) {
     };
 };
 var charToEnum = function (v) {
-    if (v >= $foreign.toCharCode(bottom1) && v <= $foreign.toCharCode(top1)) {
+    if (v >= $foreign.toCharCode(bottom1) && v <= $foreign.toCharCode(top)) {
         return new Data_Maybe.Just($foreign.fromCharCode(v));
     };
     return Data_Maybe.Nothing.value;
@@ -554,7 +524,7 @@ var boundedEnumOrdering = {
 };
 var boundedEnumChar = /* #__PURE__ */ (function () {
     return {
-        cardinality: $foreign.toCharCode(top1) - $foreign.toCharCode(bottom1) | 0,
+        cardinality: $foreign.toCharCode(top) - $foreign.toCharCode(bottom1) | 0,
         toEnum: charToEnum,
         fromEnum: $foreign.toCharCode,
         Bounded0: function () {

@@ -9,8 +9,8 @@ var profunctorFn = {
     dimap: function (a2b) {
         return function (c2d) {
             return function (b2c) {
-                return function ($19) {
-                    return c2d(b2c(a2b($19)));
+                return function ($13) {
+                    return c2d(b2c(a2b($13)));
                 };
             };
         };
@@ -20,37 +20,32 @@ var dimap = function (dict) {
     return dict.dimap;
 };
 var lcmap = function (dictProfunctor) {
-    var dimap1 = dimap(dictProfunctor);
     return function (a2b) {
-        return dimap1(a2b)(identity);
+        return dimap(dictProfunctor)(a2b)(identity);
     };
 };
 var rmap = function (dictProfunctor) {
-    var dimap1 = dimap(dictProfunctor);
     return function (b2c) {
-        return dimap1(identity1)(b2c);
+        return dimap(dictProfunctor)(identity1)(b2c);
     };
 };
 var unwrapIso = function (dictProfunctor) {
-    var dimap1 = dimap(dictProfunctor);
     return function () {
-        return dimap1(wrap)(unwrap);
+        return dimap(dictProfunctor)(wrap)(unwrap);
     };
 };
 var wrapIso = function (dictProfunctor) {
-    var dimap1 = dimap(dictProfunctor);
     return function () {
         return function (v) {
-            return dimap1(unwrap)(wrap);
+            return dimap(dictProfunctor)(unwrap)(wrap);
         };
     };
 };
 var arr = function (dictCategory) {
     var identity2 = Control_Category.identity(dictCategory);
     return function (dictProfunctor) {
-        var rmap1 = rmap(dictProfunctor);
         return function (f) {
-            return rmap1(f)(identity2);
+            return rmap(dictProfunctor)(f)(identity2);
         };
     };
 };

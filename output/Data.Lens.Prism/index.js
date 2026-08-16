@@ -28,11 +28,8 @@ var prism = function (to) {
     return function (fro) {
         return function (dictChoice) {
             var Profunctor0 = dictChoice.Profunctor0();
-            var dimap = Data_Profunctor.dimap(Profunctor0);
-            var right = Data_Profunctor_Choice.right(dictChoice);
-            var rmap = Data_Profunctor.rmap(Profunctor0);
             return function (pab) {
-                return dimap(fro)(Data_Either.either(identity1)(identity1))(right(rmap(to)(pab)));
+                return Data_Profunctor.dimap(Profunctor0)(fro)(Data_Either.either(identity1)(identity1))(Data_Profunctor_Choice.right(dictChoice)(Data_Profunctor.rmap(Profunctor0)(to)(pab)));
             };
         };
     };
@@ -49,18 +46,17 @@ var prism$prime = function (to) {
 var nearly = function (x) {
     return function (f) {
         return function (dictChoice) {
-            return prism$prime(Data_Function["const"](x))(function ($39) {
-                return guard(f($39));
+            return prism$prime(Data_Function["const"](x))(function ($26) {
+                return guard(f($26));
             })(dictChoice);
         };
     };
 };
 var only = function (dictEq) {
-    var eq = Data_Eq.eq(dictEq);
     return function (x) {
         return function (dictChoice) {
             return nearly(x)(function (v) {
-                return eq(v)(x);
+                return Data_Eq.eq(dictEq)(v)(x);
             })(dictChoice);
         };
     };
@@ -73,23 +69,20 @@ var matching = function (l) {
     });
 };
 var is = function (dictHeytingAlgebra) {
-    var ff = Data_HeytingAlgebra.ff(dictHeytingAlgebra);
-    var tt = Data_HeytingAlgebra.tt(dictHeytingAlgebra);
     return function (l) {
-        var $40 = Data_Either.either(Data_Function["const"](ff))(Data_Function["const"](tt));
-        var $41 = matching(l);
-        return function ($42) {
-            return $40($41($42));
+        var $27 = Data_Either.either(Data_Function["const"](Data_HeytingAlgebra.ff(dictHeytingAlgebra)))(Data_Function["const"](Data_HeytingAlgebra.tt(dictHeytingAlgebra)));
+        var $28 = matching(l);
+        return function ($29) {
+            return $27($28($29));
         };
     };
 };
 var isn$primet = function (dictHeytingAlgebra) {
     var not = Data_HeytingAlgebra.not(dictHeytingAlgebra);
-    var is1 = is(dictHeytingAlgebra);
     return function (l) {
-        var $43 = is1(l);
-        return function ($44) {
-            return not($43($44));
+        var $30 = is(dictHeytingAlgebra)(l);
+        return function ($31) {
+            return not($30($31));
         };
     };
 };
@@ -105,14 +98,13 @@ var clonePrism = function (l) {
     };
 };
 var below = function (dictTraversable) {
-    var map = Data_Functor.map(dictTraversable.Functor0());
-    var traverse = Data_Traversable.traverse(dictTraversable)(Data_Either.applicativeEither);
+    var Functor0 = dictTraversable.Functor0();
     return function (k) {
         return function (dictChoice) {
             return withPrism(k)(function (bt) {
                 return function (seta) {
-                    return prism(map(bt))(function (s) {
-                        var v = traverse(seta)(s);
+                    return prism(Data_Functor.map(Functor0)(bt))(function (s) {
+                        var v = Data_Traversable.traverse(dictTraversable)(Data_Either.applicativeEither)(seta)(s);
                         if (v instanceof Data_Either.Left) {
                             return new Data_Either.Left(s);
                         };

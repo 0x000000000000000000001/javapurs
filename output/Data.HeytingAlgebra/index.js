@@ -149,119 +149,102 @@ var conj = function (dict) {
     return dict.conj;
 };
 var heytingAlgebraFunction = function (dictHeytingAlgebra) {
-    var ff1 = ff(dictHeytingAlgebra);
-    var tt1 = tt(dictHeytingAlgebra);
-    var implies1 = implies(dictHeytingAlgebra);
-    var conj1 = conj(dictHeytingAlgebra);
-    var disj1 = disj(dictHeytingAlgebra);
-    var not1 = not(dictHeytingAlgebra);
     return {
         ff: function (v) {
-            return ff1;
+            return ff(dictHeytingAlgebra);
         },
         tt: function (v) {
-            return tt1;
+            return tt(dictHeytingAlgebra);
         },
         implies: function (f) {
             return function (g) {
                 return function (a) {
-                    return implies1(f(a))(g(a));
+                    return implies(dictHeytingAlgebra)(f(a))(g(a));
                 };
             };
         },
         conj: function (f) {
             return function (g) {
                 return function (a) {
-                    return conj1(f(a))(g(a));
+                    return conj(dictHeytingAlgebra)(f(a))(g(a));
                 };
             };
         },
         disj: function (f) {
             return function (g) {
                 return function (a) {
-                    return disj1(f(a))(g(a));
+                    return disj(dictHeytingAlgebra)(f(a))(g(a));
                 };
             };
         },
         not: function (f) {
             return function (a) {
-                return not1(f(a));
+                return not(dictHeytingAlgebra)(f(a));
             };
         }
     };
 };
 var heytingAlgebraRecordCons = function (dictIsSymbol) {
-    var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
     return function () {
         return function (dictHeytingAlgebraRecord) {
-            var conjRecord1 = conjRecord(dictHeytingAlgebraRecord);
-            var disjRecord1 = disjRecord(dictHeytingAlgebraRecord);
-            var impliesRecord1 = impliesRecord(dictHeytingAlgebraRecord);
-            var ffRecord1 = ffRecord(dictHeytingAlgebraRecord);
-            var notRecord1 = notRecord(dictHeytingAlgebraRecord);
-            var ttRecord1 = ttRecord(dictHeytingAlgebraRecord);
             return function (dictHeytingAlgebra) {
-                var conj1 = conj(dictHeytingAlgebra);
-                var disj1 = disj(dictHeytingAlgebra);
-                var implies1 = implies(dictHeytingAlgebra);
                 var ff1 = ff(dictHeytingAlgebra);
-                var not1 = not(dictHeytingAlgebra);
                 var tt1 = tt(dictHeytingAlgebra);
                 return {
                     conjRecord: function (v) {
                         return function (ra) {
                             return function (rb) {
-                                var tail = conjRecord1(Type_Proxy["Proxy"].value)(ra)(rb);
-                                var key = reflectSymbol(Type_Proxy["Proxy"].value);
+                                var tail = conjRecord(dictHeytingAlgebraRecord)(Type_Proxy["Proxy"].value)(ra)(rb);
+                                var key = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
                                 var insert = Record_Unsafe.unsafeSet(key);
                                 var get = Record_Unsafe.unsafeGet(key);
-                                return insert(conj1(get(ra))(get(rb)))(tail);
+                                return insert(conj(dictHeytingAlgebra)(get(ra))(get(rb)))(tail);
                             };
                         };
                     },
                     disjRecord: function (v) {
                         return function (ra) {
                             return function (rb) {
-                                var tail = disjRecord1(Type_Proxy["Proxy"].value)(ra)(rb);
-                                var key = reflectSymbol(Type_Proxy["Proxy"].value);
+                                var tail = disjRecord(dictHeytingAlgebraRecord)(Type_Proxy["Proxy"].value)(ra)(rb);
+                                var key = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
                                 var insert = Record_Unsafe.unsafeSet(key);
                                 var get = Record_Unsafe.unsafeGet(key);
-                                return insert(disj1(get(ra))(get(rb)))(tail);
+                                return insert(disj(dictHeytingAlgebra)(get(ra))(get(rb)))(tail);
                             };
                         };
                     },
                     impliesRecord: function (v) {
                         return function (ra) {
                             return function (rb) {
-                                var tail = impliesRecord1(Type_Proxy["Proxy"].value)(ra)(rb);
-                                var key = reflectSymbol(Type_Proxy["Proxy"].value);
+                                var tail = impliesRecord(dictHeytingAlgebraRecord)(Type_Proxy["Proxy"].value)(ra)(rb);
+                                var key = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
                                 var insert = Record_Unsafe.unsafeSet(key);
                                 var get = Record_Unsafe.unsafeGet(key);
-                                return insert(implies1(get(ra))(get(rb)))(tail);
+                                return insert(implies(dictHeytingAlgebra)(get(ra))(get(rb)))(tail);
                             };
                         };
                     },
                     ffRecord: function (v) {
                         return function (row) {
-                            var tail = ffRecord1(Type_Proxy["Proxy"].value)(row);
-                            var key = reflectSymbol(Type_Proxy["Proxy"].value);
+                            var tail = ffRecord(dictHeytingAlgebraRecord)(Type_Proxy["Proxy"].value)(row);
+                            var key = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
                             var insert = Record_Unsafe.unsafeSet(key);
                             return insert(ff1)(tail);
                         };
                     },
                     notRecord: function (v) {
                         return function (row) {
-                            var tail = notRecord1(Type_Proxy["Proxy"].value)(row);
-                            var key = reflectSymbol(Type_Proxy["Proxy"].value);
+                            var tail = notRecord(dictHeytingAlgebraRecord)(Type_Proxy["Proxy"].value)(row);
+                            var key = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
                             var insert = Record_Unsafe.unsafeSet(key);
                             var get = Record_Unsafe.unsafeGet(key);
-                            return insert(not1(get(row)))(tail);
+                            return insert(not(dictHeytingAlgebra)(get(row)))(tail);
                         };
                     },
                     ttRecord: function (v) {
                         return function (row) {
-                            var tail = ttRecord1(Type_Proxy["Proxy"].value)(row);
-                            var key = reflectSymbol(Type_Proxy["Proxy"].value);
+                            var tail = ttRecord(dictHeytingAlgebraRecord)(Type_Proxy["Proxy"].value)(row);
+                            var key = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
                             var insert = Record_Unsafe.unsafeSet(key);
                             return insert(tt1)(tail);
                         };

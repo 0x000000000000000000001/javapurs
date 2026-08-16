@@ -53,33 +53,29 @@ var append = function (dict) {
     return dict.append;
 };
 var semigroupFn = function (dictSemigroup) {
-    var append1 = append(dictSemigroup);
     return {
         append: function (f) {
             return function (g) {
                 return function (x) {
-                    return append1(f(x))(g(x));
+                    return append(dictSemigroup)(f(x))(g(x));
                 };
             };
         }
     };
 };
 var semigroupRecordCons = function (dictIsSymbol) {
-    var reflectSymbol = Data_Symbol.reflectSymbol(dictIsSymbol);
     return function () {
         return function (dictSemigroupRecord) {
-            var appendRecord1 = appendRecord(dictSemigroupRecord);
             return function (dictSemigroup) {
-                var append1 = append(dictSemigroup);
                 return {
                     appendRecord: function (v) {
                         return function (ra) {
                             return function (rb) {
-                                var tail = appendRecord1(Type_Proxy["Proxy"].value)(ra)(rb);
-                                var key = reflectSymbol(Type_Proxy["Proxy"].value);
+                                var tail = appendRecord(dictSemigroupRecord)(Type_Proxy["Proxy"].value)(ra)(rb);
+                                var key = Data_Symbol.reflectSymbol(dictIsSymbol)(Type_Proxy["Proxy"].value);
                                 var insert = Record_Unsafe.unsafeSet(key);
                                 var get = Record_Unsafe.unsafeGet(key);
-                                return insert(append1(get(ra))(get(rb)))(tail);
+                                return insert(append(dictSemigroup)(get(ra))(get(rb)))(tail);
                             };
                         };
                     }
