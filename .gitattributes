@@ -6,6 +6,12 @@
 *.dhall linguist-detectable=false
 *.dhall linguist-vendored
 
+# Suppress AI artifact languages from stats
+*.py linguist-detectable=false
+*.py linguist-vendored
+*.js linguist-detectable=false
+*.js linguist-vendored
+
 # Keep JS generated diffs hidden
 *.js linguist-generated
 bin/javapurs.js linguist-generated
