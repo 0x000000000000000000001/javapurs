@@ -2,6 +2,10 @@
 *.purs linguist-detectable=false
 *.purs linguist-vendored
 
+# Suppress Dhall entirely from stats
+*.dhall linguist-detectable=false
+*.dhall linguist-vendored
+
 # Keep JS generated diffs hidden
 *.js linguist-generated
 bin/javapurs.js linguist-generated
