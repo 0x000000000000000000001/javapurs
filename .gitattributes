@@ -21,3 +21,5 @@ bin/javapurs.js linguist-generated
 # Only include target language
 *.java linguist-detectable=true
 *.java linguist-vendored=false
+bin/* linguist-detectable=false
+bin/* linguist-vendored
