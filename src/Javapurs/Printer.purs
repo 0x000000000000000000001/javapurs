@@ -83,7 +83,7 @@ printExpr = case _ of
       "while(true) { " <>
         String.joinWith "" (map (\arg -> "final Object __final_" <> arg <> " = __tco_" <> arg <> "; ") args) <>
         "try { " <>
-          "return " <> printExpr expr <> "; " <>
+          printLoopTail args expr <>
         "} catch (TcoLoop __tco_ex) { " <>
           String.joinWith "" (Array.mapWithIndex (\i arg -> "__tco_" <> arg <> " = __tco_ex.args[" <> show i <> "]; ") args) <>
         "} " <>
@@ -111,14 +111,7 @@ printExpr = case _ of
     "((" <> className <> ") (Object)(" <> printExpr expr <> "))." <> prop
   JavaLetRec binds body ->
     "(new java.util.function.Supplier<Object>() { public Object get() { " <>
-      "class LetRecScope { " <>
-        String.joinWith "" (map (\(Tuple name val) -> "Object " <> name <> "; ") binds) <>
-        "LetRecScope() { " <>
-          String.joinWith "" (map (\(Tuple name val) -> name <> " = " <> printExpr val <> "; ") binds) <>
-        "} " <>
-      "} " <>
-      "LetRecScope _scope = new LetRecScope(); " <>
-      String.joinWith "" (map (\(Tuple name val) -> "Object " <> name <> " = _scope." <> name <> "; ") binds) <>
+      printLetRecBindings binds <>
       "return " <> printExpr body <> "; " <>
     "} }).get()"
   JavaLet name val body ->
@@ -182,6 +175,66 @@ printExpr = case _ of
         "return " <> valueName <> "; " <>
       "}\n" <>
       printExpr (JavaAssign name (JavaCall (JavaRaw getterName) []))
+
+-- Tail branches are statements in the loop's method, so they can continue it
+-- directly. Expression forms that introduce a method boundary retain the
+-- exception fallback; in particular, do not move a continue through a closure.
+printLoopTail :: Array String -> JavaExpr -> String
+printLoopTail params expr
+  | not (hasDirectContinue expr) = "return " <> printExpr expr <> "; "
+  | otherwise = case expr of
+  JavaContinue _ values ->
+    "{ " <>
+      String.joinWith "" (map (\(Tuple param value) ->
+        "final Object __next_" <> param <> " = " <> printExpr value <> "; "
+      ) (Array.zip params values)) <>
+      String.joinWith "" (map (\param ->
+        "__tco_" <> param <> " = __next_" <> param <> "; "
+      ) params) <>
+      "continue; } "
+  JavaTernary cond yes no ->
+    "if ((Boolean) (" <> printExpr cond <> ")) { " <>
+      printLoopTail params yes <>
+    "} else { " <>
+      printLoopTail params no <>
+    "} "
+  JavaBlock stmts body ->
+    "{ " <> String.joinWith " " (map printExpr stmts) <> " " <>
+      printLoopTail params body <> "} "
+  JavaLet name value body ->
+    "{ Object " <> name <> " = " <> printExpr value <> "; " <>
+      printLoopTail params body <> "} "
+  JavaLetRec binds body ->
+    "{ " <> printLetRecBindings binds <> printLoopTail params body <> "} "
+  expr -> "return " <> printExpr expr <> "; "
+
+hasDirectContinue :: JavaExpr -> Boolean
+hasDirectContinue = case _ of
+  JavaContinue _ _ -> true
+  JavaTernary _ yes no -> hasDirectContinue yes || hasDirectContinue no
+  JavaBlock _ body -> hasDirectContinue body
+  JavaLet _ _ body -> hasDirectContinue body
+  JavaLetRec _ body -> hasDirectContinue body
+  _ -> false
+
+printLetRecBindings :: Array (Tuple String JavaExpr) -> String
+printLetRecBindings binds = case Array.head binds of
+  Nothing -> ""
+  Just (Tuple firstName _) ->
+    let
+      -- Binding identifiers are unique within the generated function. Tail
+      -- emission can put nested recursive scopes in the same Java method.
+      scopeClass = "LetRecScope_" <> firstName
+      scopeVar = "__letrec_" <> firstName
+    in
+    "class " <> scopeClass <> " { " <>
+      String.joinWith "" (map (\(Tuple name _) -> "Object " <> name <> "; ") binds) <>
+      scopeClass <> "() { " <>
+        String.joinWith "" (map (\(Tuple name value) -> name <> " = " <> printExpr value <> "; ") binds) <>
+      "} " <>
+    "} " <>
+    scopeClass <> " " <> scopeVar <> " = new " <> scopeClass <> "(); " <>
+    String.joinWith "" (map (\(Tuple name _) -> "Object " <> name <> " = " <> scopeVar <> "." <> name <> "; ") binds)
 
 printFile :: String -> JavaFile -> String
 printFile className file =
