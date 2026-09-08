@@ -68,6 +68,7 @@ printExpr = case _ of
       let
         bodyStr = case body of
           JavaBlock stmts expr -> "{ " <> String.joinWith " " (map printExpr stmts) <> " return " <> printExpr expr <> "; }"
+          JavaWhileTrue params intParams expr -> printLoopBody params intParams expr
           _ -> printExpr body
       in Array.foldr (\arg acc -> "(java.util.function.Function<Object, Object>) (" <> arg <> ") -> " <> acc) bodyStr args
   JavaNew className args ->
@@ -77,17 +78,8 @@ printExpr = case _ of
   JavaThrow msg ->
     "(new java.util.function.Supplier<Object>() { public Object get() { throw new RuntimeException(\"" <> msg <> "\"); } }).get()"
   JavaWhileTrue args intParams expr ->
-    "(new java.util.function.Supplier<Object>() { public Object get() { " <>
-      String.joinWith "" (map (\arg -> loopParamType intParams arg <> " __tco_" <> arg <> " = " <> printLoopValue intParams arg (JavaLocal arg) <> "; ") args) <>
-      "while(true) { " <>
-        String.joinWith "" (map (\arg -> "final " <> loopParamType intParams arg <> " __final_" <> arg <> " = __tco_" <> arg <> "; ") args) <>
-        "try { " <>
-          printLoopTail args intParams expr <>
-        "} catch (TcoLoop __tco_ex) { " <>
-          String.joinWith "" (Array.mapWithIndex (\i arg -> "__tco_" <> arg <> " = " <> printLoopValue intParams arg (JavaRaw ("__tco_ex.args[" <> show i <> "]")) <> "; ") args) <>
-        "} " <>
-      "} " <>
-    "} }).get()"
+    "(new java.util.function.Supplier<Object>() { public Object get() " <>
+      printLoopBody args intParams expr <> " }).get()"
   JavaContinue loopId argsExprs ->
     "(new java.util.function.Supplier<Object>() { public Object get() { throw new TcoLoop(\"" <> loopId <> "\", new Object[]{" <> String.joinWith ", " (map printExpr argsExprs) <> "}); } }).get()"
   JavaRecord fields ->
@@ -174,6 +166,22 @@ printExpr = case _ of
         "return " <> valueName <> "; " <>
       "}\n" <>
       printExpr (JavaAssign name (JavaCall (JavaRaw getterName) []))
+
+-- A loop directly inside a function can use the lambda's block body. Keep the
+-- Supplier wrapper when the loop is needed as an expression elsewhere.
+printLoopBody :: Array String -> Array String -> JavaExpr -> String
+printLoopBody args intParams expr =
+  "{ " <>
+    String.joinWith "" (map (\arg -> loopParamType intParams arg <> " __tco_" <> arg <> " = " <> printLoopValue intParams arg (JavaLocal arg) <> "; ") args) <>
+    "while(true) { " <>
+      String.joinWith "" (map (\arg -> "final " <> loopParamType intParams arg <> " __final_" <> arg <> " = __tco_" <> arg <> "; ") args) <>
+      "try { " <>
+        printLoopTail args intParams expr <>
+      "} catch (TcoLoop __tco_ex) { " <>
+        String.joinWith "" (Array.mapWithIndex (\i arg -> "__tco_" <> arg <> " = " <> printLoopValue intParams arg (JavaRaw ("__tco_ex.args[" <> show i <> "]")) <> "; ") args) <>
+      "} " <>
+    "} " <>
+  "}"
 
 -- Tail branches are statements in the loop's method, so they can continue it
 -- directly. Expression forms that introduce a method boundary retain the

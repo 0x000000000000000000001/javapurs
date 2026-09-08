@@ -118,6 +118,21 @@ const intFallback = new A.JavaWhileTrue(intFallbackArgs, intFallbackArgs,
       "java.util.function.Supplier", "get",
     ), [])));
 
+const nonTailArgs = ["nonTailBase", "nonTailN"];
+const nonTail = new A.JavaWhileTrue(nonTailArgs, [],
+  choose(isZero("nonTailN"), local(snapshot("nonTailBase")), new A.JavaBinaryOp("+",
+    new A.JavaCast("int", new A.JavaApply(
+      new A.JavaApply(raw("TcoPrinterRegression.nonTailFunction"), local(snapshot("nonTailBase"))),
+      decrement("nonTailN"),
+    )), raw("1"))));
+const nonTailFunction = printExpr(new A.JavaAbs(nonTailArgs, nonTail));
+
+const deferredLoop = new A.JavaAbs([], new A.JavaWhileTrue(["deferredN"], ["deferredN"],
+  choose(raw(`${primitive("deferredN")} == 0`), raw("42"), new A.JavaBlock([
+    new A.JavaLocalAssign("deferredTick", call("tickDeferred", [])),
+  ], next("deferredLoop", [raw(`${primitive("deferredN")} - 1`)])))));
+const deferredExpression = printExpr(deferredLoop);
+
 const expressions = {
   swap, ordered, captures, nested, branches, letRec, nestedLetRec, argumentFailure, fallback,
   intSwap, mixedCapture, intOverflow, intFallback,
@@ -129,6 +144,7 @@ for (const name of ["swap", "ordered", "captures", "nested", "branches", "letRec
 }
 assert.match(printed.fallback, /throw new TcoLoop/, "the expression-level fallback must remain available");
 assert.match(printed.intFallback, /throw new TcoLoop/, "the primitive loop must support the expression-level fallback");
+assert.match(printed.swap, /^\(new java\.util\.function\.Supplier/, "a loop in expression position must retain its Supplier");
 
 for (const [name, intParams] of Object.entries({
   intSwap: intSwapArgs, mixedCapture: ["mixedN"], intOverflow: intOverflowArgs, intFallback: intFallbackArgs,
@@ -142,12 +158,23 @@ assert.match(printed.mixedCapture, /\bObject\s+__tco_mixedThunk\s*=/, "the closu
 assert.match(printed.mixedCapture, /\bfinal\s+Object\s+__final_mixedThunk\s*=/, "the closure snapshot must remain an Object");
 assert.match(printed.swap, /\bObject\s+__tco_swapN\s*=/, "unannotated parameters must retain Object storage");
 
-const typedFunctions = Object.fromEntries(Object.entries({
+const typedFunctionArgs = {
   intSwap: intSwapArgs, mixedCapture: mixedCaptureArgs, intOverflow: intOverflowArgs, intFallback: intFallbackArgs,
-}).map(([name, args]) => [name, printExpr(new A.JavaAbs(args, expressions[name]))]));
+};
+const typedFunctions = Object.fromEntries(Object.entries(typedFunctionArgs)
+  .map(([name, args]) => [name, printExpr(new A.JavaAbs(args, expressions[name]))]));
 for (const [name, expression] of Object.entries(typedFunctions)) {
   assert.match(expression, /java\.util\.function\.Function<Object,\s*Object>/, `${name} must retain its Object function boundary`);
+  const lastArg = typedFunctionArgs[name].at(-1);
+  assert.match(expression, new RegExp(`\\(${lastArg}\\)\\s*->\\s*\\{\\s*(?:int|Object)\\s+__tco_`),
+    `${name} must place its loop directly in the last lambda body`);
 }
+assert.match(nonTailFunction, /\(nonTailN\)\s*->\s*\{\s*Object\s+__tco_/,
+  "a non-tail-recursive function must also place its loop directly in the lambda");
+assert.doesNotMatch(nonTailFunction, /new java\.util\.function\.Supplier/,
+  "the non-tail-recursive function must not allocate an immediate Supplier wrapper");
+assert.match(deferredExpression, /^\(new java\.util\.function\.Supplier<Object>/,
+  "a zero-argument JavaAbs must remain a deferred Supplier");
 
 // A loop body without a terminal continuation must retain its expression form.
 const ordinaryExpression = choose(raw("true"),
@@ -163,6 +190,8 @@ public class TcoPrinterRegression {
     private static final Object mixedCaptureFunction = ${typedFunctions.mixedCapture};
     private static final Object intOverflowFunction = ${typedFunctions.intOverflow};
     private static final Object intFallbackFunction = ${typedFunctions.intFallback};
+    private static final Object nonTailFunction = ${nonTailFunction};
+    private static int deferredTicks;
 
     @SuppressWarnings("unchecked")
     private static Object apply(Object function, Object... arguments) {
@@ -190,6 +219,16 @@ public class TcoPrinterRegression {
     private static Object failArgument() {
         trace.append("second,");
         throw new IllegalArgumentException("argument failure");
+    }
+
+    private static Object tickDeferred() {
+        deferredTicks++;
+        return null;
+    }
+
+    private static Object deferredLoop() {
+        Object deferredN = 3;
+        return ${deferredExpression};
     }
 
     private static Object swap() {
@@ -284,7 +323,22 @@ public class TcoPrinterRegression {
         expect("primitive fallback", apply(intFallbackFunction, 100000, 0), 100000);
         expect("primitive fallback overflow", apply(intFallbackFunction, 1, Integer.MAX_VALUE), Integer.MIN_VALUE);
         expect("primitive fallback zero", apply(intFallbackFunction, 0, 128), 128);
-        System.out.println("TCO printer: 13 behavioral cases passed");
+
+        Object partial127 = apply(nonTailFunction, 127);
+        Object partial128 = apply(nonTailFunction, 128);
+        expect("non-tail recursion", apply(partial127, 64), 191);
+        expect("second partial application", apply(partial128, 0), 128);
+        expect("reused first partial application", apply(partial127, 1), 128);
+        expect("reused second partial application", apply(partial128, 2), 130);
+        expect("partial capture preserved after recursion", apply(partial127, 0), 127);
+
+        Object deferred = deferredLoop();
+        expect("zero-argument loop creation is deferred", deferredTicks, 0);
+        expect("deferred loop first result", ((java.util.function.Supplier<Object>) deferred).get(), 42);
+        expect("deferred loop first effects", deferredTicks, 3);
+        expect("deferred loop second result", ((java.util.function.Supplier<Object>) deferred).get(), 42);
+        expect("deferred loop executes on each force", deferredTicks, 6);
+        System.out.println("TCO printer: 15 behavioral cases passed");
     }
 }
 
