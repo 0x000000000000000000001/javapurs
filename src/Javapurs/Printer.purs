@@ -73,6 +73,8 @@ printExpr = case _ of
       in Array.foldr (\arg acc -> "(java.util.function.Function<Object, Object>) (" <> arg <> ") -> " <> acc) bodyStr args
   JavaNew className args ->
     "new " <> className <> "(" <> String.joinWith ", " (map printExpr args) <> ")"
+  JavaCtorSingleton modName ctorName ->
+    modName <> "." <> singletonHolderName ctorName <> ".value"
   JavaTernary cond a b ->
     "( ((Boolean) (" <> printExpr cond <> ")) ? " <> printExpr a <> " : " <> printExpr b <> ")"
   JavaThrow msg ->
@@ -130,7 +132,14 @@ printExpr = case _ of
       "public static final class " <> className <> " {\n" <>
       "            " <> String.joinWith "\n            " fields <> "\n" <>
       "            " <> constructor <> "\n" <>
-      "        }"
+      "        }" <>
+      if Array.null args then
+        -- Constructor fields come from dataDecls. A separate holder avoids
+        -- reading an uninitialized module binding during cyclic initialization.
+        "\npublic static final class " <> singletonHolderName className <> " {\n" <>
+        "    public static final " <> className <> " value = new " <> className <> "();\n" <>
+        "}"
+      else ""
   JavaRaw code -> code
   JavaBinaryOp op e1 e2 ->
     "(" <> printExpr e1 <> " " <> op <> " " <> printExpr e2 <> ")"
@@ -166,6 +175,10 @@ printExpr = case _ of
         "return " <> valueName <> "; " <>
       "}\n" <>
       printExpr (JavaAssign name (JavaCall (JavaRaw getterName) []))
+
+-- This prefix cannot be produced by source-binding or constructor sanitization.
+singletonHolderName :: String -> String
+singletonHolderName ctorName = "__singleton$" <> ctorName
 
 -- A loop directly inside a function can use the lambda's block body. Keep the
 -- Supplier wrapper when the loop is needed as an expression elsewhere.

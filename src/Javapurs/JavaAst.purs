@@ -10,6 +10,7 @@ data JavaExpr
   | JavaLocal String
   | JavaAbs (Array String) JavaExpr
   | JavaNew String (Array JavaExpr)
+  | JavaCtorSingleton String String
   | JavaTernary JavaExpr JavaExpr JavaExpr
   | JavaThrow String
   | JavaRecord (Array (Tuple String JavaExpr))

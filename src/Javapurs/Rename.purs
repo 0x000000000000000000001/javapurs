@@ -48,6 +48,7 @@ rename env s = case _ of
   JavaNew c args ->
     let Tuple args' s2 = foldl (\(Tuple acc s') arg -> let Tuple arg' s'' = rename env s' arg in Tuple (Array.snoc acc arg') s'') (Tuple [] s) args
     in Tuple (JavaNew c args') s2
+  JavaCtorSingleton modName ctorName -> Tuple (JavaCtorSingleton modName ctorName) s
   JavaTernary c t f ->
     let Tuple c' s1 = rename env s c
         Tuple t' s2 = rename env s1 t

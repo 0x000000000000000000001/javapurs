@@ -62,6 +62,18 @@ var JavaNew = /* #__PURE__ */ (function () {
     };
     return JavaNew;
 })();
+var JavaCtorSingleton = /* #__PURE__ */ (function () {
+    function JavaCtorSingleton(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    JavaCtorSingleton.create = function (value0) {
+        return function (value1) {
+            return new JavaCtorSingleton(value0, value1);
+        };
+    };
+    return JavaCtorSingleton;
+})();
 var JavaTernary = /* #__PURE__ */ (function () {
     function JavaTernary(value0, value1, value2) {
         this.value0 = value0;
@@ -336,6 +348,7 @@ export {
     JavaLocal,
     JavaAbs,
     JavaNew,
+    JavaCtorSingleton,
     JavaTernary,
     JavaThrow,
     JavaRecord,

@@ -77,6 +77,9 @@ var rename = function (env) {
                 })(new Data_Tuple.Tuple([  ], s))(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaNew(v.value0, v1.value0), v1.value1);
             };
+            if (v instanceof Javapurs_JavaAst.JavaCtorSingleton) {
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaCtorSingleton(v.value0, v.value1), s);
+            };
             if (v instanceof Javapurs_JavaAst.JavaTernary) {
                 var v1 = rename(env)(s)(v.value0);
                 var v2 = rename(env)(v1.value1)(v.value1);
@@ -216,7 +219,7 @@ var rename = function (env) {
                 var v2 = rename(env)(v1.value1)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaBlock(v1.value0, v2.value0), v2.value1);
             };
-            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 126, column 38): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 127, column 38): " + [ v.constructor.name ]);
         };
     };
 };

@@ -207,7 +207,9 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
         Nothing -> env.moduleName
       javaClass = modPart <> "." <> safeCtorName
       resArgsExprs = map (\(Tuple _ val) -> wrapInBlock (translateExpr env loopCtx false val)) (Array.fromFoldable args)
-    in pureExpr $ JavaNew javaClass resArgsExprs
+    in pureExpr $
+      if Array.null resArgsExprs then JavaCtorSingleton modPart safeCtorName
+      else JavaNew javaClass resArgsExprs
   CtorDef _ _ (Ident ctorName) fields ->
     let
       safeCtorName = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") ctorName
@@ -217,7 +219,7 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
       body = JavaNew javaClass (map JavaLocal mappedFields)
     in
       if numFields == 0 then
-        pureExpr body
+        pureExpr $ JavaCtorSingleton env.moduleName safeCtorName
       else
         pureExpr $ JavaAbs mappedFields body
   Accessor expr acc -> case acc of
