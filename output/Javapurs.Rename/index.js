@@ -105,11 +105,14 @@ var rename = function (env) {
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaArray(v1.value0), v1.value1);
             };
             if (v instanceof Javapurs_JavaAst.JavaWhileTrue) {
+                var intParams$prime = Data_Functor.map(Data_Functor.functorArray)(function (n) {
+                    return lookupName(n)(env);
+                })(v.value1);
                 var args$prime = Data_Functor.map(Data_Functor.functorArray)(function (n) {
                     return lookupName(n)(env);
                 })(v.value0);
-                var v1 = rename(env)(s)(v.value1);
-                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaWhileTrue(args$prime, v1.value0), v1.value1);
+                var v1 = rename(env)(s)(v.value2);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaWhileTrue(args$prime, intParams$prime, v1.value0), v1.value1);
             };
             if (v instanceof Javapurs_JavaAst.JavaContinue) {
                 var v1 = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (v2) {
@@ -213,7 +216,7 @@ var rename = function (env) {
                 var v2 = rename(env)(v1.value1)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaBlock(v1.value0, v2.value0), v2.value1);
             };
-            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 125, column 38): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 126, column 38): " + [ v.constructor.name ]);
         };
     };
 };

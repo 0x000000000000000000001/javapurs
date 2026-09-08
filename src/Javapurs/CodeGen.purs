@@ -14,7 +14,8 @@ import Data.String.CodeUnits as CodeUnits
 import Data.Newtype (unwrap)
 import PureScript.Backend.Optimizer.Codegen.Tco as Tco
 import Javapurs.JavaAst (JavaExpr(..), JavaFile)
-import Javapurs.Printer (printExpr)
+import Javapurs.IntLoops (intLoopParams)
+import Javapurs.Printer (hasDirectContinue, printExpr)
 import PureScript.Backend.Optimizer.Convert (BackendModule)
 import Debug as Debug
 import PureScript.Backend.Optimizer.CoreFn (Ident(..), Prop(..), Qualified(..), ModuleName(..), Module(..), Literal(..))
@@ -161,7 +162,9 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
                 let
                   newLoopCtx = { ident: javaName, params: abs.args, canContinue: true }
                   loopBody = translateExpr env (Array.cons newLoopCtx (captureLoopCtx loopCtx)) true abs.body
-                  funcBody = JavaWhileTrue abs.args (wrapInBlock loopBody)
+                  bodyExpr = wrapInBlock loopBody
+                  intParams = if hasDirectContinue bodyExpr then intLoopParams abs.args abs.body else []
+                  funcBody = JavaWhileTrue abs.args intParams bodyExpr
                 in
                   let resBody = translateExprWith inEffectBlock env loopCtx isTail body
                   in { stmts: [JavaLocalAssign javaName (JavaAbs abs.args funcBody)] <> resBody.stmts, expr: resBody.expr }
@@ -415,7 +418,11 @@ translate mod =
                         javaName = sanitizeName n
                         newCtx = { ident: javaName, params: abs.args, canContinue: true }
                         loopBody = translateExpr env [newCtx] true abs.body
-                        funcBody = JavaWhileTrue abs.args (wrapInBlock loopBody)
+                        bodyExpr = wrapInBlock loopBody
+                        -- Recursive bindings also include non-tail recursion.
+                        -- Keep their arguments boxed across recursive calls.
+                        intParams = if hasDirectContinue bodyExpr then intLoopParams abs.args abs.body else []
+                        funcBody = JavaWhileTrue abs.args intParams bodyExpr
                       in
                         JavaLazyAssign javaName (JavaAbs abs.args funcBody)
                     Nothing ->
@@ -450,8 +457,8 @@ translate mod =
 translateOperator1 :: String -> BackendOperator1 -> JavaExpr -> JavaExpr
 translateOperator1 modName op e = case op of
   OpBooleanNot -> JavaRaw ("!(" <> printExpr (JavaCast "Boolean" e) <> ")")
-  OpIntBitNot -> JavaRaw ("~(" <> printExpr (JavaCast "Integer" e) <> ")")
-  OpIntNegate -> JavaRaw ("-(" <> printExpr (JavaCast "Integer" e) <> ")")
+  OpIntBitNot -> JavaRaw ("~(" <> printExpr (JavaCast "int" e) <> ")")
+  OpIntNegate -> JavaRaw ("-(" <> printExpr (JavaCast "int" e) <> ")")
   OpNumberNegate -> JavaRaw ("-(" <> printExpr (JavaCast "Double" e) <> ")")
   OpArrayLength -> JavaRaw ("((Object[]) " <> printExpr e <> ").length")
   OpIsTag (Qualified mbMod (Ident tag)) ->
@@ -480,27 +487,27 @@ translateOperator2 _ op e1 e2 = case op of
   OpCharOrd OpGte -> JavaBinaryOp ">=" (JavaCast "Character" e1) (JavaCast "Character" e2)
   OpCharOrd OpLt -> JavaBinaryOp "<" (JavaCast "Character" e1) (JavaCast "Character" e2)
   OpCharOrd OpLte -> JavaBinaryOp "<=" (JavaCast "Character" e1) (JavaCast "Character" e2)
-  OpIntBitAnd -> JavaBinaryOp "&" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
-  OpIntBitOr -> JavaBinaryOp "|" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
-  OpIntBitShiftLeft -> JavaBinaryOp "<<" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
-  OpIntBitShiftRight -> JavaBinaryOp ">>" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
-  OpIntBitXor -> JavaBinaryOp "^" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
-  OpIntBitZeroFillShiftRight -> JavaBinaryOp ">>>" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
-  OpIntNum OpAdd -> JavaBinaryOp "+" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
-  OpIntNum OpSubtract -> JavaBinaryOp "-" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
-  OpIntNum OpMultiply -> JavaBinaryOp "*" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
-  OpIntNum OpDivide -> JavaBinaryOp "/" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
+  OpIntBitAnd -> JavaBinaryOp "&" (JavaCast "int" e1) (JavaCast "int" e2)
+  OpIntBitOr -> JavaBinaryOp "|" (JavaCast "int" e1) (JavaCast "int" e2)
+  OpIntBitShiftLeft -> JavaBinaryOp "<<" (JavaCast "int" e1) (JavaCast "int" e2)
+  OpIntBitShiftRight -> JavaBinaryOp ">>" (JavaCast "int" e1) (JavaCast "int" e2)
+  OpIntBitXor -> JavaBinaryOp "^" (JavaCast "int" e1) (JavaCast "int" e2)
+  OpIntBitZeroFillShiftRight -> JavaBinaryOp ">>>" (JavaCast "int" e1) (JavaCast "int" e2)
+  OpIntNum OpAdd -> JavaBinaryOp "+" (JavaCast "int" e1) (JavaCast "int" e2)
+  OpIntNum OpSubtract -> JavaBinaryOp "-" (JavaCast "int" e1) (JavaCast "int" e2)
+  OpIntNum OpMultiply -> JavaBinaryOp "*" (JavaCast "int" e1) (JavaCast "int" e2)
+  OpIntNum OpDivide -> JavaBinaryOp "/" (JavaCast "int" e1) (JavaCast "int" e2)
   OpIntNum OpMod ->
     JavaBlock
       [ JavaLocalAssign "__mod_l" e1, JavaLocalAssign "__mod_r" e2 ]
       -- Widen before abs so that MIN_VALUE remains a positive divisor.
       (JavaRaw "(((Integer) __mod_r) == 0 ? 0 : (int) Math.floorMod((long) ((Integer) __mod_l), Math.abs((long) ((Integer) __mod_r))))")
-  OpIntOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
-  OpIntOrd OpNotEq -> JavaRaw ("!(" <> printExpr (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]) <> ")")
-  OpIntOrd OpGt -> JavaBinaryOp ">" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
-  OpIntOrd OpGte -> JavaBinaryOp ">=" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
-  OpIntOrd OpLt -> JavaBinaryOp "<" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
-  OpIntOrd OpLte -> JavaBinaryOp "<=" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
+  OpIntOrd OpEq -> JavaBinaryOp "==" (JavaCast "int" e1) (JavaCast "int" e2)
+  OpIntOrd OpNotEq -> JavaBinaryOp "!=" (JavaCast "int" e1) (JavaCast "int" e2)
+  OpIntOrd OpGt -> JavaBinaryOp ">" (JavaCast "int" e1) (JavaCast "int" e2)
+  OpIntOrd OpGte -> JavaBinaryOp ">=" (JavaCast "int" e1) (JavaCast "int" e2)
+  OpIntOrd OpLt -> JavaBinaryOp "<" (JavaCast "int" e1) (JavaCast "int" e2)
+  OpIntOrd OpLte -> JavaBinaryOp "<=" (JavaCast "int" e1) (JavaCast "int" e2)
   OpNumberNum OpAdd -> JavaBinaryOp "+" (JavaCast "Double" e1) (JavaCast "Double" e2)
   OpNumberNum OpSubtract -> JavaBinaryOp "-" (JavaCast "Double" e1) (JavaCast "Double" e2)
   OpNumberNum OpMultiply -> JavaBinaryOp "*" (JavaCast "Double" e1) (JavaCast "Double" e2)
@@ -521,7 +528,7 @@ translateOperator2 _ op e1 e2 = case op of
   OpStringOrd OpGte -> JavaBinaryOp ">=" (JavaRaw ("((String) " <> printExpr e1 <> ").compareTo((String) " <> printExpr e2 <> ")")) (JavaRaw "0")
   OpStringOrd OpLt -> JavaBinaryOp "<" (JavaRaw ("((String) " <> printExpr e1 <> ").compareTo((String) " <> printExpr e2 <> ")")) (JavaRaw "0")
   OpStringOrd OpLte -> JavaBinaryOp "<=" (JavaRaw ("((String) " <> printExpr e1 <> ").compareTo((String) " <> printExpr e2 <> ")")) (JavaRaw "0")
-  OpArrayIndex -> JavaRaw ("((Object[]) " <> printExpr e1 <> ")[" <> printExpr (JavaCast "Integer" e2) <> "]")
+  OpArrayIndex -> JavaRaw ("((Object[]) " <> printExpr e1 <> ")[" <> printExpr (JavaCast "int" e2) <> "]")
 
 sanitizeName :: String -> String
 sanitizeName n =

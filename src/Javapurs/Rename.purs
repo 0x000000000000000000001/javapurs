@@ -60,10 +60,11 @@ rename env s = case _ of
   JavaArray args ->
     let Tuple args' s1 = foldl (\(Tuple acc s') arg -> let Tuple arg' s'' = rename env s' arg in Tuple (Array.snoc acc arg') s'') (Tuple [] s) args
     in Tuple (JavaArray args') s1
-  JavaWhileTrue args body ->
+  JavaWhileTrue args intParams body ->
     let args' = map (\n -> lookupName n env) args
+        intParams' = map (\n -> lookupName n env) intParams
         Tuple body' s2 = rename env s body
-    in Tuple (JavaWhileTrue args' body') s2
+    in Tuple (JavaWhileTrue args' intParams' body') s2
   JavaContinue n args ->
     let Tuple args' s1 = foldl (\(Tuple acc s') arg -> let Tuple arg' s'' = rename env s' arg in Tuple (Array.snoc acc arg') s'') (Tuple [] s) args
     in Tuple (JavaContinue (lookupName n env) args') s1
@@ -91,7 +92,7 @@ rename env s = case _ of
         newNames = Array.mapWithIndex (\i n -> n <> "_i" <> show (s + i)) names
         s1 = s + Array.length names
         env' = foldl (\acc (Tuple n newN) -> Array.cons (Tuple n newN) acc) env (Array.zip names newNames)
-        Tuple binds' s2 = foldl (\(Tuple acc s') (Tuple (Tuple n val) newN) ->
+        Tuple binds' s2 = foldl (\(Tuple acc s') (Tuple (Tuple _ val) newN) ->
                                     let Tuple val' s'' = rename env' s' val
                                     in Tuple (Array.snoc acc (Tuple newN val')) s''
                                 ) (Tuple [] s1) (Array.zip binds newNames)

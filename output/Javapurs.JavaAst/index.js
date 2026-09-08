@@ -105,13 +105,16 @@ var JavaArray = /* #__PURE__ */ (function () {
     return JavaArray;
 })();
 var JavaWhileTrue = /* #__PURE__ */ (function () {
-    function JavaWhileTrue(value0, value1) {
+    function JavaWhileTrue(value0, value1, value2) {
         this.value0 = value0;
         this.value1 = value1;
+        this.value2 = value2;
     };
     JavaWhileTrue.create = function (value0) {
         return function (value1) {
-            return new JavaWhileTrue(value0, value1);
+            return function (value2) {
+                return new JavaWhileTrue(value0, value1, value2);
+            };
         };
     };
     return JavaWhileTrue;

@@ -1,6 +1,5 @@
 module Javapurs.JavaAst where
 
-import Prelude
 import Data.Maybe (Maybe)
 import Data.Tuple (Tuple)
 
@@ -15,7 +14,7 @@ data JavaExpr
   | JavaThrow String
   | JavaRecord (Array (Tuple String JavaExpr))
   | JavaArray (Array JavaExpr)
-  | JavaWhileTrue (Array String) JavaExpr
+  | JavaWhileTrue (Array String) (Array String) JavaExpr
   | JavaContinue String (Array JavaExpr)
   | JavaMapGet JavaExpr String
   | JavaMapUpdate JavaExpr (Array (Tuple String JavaExpr))

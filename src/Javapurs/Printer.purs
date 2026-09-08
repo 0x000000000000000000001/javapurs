@@ -1,6 +1,5 @@
 module Javapurs.Printer where
 
-import Data.Tuple (Tuple)
 import Prelude
 import Data.String as String
 import Data.String.CodeUnits as StringCodeUnits
@@ -77,15 +76,15 @@ printExpr = case _ of
     "( ((Boolean) (" <> printExpr cond <> ")) ? " <> printExpr a <> " : " <> printExpr b <> ")"
   JavaThrow msg ->
     "(new java.util.function.Supplier<Object>() { public Object get() { throw new RuntimeException(\"" <> msg <> "\"); } }).get()"
-  JavaWhileTrue args expr ->
+  JavaWhileTrue args intParams expr ->
     "(new java.util.function.Supplier<Object>() { public Object get() { " <>
-      String.joinWith "" (map (\arg -> "Object __tco_" <> arg <> " = " <> arg <> "; ") args) <>
+      String.joinWith "" (map (\arg -> loopParamType intParams arg <> " __tco_" <> arg <> " = " <> printLoopValue intParams arg (JavaLocal arg) <> "; ") args) <>
       "while(true) { " <>
-        String.joinWith "" (map (\arg -> "final Object __final_" <> arg <> " = __tco_" <> arg <> "; ") args) <>
+        String.joinWith "" (map (\arg -> "final " <> loopParamType intParams arg <> " __final_" <> arg <> " = __tco_" <> arg <> "; ") args) <>
         "try { " <>
-          printLoopTail args expr <>
+          printLoopTail args intParams expr <>
         "} catch (TcoLoop __tco_ex) { " <>
-          String.joinWith "" (Array.mapWithIndex (\i arg -> "__tco_" <> arg <> " = __tco_ex.args[" <> show i <> "]; ") args) <>
+          String.joinWith "" (Array.mapWithIndex (\i arg -> "__tco_" <> arg <> " = " <> printLoopValue intParams arg (JavaRaw ("__tco_ex.args[" <> show i <> "]")) <> "; ") args) <>
         "} " <>
       "} " <>
     "} }).get()"
@@ -179,14 +178,14 @@ printExpr = case _ of
 -- Tail branches are statements in the loop's method, so they can continue it
 -- directly. Expression forms that introduce a method boundary retain the
 -- exception fallback; in particular, do not move a continue through a closure.
-printLoopTail :: Array String -> JavaExpr -> String
-printLoopTail params expr
+printLoopTail :: Array String -> Array String -> JavaExpr -> String
+printLoopTail params intParams expr
   | not (hasDirectContinue expr) = "return " <> printExpr expr <> "; "
   | otherwise = case expr of
   JavaContinue _ values ->
     "{ " <>
       String.joinWith "" (map (\(Tuple param value) ->
-        "final Object __next_" <> param <> " = " <> printExpr value <> "; "
+        "final " <> loopParamType intParams param <> " __next_" <> param <> " = " <> printLoopValue intParams param value <> "; "
       ) (Array.zip params values)) <>
       String.joinWith "" (map (\param ->
         "__tco_" <> param <> " = __next_" <> param <> "; "
@@ -194,19 +193,28 @@ printLoopTail params expr
       "continue; } "
   JavaTernary cond yes no ->
     "if ((Boolean) (" <> printExpr cond <> ")) { " <>
-      printLoopTail params yes <>
+      printLoopTail params intParams yes <>
     "} else { " <>
-      printLoopTail params no <>
+      printLoopTail params intParams no <>
     "} "
   JavaBlock stmts body ->
     "{ " <> String.joinWith " " (map printExpr stmts) <> " " <>
-      printLoopTail params body <> "} "
+      printLoopTail params intParams body <> "} "
   JavaLet name value body ->
     "{ Object " <> name <> " = " <> printExpr value <> "; " <>
-      printLoopTail params body <> "} "
+      printLoopTail params intParams body <> "} "
   JavaLetRec binds body ->
-    "{ " <> printLetRecBindings binds <> printLoopTail params body <> "} "
-  expr -> "return " <> printExpr expr <> "; "
+    "{ " <> printLetRecBindings binds <> printLoopTail params intParams body <> "} "
+  other -> "return " <> printExpr other <> "; "
+
+loopParamType :: Array String -> String -> String
+loopParamType intParams name = if Array.elem name intParams then "int" else "Object"
+
+-- Generic function arguments and the expression fallback still carry Objects.
+-- A cast to int accepts those boxed values as well as primitive expressions.
+printLoopValue :: Array String -> String -> JavaExpr -> String
+printLoopValue intParams name expr =
+  printExpr (if Array.elem name intParams then JavaCast "int" expr else expr)
 
 hasDirectContinue :: JavaExpr -> Boolean
 hasDirectContinue = case _ of
