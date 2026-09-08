@@ -103,6 +103,9 @@ rename env s = case _ of
   JavaAssign n e ->
     let Tuple e' s1 = rename env s e
     in Tuple (JavaAssign (lookupName n env) e') s1
+  JavaLazyAssign n e ->
+    let Tuple e' s1 = rename env s e
+    in Tuple (JavaLazyAssign (lookupName n env) e') s1
   JavaBinaryOp op l r ->
     let Tuple l' s1 = rename env s l
         Tuple r' s2 = rename env s1 r

@@ -104,7 +104,7 @@ export const findFfiFileImpl = function(extension) {
                         if (mbModulePath) {
                             const ffiPath = mbModulePath.replace(/\.purs$/, extension);
                             if (fs.existsSync(ffiPath)) {
-                                // console.log("findFfiFile [" + modNameStr + "] -> " + ffiPath);
+
                                 return ffiPath;
                             }
                         }
@@ -122,12 +122,12 @@ export const findFfiFileImpl = function(extension) {
                             ];
                             for (const p of searchPaths) {
                                 if (index.has(p)) {
-                                    // console.log("findFfiFile [" + modNameStr + "] -> " + p);
+
                                     return p;
                                 }
                             }
                         }
-                        // console.log("findFfiFile [" + modNameStr + "] -> null");
+
                         return null;
                     };
                 };

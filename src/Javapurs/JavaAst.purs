@@ -28,6 +28,7 @@ data JavaExpr
   | JavaClassDecl String (Array String)
   | JavaRaw String
   | JavaAssign String JavaExpr
+  | JavaLazyAssign String JavaExpr
   | JavaLocalAssign String JavaExpr
   | JavaBinaryOp String JavaExpr JavaExpr
   | JavaCast String JavaExpr

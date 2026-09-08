@@ -20,7 +20,13 @@ import Debug as Debug
 import PureScript.Backend.Optimizer.CoreFn (Ident(..), Prop(..), Qualified(..), ModuleName(..), Module(..), Literal(..))
 import Data.String as String
 
-type LoopCtx = { ident :: String, params :: Array String }
+type LoopCtx = { ident :: String, params :: Array String, canContinue :: Boolean }
+
+-- A closure captures the current iteration's values, but cannot continue its caller's loop.
+captureLoopCtx :: Array LoopCtx -> Array LoopCtx
+captureLoopCtx = map (_ { canContinue = false })
+
+type CodegenEnv = { moduleName :: String, lazyBindings :: Array String }
 
 type TransRes = { stmts :: Array JavaExpr, expr :: JavaExpr }
 
@@ -32,15 +38,15 @@ wrapInBlock res =
   if Array.length res.stmts == 0 then res.expr
   else JavaBlock res.stmts res.expr
 
-translateExpr :: String -> Array LoopCtx -> Boolean -> TcoExpr -> TransRes
-translateExpr modName loopCtx isTail tcoExpr =
-  translateExprWith false modName loopCtx isTail tcoExpr
+translateExpr :: CodegenEnv -> Array LoopCtx -> Boolean -> TcoExpr -> TransRes
+translateExpr env loopCtx isTail tcoExpr =
+  translateExprWith false env loopCtx isTail tcoExpr
 
-translateExprWith :: Boolean -> String -> Array LoopCtx -> Boolean -> TcoExpr -> TransRes
-translateExprWith inEffectBlock modName loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis syntax) =
+translateExprWith :: Boolean -> CodegenEnv -> Array LoopCtx -> Boolean -> TcoExpr -> TransRes
+translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis syntax) =
   let isEff = isEffectNode tcoExpr
   in if isEff && not inEffectBlock then
-    let res = translateExprWith true modName loopCtx false tcoExpr
+    let res = translateExprWith true env loopCtx false tcoExpr
     in pureExpr $ JavaAbs [] (wrapInBlock res)
   else case syntax of
   Lit lit -> case lit of
@@ -50,23 +56,23 @@ translateExprWith inEffectBlock modName loopCtx isTail tcoExpr@(TcoExpr tcoAnaly
     LitChar c -> pureExpr $ JavaRaw ("'" <> CodeUnits.singleton c <> "'")
     LitBoolean b -> pureExpr $ JavaRaw (if b then "true" else "false")
     LitArray elements ->
-      let resElemsExprs = map (\e -> wrapInBlock (translateExpr modName loopCtx false e)) elements
+      let resElemsExprs = map (\e -> wrapInBlock (translateExpr env loopCtx false e)) elements
       in pureExpr $ JavaArray resElemsExprs
     LitRecord fields ->
-      let resFieldsExprs = map (\(Prop k v) -> Tuple k (wrapInBlock (translateExpr modName loopCtx false v))) fields
+      let resFieldsExprs = map (\(Prop k v) -> Tuple k (wrapInBlock (translateExpr env loopCtx false v))) fields
       in pureExpr $ JavaRecord resFieldsExprs
   App _ _ ->
     let
       flat = flattenApp tcoExpr
-      resFnExpr = wrapInBlock (translateExpr modName loopCtx false flat.fn)
-      argsExprs = map (\a -> wrapInBlock (translateExpr modName loopCtx false a)) flat.args
+      resFnExpr = wrapInBlock (translateExpr env loopCtx false flat.fn)
+      argsExprs = map (\a -> wrapInBlock (translateExpr env loopCtx false a)) flat.args
     in
       if isTail then
         let targetCtx = case unwrapTcoExpr flat.fn of
              Local (Just (Ident fnName)) (Level lvl) ->
-               Array.find (\c -> c.ident == localId (Just (Ident fnName)) (Level lvl)) loopCtx
+               Array.find (\c -> c.canContinue && c.ident == localId (Just (Ident fnName)) (Level lvl)) loopCtx
              Var (Qualified _ (Ident fnName)) ->
-               Array.find (\c -> c.ident == sanitizeName fnName) loopCtx
+               Array.find (\c -> c.canContinue && c.ident == sanitizeName fnName) loopCtx
              _ -> Nothing
         in case targetCtx of
           Just ctx ->
@@ -80,15 +86,15 @@ translateExprWith inEffectBlock modName loopCtx isTail tcoExpr@(TcoExpr tcoAnaly
   UncurriedApp _ _ ->
     let
       flat = flattenApp tcoExpr
-      resFnExpr = wrapInBlock (translateExpr modName loopCtx false flat.fn)
-      argsExprs = map (\a -> wrapInBlock (translateExpr modName loopCtx false a)) flat.args
+      resFnExpr = wrapInBlock (translateExpr env loopCtx false flat.fn)
+      argsExprs = map (\a -> wrapInBlock (translateExpr env loopCtx false a)) flat.args
     in
       if isTail then
         let targetCtx = case unwrapTcoExpr flat.fn of
              Local (Just (Ident fnName)) (Level lvl) ->
-               Array.find (\c -> c.ident == localId (Just (Ident fnName)) (Level lvl)) loopCtx
+               Array.find (\c -> c.canContinue && c.ident == localId (Just (Ident fnName)) (Level lvl)) loopCtx
              Var (Qualified _ (Ident fnName)) ->
-               Array.find (\c -> c.ident == sanitizeName fnName) loopCtx
+               Array.find (\c -> c.canContinue && c.ident == sanitizeName fnName) loopCtx
              _ -> Nothing
         in case targetCtx of
           Just ctx ->
@@ -101,20 +107,20 @@ translateExprWith inEffectBlock modName loopCtx isTail tcoExpr@(TcoExpr tcoAnaly
         pureExpr $ foldl JavaApply resFnExpr argsExprs
   UncurriedEffectApp fn args ->
     let
-      resFnExpr = wrapInBlock (translateExpr modName loopCtx false fn)
-      argsExprs = map (\a -> wrapInBlock (translateExpr modName loopCtx false a)) (Array.fromFoldable args)
+      resFnExpr = wrapInBlock (translateExpr env loopCtx false fn)
+      argsExprs = map (\a -> wrapInBlock (translateExpr env loopCtx false a)) (Array.fromFoldable args)
     in pureExpr $ foldl JavaApply resFnExpr argsExprs
   UncurriedAbs args body ->
     let
       argsArray = map (\(Tuple mbI lvl) -> localId mbI lvl) args
-      resBody = translateExprWith inEffectBlock modName [] true body
+      resBody = translateExprWith inEffectBlock env (captureLoopCtx loopCtx) true body
     in
       if inEffectBlock && Array.length args == 0 then resBody
       else pureExpr $ JavaAbs argsArray (wrapInBlock resBody)
   UncurriedEffectAbs args expr ->
     let
       argsArray = map (\(Tuple mbI lvl) -> localId mbI lvl) (Array.fromFoldable args)
-      resBody = translateExprWith inEffectBlock modName [] true expr
+      resBody = translateExprWith inEffectBlock env (captureLoopCtx loopCtx) true expr
     in
       if inEffectBlock && Array.length args == 0 then resBody
       else pureExpr $ JavaAbs argsArray (wrapInBlock resBody)
@@ -125,20 +131,20 @@ translateExprWith inEffectBlock modName loopCtx isTail tcoExpr@(TcoExpr tcoAnaly
     in
       pureExpr $ if isLoopVar then JavaLocal ("__final_" <> varName) else JavaLocal varName
   Abs args body ->
-    let resBody = translateExpr modName [] true body
+    let resBody = translateExpr env (captureLoopCtx loopCtx) true body
     in pureExpr $ foldr (\(Tuple mbI lvl) acc -> JavaAbs [localId mbI lvl] acc) (wrapInBlock resBody) (Array.fromFoldable args)
   UncurriedAbs args body ->
     let
       argsArray = map (\(Tuple mbI lvl) -> localId mbI lvl) args
-      resBody = translateExpr modName [] true body
+      resBody = translateExpr env (captureLoopCtx loopCtx) true body
     in
       pureExpr $ JavaAbs argsArray (wrapInBlock resBody)
   Let mbI lvl val body ->
     let
-      resValExpr = wrapInBlock (translateExpr modName loopCtx false val)
+      resValExpr = wrapInBlock (translateExpr env loopCtx false val)
       varName = localId mbI lvl
       assignStmt = JavaLocalAssign varName resValExpr
-      resBody = translateExprWith inEffectBlock modName loopCtx isTail body
+      resBody = translateExprWith inEffectBlock env loopCtx isTail body
     in { stmts: [assignStmt] <> resBody.stmts, expr: resBody.expr }
   LetRec lvl binds body ->
     let
@@ -153,55 +159,56 @@ translateExprWith inEffectBlock modName loopCtx isTail tcoExpr@(TcoExpr tcoAnaly
             in case extractUncurriedAbs val of
               Just abs ->
                 let
-                  newLoopCtx = { ident: javaName, params: abs.args }
-                  loopBody = translateExpr modName [newLoopCtx] true abs.body
+                  newLoopCtx = { ident: javaName, params: abs.args, canContinue: true }
+                  loopBody = translateExpr env (Array.cons newLoopCtx (captureLoopCtx loopCtx)) true abs.body
                   funcBody = JavaWhileTrue abs.args (wrapInBlock loopBody)
                 in
-                  let resBody = translateExprWith inEffectBlock modName loopCtx isTail body
+                  let resBody = translateExprWith inEffectBlock env loopCtx isTail body
                   in { stmts: [JavaLocalAssign javaName (JavaAbs abs.args funcBody)] <> resBody.stmts, expr: resBody.expr }
               Nothing ->
                 let
-                  bindsArray = map (\(Tuple (Ident n) v) -> Tuple (localId (Just (Ident n)) lvl) (wrapInBlock (translateExpr modName loopCtx false v))) (Array.fromFoldable binds)
-                  resBody = translateExprWith inEffectBlock modName loopCtx isTail body
+                  bindsArray = map (\(Tuple (Ident n) v) -> Tuple (localId (Just (Ident n)) lvl) (wrapInBlock (translateExpr env loopCtx false v))) (Array.fromFoldable binds)
+                  resBody = translateExprWith inEffectBlock env loopCtx isTail body
                 in { stmts: [JavaLetRec bindsArray (wrapInBlock resBody)], expr: JavaRaw "null" }
           Nothing -> pureExpr $ JavaRaw "null"
       else
         let
-          bindsArray = map (\(Tuple (Ident name) val) -> Tuple (localId (Just (Ident name)) lvl) (wrapInBlock (translateExpr modName loopCtx false val))) (Array.fromFoldable binds)
-          resBody = translateExprWith inEffectBlock modName loopCtx isTail body
+          bindsArray = map (\(Tuple (Ident name) val) -> Tuple (localId (Just (Ident name)) lvl) (wrapInBlock (translateExpr env loopCtx false val))) (Array.fromFoldable binds)
+          resBody = translateExprWith inEffectBlock env loopCtx isTail body
         in pureExpr $ JavaLetRec bindsArray (wrapInBlock resBody)
-  EffectPure val -> translateExpr modName loopCtx isTail val
-  EffectDefer val -> translateExprWith inEffectBlock modName loopCtx true val
+  EffectPure val -> translateExpr env loopCtx isTail val
+  EffectDefer val -> translateExprWith inEffectBlock env loopCtx true val
   EffectBind mbI lvl expr rest ->
     let
       realExpr = stripEffectDefer expr
       realRest = stripEffectAbs rest
-      resExprExpr = wrapInBlock (translateExprWith true modName loopCtx false realExpr)
+      resExprExpr = wrapInBlock (translateExprWith true env loopCtx false realExpr)
       varName = localId mbI lvl
       executedExpr =
         if isEffectNode realExpr then resExprExpr
         else JavaCall (JavaPropertyAccess resExprExpr "java.util.function.Supplier" "get") []
       assignStmt = JavaLocalAssign varName executedExpr
-      resRest = translateExprWith true modName loopCtx isTail realRest
+      resRest = translateExprWith true env loopCtx isTail realRest
       executedRestExpr =
         if isEffectNode realRest then resRest.expr
         else JavaCall (JavaPropertyAccess resRest.expr "java.util.function.Supplier" "get") []
     in { stmts: Array.cons assignStmt resRest.stmts, expr: executedRestExpr }
   Fail msg -> pureExpr $ JavaThrow msg
-  Typed _ expr -> translateExprWith inEffectBlock modName loopCtx isTail expr
+  Typed _ expr -> translateExprWith inEffectBlock env loopCtx isTail expr
+  TypeApp expr _ -> translateExprWith inEffectBlock env loopCtx isTail expr
   CtorSaturated (Qualified mbMod _) _ _ (Ident ctorName) args ->
     let
       safeCtorName = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") ctorName
       modPart = case mbMod of
         Just (ModuleName mn) -> String.replaceAll (String.Pattern ".") (String.Replacement "_") mn
-        Nothing -> modName
+        Nothing -> env.moduleName
       javaClass = modPart <> "." <> safeCtorName
-      resArgsExprs = map (\(Tuple _ val) -> wrapInBlock (translateExpr modName loopCtx false val)) (Array.fromFoldable args)
+      resArgsExprs = map (\(Tuple _ val) -> wrapInBlock (translateExpr env loopCtx false val)) (Array.fromFoldable args)
     in pureExpr $ JavaNew javaClass resArgsExprs
   CtorDef _ _ (Ident ctorName) fields ->
     let
       safeCtorName = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") ctorName
-      javaClass = modName <> "." <> safeCtorName
+      javaClass = env.moduleName <> "." <> safeCtorName
       numFields = Array.length fields
       mappedFields = Array.mapWithIndex (\i _ -> "value" <> show i) fields
       body = JavaNew javaClass (map JavaLocal mappedFields)
@@ -212,21 +219,21 @@ translateExprWith inEffectBlock modName loopCtx isTail tcoExpr@(TcoExpr tcoAnaly
         pureExpr $ JavaAbs mappedFields body
   Accessor expr acc -> case acc of
     GetProp prop ->
-      let resExprExpr = wrapInBlock (translateExpr modName loopCtx false expr)
+      let resExprExpr = wrapInBlock (translateExpr env loopCtx false expr)
       in pureExpr $ JavaMapGet resExprExpr prop
     GetCtorField (Qualified mbMod _) _ _ (Ident ctorName) _ idx ->
       let
         safeCtorName = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") ctorName
         modPart = case mbMod of
           Just (ModuleName mn) -> String.replaceAll (String.Pattern ".") (String.Replacement "_") mn
-          Nothing -> modName
+          Nothing -> env.moduleName
         javaClass = modPart <> "." <> safeCtorName
-        resExprExpr = wrapInBlock (translateExpr modName loopCtx false expr)
+        resExprExpr = wrapInBlock (translateExpr env loopCtx false expr)
       in pureExpr $ JavaPropertyAccess resExprExpr javaClass ("value" <> show idx)
     _ -> pureExpr $ JavaRaw "null /* TODO: Accessor */"
   Update expr updates ->
-    let resExprExpr = wrapInBlock (translateExpr modName loopCtx false expr)
-        mappedUpdates = map (\(Prop prop val) -> Tuple prop (wrapInBlock (translateExpr modName loopCtx false val))) updates
+    let resExprExpr = wrapInBlock (translateExpr env loopCtx false expr)
+        mappedUpdates = map (\(Prop prop val) -> Tuple prop (wrapInBlock (translateExpr env loopCtx false val))) updates
     in pureExpr $ JavaMapUpdate resExprExpr mappedUpdates
   Var qi -> case qi of
     Qualified mbMod (Ident name) ->
@@ -234,13 +241,19 @@ translateExprWith inEffectBlock modName loopCtx isTail tcoExpr@(TcoExpr tcoAnaly
         qModName = case mbMod of
           Just (ModuleName m) -> Just (String.replaceAll (String.Pattern ".") (String.Replacement "_") m)
           Nothing -> Nothing
-      in pureExpr $ JavaGlobalVar qModName (sanitizeName name)
+        javaName = sanitizeName name
+        isCurrentModule = qModName == Nothing || qModName == Just env.moduleName
+      in pureExpr $
+        if isCurrentModule && Array.elem javaName env.lazyBindings then
+          JavaCall (JavaRaw (env.moduleName <> ".__lazy_get_" <> javaName)) []
+        else
+          JavaGlobalVar qModName javaName
   Branch cases def ->
     let
-      resDef = translateExpr modName loopCtx isTail def
+      resDef = translateExpr env loopCtx isTail def
       mappedArgs = Array.fromFoldable (map (\(Pair c v) -> 
-        let rc = translateExpr modName loopCtx false c
-            rv = translateExpr modName loopCtx isTail v
+        let rc = translateExpr env loopCtx false c
+            rv = translateExpr env loopCtx isTail v
         in { cStmts: rc.stmts, cExpr: rc.expr, vStmts: rv.stmts, vExpr: rv.expr }
       ) cases)
       
@@ -259,12 +272,12 @@ translateExprWith inEffectBlock modName loopCtx isTail tcoExpr@(TcoExpr tcoAnaly
     in { stmts: [], expr: buildTernary mappedArgs resDef }
   PrimOp op -> case op of
     Op1 op1 e -> 
-      let resExpr = wrapInBlock (translateExpr modName loopCtx false e)
-      in pureExpr $ translateOperator1 modName op1 resExpr
+      let resExpr = wrapInBlock (translateExpr env loopCtx false e)
+      in pureExpr $ translateOperator1 env.moduleName op1 resExpr
     Op2 op2 e1 e2 ->
-      let res1Expr = wrapInBlock (translateExpr modName loopCtx false e1)
-          res2Expr = wrapInBlock (translateExpr modName loopCtx false e2)
-      in pureExpr $ translateOperator2 modName op2 res1Expr res2Expr
+      let res1Expr = wrapInBlock (translateExpr env loopCtx false e1)
+          res2Expr = wrapInBlock (translateExpr env loopCtx false e2)
+      in pureExpr $ translateOperator2 env.moduleName op2 res1Expr res2Expr
   PrimUndefined -> pureExpr $ JavaRaw "null /* TODO: PrimUndefined */"
   _ -> pureExpr $ JavaRaw ("null /* TODO: unknown syntax " <> syntaxTag syntax <> " */")
 
@@ -294,6 +307,7 @@ syntaxTag = case _ of
   PrimEffect _ -> "PrimEffect"
   PrimUndefined -> "PrimUndefined"
   Typed _ _ -> "Typed"
+  TypeApp _ _ -> "TypeApp"
 
 isEffectNode :: TcoExpr -> Boolean
 isEffectNode expr = case unwrapTcoExpr expr of
@@ -306,7 +320,9 @@ isEffectNode expr = case unwrapTcoExpr expr of
   _ -> false
 
 stripEffectDefer :: TcoExpr -> TcoExpr
-stripEffectDefer expr@(TcoExpr a syn) = case unwrapTcoExpr expr of
+stripEffectDefer expr@(TcoExpr a syn) = case syn of
+  Typed ty inner -> TcoExpr a (Typed ty (stripEffectDefer inner))
+  TypeApp inner ty -> TcoExpr a (TypeApp (stripEffectDefer inner) ty)
   EffectDefer inner -> stripEffectDefer inner
   Abs _ inner -> stripEffectDefer inner
   Let ident lvl val body -> TcoExpr a (Let ident lvl val (stripEffectDefer body))
@@ -314,9 +330,9 @@ stripEffectDefer expr@(TcoExpr a syn) = case unwrapTcoExpr expr of
   _ -> expr
 
 stripEffectAbs :: TcoExpr -> TcoExpr
-stripEffectAbs expr@(TcoExpr a syn) =
-  let unwrapped = unwrapTcoExpr expr
-  in case unwrapped of
+stripEffectAbs expr@(TcoExpr a syn) = case syn of
+  Typed ty inner -> TcoExpr a (Typed ty (stripEffectAbs inner))
+  TypeApp inner ty -> TcoExpr a (TypeApp (stripEffectAbs inner) ty)
   UncurriedEffectAbs [] body -> stripEffectAbs body
   UncurriedAbs [] body -> stripEffectAbs body
   Abs args body ->
@@ -331,9 +347,7 @@ stripEffectAbs expr@(TcoExpr a syn) =
   EffectDefer body -> stripEffectAbs body
   Let ident lvl val body -> TcoExpr a (Let ident lvl val (stripEffectAbs body))
   LetRec lvl bindings body -> TcoExpr a (LetRec lvl bindings (stripEffectAbs body))
-  _ -> case syn of
-    Typed t inner -> TcoExpr a (Typed t (stripEffectAbs inner))
-    _ -> expr
+  _ -> expr
 
 extractUncurriedAbs :: TcoExpr -> Maybe { args :: Array String, body :: TcoExpr }
 extractUncurriedAbs (TcoExpr _ syntax) = case syntax of
@@ -348,6 +362,7 @@ extractUncurriedAbs (TcoExpr _ syntax) = case syntax of
   UncurriedEffectAbs args body ->
     Just { args: map (\(Tuple mbI lvl) -> localId mbI lvl) args, body }
   Typed _ inner -> extractUncurriedAbs inner
+  TypeApp inner _ -> extractUncurriedAbs inner
   _ -> Nothing
 
 flattenApp :: TcoExpr -> { fn :: TcoExpr, args :: Array TcoExpr }
@@ -359,11 +374,13 @@ flattenApp expr@(TcoExpr _ syntax) = case syntax of
     let inner = flattenApp fn
     in { fn: inner.fn, args: inner.args <> Array.fromFoldable args }
   Typed _ inner -> flattenApp inner
+  TypeApp inner _ -> flattenApp inner
   _ -> { fn: expr, args: [] }
 
 unwrapTcoExpr :: TcoExpr -> BackendSyntax TcoExpr
 unwrapTcoExpr (TcoExpr _ syntax) = case syntax of
   Typed _ inner -> unwrapTcoExpr inner
+  TypeApp inner _ -> unwrapTcoExpr inner
   _ -> syntax
 
 translate :: BackendModule -> JavaFile
@@ -384,27 +401,32 @@ translate mod =
 
     mainDecls = Array.concatMap
       ( \group ->
-          if group.recursive then
+          let
+            env =
+              { moduleName: modNameStr
+              , lazyBindings: if group.recursive then map (\(Tuple (Ident name) _) -> sanitizeName name) group.bindings else []
+              }
+          in if group.recursive then
             map
               ( \(Tuple (Ident n) expr) ->
                   case extractUncurriedAbs expr of
                     Just abs ->
                       let
                         javaName = sanitizeName n
-                        newCtx = { ident: javaName, params: abs.args }
-                        loopBody = translateExpr modNameStr [newCtx] true abs.body
+                        newCtx = { ident: javaName, params: abs.args, canContinue: true }
+                        loopBody = translateExpr env [newCtx] true abs.body
                         funcBody = JavaWhileTrue abs.args (wrapInBlock loopBody)
                       in
-                        JavaAssign javaName (JavaAbs abs.args funcBody)
+                        JavaLazyAssign javaName (JavaAbs abs.args funcBody)
                     Nothing ->
-                      let res = translateExpr modNameStr [] false expr
-                      in JavaAssign (sanitizeName n) (wrapInBlock res)
+                      let res = translateExpr env [] false expr
+                      in JavaLazyAssign (sanitizeName n) (wrapInBlock res)
               )
               group.bindings
           else
             map
               ( \(Tuple (Ident n) expr) ->
-                  let res = translateExpr modNameStr [] false expr
+                  let res = translateExpr env [] false expr
                   in JavaAssign (sanitizeName n) (wrapInBlock res)
               )
               group.bindings
@@ -468,6 +490,11 @@ translateOperator2 _ op e1 e2 = case op of
   OpIntNum OpSubtract -> JavaBinaryOp "-" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
   OpIntNum OpMultiply -> JavaBinaryOp "*" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
   OpIntNum OpDivide -> JavaBinaryOp "/" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
+  OpIntNum OpMod ->
+    JavaBlock
+      [ JavaLocalAssign "__mod_l" e1, JavaLocalAssign "__mod_r" e2 ]
+      -- Widen before abs so that MIN_VALUE remains a positive divisor.
+      (JavaRaw "(((Integer) __mod_r) == 0 ? 0 : (int) Math.floorMod((long) ((Integer) __mod_l), Math.abs((long) ((Integer) __mod_r))))")
   OpIntOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
   OpIntOrd OpNotEq -> JavaRaw ("!(" <> printExpr (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]) <> ")")
   OpIntOrd OpGt -> JavaBinaryOp ">" (JavaCast "Integer" e1) (JavaCast "Integer" e2)
@@ -478,6 +505,9 @@ translateOperator2 _ op e1 e2 = case op of
   OpNumberNum OpSubtract -> JavaBinaryOp "-" (JavaCast "Double" e1) (JavaCast "Double" e2)
   OpNumberNum OpMultiply -> JavaBinaryOp "*" (JavaCast "Double" e1) (JavaCast "Double" e2)
   OpNumberNum OpDivide -> JavaBinaryOp "/" (JavaCast "Double" e1) (JavaCast "Double" e2)
+  OpNumberNum OpMod ->
+    -- EuclideanRing Number always returns zero, after evaluating both operands.
+    JavaBlock [ JavaLocalAssign "__mod_l" e1, JavaLocalAssign "__mod_r" e2 ] (JavaRaw "0.0")
   OpNumberOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
   OpNumberOrd OpNotEq -> JavaRaw ("!(" <> printExpr (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]) <> ")")
   OpNumberOrd OpGt -> JavaBinaryOp ">" (JavaCast "Double" e1) (JavaCast "Double" e2)

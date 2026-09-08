@@ -42,6 +42,7 @@ main = launchAff_ do
   
   buildModules
     { directives
+    , rewriteLimit: 10000
     , analyzeCustom: \_ _ -> Nothing
     , foreignSemantics: coreForeignSemantics
     , traceIdents: Set.empty
@@ -63,13 +64,13 @@ main = launchAff_ do
               if String.length ffiContent > 0 then
                 "    // FFI provided by " <> fromMaybe "" ffiPathMb <> "\n" <> ffiContent
               else
-                String.joinWith "\n" (map (\(Ident name) -> "    public static Object " <> sanitizeName name <> " = FFI_STUB;\n    public static Object " <> sanitizeName name <> "(Object... args) { return null; }") (Array.fromFoldable foreignIdents))
+                String.joinWith "\n" (map (\(Ident name) -> "    public static Object " <> sanitizeName name <> " = FFI_STUB;\n    public static Object " <> sanitizeName name <> "(Object... args) { throw new UnsupportedOperationException(\"Missing Java FFI: " <> modNameStr <> "." <> name <> "\"); }") (Array.fromFoldable foreignIdents))
         
         let
           classContent =
             "public class " <> safeModName <> " {\n" <>
             "    public static final Object FFI_STUB = new java.util.function.Function<Object, Object>() {\n" <>
-            "        public Object apply(Object arg) { return this; }\n" <>
+            "        public Object apply(Object arg) { throw new UnsupportedOperationException(\"Missing Java FFI in " <> modNameStr <> "\"); }\n" <>
             "    };\n" <>
             ffiStubs <> "\n\n" <>
             String.joinWith "\n" (map printExpr javaAst.decls) <>

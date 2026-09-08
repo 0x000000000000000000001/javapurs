@@ -6,7 +6,11 @@
 // Ours
 export const stringify = function(version) {
   return function(obj) {
-    return JSON.stringify({ v: version, d: obj });
+    try {
+      return JSON.stringify({ v: version, d: obj });
+    } catch (e) {
+      return "{}";
+    }
   };
 };
 

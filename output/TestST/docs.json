@@ -1,0 +1,1 @@
+{"comments":null,"declarations":[{"children":[],"comments":null,"info":{"declType":"value","type":{"annotation":[],"contents":[["Prim"],"Int"],"tag":"TypeConstructor"}},"kind":null,"sourceSpan":{"end":[7,12],"name":"../../purescript-backend-optimizer-javapurs/src/TestST.purs","start":[7,1]},"title":"test"}],"name":"TestST","reExports":[]}

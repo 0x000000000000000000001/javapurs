@@ -164,6 +164,24 @@ printExpr = case _ of
       "public static final java.util.function.Supplier<Void> main = () -> {\n            ((java.util.function.Supplier<Object>)(" <> printExpr expr <> ")).get();\n            return null;\n        };"
     else
       "public static final Object " <> name <> " = " <> printExpr expr <> ";"
+  JavaLazyAssign name expr ->
+    let
+      valueName = "__lazy_value_" <> name
+      stateName = "__lazy_state_" <> name
+      getterName = "__lazy_get_" <> name
+    in
+      -- No explicit cache initializers: another getter may fill this cache earlier.
+      "private static Object " <> valueName <> ";\n" <>
+      "private static int " <> stateName <> ";\n" <>
+      "private static Object " <> getterName <> "() { " <>
+        "if (" <> stateName <> " == 2) return " <> valueName <> "; " <>
+        "if (" <> stateName <> " == 1) throw new IllegalStateException(\"Recursive initialization of " <> escapeJavaString name <> "\"); " <>
+        stateName <> " = 1; " <>
+        valueName <> " = " <> printExpr expr <> "; " <>
+        stateName <> " = 2; " <>
+        "return " <> valueName <> "; " <>
+      "}\n" <>
+      printExpr (JavaAssign name (JavaCall (JavaRaw getterName) []))
 
 printFile :: String -> JavaFile -> String
 printFile className file =

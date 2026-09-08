@@ -673,7 +673,10 @@
     },
     "extra_packages": {
       "backend-optimizer": {
-        "path": "../../purescript-backend-optimizer"
+        "path": "../../purescript-backend-optimizer-javapurs"
+      },
+      "foreign-object": {
+        "path": "../javapurs-foreign-object"
       }
     }
   },
@@ -813,7 +816,7 @@
     },
     "backend-optimizer": {
       "type": "local",
-      "path": "../../purescript-backend-optimizer",
+      "path": "../../purescript-backend-optimizer-javapurs",
       "dependencies": [
         "argonaut",
         "arrays",
@@ -830,6 +833,9 @@
         "lists",
         "maybe",
         "newtype",
+        "node-buffer",
+        "node-fs",
+        "nullable",
         "ordered-collections",
         "partial",
         "prelude",
@@ -1060,9 +1066,8 @@
       ]
     },
     "foreign-object": {
-      "type": "registry",
-      "version": "4.1.0",
-      "integrity": "sha256-x/Q7r80z/vmHRKvPwhYmHP/DnJciPtsyGfRTMzayKIU=",
+      "type": "local",
+      "path": "../javapurs-foreign-object",
       "dependencies": [
         "arrays",
         "foldable-traversable",
@@ -1075,8 +1080,7 @@
         "tailrec",
         "tuples",
         "typelevel-prelude",
-        "unfoldable",
-        "unsafe-coerce"
+        "unfoldable"
       ]
     },
     "free": {
