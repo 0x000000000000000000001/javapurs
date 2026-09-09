@@ -45,6 +45,8 @@ printExpr = case _ of
       fnStr <> "(" <> argsStr <> ")"
   JavaApply fn arg ->
     "((java.util.function.Function<Object, Object>) (" <> printExpr fn <> ")).apply(" <> printExpr arg <> ")"
+  JavaIntApply fn arg ->
+    "__IntFn.from((java.util.function.Function<Object, Object>) (" <> printExpr fn <> ")).applyAsInt(((int) (" <> printExpr arg <> ")))"
   JavaFunction expr ->
     "(java.util.function.Supplier<Object>) () -> " <> printExpr expr
   JavaGlobalVar mbMod name ->
@@ -74,6 +76,12 @@ printExpr = case _ of
           JavaMemoizedLoop params intParams invariants expr -> printMemoizedLoopBody params intParams invariants expr
           _ -> printExpr body
       in Array.foldr (\arg acc -> "(java.util.function.Function<Object, Object>) (" <> arg <> ") -> " <> acc) bodyStr args
+  JavaIntAbs arg body ->
+    let
+      bodyStr = case body of
+        JavaBlock stmts expr -> "{ " <> String.joinWith " " (map printExpr stmts) <> " return ((int) (" <> printExpr expr <> ")); }"
+        _ -> "((int) (" <> printExpr body <> "))"
+    in "(__IntFn) (" <> arg <> ") -> " <> bodyStr
   JavaNew className args ->
     "new " <> className <> "(" <> String.joinWith ", " (map printExpr args) <> ")"
   JavaCtorSingleton modName ctorName ->

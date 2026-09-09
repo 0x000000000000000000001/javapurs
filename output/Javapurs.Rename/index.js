@@ -42,13 +42,18 @@ var rename = function (env) {
                 var v2 = rename(env)(v1.value1)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaApply(v1.value0, v2.value0), v2.value1);
             };
+            if (v instanceof Javapurs_JavaAst.JavaIntApply) {
+                var v1 = rename(env)(s)(v.value0);
+                var v2 = rename(env)(v1.value1)(v.value1);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaIntApply(v1.value0, v2.value0), v2.value1);
+            };
             if (v instanceof Javapurs_JavaAst.JavaFunction) {
                 var v1 = rename(env)(s)(v.value0);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaFunction(v1.value0), v1.value1);
             };
             if (v instanceof Javapurs_JavaAst.JavaLocal) {
-                var $112 = Data_String_CodePoints.take(8)(v.value0) === "__final_";
-                if ($112) {
+                var $123 = Data_String_CodePoints.take(8)(v.value0) === "__final_";
+                if ($123) {
                     var baseName = Data_String_CodePoints.drop(8)(v.value0);
                     var renamed = lookupName(baseName)(env);
                     return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaLocal("__final_" + renamed), s);
@@ -67,6 +72,11 @@ var rename = function (env) {
                 })(env)(Data_Array.zip(v.value0)(args$prime));
                 var v1 = rename(env$prime)(s1)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaAbs(args$prime, v1.value0), v1.value1);
+            };
+            if (v instanceof Javapurs_JavaAst.JavaIntAbs) {
+                var arg$prime = v.value0 + ("_i" + Data_Show.show(Data_Show.showInt)(s));
+                var v1 = rename(Data_Array.cons(new Data_Tuple.Tuple(v.value0, arg$prime))(env))(s + 1 | 0)(v.value1);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaIntAbs(arg$prime, v1.value0), v1.value1);
             };
             if (v instanceof Javapurs_JavaAst.JavaStaticMethod) {
                 var args$prime = Data_Functor.map(Data_Functor.functorArray)(function (n) {
@@ -291,7 +301,7 @@ var rename = function (env) {
                 var v2 = rename(env)(v1.value1)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaBlock(v1.value0, v2.value0), v2.value1);
             };
-            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 163, column 38): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 171, column 38): " + [ v.constructor.name ]);
         };
     };
 };

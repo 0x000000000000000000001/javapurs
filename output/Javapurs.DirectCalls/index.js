@@ -108,6 +108,9 @@ var children = function (visit) {
         if (expression instanceof Javapurs_JavaAst.JavaAbs) {
             return Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaAbs.create(expression.value0))(visit(expression.value1));
         };
+        if (expression instanceof Javapurs_JavaAst.JavaIntAbs) {
+            return Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaIntAbs.create(expression.value0))(visit(expression.value1));
+        };
         if (expression instanceof Javapurs_JavaAst.JavaNew) {
             return Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaNew.create(expression.value0))(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(visit)(expression.value1));
         };
@@ -160,6 +163,9 @@ var children = function (visit) {
         };
         if (expression instanceof Javapurs_JavaAst.JavaApply) {
             return Control_Apply.apply(applyStateT)(Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaApply.create)(visit(expression.value0)))(visit(expression.value1));
+        };
+        if (expression instanceof Javapurs_JavaAst.JavaIntApply) {
+            return Control_Apply.apply(applyStateT)(Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaIntApply.create)(visit(expression.value0)))(visit(expression.value1));
         };
         if (expression instanceof Javapurs_JavaAst.JavaLet) {
             return Control_Apply.apply(applyStateT)(Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaLet.create(expression.value0))(visit(expression.value1)))(visit(expression.value2));
@@ -270,10 +276,10 @@ var directCalls = function (moduleName) {
                 if (declaration instanceof Javapurs_JavaAst.JavaAssign) {
                     return Control_Bind.bind(Data_Maybe.bindMaybe)(lambdaChain(declaration.value1))(function (lambdas) {
                         var worker = "__direct$" + Data_Show.show(Data_Show.showInt)(index);
-                        var $110 = Data_Array.length(Data_Array.filter(function (v) {
+                        var $114 = Data_Array.length(Data_Array.filter(function (v) {
                             return v === declaration.value0;
                         })(names)) === 1 && !Data_Array.elem(Data_Eq.eqString)(worker)(names);
-                        if ($110) {
+                        if ($114) {
                             return new Data_Maybe.Just({
                                 name: declaration.value0,
                                 worker: worker,

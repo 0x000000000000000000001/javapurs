@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { runtimeSource } from "../output/Javapurs.IntFunctions/index.js";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -415,6 +416,7 @@ const directory = mkdtempSync(join(tmpdir(), "javapurs-loop-invariants-test-"));
 try {
   writeFileSync(join(directory, "LoopInvariantChecks.java"), source);
   writeFileSync(join(directory, "TcoLoop.java"), tcoLoopSource);
+  writeFileSync(join(directory, "__IntFn.java"), runtimeSource);
   writeFileSync(join(directory, "Invariant_Fixtures.java"), unaryModuleSource);
   execFileSync(javac, ["-nowarn", "LoopInvariantChecks.java", "TcoLoop.java", "Invariant_Fixtures.java"], { cwd: directory, stdio: "inherit", timeout: 60000 });
   execFileSync(java, ["-cp", directory, "LoopInvariantChecks"], { stdio: "inherit", timeout: 60000 });

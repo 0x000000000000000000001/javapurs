@@ -10,6 +10,7 @@ data JavaExpr
   | JavaFunction JavaExpr
   | JavaLocal String
   | JavaAbs (Array String) JavaExpr
+  | JavaIntAbs String JavaExpr
   | JavaNew String (Array JavaExpr)
   | JavaCtorSingleton String String
   | JavaTernary JavaExpr JavaExpr JavaExpr
@@ -28,6 +29,7 @@ data JavaExpr
   | JavaInstanceOf JavaExpr String
   | JavaPropertyAccess JavaExpr String String
   | JavaApply JavaExpr JavaExpr
+  | JavaIntApply JavaExpr JavaExpr
   | JavaLet String JavaExpr JavaExpr
   | JavaLetRec (Array (Tuple String JavaExpr)) JavaExpr
   | JavaGlobalVar (Maybe String) String

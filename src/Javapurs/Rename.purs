@@ -29,6 +29,10 @@ rename env s = case _ of
     let Tuple f' s1 = rename env s f
         Tuple a' s2 = rename env s1 a
     in Tuple (JavaApply f' a') s2
+  JavaIntApply f a ->
+    let Tuple f' s1 = rename env s f
+        Tuple a' s2 = rename env s1 a
+    in Tuple (JavaIntApply f' a') s2
   JavaFunction e ->
     let Tuple e' s1 = rename env s e
     in Tuple (JavaFunction e') s1
@@ -45,6 +49,10 @@ rename env s = case _ of
         s1 = s + Array.length args
         Tuple body' s2 = rename env' s1 body
     in Tuple (JavaAbs args' body') s2
+  JavaIntAbs arg body ->
+    let arg' = arg <> "_i" <> show s
+        Tuple body' next = rename (Array.cons (Tuple arg arg') env) (s + 1) body
+    in Tuple (JavaIntAbs arg' body') next
   JavaStaticMethod name args body ->
     let args' = map (\n -> n <> "_i" <> show s) args
         env' = Array.zip args args'

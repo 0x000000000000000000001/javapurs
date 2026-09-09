@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { runtimeSource } from "../output/Javapurs.IntFunctions/index.js";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -401,6 +402,7 @@ public final class TypedRecordChecks {
 `);
 
 const directory = mkdtempSync(join(tmpdir(), "javapurs-typed-records-test-"));
+sources.set("__IntFn.java", runtimeSource);
 try {
   for (const [name, source] of sources) writeFileSync(join(directory, name), source);
   execFileSync(javac, ["-nowarn", ...sources.keys()], { cwd: directory, stdio: "inherit", timeout: 60000 });

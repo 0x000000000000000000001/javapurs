@@ -19,10 +19,13 @@ import Javapurs.RecordShapes (recordShape, recordShapeOf, collectRecordShapes)
 import Javapurs.RecordTypes (annotateRecordTypes)
 import Javapurs.LoopInvariants (prepareLoop)
 import Javapurs.DirectCalls (directCalls)
+import Javapurs.FunctionTypes (annotateFunctionTypes)
+import Javapurs.IntFunctions (abstractFunction, applyFunction)
+import PureScript.Backend.Optimizer.CoreFn as CoreFn
 import Javapurs.Printer (hasDirectContinue)
 import PureScript.Backend.Optimizer.Convert (BackendModule)
 import Debug as Debug
-import PureScript.Backend.Optimizer.CoreFn (Ident(..), Prop(..), Qualified(..), ModuleName(..), Module(..), Literal(..))
+import PureScript.Backend.Optimizer.CoreFn (Ident(..), Prop(..), Qualified(..), ModuleName(..), Literal(..))
 import Data.String as String
 
 type LoopCtx = { ident :: String, params :: Array String, canContinue :: Boolean }
@@ -36,8 +39,10 @@ type CodegenEnv =
   , sourceModule :: ModuleName
   , bindings :: Array (Tuple Ident TcoExpr)
   , lazyBindings :: Array String
+  , boxedFunctions :: Array (Tuple String Int)
   , typedRecords :: Boolean
   , loopInvariants :: Boolean
+  , intFunctions :: Boolean
   , invariantLocals :: Array (Tuple (Tuple (Maybe Ident) Level) String)
   , invariantScope :: String
   }
@@ -51,6 +56,17 @@ wrapInBlock :: TransRes -> JavaExpr
 wrapInBlock res =
   if Array.length res.stmts == 0 then res.expr
   else JavaBlock res.stmts res.expr
+
+-- Recursive definitions still use the generic loop ABI. Do not adapt their
+-- saturated calls; closures returned after that prefix can still be primitive.
+boxedFunctionArity :: CodegenEnv -> TcoExpr -> Int
+boxedFunctionArity env expression = case unwrapTcoExpr expression of
+  Var (Qualified qualifier (Ident name))
+    | qualifier == Nothing || qualifier == Just env.sourceModule ->
+        case Array.find (\(Tuple ident _) -> ident == sanitizeName name) env.boxedFunctions of
+          Just (Tuple _ arity) -> arity
+          Nothing -> 0
+  _ -> 0
 
 translateLoop :: CodegenEnv -> Array LoopCtx -> String -> Array String -> TcoExpr -> JavaExpr
 translateLoop env parentCtx name args body =
@@ -97,6 +113,7 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
       flat = flattenApp tcoExpr
       resFnExpr = wrapInBlock (translateExpr env loopCtx false flat.fn)
       argsExprs = map (\a -> wrapInBlock (translateExpr env loopCtx false a)) flat.args
+      application = if env.intFunctions then applyFunction (boxedFunctionArity env flat.fn) flat.fn resFnExpr argsExprs else foldl JavaApply resFnExpr argsExprs
     in
       if isTail then
         let targetCtx = case unwrapTcoExpr flat.fn of
@@ -110,15 +127,16 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
             if Array.length flat.args == Array.length ctx.params then
                pureExpr $ JavaContinue ctx.ident argsExprs
             else
-               pureExpr $ foldl JavaApply resFnExpr argsExprs
-          Nothing -> pureExpr $ foldl JavaApply resFnExpr argsExprs
+               pureExpr application
+          Nothing -> pureExpr application
       else
-        pureExpr $ foldl JavaApply resFnExpr argsExprs
+        pureExpr application
   UncurriedApp _ _ ->
     let
       flat = flattenApp tcoExpr
       resFnExpr = wrapInBlock (translateExpr env loopCtx false flat.fn)
       argsExprs = map (\a -> wrapInBlock (translateExpr env loopCtx false a)) flat.args
+      application = if env.intFunctions then applyFunction (boxedFunctionArity env flat.fn) flat.fn resFnExpr argsExprs else foldl JavaApply resFnExpr argsExprs
     in
       if isTail then
         let targetCtx = case unwrapTcoExpr flat.fn of
@@ -132,10 +150,10 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
             if Array.length flat.args == Array.length ctx.params then
                pureExpr $ JavaContinue ctx.ident argsExprs
             else
-               pureExpr $ foldl JavaApply resFnExpr argsExprs
-          Nothing -> pureExpr $ foldl JavaApply resFnExpr argsExprs
+               pureExpr application
+          Nothing -> pureExpr application
       else
-        pureExpr $ foldl JavaApply resFnExpr argsExprs
+        pureExpr application
   UncurriedEffectApp fn args ->
     let
       resFnExpr = wrapInBlock (translateExpr env loopCtx false fn)
@@ -226,18 +244,20 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
     in { stmts: Array.cons assignStmt resRest.stmts, expr: executedRestExpr }
   Fail msg -> pureExpr $ JavaThrow msg
   Typed ty expr ->
-    case if env.typedRecords then recordShape ty else Nothing of
-      Just shape -> case unwrapTcoExpr expr of
-        Lit (LitRecord fields) ->
-          let values = map (\(Prop k v) -> Tuple k (wrapInBlock (translateExpr env loopCtx false v))) fields
-          in pureExpr $ JavaTypedRecord shape values
-        Update target updates | recordShapeOf target == Just shape ->
-          let
-            base = wrapInBlock (translateExpr env loopCtx false target)
-            values = map (\(Prop k v) -> Tuple k (wrapInBlock (translateExpr env loopCtx false v))) updates
-          in pureExpr $ JavaTypedRecordUpdate shape base values
-        _ -> translateExprWith inEffectBlock env loopCtx isTail expr
-      Nothing -> translateExprWith inEffectBlock env loopCtx isTail expr
+    case if env.intFunctions then translateTypedFunction ty expr else Nothing of
+      Just result -> result
+      Nothing -> case if env.typedRecords then recordShape ty else Nothing of
+        Just shape -> case unwrapTcoExpr expr of
+          Lit (LitRecord fields) ->
+            let values = map (\(Prop k v) -> Tuple k (wrapInBlock (translateExpr env loopCtx false v))) fields
+            in pureExpr $ JavaTypedRecord shape values
+          Update target updates | recordShapeOf target == Just shape ->
+            let
+              base = wrapInBlock (translateExpr env loopCtx false target)
+              values = map (\(Prop k v) -> Tuple k (wrapInBlock (translateExpr env loopCtx false v))) updates
+            in pureExpr $ JavaTypedRecordUpdate shape base values
+          _ -> translateExprWith inEffectBlock env loopCtx isTail expr
+        Nothing -> translateExprWith inEffectBlock env loopCtx isTail expr
   TypeApp expr _ -> translateExprWith inEffectBlock env loopCtx isTail expr
   CtorSaturated (Qualified mbMod _) _ _ (Ident ctorName) args ->
     let
@@ -327,6 +347,18 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
       in pureExpr $ translateOperator2 env.moduleName op2 res1Expr res2Expr
   PrimUndefined -> pureExpr $ JavaRaw "null /* TODO: PrimUndefined */"
   _ -> pureExpr $ JavaRaw ("null /* TODO: unknown syntax " <> syntaxTag syntax <> " */")
+  where
+  -- Definition types select primitive binders; instantiating a polymorphic
+  -- value only selects a compatible call site, never rewrites its binders.
+  translateTypedFunction ty@(CoreFn.Func _ _) (TcoExpr _ functionSyntax) = case functionSyntax of
+    Abs args body -> Just $ function (Array.fromFoldable args) body
+    UncurriedAbs args body | not (Array.null args) -> Just $ function args body
+    _ -> Nothing
+    where
+    function args body =
+      let result = translateExprWith inEffectBlock env (captureLoopCtx loopCtx) true body
+      in pureExpr $ abstractFunction (Just ty) (map (\(Tuple ident level) -> localId ident level) args) (wrapInBlock result)
+  translateTypedFunction _ _ = Nothing
 
 syntaxTag :: BackendSyntax TcoExpr -> String
 syntaxTag = case _ of
@@ -420,8 +452,12 @@ flattenApp expr@(TcoExpr _ syntax) = case syntax of
   UncurriedApp fn args ->
     let inner = flattenApp fn
     in { fn: inner.fn, args: inner.args <> Array.fromFoldable args }
-  Typed _ inner -> flattenApp inner
-  TypeApp inner _ -> flattenApp inner
+  Typed _ inner ->
+    let flat = flattenApp inner
+    in if Array.null flat.args then { fn: expr, args: [] } else flat
+  TypeApp inner _ ->
+    let flat = flattenApp inner
+    in if Array.null flat.args then { fn: expr, args: [] } else flat
   _ -> { fn: expr, args: [] }
 
 unwrapTcoExpr :: TcoExpr -> BackendSyntax TcoExpr
@@ -441,12 +477,16 @@ translateWithOptions { typedRecords, loopInvariants } =
   translateWithDirectCalls { typedRecords, loopInvariants, directCalls: true }
 
 translateWithDirectCalls :: { typedRecords :: Boolean, loopInvariants :: Boolean, directCalls :: Boolean } -> BackendModule -> JavaFile
-translateWithDirectCalls options@{ typedRecords, loopInvariants } mod =
+translateWithDirectCalls { typedRecords, loopInvariants, directCalls: enabled } =
+  translateWithIntFunctions { typedRecords, loopInvariants, directCalls: enabled, intFunctions: true }
+
+translateWithIntFunctions :: { typedRecords :: Boolean, loopInvariants :: Boolean, directCalls :: Boolean, intFunctions :: Boolean } -> BackendModule -> JavaFile
+translateWithIntFunctions options@{ typedRecords, loopInvariants, intFunctions } mod =
   let
     modNameStr = case mod.name of
       ModuleName m -> String.replaceAll (String.Pattern ".") (String.Replacement "_") m
 
-    Tuple _ analyzedBindings = foldl
+    Tuple _ rawBindings = foldl
       (\(Tuple env acc) group ->
           let
             tcoBinds = map (\(Tuple k v) -> Tuple k (annotateRecordTypes (Tco.analyze env v))) group.bindings
@@ -456,6 +496,16 @@ translateWithDirectCalls options@{ typedRecords, loopInvariants } mod =
       (Tuple [] [])
       mod.bindings
 
+    analyzedBindings = if intFunctions then map
+      (\group -> group { bindings = map (\(Tuple name value) -> Tuple name
+        (annotateFunctionTypes mod.name (Array.concatMap _.bindings rawBindings) value)) group.bindings }) rawBindings
+      else rawBindings
+
+    boxedFunctions = Array.concatMap (\group -> if group.recursive then
+      Array.mapMaybe (\(Tuple (Ident name) value) -> map
+        (\abs -> Tuple (sanitizeName name) (Array.length abs.args)) (extractUncurriedAbs value)) group.bindings
+      else []) analyzedBindings
+
     mainDecls = Array.concatMap
       ( \group ->
           let
@@ -464,8 +514,10 @@ translateWithDirectCalls options@{ typedRecords, loopInvariants } mod =
               , sourceModule: mod.name
               , bindings: Array.concatMap _.bindings analyzedBindings
               , lazyBindings: if group.recursive then map (\(Tuple (Ident name) _) -> sanitizeName name) group.bindings else []
+              , boxedFunctions
               , typedRecords
               , loopInvariants
+              , intFunctions
               , invariantLocals: []
               , invariantScope: ""
               }

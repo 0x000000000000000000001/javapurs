@@ -78,6 +78,18 @@ var JavaAbs = /* #__PURE__ */ (function () {
     };
     return JavaAbs;
 })();
+var JavaIntAbs = /* #__PURE__ */ (function () {
+    function JavaIntAbs(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    JavaIntAbs.create = function (value0) {
+        return function (value1) {
+            return new JavaIntAbs(value0, value1);
+        };
+    };
+    return JavaIntAbs;
+})();
 var JavaNew = /* #__PURE__ */ (function () {
     function JavaNew(value0, value1) {
         this.value0 = value0;
@@ -302,6 +314,18 @@ var JavaApply = /* #__PURE__ */ (function () {
         };
     };
     return JavaApply;
+})();
+var JavaIntApply = /* #__PURE__ */ (function () {
+    function JavaIntApply(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    JavaIntApply.create = function (value0) {
+        return function (value1) {
+            return new JavaIntApply(value0, value1);
+        };
+    };
+    return JavaIntApply;
 })();
 var JavaLet = /* #__PURE__ */ (function () {
     function JavaLet(value0, value1, value2) {
@@ -549,6 +573,7 @@ export {
     JavaFunction,
     JavaLocal,
     JavaAbs,
+    JavaIntAbs,
     JavaNew,
     JavaCtorSingleton,
     JavaTernary,
@@ -567,6 +592,7 @@ export {
     JavaInstanceOf,
     JavaPropertyAccess,
     JavaApply,
+    JavaIntApply,
     JavaLet,
     JavaLetRec,
     JavaGlobalVar,

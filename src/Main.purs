@@ -2,14 +2,14 @@ module Main where
 
 import Prelude
 import Effect (Effect)
-import Effect.Aff (launchAff_, attempt)
+import Effect.Aff (launchAff_)
 import Effect.Console (log)
 import Effect.Class (liftEffect)
 import Node.FS.Aff as FS
 import Node.Encoding (Encoding(..))
 import PureScript.Backend.Optimizer.App (coreFnModulesFromOutput, loadDirectives)
 import PureScript.Backend.Optimizer.Builder (buildModules)
-import PureScript.Backend.Optimizer.CoreFn (Ident(..), Module(..), ModuleName(..))
+import PureScript.Backend.Optimizer.CoreFn (Ident(..), Module(..))
 import PureScript.Backend.Optimizer.Semantics.Foreign (coreForeignSemantics)
 import PureScript.Backend.Optimizer.FfiSupport (findFfiFile)
 import Data.Map as Map
@@ -19,13 +19,13 @@ import Data.List as List
 import Data.Array as Array
 import Data.Newtype (unwrap)
 import Data.String as String
-import Javapurs.CodeGen (translateWithDirectCalls)
+import Javapurs.CodeGen (sanitizeName, translateWithIntFunctions)
+import Javapurs.IntFunctions (runtimeSource)
 import Javapurs.RecordShapes (recordClassName)
 import Javapurs.RecordPrinter (printRecordShape)
 import Data.Foldable (for_)
 import Node.Process (argv)
-import Javapurs.Printer (printFile, printExpr)
-import Javapurs.CodeGen (sanitizeName)
+import Javapurs.Printer (printExpr)
 
 main :: Effect Unit
 main = launchAff_ do
@@ -34,6 +34,7 @@ main = launchAff_ do
   let typedRecords = not (Array.elem "--records=maps" args)
   let loopInvariants = not (Array.elem "--loop-invariants=off" args)
   let directCalls = not (Array.elem "--direct-calls=off" args)
+  let intFunctions = not (Array.elem "--int-functions=off" args)
   let mainModule = case Array.findIndex (_ == "--main") args of
         Just i -> case Array.index args (i + 1) of
           Just m -> m
@@ -46,6 +47,7 @@ main = launchAff_ do
   liftEffect $ log $ "Successfully loaded " <> show count <> " modules."
 
   directives <- loadDirectives
+  FS.writeTextFile UTF8 "java_output/__IntFn.java" runtimeSource
   
   buildModules
     { directives
@@ -65,7 +67,7 @@ main = launchAff_ do
           Nothing -> pure ""
           Just p -> FS.readTextFile UTF8 p
         
-        let javaAst = translateWithDirectCalls { typedRecords, loopInvariants, directCalls } backendMod
+        let javaAst = translateWithIntFunctions { typedRecords, loopInvariants, directCalls, intFunctions } backendMod
         let foreignIdents = Map.keys backendMod.foreign
         let ffiStubs =
               if String.length ffiContent > 0 then

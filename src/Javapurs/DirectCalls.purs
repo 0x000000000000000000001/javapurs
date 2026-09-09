@@ -115,6 +115,7 @@ children visit expression = case expression of
   JavaCall fn args -> JavaCall <$> visit fn <*> traverse visit args
   JavaFunction value -> JavaFunction <$> visit value
   JavaAbs args body -> JavaAbs args <$> visit body
+  JavaIntAbs arg body -> JavaIntAbs arg <$> visit body
   JavaNew name args -> JavaNew name <$> traverse visit args
   JavaTernary condition yes no -> JavaTernary <$> visit condition <*> visit yes <*> visit no
   JavaRecord fields -> JavaRecord <$> fieldsOf fields
@@ -130,6 +131,7 @@ children visit expression = case expression of
   JavaInstanceOf value name -> (\value' -> JavaInstanceOf value' name) <$> visit value
   JavaPropertyAccess value name property -> (\value' -> JavaPropertyAccess value' name property) <$> visit value
   JavaApply fn arg -> JavaApply <$> visit fn <*> visit arg
+  JavaIntApply fn arg -> JavaIntApply <$> visit fn <*> visit arg
   JavaLet name value body -> JavaLet name <$> visit value <*> visit body
   JavaLetRec bindings body -> JavaLetRec <$> fieldsOf bindings <*> visit body
   JavaAssign name value -> JavaAssign name <$> visit value
