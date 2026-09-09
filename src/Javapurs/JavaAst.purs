@@ -20,6 +20,8 @@ data JavaExpr
   | JavaTypedRecordUpdate JavaRecordShape JavaExpr (Array (Tuple String JavaExpr))
   | JavaArray (Array JavaExpr)
   | JavaWhileTrue (Array String) (Array String) JavaExpr
+  | JavaMemoizedLoop (Array String) (Array String) (Array (Tuple String JavaExpr)) JavaExpr
+  | JavaLoopInvariant String
   | JavaContinue String (Array JavaExpr)
   | JavaMapGet JavaExpr String
   | JavaMapUpdate JavaExpr (Array (Tuple String JavaExpr))
@@ -35,6 +37,8 @@ data JavaExpr
   | JavaLazyAssign String JavaExpr
   | JavaLocalAssign String JavaExpr
   | JavaBinaryOp String JavaExpr JavaExpr
+  | JavaUnaryOp String JavaExpr
+  | JavaArrayIndex JavaExpr JavaExpr
   | JavaCast String JavaExpr
   | JavaBlock (Array JavaExpr) JavaExpr
 

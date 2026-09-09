@@ -90,11 +90,18 @@ spago build --backend javapurs --backend-args "--main App.Main"
 |---|---|
 | `--main <Module>` | *Optional*. Explicitly sets the entrypoint module. Without this flag, `javapurs` automatically targets the `Main` module. |
 | `--records=maps` | Diagnostic option for comparing the Map representation with the default typed records on the same TAST. |
+| `--loop-invariants=off` | Diagnostic option disabling the default caching of proven pure, closed `Int` computations within loops. |
 
 Closed records use immutable classes with final fields, including primitive `int`
 fields. Open or unknown record shapes retain the Map representation. Java FFI
 should access records through `java.util.Map<String, Object>` and copy them before
 mutation; generated records are not necessarily `LinkedHashMap` instances.
+
+Loop invariant caches belong to each fully applied function invocation. They
+evaluate at the first original use, so skipped branches and zero-iteration loops
+keep their evaluation behavior. The current analysis checks known definitions
+and closures recursively, rejects unknown FFI/effects and local captures, and
+only caches successful `Int` results.
 
 ## Local development & testing
 

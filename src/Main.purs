@@ -19,7 +19,7 @@ import Data.List as List
 import Data.Array as Array
 import Data.Newtype (unwrap)
 import Data.String as String
-import Javapurs.CodeGen (translateWithRecords)
+import Javapurs.CodeGen (translateWithOptions)
 import Javapurs.RecordShapes (recordClassName)
 import Javapurs.RecordPrinter (printRecordShape)
 import Data.Foldable (for_)
@@ -32,6 +32,7 @@ main = launchAff_ do
   args <- liftEffect argv
   -- Reference representation for paired benchmarks under the same TAST/PBO.
   let typedRecords = not (Array.elem "--records=maps" args)
+  let loopInvariants = not (Array.elem "--loop-invariants=off" args)
   let mainModule = case Array.findIndex (_ == "--main") args of
         Just i -> case Array.index args (i + 1) of
           Just m -> m
@@ -63,7 +64,7 @@ main = launchAff_ do
           Nothing -> pure ""
           Just p -> FS.readTextFile UTF8 p
         
-        let javaAst = translateWithRecords typedRecords backendMod
+        let javaAst = translateWithOptions { typedRecords, loopInvariants } backendMod
         let foreignIdents = Map.keys backendMod.foreign
         let ffiStubs =
               if String.length ffiContent > 0 then

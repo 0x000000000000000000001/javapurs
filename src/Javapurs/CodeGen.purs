@@ -17,7 +17,8 @@ import Javapurs.JavaAst (JavaExpr(..), JavaFile)
 import Javapurs.IntLoops (intLoopParams)
 import Javapurs.RecordShapes (recordShape, recordShapeOf, collectRecordShapes)
 import Javapurs.RecordTypes (annotateRecordTypes)
-import Javapurs.Printer (hasDirectContinue, printExpr)
+import Javapurs.LoopInvariants (prepareLoop)
+import Javapurs.Printer (hasDirectContinue)
 import PureScript.Backend.Optimizer.Convert (BackendModule)
 import Debug as Debug
 import PureScript.Backend.Optimizer.CoreFn (Ident(..), Prop(..), Qualified(..), ModuleName(..), Module(..), Literal(..))
@@ -29,7 +30,16 @@ type LoopCtx = { ident :: String, params :: Array String, canContinue :: Boolean
 captureLoopCtx :: Array LoopCtx -> Array LoopCtx
 captureLoopCtx = map (_ { canContinue = false })
 
-type CodegenEnv = { moduleName :: String, lazyBindings :: Array String, typedRecords :: Boolean }
+type CodegenEnv =
+  { moduleName :: String
+  , sourceModule :: ModuleName
+  , bindings :: Array (Tuple Ident TcoExpr)
+  , lazyBindings :: Array String
+  , typedRecords :: Boolean
+  , loopInvariants :: Boolean
+  , invariantLocals :: Array (Tuple (Tuple (Maybe Ident) Level) String)
+  , invariantScope :: String
+  }
 
 type TransRes = { stmts :: Array JavaExpr, expr :: JavaExpr }
 
@@ -40,6 +50,23 @@ wrapInBlock :: TransRes -> JavaExpr
 wrapInBlock res =
   if Array.length res.stmts == 0 then res.expr
   else JavaBlock res.stmts res.expr
+
+translateLoop :: CodegenEnv -> Array LoopCtx -> String -> Array String -> TcoExpr -> JavaExpr
+translateLoop env parentCtx name args body =
+  let
+    scope = env.invariantScope <> "$" <> name
+    plan = if env.loopInvariants then prepareLoop env.sourceModule env.bindings scope body
+      else { body, invariants: [] }
+    loopEnv = env
+      { invariantLocals = map (\item -> Tuple item.local item.name) plan.invariants <> env.invariantLocals
+      , invariantScope = scope
+      }
+    ctx = { ident: name, params: args, canContinue: true }
+    expression = wrapInBlock (translateExpr loopEnv (Array.cons ctx (captureLoopCtx parentCtx)) true plan.body)
+    intParams = if hasDirectContinue expression then intLoopParams args body else []
+    values = map (\item -> Tuple item.name (wrapInBlock (translateExpr env (captureLoopCtx parentCtx) false item.value))) plan.invariants
+  in if Array.null values then JavaWhileTrue args intParams expression
+     else JavaMemoizedLoop args intParams values expression
 
 translateExpr :: CodegenEnv -> Array LoopCtx -> Boolean -> TcoExpr -> TransRes
 translateExpr env loopCtx isTail tcoExpr =
@@ -132,7 +159,9 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
       varName = localId mbIdent (Level lvl)
       isLoopVar = Array.any (\ctx -> Array.elem varName ctx.params) loopCtx
     in
-      pureExpr $ if isLoopVar then JavaLocal ("__final_" <> varName) else JavaLocal varName
+      pureExpr $ case Array.find (\(Tuple local _) -> local == Tuple mbIdent (Level lvl)) env.invariantLocals of
+        Just (Tuple _ name) -> JavaLoopInvariant name
+        Nothing -> if isLoopVar then JavaLocal ("__final_" <> varName) else JavaLocal varName
   Abs args body ->
     let resBody = translateExpr env (captureLoopCtx loopCtx) true body
     in pureExpr $ foldr (\(Tuple mbI lvl) acc -> JavaAbs [localId mbI lvl] acc) (wrapInBlock resBody) (Array.fromFoldable args)
@@ -162,11 +191,7 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
             in case extractUncurriedAbs val of
               Just abs ->
                 let
-                  newLoopCtx = { ident: javaName, params: abs.args, canContinue: true }
-                  loopBody = translateExpr env (Array.cons newLoopCtx (captureLoopCtx loopCtx)) true abs.body
-                  bodyExpr = wrapInBlock loopBody
-                  intParams = if hasDirectContinue bodyExpr then intLoopParams abs.args abs.body else []
-                  funcBody = JavaWhileTrue abs.args intParams bodyExpr
+                  funcBody = translateLoop env loopCtx javaName abs.args abs.body
                 in
                   let resBody = translateExprWith inEffectBlock env loopCtx isTail body
                   in { stmts: [JavaLocalAssign javaName (JavaAbs abs.args funcBody)] <> resBody.stmts, expr: resBody.expr }
@@ -408,7 +433,10 @@ translate :: BackendModule -> JavaFile
 translate = translateWithRecords true
 
 translateWithRecords :: Boolean -> BackendModule -> JavaFile
-translateWithRecords typedRecords mod =
+translateWithRecords typedRecords = translateWithOptions { typedRecords, loopInvariants: true }
+
+translateWithOptions :: { typedRecords :: Boolean, loopInvariants :: Boolean } -> BackendModule -> JavaFile
+translateWithOptions { typedRecords, loopInvariants } mod =
   let
     modNameStr = case mod.name of
       ModuleName m -> String.replaceAll (String.Pattern ".") (String.Replacement "_") m
@@ -428,8 +456,13 @@ translateWithRecords typedRecords mod =
           let
             env =
               { moduleName: modNameStr
+              , sourceModule: mod.name
+              , bindings: Array.concatMap _.bindings analyzedBindings
               , lazyBindings: if group.recursive then map (\(Tuple (Ident name) _) -> sanitizeName name) group.bindings else []
               , typedRecords
+              , loopInvariants
+              , invariantLocals: []
+              , invariantScope: ""
               }
           in if group.recursive then
             map
@@ -438,13 +471,7 @@ translateWithRecords typedRecords mod =
                     Just abs ->
                       let
                         javaName = sanitizeName n
-                        newCtx = { ident: javaName, params: abs.args, canContinue: true }
-                        loopBody = translateExpr env [newCtx] true abs.body
-                        bodyExpr = wrapInBlock loopBody
-                        -- Recursive bindings also include non-tail recursion.
-                        -- Keep their arguments boxed across recursive calls.
-                        intParams = if hasDirectContinue bodyExpr then intLoopParams abs.args abs.body else []
-                        funcBody = JavaWhileTrue abs.args intParams bodyExpr
+                        funcBody = translateLoop env [] javaName abs.args abs.body
                       in
                         JavaLazyAssign javaName (JavaAbs abs.args funcBody)
                     Nothing ->
@@ -480,11 +507,11 @@ translateWithRecords typedRecords mod =
 
 translateOperator1 :: String -> BackendOperator1 -> JavaExpr -> JavaExpr
 translateOperator1 modName op e = case op of
-  OpBooleanNot -> JavaRaw ("!(" <> printExpr (JavaCast "Boolean" e) <> ")")
-  OpIntBitNot -> JavaRaw ("~(" <> printExpr (JavaCast "int" e) <> ")")
-  OpIntNegate -> JavaRaw ("-(" <> printExpr (JavaCast "int" e) <> ")")
-  OpNumberNegate -> JavaRaw ("-(" <> printExpr (JavaCast "Double" e) <> ")")
-  OpArrayLength -> JavaRaw ("((Object[]) " <> printExpr e <> ").length")
+  OpBooleanNot -> JavaUnaryOp "!" (JavaCast "Boolean" e)
+  OpIntBitNot -> JavaUnaryOp "~" (JavaCast "int" e)
+  OpIntNegate -> JavaUnaryOp "-" (JavaCast "int" e)
+  OpNumberNegate -> JavaUnaryOp "-" (JavaCast "Double" e)
+  OpArrayLength -> JavaPropertyAccess e "Object[]" "length"
   OpIsTag (Qualified mbMod (Ident tag)) ->
     let
       safeTag = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") tag
@@ -500,13 +527,13 @@ translateOperator2 _ op e1 e2 = case op of
   OpBooleanAnd -> JavaBinaryOp "&&" (JavaCast "Boolean" e1) (JavaCast "Boolean" e2)
   OpBooleanOr -> JavaBinaryOp "||" (JavaCast "Boolean" e1) (JavaCast "Boolean" e2)
   OpBooleanOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
-  OpBooleanOrd OpNotEq -> JavaRaw ("!(" <> printExpr (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]) <> ")")
-  OpBooleanOrd OpGt -> JavaBinaryOp "&&" (JavaCast "Boolean" e1) (JavaRaw ("!(" <> printExpr (JavaCast "Boolean" e2) <> ")"))
-  OpBooleanOrd OpGte -> JavaBinaryOp "||" (JavaCast "Boolean" e1) (JavaRaw ("!(" <> printExpr (JavaCast "Boolean" e2) <> ")"))
-  OpBooleanOrd OpLt -> JavaBinaryOp "&&" (JavaRaw ("!(" <> printExpr (JavaCast "Boolean" e1) <> ")")) (JavaCast "Boolean" e2)
-  OpBooleanOrd OpLte -> JavaBinaryOp "||" (JavaRaw ("!(" <> printExpr (JavaCast "Boolean" e1) <> ")")) (JavaCast "Boolean" e2)
+  OpBooleanOrd OpNotEq -> JavaUnaryOp "!" (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2])
+  OpBooleanOrd OpGt -> JavaBinaryOp "&&" (JavaCast "Boolean" e1) (JavaUnaryOp "!" (JavaCast "Boolean" e2))
+  OpBooleanOrd OpGte -> JavaBinaryOp "||" (JavaCast "Boolean" e1) (JavaUnaryOp "!" (JavaCast "Boolean" e2))
+  OpBooleanOrd OpLt -> JavaBinaryOp "&&" (JavaUnaryOp "!" (JavaCast "Boolean" e1)) (JavaCast "Boolean" e2)
+  OpBooleanOrd OpLte -> JavaBinaryOp "||" (JavaUnaryOp "!" (JavaCast "Boolean" e1)) (JavaCast "Boolean" e2)
   OpCharOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
-  OpCharOrd OpNotEq -> JavaRaw ("!(" <> printExpr (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]) <> ")")
+  OpCharOrd OpNotEq -> JavaUnaryOp "!" (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2])
   OpCharOrd OpGt -> JavaBinaryOp ">" (JavaCast "Character" e1) (JavaCast "Character" e2)
   OpCharOrd OpGte -> JavaBinaryOp ">=" (JavaCast "Character" e1) (JavaCast "Character" e2)
   OpCharOrd OpLt -> JavaBinaryOp "<" (JavaCast "Character" e1) (JavaCast "Character" e2)
@@ -540,19 +567,19 @@ translateOperator2 _ op e1 e2 = case op of
     -- EuclideanRing Number always returns zero, after evaluating both operands.
     JavaBlock [ JavaLocalAssign "__mod_l" e1, JavaLocalAssign "__mod_r" e2 ] (JavaRaw "0.0")
   OpNumberOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
-  OpNumberOrd OpNotEq -> JavaRaw ("!(" <> printExpr (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]) <> ")")
+  OpNumberOrd OpNotEq -> JavaUnaryOp "!" (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2])
   OpNumberOrd OpGt -> JavaBinaryOp ">" (JavaCast "Double" e1) (JavaCast "Double" e2)
   OpNumberOrd OpGte -> JavaBinaryOp ">=" (JavaCast "Double" e1) (JavaCast "Double" e2)
   OpNumberOrd OpLt -> JavaBinaryOp "<" (JavaCast "Double" e1) (JavaCast "Double" e2)
   OpNumberOrd OpLte -> JavaBinaryOp "<=" (JavaCast "Double" e1) (JavaCast "Double" e2)
   OpStringAppend -> JavaBinaryOp "+" (JavaCast "String" e1) (JavaCast "String" e2)
   OpStringOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
-  OpStringOrd OpNotEq -> JavaRaw ("!(" <> printExpr (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]) <> ")")
-  OpStringOrd OpGt -> JavaBinaryOp ">" (JavaRaw ("((String) " <> printExpr e1 <> ").compareTo((String) " <> printExpr e2 <> ")")) (JavaRaw "0")
-  OpStringOrd OpGte -> JavaBinaryOp ">=" (JavaRaw ("((String) " <> printExpr e1 <> ").compareTo((String) " <> printExpr e2 <> ")")) (JavaRaw "0")
-  OpStringOrd OpLt -> JavaBinaryOp "<" (JavaRaw ("((String) " <> printExpr e1 <> ").compareTo((String) " <> printExpr e2 <> ")")) (JavaRaw "0")
-  OpStringOrd OpLte -> JavaBinaryOp "<=" (JavaRaw ("((String) " <> printExpr e1 <> ").compareTo((String) " <> printExpr e2 <> ")")) (JavaRaw "0")
-  OpArrayIndex -> JavaRaw ("((Object[]) " <> printExpr e1 <> ")[" <> printExpr (JavaCast "int" e2) <> "]")
+  OpStringOrd OpNotEq -> JavaUnaryOp "!" (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2])
+  OpStringOrd OpGt -> JavaBinaryOp ">" (JavaCall (JavaPropertyAccess e1 "String" "compareTo") [JavaCast "String" e2]) (JavaRaw "0")
+  OpStringOrd OpGte -> JavaBinaryOp ">=" (JavaCall (JavaPropertyAccess e1 "String" "compareTo") [JavaCast "String" e2]) (JavaRaw "0")
+  OpStringOrd OpLt -> JavaBinaryOp "<" (JavaCall (JavaPropertyAccess e1 "String" "compareTo") [JavaCast "String" e2]) (JavaRaw "0")
+  OpStringOrd OpLte -> JavaBinaryOp "<=" (JavaCall (JavaPropertyAccess e1 "String" "compareTo") [JavaCast "String" e2]) (JavaRaw "0")
+  OpArrayIndex -> JavaArrayIndex e1 e2
 
 sanitizeName :: String -> String
 sanitizeName n =

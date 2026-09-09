@@ -47,8 +47,8 @@ var rename = function (env) {
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaFunction(v1.value0), v1.value1);
             };
             if (v instanceof Javapurs_JavaAst.JavaLocal) {
-                var $102 = Data_String_CodePoints.take(8)(v.value0) === "__final_";
-                if ($102) {
+                var $111 = Data_String_CodePoints.take(8)(v.value0) === "__final_";
+                if ($111) {
                     var baseName = Data_String_CodePoints.drop(8)(v.value0);
                     var renamed = lookupName(baseName)(env);
                     return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaLocal("__final_" + renamed), s);
@@ -140,6 +140,38 @@ var rename = function (env) {
                 var v1 = rename(env)(s)(v.value2);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaWhileTrue(args$prime, intParams$prime, v1.value0), v1.value1);
             };
+            if (v instanceof Javapurs_JavaAst.JavaMemoizedLoop) {
+                var names = Data_Functor.map(Data_Functor.functorArray)(function (v1) {
+                    return v1.value0;
+                })(v.value2);
+                var names$prime = Data_Array.mapWithIndex(function (i) {
+                    return function (name) {
+                        return name + ("_i" + Data_Show.show(Data_Show.showInt)(s + i | 0));
+                    };
+                })(names);
+                var intParams$prime = Data_Functor.map(Data_Functor.functorArray)(function (n) {
+                    return lookupName(n)(env);
+                })(v.value1);
+                var env$prime = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (acc) {
+                    return function (pair) {
+                        return Data_Array.cons(pair)(acc);
+                    };
+                })(env)(Data_Array.zip(names)(names$prime));
+                var args$prime = Data_Functor.map(Data_Functor.functorArray)(function (n) {
+                    return lookupName(n)(env);
+                })(v.value0);
+                var v1 = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (v2) {
+                    return function (v3) {
+                        var v4 = rename(env)(v2.value1)(v3.value0.value1);
+                        return new Data_Tuple.Tuple(Data_Array.snoc(v2.value0)(new Data_Tuple.Tuple(v3.value1, v4.value0)), v4.value1);
+                    };
+                })(new Data_Tuple.Tuple([  ], s + Data_Array.length(names) | 0))(Data_Array.zip(v.value2)(names$prime));
+                var v2 = rename(env$prime)(v1.value1)(v.value3);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaMemoizedLoop(args$prime, intParams$prime, v1.value0, v2.value0), v2.value1);
+            };
+            if (v instanceof Javapurs_JavaAst.JavaLoopInvariant) {
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaLoopInvariant(lookupName(v.value0)(env)), s);
+            };
             if (v instanceof Javapurs_JavaAst.JavaContinue) {
                 var v1 = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (v2) {
                     return function (arg) {
@@ -224,6 +256,15 @@ var rename = function (env) {
                 var v2 = rename(env)(v1.value1)(v.value2);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaBinaryOp(v.value0, v1.value0, v2.value0), v2.value1);
             };
+            if (v instanceof Javapurs_JavaAst.JavaUnaryOp) {
+                var v1 = rename(env)(s)(v.value1);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaUnaryOp(v.value0, v1.value0), v1.value1);
+            };
+            if (v instanceof Javapurs_JavaAst.JavaArrayIndex) {
+                var v1 = rename(env)(s)(v.value0);
+                var v2 = rename(env)(v1.value1)(v.value1);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaArrayIndex(v1.value0, v2.value0), v2.value1);
+            };
             if (v instanceof Javapurs_JavaAst.JavaCast) {
                 var v1 = rename(env)(s)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaCast(v.value0, v1.value0), v1.value1);
@@ -242,7 +283,7 @@ var rename = function (env) {
                 var v2 = rename(env)(v1.value1)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaBlock(v1.value0, v2.value0), v2.value1);
             };
-            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 137, column 38): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 158, column 38): " + [ v.constructor.name ]);
         };
     };
 };

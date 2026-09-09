@@ -76,6 +76,20 @@ rename env s = case _ of
         intParams' = map (\n -> lookupName n env) intParams
         Tuple body' s2 = rename env s body
     in Tuple (JavaWhileTrue args' intParams' body') s2
+  JavaMemoizedLoop args intParams invariants body ->
+    let
+      args' = map (\n -> lookupName n env) args
+      intParams' = map (\n -> lookupName n env) intParams
+      names = map (\(Tuple name _) -> name) invariants
+      names' = Array.mapWithIndex (\i name -> name <> "_i" <> show (s + i)) names
+      env' = foldl (\acc pair -> Array.cons pair acc) env (Array.zip names names')
+      Tuple values' s1 = foldl (\(Tuple acc state) (Tuple (Tuple _ value) name) ->
+        let Tuple value' next = rename env state value
+        in Tuple (Array.snoc acc (Tuple name value')) next)
+        (Tuple [] (s + Array.length names)) (Array.zip invariants names')
+      Tuple body' s2 = rename env' s1 body
+    in Tuple (JavaMemoizedLoop args' intParams' values' body') s2
+  JavaLoopInvariant name -> Tuple (JavaLoopInvariant (lookupName name env)) s
   JavaContinue n args ->
     let Tuple args' s1 = foldl (\(Tuple acc s') arg -> let Tuple arg' s'' = rename env s' arg in Tuple (Array.snoc acc arg') s'') (Tuple [] s) args
     in Tuple (JavaContinue (lookupName n env) args') s1
@@ -122,6 +136,13 @@ rename env s = case _ of
     let Tuple l' s1 = rename env s l
         Tuple r' s2 = rename env s1 r
     in Tuple (JavaBinaryOp op l' r') s2
+  JavaUnaryOp op value ->
+    let Tuple value' next = rename env s value
+    in Tuple (JavaUnaryOp op value') next
+  JavaArrayIndex array index ->
+    let Tuple array' s1 = rename env s array
+        Tuple index' s2 = rename env s1 index
+    in Tuple (JavaArrayIndex array' index') s2
   JavaCast c e ->
     let Tuple e' s1 = rename env s e
     in Tuple (JavaCast c e') s1

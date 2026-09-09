@@ -201,6 +201,33 @@ var JavaWhileTrue = /* #__PURE__ */ (function () {
     };
     return JavaWhileTrue;
 })();
+var JavaMemoizedLoop = /* #__PURE__ */ (function () {
+    function JavaMemoizedLoop(value0, value1, value2, value3) {
+        this.value0 = value0;
+        this.value1 = value1;
+        this.value2 = value2;
+        this.value3 = value3;
+    };
+    JavaMemoizedLoop.create = function (value0) {
+        return function (value1) {
+            return function (value2) {
+                return function (value3) {
+                    return new JavaMemoizedLoop(value0, value1, value2, value3);
+                };
+            };
+        };
+    };
+    return JavaMemoizedLoop;
+})();
+var JavaLoopInvariant = /* #__PURE__ */ (function () {
+    function JavaLoopInvariant(value0) {
+        this.value0 = value0;
+    };
+    JavaLoopInvariant.create = function (value0) {
+        return new JavaLoopInvariant(value0);
+    };
+    return JavaLoopInvariant;
+})();
 var JavaContinue = /* #__PURE__ */ (function () {
     function JavaContinue(value0, value1) {
         this.value0 = value0;
@@ -387,6 +414,30 @@ var JavaBinaryOp = /* #__PURE__ */ (function () {
     };
     return JavaBinaryOp;
 })();
+var JavaUnaryOp = /* #__PURE__ */ (function () {
+    function JavaUnaryOp(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    JavaUnaryOp.create = function (value0) {
+        return function (value1) {
+            return new JavaUnaryOp(value0, value1);
+        };
+    };
+    return JavaUnaryOp;
+})();
+var JavaArrayIndex = /* #__PURE__ */ (function () {
+    function JavaArrayIndex(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    JavaArrayIndex.create = function (value0) {
+        return function (value1) {
+            return new JavaArrayIndex(value0, value1);
+        };
+    };
+    return JavaArrayIndex;
+})();
 var JavaCast = /* #__PURE__ */ (function () {
     function JavaCast(value0, value1) {
         this.value0 = value0;
@@ -493,6 +544,8 @@ export {
     JavaTypedRecordUpdate,
     JavaArray,
     JavaWhileTrue,
+    JavaMemoizedLoop,
+    JavaLoopInvariant,
     JavaContinue,
     JavaMapGet,
     JavaMapUpdate,
@@ -508,6 +561,8 @@ export {
     JavaLazyAssign,
     JavaLocalAssign,
     JavaBinaryOp,
+    JavaUnaryOp,
+    JavaArrayIndex,
     JavaCast,
     JavaBlock,
     RecordInt,

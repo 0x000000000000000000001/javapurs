@@ -71,6 +71,7 @@ printExpr = case _ of
         bodyStr = case body of
           JavaBlock stmts expr -> "{ " <> String.joinWith " " (map printExpr stmts) <> " return " <> printExpr expr <> "; }"
           JavaWhileTrue params intParams expr -> printLoopBody params intParams expr
+          JavaMemoizedLoop params intParams invariants expr -> printMemoizedLoopBody params intParams invariants expr
           _ -> printExpr body
       in Array.foldr (\arg acc -> "(java.util.function.Function<Object, Object>) (" <> arg <> ") -> " <> acc) bodyStr args
   JavaNew className args ->
@@ -84,6 +85,10 @@ printExpr = case _ of
   JavaWhileTrue args intParams expr ->
     "(new java.util.function.Supplier<Object>() { public Object get() " <>
       printLoopBody args intParams expr <> " }).get()"
+  JavaMemoizedLoop args intParams invariants expr ->
+    "(new java.util.function.Supplier<Object>() { public Object get() " <>
+      printMemoizedLoopBody args intParams invariants expr <> " }).get()"
+  JavaLoopInvariant name -> name <> ".getAsInt()"
   JavaContinue loopId argsExprs ->
     "(new java.util.function.Supplier<Object>() { public Object get() { throw new TcoLoop(\"" <> loopId <> "\", new Object[]{" <> String.joinWith ", " (map printExpr argsExprs) <> "}); } }).get()"
   JavaRecord fields ->
@@ -148,6 +153,8 @@ printExpr = case _ of
   JavaRaw code -> code
   JavaBinaryOp op e1 e2 ->
     "(" <> printExpr e1 <> " " <> op <> " " <> printExpr e2 <> ")"
+  JavaUnaryOp op expr -> "(" <> op <> "(" <> printExpr expr <> "))"
+  JavaArrayIndex array index -> "((Object[]) (" <> printExpr array <> "))[" <> printExpr (JavaCast "int" index) <> "]"
   JavaCast t e ->
     "((" <> t <> ") (" <> printExpr e <> "))"
   JavaLocalAssign name expr ->
@@ -188,9 +195,15 @@ singletonHolderName ctorName = "__singleton$" <> ctorName
 -- A loop directly inside a function can use the lambda's block body. Keep the
 -- Supplier wrapper when the loop is needed as an expression elsewhere.
 printLoopBody :: Array String -> Array String -> JavaExpr -> String
-printLoopBody args intParams expr =
+printLoopBody args intParams = printMemoizedLoopBody args intParams []
+
+-- Allocate each cache per fully applied invocation. Its computation stays at
+-- the original expression site, preserving guards, evaluation order and throws.
+printMemoizedLoopBody :: Array String -> Array String -> Array (Tuple String JavaExpr) -> JavaExpr -> String
+printMemoizedLoopBody args intParams invariants expr =
   "{ " <>
     String.joinWith "" (map (\arg -> loopParamType intParams arg <> " __tco_" <> arg <> " = " <> printLoopValue intParams arg (JavaLocal arg) <> "; ") args) <>
+    String.joinWith "" (map printInvariant invariants) <>
     (case countedLoop args intParams expr of
       Just loop -> printCountedLoop args intParams loop
       Nothing -> ""
@@ -204,6 +217,13 @@ printLoopBody args intParams expr =
       "} " <>
     "} " <>
   "}"
+
+printInvariant :: Tuple String JavaExpr -> String
+printInvariant (Tuple name value) =
+  "final java.util.function.IntSupplier " <> name <> " = new java.util.function.IntSupplier() { " <>
+    "private boolean ready; private int value; " <>
+    "public int getAsInt() { if (!ready) { value = ((int) (" <> printExpr value <> ")); ready = true; } return value; } " <>
+  "}; "
 
 printLoopSnapshots :: Array String -> Array String -> String
 printLoopSnapshots args intParams =
