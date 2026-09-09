@@ -35,6 +35,7 @@ var liftEffect1 = /* #__PURE__ */ Effect_Class.liftEffect(Effect_Aff.monadEffect
 var main = /* #__PURE__ */ Effect_Aff.launchAff_(/* #__PURE__ */ Control_Bind.bind(Effect_Aff.bindAff)(/* #__PURE__ */ Effect_Class.liftEffect(Effect_Aff.monadEffectAff)(Node_Process.argv))(function (args) {
     var typedRecords = !Data_Array.elem(Data_Eq.eqString)("--records=maps")(args);
     var loopInvariants = !Data_Array.elem(Data_Eq.eqString)("--loop-invariants=off")(args);
+    var directCalls = !Data_Array.elem(Data_Eq.eqString)("--direct-calls=off")(args);
     var mainModule = (function () {
         var v = Data_Array.findIndex(function (v1) {
             return v1 === "--main";
@@ -47,12 +48,12 @@ var main = /* #__PURE__ */ Effect_Aff.launchAff_(/* #__PURE__ */ Control_Bind.bi
             if (v1 instanceof Data_Maybe.Nothing) {
                 return "Main";
             };
-            throw new Error("Failed pattern match at Main (line 37, column 19 - line 39, column 28): " + [ v1.constructor.name ]);
+            throw new Error("Failed pattern match at Main (line 38, column 19 - line 40, column 28): " + [ v1.constructor.name ]);
         };
         if (v instanceof Data_Maybe.Nothing) {
             return "Main";
         };
-        throw new Error("Failed pattern match at Main (line 36, column 20 - line 40, column 26): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at Main (line 37, column 20 - line 41, column 26): " + [ v.constructor.name ]);
     })();
     return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(Data_Function.apply(liftEffect)(Effect_Console.log("Loading corefn.json files...")))(function () {
         return Control_Bind.bind(Effect_Aff.bindAff)(PureScript_Backend_Optimizer_App.coreFnModulesFromOutput("output"))(function (modules) {
@@ -94,11 +95,12 @@ var main = /* #__PURE__ */ Effect_Aff.launchAff_(/* #__PURE__ */ Control_Bind.bi
                                                     if (ffiPathMb instanceof Data_Maybe.Just) {
                                                         return Node_FS_Aff.readTextFile(Node_Encoding.UTF8.value)(ffiPathMb.value0);
                                                     };
-                                                    throw new Error("Failed pattern match at Main (line 63, column 23 - line 65, column 43): " + [ ffiPathMb.constructor.name ]);
+                                                    throw new Error("Failed pattern match at Main (line 64, column 23 - line 66, column 43): " + [ ffiPathMb.constructor.name ]);
                                                 })())(function (ffiContent) {
-                                                    var javaAst = Javapurs_CodeGen.translateWithOptions({
+                                                    var javaAst = Javapurs_CodeGen.translateWithDirectCalls({
                                                         typedRecords: typedRecords,
-                                                        loopInvariants: loopInvariants
+                                                        loopInvariants: loopInvariants,
+                                                        directCalls: directCalls
                                                     })(backendMod);
                                                     var foreignIdents = Data_Map.keys(backendMod.foreign);
                                                     var ffiStubs = (function () {

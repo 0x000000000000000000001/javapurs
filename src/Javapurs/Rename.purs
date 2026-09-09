@@ -45,6 +45,11 @@ rename env s = case _ of
         s1 = s + Array.length args
         Tuple body' s2 = rename env' s1 body
     in Tuple (JavaAbs args' body') s2
+  JavaStaticMethod name args body ->
+    let args' = map (\n -> n <> "_i" <> show s) args
+        env' = Array.zip args args'
+        Tuple body' s1 = rename env' (s + Array.length args) body
+    in Tuple (JavaStaticMethod name args' body') s1
   JavaNew c args ->
     let Tuple args' s2 = foldl (\(Tuple acc s') arg -> let Tuple arg' s'' = rename env s' arg in Tuple (Array.snoc acc arg') s'') (Tuple [] s) args
     in Tuple (JavaNew c args') s2

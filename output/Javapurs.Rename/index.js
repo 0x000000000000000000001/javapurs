@@ -47,8 +47,8 @@ var rename = function (env) {
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaFunction(v1.value0), v1.value1);
             };
             if (v instanceof Javapurs_JavaAst.JavaLocal) {
-                var $111 = Data_String_CodePoints.take(8)(v.value0) === "__final_";
-                if ($111) {
+                var $112 = Data_String_CodePoints.take(8)(v.value0) === "__final_";
+                if ($112) {
                     var baseName = Data_String_CodePoints.drop(8)(v.value0);
                     var renamed = lookupName(baseName)(env);
                     return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaLocal("__final_" + renamed), s);
@@ -67,6 +67,14 @@ var rename = function (env) {
                 })(env)(Data_Array.zip(v.value0)(args$prime));
                 var v1 = rename(env$prime)(s1)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaAbs(args$prime, v1.value0), v1.value1);
+            };
+            if (v instanceof Javapurs_JavaAst.JavaStaticMethod) {
+                var args$prime = Data_Functor.map(Data_Functor.functorArray)(function (n) {
+                    return n + ("_i" + Data_Show.show(Data_Show.showInt)(s));
+                })(v.value1);
+                var env$prime = Data_Array.zip(v.value1)(args$prime);
+                var v1 = rename(env$prime)(s + Data_Array.length(v.value1) | 0)(v.value2);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaStaticMethod(v.value0, args$prime, v1.value0), v1.value1);
             };
             if (v instanceof Javapurs_JavaAst.JavaNew) {
                 var v1 = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (v2) {
@@ -283,7 +291,7 @@ var rename = function (env) {
                 var v2 = rename(env)(v1.value1)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaBlock(v1.value0, v2.value0), v2.value1);
             };
-            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 158, column 38): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 163, column 38): " + [ v.constructor.name ]);
         };
     };
 };

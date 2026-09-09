@@ -35,6 +35,7 @@ data JavaExpr
   | JavaRaw String
   | JavaAssign String JavaExpr
   | JavaLazyAssign String JavaExpr
+  | JavaStaticMethod String (Array String) JavaExpr
   | JavaLocalAssign String JavaExpr
   | JavaBinaryOp String JavaExpr JavaExpr
   | JavaUnaryOp String JavaExpr

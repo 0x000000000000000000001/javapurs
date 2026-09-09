@@ -18,6 +18,7 @@ import Javapurs.IntLoops (intLoopParams)
 import Javapurs.RecordShapes (recordShape, recordShapeOf, collectRecordShapes)
 import Javapurs.RecordTypes (annotateRecordTypes)
 import Javapurs.LoopInvariants (prepareLoop)
+import Javapurs.DirectCalls (directCalls)
 import Javapurs.Printer (hasDirectContinue)
 import PureScript.Backend.Optimizer.Convert (BackendModule)
 import Debug as Debug
@@ -436,7 +437,11 @@ translateWithRecords :: Boolean -> BackendModule -> JavaFile
 translateWithRecords typedRecords = translateWithOptions { typedRecords, loopInvariants: true }
 
 translateWithOptions :: { typedRecords :: Boolean, loopInvariants :: Boolean } -> BackendModule -> JavaFile
-translateWithOptions { typedRecords, loopInvariants } mod =
+translateWithOptions { typedRecords, loopInvariants } =
+  translateWithDirectCalls { typedRecords, loopInvariants, directCalls: true }
+
+translateWithDirectCalls :: { typedRecords :: Boolean, loopInvariants :: Boolean, directCalls :: Boolean } -> BackendModule -> JavaFile
+translateWithDirectCalls options@{ typedRecords, loopInvariants } mod =
   let
     modNameStr = case mod.name of
       ModuleName m -> String.replaceAll (String.Pattern ".") (String.Replacement "_") m
@@ -500,10 +505,11 @@ translateWithOptions { typedRecords, loopInvariants } mod =
       ) mod.dataDecls
 
     decls = dataClasses <> mainDecls
-  in
-    { decls
-    , recordShapes: if typedRecords then Array.nub $ foldMap (\group -> foldMap (\(Tuple _ expr) -> collectRecordShapes expr) group.bindings) analyzedBindings else []
-    }
+    file =
+      { decls
+      , recordShapes: if typedRecords then Array.nub $ foldMap (\group -> foldMap (\(Tuple _ expr) -> collectRecordShapes expr) group.bindings) analyzedBindings else []
+      }
+  in if options.directCalls then directCalls modNameStr file else file
 
 translateOperator1 :: String -> BackendOperator1 -> JavaExpr -> JavaExpr
 translateOperator1 modName op e = case op of

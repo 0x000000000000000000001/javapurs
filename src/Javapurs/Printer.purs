@@ -169,6 +169,17 @@ printExpr = case _ of
       "public static final java.util.function.Supplier<Void> main = () -> {\n            ((java.util.function.Supplier<Object>)(" <> printExpr expr <> ")).get();\n            return null;\n        };"
     else
       "public static final Object " <> name <> " = " <> printExpr expr <> ";"
+  JavaStaticMethod name args body ->
+    let
+      -- Keep Object parameters: argument evaluation precedes the casts in the
+      -- original function body, including when an argument or cast throws.
+      parameterList = String.joinWith ", " (map (\arg -> "Object " <> arg) args)
+      bodyStr = case body of
+        JavaBlock stmts expr -> "{ " <> String.joinWith " " (map printExpr stmts) <> " return " <> printExpr expr <> "; }"
+        JavaWhileTrue params intParams expr -> printLoopBody params intParams expr
+        JavaMemoizedLoop params intParams invariants expr -> printMemoizedLoopBody params intParams invariants expr
+        _ -> "{ return " <> printExpr body <> "; }"
+    in "private static Object " <> name <> "(" <> parameterList <> ") " <> bodyStr
   JavaLazyAssign name expr ->
     let
       valueName = "__lazy_value_" <> name

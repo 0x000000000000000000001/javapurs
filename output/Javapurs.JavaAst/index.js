@@ -387,6 +387,21 @@ var JavaLazyAssign = /* #__PURE__ */ (function () {
     };
     return JavaLazyAssign;
 })();
+var JavaStaticMethod = /* #__PURE__ */ (function () {
+    function JavaStaticMethod(value0, value1, value2) {
+        this.value0 = value0;
+        this.value1 = value1;
+        this.value2 = value2;
+    };
+    JavaStaticMethod.create = function (value0) {
+        return function (value1) {
+            return function (value2) {
+                return new JavaStaticMethod(value0, value1, value2);
+            };
+        };
+    };
+    return JavaStaticMethod;
+})();
 var JavaLocalAssign = /* #__PURE__ */ (function () {
     function JavaLocalAssign(value0, value1) {
         this.value0 = value0;
@@ -559,6 +574,7 @@ export {
     JavaRaw,
     JavaAssign,
     JavaLazyAssign,
+    JavaStaticMethod,
     JavaLocalAssign,
     JavaBinaryOp,
     JavaUnaryOp,

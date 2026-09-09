@@ -91,6 +91,7 @@ spago build --backend javapurs --backend-args "--main App.Main"
 | `--main <Module>` | *Optional*. Explicitly sets the entrypoint module. Without this flag, `javapurs` automatically targets the `Main` module. |
 | `--records=maps` | Diagnostic option for comparing the Map representation with the default typed records on the same TAST. |
 | `--loop-invariants=off` | Diagnostic option disabling the default caching of proven pure, closed `Int` computations within loops. |
+| `--direct-calls=off` | Diagnostic option disabling private static methods for fully applied, known local-module functions. Public curried functions remain available in both modes. |
 
 Closed records use immutable classes with final fields, including primitive `int`
 fields. Open or unknown record shapes retain the Map representation. Java FFI
@@ -102,6 +103,13 @@ evaluate at the first original use, so skipped branches and zero-iteration loops
 keep their evaluation behavior. The current analysis checks known definitions
 and closures recursively, rejects unknown FFI/effects and local captures, and
 only caches successful `Int` results.
+
+Direct calls use private static methods for non-recursive functions in the same
+module. Only consecutive lambdas with no computation between arguments qualify;
+partial applications and unknown callbacks keep the public curried interface.
+Calls can use only earlier declarations, preserving initialization order. Method
+parameters remain `Object`, so casts in the original body still happen after
+argument evaluation. This step handles arities from two through 32.
 
 ## Local development & testing
 
