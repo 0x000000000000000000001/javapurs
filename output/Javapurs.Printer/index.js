@@ -11,17 +11,25 @@ import * as Data_String_CodePoints from "../Data.String.CodePoints/index.js";
 import * as Data_String_CodeUnits from "../Data.String.CodeUnits/index.js";
 import * as Data_String_Common from "../Data.String.Common/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
+import * as Javapurs_CountedLoops from "../Javapurs.CountedLoops/index.js";
 import * as Javapurs_JavaAst from "../Javapurs.JavaAst/index.js";
 var singletonHolderName = function (ctorName) {
     return "__singleton$" + ctorName;
 };
 var loopParamType = function (intParams) {
     return function (name) {
-        var $13 = Data_Array.elem(Data_Eq.eqString)(name)(intParams);
-        if ($13) {
+        var $14 = Data_Array.elem(Data_Eq.eqString)(name)(intParams);
+        if ($14) {
             return "int";
         };
         return "Object";
+    };
+};
+var printLoopSnapshots = function (args) {
+    return function (intParams) {
+        return Data_String_Common.joinWith("")(Data_Functor.map(Data_Functor.functorArray)(function (arg) {
+            return "final " + (loopParamType(intParams)(arg) + (" __final_" + (arg + (" = __tco_" + (arg + "; ")))));
+        })(args));
     };
 };
 var hasDirectContinue = function (v) {
@@ -60,22 +68,22 @@ var escapeJavaString = function (s) {
             return "\\t";
         };
         var code = Data_Char.toCharCode(v);
-        var $28 = code >= 32 && code <= 126;
-        if ($28) {
+        var $29 = code >= 32 && code <= 126;
+        if ($29) {
             return Data_String_CodeUnits.singleton(v);
         };
         var hex = Data_Int.toStringAs(Data_Int.hexadecimal)(code);
         var pad = (function () {
-            var $29 = Data_String_CodePoints.length(hex) === 1;
-            if ($29) {
+            var $30 = Data_String_CodePoints.length(hex) === 1;
+            if ($30) {
                 return "000";
             };
-            var $30 = Data_String_CodePoints.length(hex) === 2;
-            if ($30) {
+            var $31 = Data_String_CodePoints.length(hex) === 2;
+            if ($31) {
                 return "00";
             };
-            var $31 = Data_String_CodePoints.length(hex) === 3;
-            if ($31) {
+            var $32 = Data_String_CodePoints.length(hex) === 3;
+            if ($32) {
                 return "0";
             };
             return "";
@@ -88,8 +96,8 @@ var printLoopValue = function (intParams) {
     return function (name) {
         return function (expr) {
             return printExpr((function () {
-                var $32 = Data_Array.elem(Data_Eq.eqString)(name)(intParams);
-                if ($32) {
+                var $33 = Data_Array.elem(Data_Eq.eqString)(name)(intParams);
+                if ($33) {
                     return new Javapurs_JavaAst.JavaCast("int", expr);
                 };
                 return expr;
@@ -125,7 +133,7 @@ var printLoopTail = function (params) {
                 };
                 return "return " + (printExpr(expr) + "; ");
             };
-            throw new Error("Failed pattern match at Javapurs.Printer (line 202, column 1 - line 202, column 68): " + [ params.constructor.name, intParams.constructor.name, expr.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Printer (line 225, column 1 - line 225, column 68): " + [ params.constructor.name, intParams.constructor.name, expr.constructor.name ]);
         };
     };
 };
@@ -134,13 +142,20 @@ var printLoopBody = function (args) {
         return function (expr) {
             return "{ " + (Data_String_Common.joinWith("")(Data_Functor.map(Data_Functor.functorArray)(function (arg) {
                 return loopParamType(intParams)(arg) + (" __tco_" + (arg + (" = " + (printLoopValue(intParams)(arg)(new Javapurs_JavaAst.JavaLocal(arg)) + "; "))));
-            })(args)) + ("while(true) { " + (Data_String_Common.joinWith("")(Data_Functor.map(Data_Functor.functorArray)(function (arg) {
-                return "final " + (loopParamType(intParams)(arg) + (" __final_" + (arg + (" = __tco_" + (arg + "; ")))));
-            })(args)) + ("try { " + (printLoopTail(args)(intParams)(expr) + ("} catch (TcoLoop __tco_ex) { " + (Data_String_Common.joinWith("")(Data_Array.mapWithIndex(function (i) {
+            })(args)) + ((function () {
+                var v = Javapurs_CountedLoops.countedLoop(args)(intParams)(expr);
+                if (v instanceof Data_Maybe.Just) {
+                    return printCountedLoop(args)(intParams)(v.value0);
+                };
+                if (v instanceof Data_Maybe.Nothing) {
+                    return "";
+                };
+                throw new Error("Failed pattern match at Javapurs.Printer (line 190, column 6 - line 192, column 20): " + [ v.constructor.name ]);
+            })() + ("while(true) { " + (printLoopSnapshots(args)(intParams) + ("try { " + (printLoopTail(args)(intParams)(expr) + ("} catch (TcoLoop __tco_ex) { " + (Data_String_Common.joinWith("")(Data_Array.mapWithIndex(function (i) {
                 return function (arg) {
                     return "__tco_" + (arg + (" = " + (printLoopValue(intParams)(arg)(new Javapurs_JavaAst.JavaRaw("__tco_ex.args[" + (Data_Show.show(Data_Show.showInt)(i) + "]"))) + "; ")));
                 };
-            })(args)) + ("} " + ("} " + "}")))))))));
+            })(args)) + ("} " + ("} " + "}"))))))))));
         };
     };
 };
@@ -160,7 +175,7 @@ var printLetRecBindings = function (binds) {
             return "Object " + (v1.value0 + (" = " + (scopeVar + ("." + (v1.value0 + "; ")))));
         })(binds))))))))))))))));
     };
-    throw new Error("Failed pattern match at Javapurs.Printer (line 250, column 29 - line 266, column 118): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Printer (line 273, column 29 - line 289, column 118): " + [ v.constructor.name ]);
 };
 var printExpr = function (v) {
     if (v instanceof Javapurs_JavaAst.JavaString) {
@@ -179,15 +194,15 @@ var printExpr = function (v) {
     };
     if (v instanceof Javapurs_JavaAst.JavaGlobalVar) {
         if (v.value0 instanceof Data_Maybe.Just && v.value0.value0 === "Effect_Console") {
-            var $73 = v.value1 === "log";
-            if ($73) {
+            var $76 = v.value1 === "log";
+            if ($76) {
                 return "(java.util.function.Function<Object, Object>) (arg) -> (java.util.function.Supplier<Object>) () -> { System.out.println(arg); return null; }";
             };
             return "Effect_Console." + v.value1;
         };
         if (v.value0 instanceof Data_Maybe.Just && v.value0.value0 === "Test_Assert") {
-            var $75 = v.value1 === "assertImpl";
-            if ($75) {
+            var $78 = v.value1 === "assertImpl";
+            if ($78) {
                 return "(java.util.function.Function<Object, Object>) (msg) -> (java.util.function.Function<Object, Object>) (b) -> (java.util.function.Supplier<Object>) () -> { if (!((Boolean) b)) { throw new RuntimeException((String) msg); } return null; }";
             };
             return "Test_Assert." + v.value1;
@@ -202,8 +217,8 @@ var printExpr = function (v) {
             return "Effect." + v.value1;
         };
         if (v.value0 instanceof Data_Maybe.Just && v.value0.value0 === "Data_Semigroup") {
-            var $79 = v.value1 === "concatString";
-            if ($79) {
+            var $82 = v.value1 === "concatString";
+            if ($82) {
                 return "(java.util.function.Function<Object, Object>) (a) -> (java.util.function.Function<Object, Object>) (b) -> a.toString() + b.toString()";
             };
             return "Data_Semigroup." + v.value1;
@@ -214,14 +229,14 @@ var printExpr = function (v) {
         if (v.value0 instanceof Data_Maybe.Nothing) {
             return v.value1;
         };
-        throw new Error("Failed pattern match at Javapurs.Printer (line 49, column 5 - line 58, column 22): " + [ v.value0.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.Printer (line 50, column 5 - line 59, column 22): " + [ v.value0.constructor.name ]);
     };
     if (v instanceof Javapurs_JavaAst.JavaLocal) {
         return v.value0;
     };
     if (v instanceof Javapurs_JavaAst.JavaAbs) {
-        var $85 = Data_Array.length(v.value0) === 0;
-        if ($85) {
+        var $88 = Data_Array.length(v.value0) === 0;
+        if ($88) {
             var bodyStr = (function () {
                 if (v.value1 instanceof Javapurs_JavaAst.JavaBlock) {
                     return "{ " + (Data_String_Common.joinWith(" ")(Data_Functor.map(Data_Functor.functorArray)(printExpr)(v.value1.value0)) + (" return " + (printExpr(v.value1.value1) + "; }")));
@@ -335,8 +350,8 @@ var printExpr = function (v) {
         })(v.value1);
         var constructor = "public " + (v.value0 + ("(" + (Data_String_Common.joinWith(", ")(constructorArgs) + (") {\x0a" + ("                " + (Data_String_Common.joinWith("\x0a                ")(assigns) + ("\x0a" + "            }")))))));
         return "public static final class " + (v.value0 + (" {\x0a" + ("            " + (Data_String_Common.joinWith("\x0a            ")(fields) + ("\x0a" + ("            " + (constructor + ("\x0a" + ("        }" + (function () {
-            var $140 = Data_Array["null"](v.value1);
-            if ($140) {
+            var $143 = Data_Array["null"](v.value1);
+            if ($143) {
                 return "\x0apublic static final class " + (singletonHolderName(v.value0) + (" {\x0a" + ("    public static final " + (v.value0 + (" value = new " + (v.value0 + ("();\x0a" + "}")))))));
             };
             return "";
@@ -358,8 +373,8 @@ var printExpr = function (v) {
         return "(new java.util.function.Supplier<Object>() { public Object get() { " + (Data_String_Common.joinWith(" ")(Data_Functor.map(Data_Functor.functorArray)(printExpr)(v.value0)) + (" return " + (printExpr(v.value1) + ("; " + "} }).get()"))));
     };
     if (v instanceof Javapurs_JavaAst.JavaAssign) {
-        var $153 = v.value0 === "main";
-        if ($153) {
+        var $156 = v.value0 === "main";
+        if ($156) {
             return "public static final java.util.function.Supplier<Void> main = () -> {\x0a            ((java.util.function.Supplier<Object>)(" + (printExpr(v.value1) + ")).get();\x0a            return null;\x0a        };");
         };
         return "public static final Object " + (v.value0 + (" = " + (printExpr(v.value1) + ";")));
@@ -370,7 +385,14 @@ var printExpr = function (v) {
         var getterName = "__lazy_get_" + v.value0;
         return "private static Object " + (valueName + (";\x0a" + ("private static int " + (stateName + (";\x0a" + ("private static Object " + (getterName + ("() { " + ("if (" + (stateName + (" == 2) return " + (valueName + ("; " + ("if (" + (stateName + (" == 1) throw new IllegalStateException(\"Recursive initialization of " + (escapeJavaString(v.value0) + ("\"); " + (stateName + (" = 1; " + (valueName + (" = " + (printExpr(v.value1) + ("; " + (stateName + (" = 2; " + ("return " + (valueName + ("; " + ("}\x0a" + printExpr(new Javapurs_JavaAst.JavaAssign(v.value0, new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaRaw(getterName), [  ])))))))))))))))))))))))))))))))));
     };
-    throw new Error("Failed pattern match at Javapurs.Printer (line 36, column 13 - line 177, column 69): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Printer (line 37, column 13 - line 178, column 69): " + [ v.constructor.name ]);
+};
+var printCountedLoop = function (args) {
+    return function (intParams) {
+        return function (loop) {
+            return "if (__tco_" + (loop.counter + (" >= 0) { " + ("for (int __counted$index = 0, __counted$limit = __tco_" + (loop.counter + ("; __counted$index < __counted$limit; __counted$index++) { " + (printLoopSnapshots(args)(intParams) + (printLoopTail(args)(intParams)(loop.step) + ("} " + (printLoopSnapshots(args)(intParams) + ("return " + (printExpr(loop.result) + ("; " + "} "))))))))))));
+        };
+    };
 };
 var printFile = function (className) {
     return function (file) {
@@ -382,6 +404,8 @@ export {
     printExpr,
     singletonHolderName,
     printLoopBody,
+    printLoopSnapshots,
+    printCountedLoop,
     printLoopTail,
     loopParamType,
     printLoopValue,

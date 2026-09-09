@@ -8,6 +8,7 @@ import Data.Array as Array
 import Data.Tuple (Tuple(..))
 import Data.Char as Char
 import Data.Int as Int
+import Javapurs.CountedLoops (CountedLoop, countedLoop)
 import Javapurs.JavaAst (JavaExpr(..), JavaFile)
 
 
@@ -186,8 +187,12 @@ printLoopBody :: Array String -> Array String -> JavaExpr -> String
 printLoopBody args intParams expr =
   "{ " <>
     String.joinWith "" (map (\arg -> loopParamType intParams arg <> " __tco_" <> arg <> " = " <> printLoopValue intParams arg (JavaLocal arg) <> "; ") args) <>
+    (case countedLoop args intParams expr of
+      Just loop -> printCountedLoop args intParams loop
+      Nothing -> ""
+    ) <>
     "while(true) { " <>
-      String.joinWith "" (map (\arg -> "final " <> loopParamType intParams arg <> " __final_" <> arg <> " = __tco_" <> arg <> "; ") args) <>
+      printLoopSnapshots args intParams <>
       "try { " <>
         printLoopTail args intParams expr <>
       "} catch (TcoLoop __tco_ex) { " <>
@@ -195,6 +200,24 @@ printLoopBody args intParams expr =
       "} " <>
     "} " <>
   "}"
+
+printLoopSnapshots :: Array String -> Array String -> String
+printLoopSnapshots args intParams =
+  String.joinWith "" (map (\arg -> "final " <> loopParamType intParams arg <> " __final_" <> arg <> " = __tco_" <> arg <> "; ") args)
+
+printCountedLoop :: Array String -> Array String -> CountedLoop -> String
+printCountedLoop args intParams loop =
+  -- A negative countdown reaches zero only after Int wraparound. Preserve that
+  -- behavior in the original loop below; the counted path never overflows its
+  -- index, even when the captured limit is Int.MAX_VALUE.
+  "if (__tco_" <> loop.counter <> " >= 0) { " <>
+    "for (int __counted$index = 0, __counted$limit = __tco_" <> loop.counter <> "; __counted$index < __counted$limit; __counted$index++) { " <>
+      printLoopSnapshots args intParams <>
+      printLoopTail args intParams loop.step <>
+    "} " <>
+    printLoopSnapshots args intParams <>
+    "return " <> printExpr loop.result <> "; " <>
+  "} "
 
 -- Tail branches are statements in the loop's method, so they can continue it
 -- directly. Expression forms that introduce a method boundary retain the
