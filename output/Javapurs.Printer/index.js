@@ -13,6 +13,7 @@ import * as Data_String_Common from "../Data.String.Common/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Javapurs_CountedLoops from "../Javapurs.CountedLoops/index.js";
 import * as Javapurs_JavaAst from "../Javapurs.JavaAst/index.js";
+import * as Javapurs_RecordPrinter from "../Javapurs.RecordPrinter/index.js";
 var singletonHolderName = function (ctorName) {
     return "__singleton$" + ctorName;
 };
@@ -133,7 +134,7 @@ var printLoopTail = function (params) {
                 };
                 return "return " + (printExpr(expr) + "; ");
             };
-            throw new Error("Failed pattern match at Javapurs.Printer (line 225, column 1 - line 225, column 68): " + [ params.constructor.name, intParams.constructor.name, expr.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Printer (line 229, column 1 - line 229, column 68): " + [ params.constructor.name, intParams.constructor.name, expr.constructor.name ]);
         };
     };
 };
@@ -150,7 +151,7 @@ var printLoopBody = function (args) {
                 if (v instanceof Data_Maybe.Nothing) {
                     return "";
                 };
-                throw new Error("Failed pattern match at Javapurs.Printer (line 190, column 6 - line 192, column 20): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.Printer (line 194, column 6 - line 196, column 20): " + [ v.constructor.name ]);
             })() + ("while(true) { " + (printLoopSnapshots(args)(intParams) + ("try { " + (printLoopTail(args)(intParams)(expr) + ("} catch (TcoLoop __tco_ex) { " + (Data_String_Common.joinWith("")(Data_Array.mapWithIndex(function (i) {
                 return function (arg) {
                     return "__tco_" + (arg + (" = " + (printLoopValue(intParams)(arg)(new Javapurs_JavaAst.JavaRaw("__tco_ex.args[" + (Data_Show.show(Data_Show.showInt)(i) + "]"))) + "; ")));
@@ -175,7 +176,7 @@ var printLetRecBindings = function (binds) {
             return "Object " + (v1.value0 + (" = " + (scopeVar + ("." + (v1.value0 + "; ")))));
         })(binds))))))))))))))));
     };
-    throw new Error("Failed pattern match at Javapurs.Printer (line 273, column 29 - line 289, column 118): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Printer (line 277, column 29 - line 293, column 118): " + [ v.constructor.name ]);
 };
 var printExpr = function (v) {
     if (v instanceof Javapurs_JavaAst.JavaString) {
@@ -229,7 +230,7 @@ var printExpr = function (v) {
         if (v.value0 instanceof Data_Maybe.Nothing) {
             return v.value1;
         };
-        throw new Error("Failed pattern match at Javapurs.Printer (line 50, column 5 - line 59, column 22): " + [ v.value0.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.Printer (line 51, column 5 - line 60, column 22): " + [ v.value0.constructor.name ]);
     };
     if (v instanceof Javapurs_JavaAst.JavaLocal) {
         return v.value0;
@@ -280,21 +281,30 @@ var printExpr = function (v) {
     };
     if (v instanceof Javapurs_JavaAst.JavaRecord) {
         var puts = Data_Functor.map(Data_Functor.functorArray)(function (v1) {
-            return "__map.put(\"" + (v1.value0 + ("\", " + (printExpr(v1.value1) + "); ")));
+            return "__map.put(\"" + (escapeJavaString(v1.value0) + ("\", " + (printExpr(v1.value1) + "); ")));
         })(v.value0);
         return "(new java.util.function.Supplier<Object>() { public Object get() { java.util.Map<String, Object> __map = new java.util.LinkedHashMap<>(); " + (Data_String_Common.joinWith("")(puts) + " return __map; } }).get()");
+    };
+    if (v instanceof Javapurs_JavaAst.JavaTypedRecord) {
+        return Javapurs_RecordPrinter.printRecord(printExpr)(v.value0)(v.value1);
+    };
+    if (v instanceof Javapurs_JavaAst.JavaTypedRecordGet) {
+        return Javapurs_RecordPrinter.printRecordGet(printExpr)(v.value0)(v.value1)(v.value2);
+    };
+    if (v instanceof Javapurs_JavaAst.JavaTypedRecordUpdate) {
+        return Javapurs_RecordPrinter.printRecordUpdate(printExpr)(v.value0)(v.value1)(v.value2);
     };
     if (v instanceof Javapurs_JavaAst.JavaArray) {
         return "new Object[]{" + (Data_String_Common.joinWith(", ")(Data_Functor.map(Data_Functor.functorArray)(printExpr)(v.value0)) + "}");
     };
     if (v instanceof Javapurs_JavaAst.JavaMapGet) {
-        return "((java.util.LinkedHashMap<String, Object>) " + (printExpr(v.value0) + (").get(\"" + (v.value1 + "\")")));
+        return "((java.util.Map<String, Object>) " + (printExpr(v.value0) + (").get(\"" + (escapeJavaString(v.value1) + "\")")));
     };
     if (v instanceof Javapurs_JavaAst.JavaMapUpdate) {
         var upds = Data_Functor.map(Data_Functor.functorArray)(function (v1) {
-            return "__map.put(\"" + (v1.value0 + ("\", " + (printExpr(v1.value1) + "); ")));
+            return "__map.put(\"" + (escapeJavaString(v1.value0) + ("\", " + (printExpr(v1.value1) + "); ")));
         })(v.value1);
-        return "(new java.util.function.Supplier<Object>() { public Object get() { java.util.Map<String, Object> __map = new java.util.LinkedHashMap<>((java.util.LinkedHashMap<String, Object>) " + (printExpr(v.value0) + ("); " + (Data_String_Common.joinWith("")(upds) + " return __map; } }).get()")));
+        return "(new java.util.function.Supplier<Object>() { public Object get() { java.util.Map<String, Object> __map = new java.util.LinkedHashMap<>((java.util.Map<String, Object>) " + (printExpr(v.value0) + ("); " + (Data_String_Common.joinWith("")(upds) + " return __map; } }).get()")));
     };
     if (v instanceof Javapurs_JavaAst.JavaInstanceOf) {
         return "(" + (printExpr(v.value0) + (" instanceof " + (v.value1 + ")")));
@@ -350,8 +360,8 @@ var printExpr = function (v) {
         })(v.value1);
         var constructor = "public " + (v.value0 + ("(" + (Data_String_Common.joinWith(", ")(constructorArgs) + (") {\x0a" + ("                " + (Data_String_Common.joinWith("\x0a                ")(assigns) + ("\x0a" + "            }")))))));
         return "public static final class " + (v.value0 + (" {\x0a" + ("            " + (Data_String_Common.joinWith("\x0a            ")(fields) + ("\x0a" + ("            " + (constructor + ("\x0a" + ("        }" + (function () {
-            var $143 = Data_Array["null"](v.value1);
-            if ($143) {
+            var $151 = Data_Array["null"](v.value1);
+            if ($151) {
                 return "\x0apublic static final class " + (singletonHolderName(v.value0) + (" {\x0a" + ("    public static final " + (v.value0 + (" value = new " + (v.value0 + ("();\x0a" + "}")))))));
             };
             return "";
@@ -373,8 +383,8 @@ var printExpr = function (v) {
         return "(new java.util.function.Supplier<Object>() { public Object get() { " + (Data_String_Common.joinWith(" ")(Data_Functor.map(Data_Functor.functorArray)(printExpr)(v.value0)) + (" return " + (printExpr(v.value1) + ("; " + "} }).get()"))));
     };
     if (v instanceof Javapurs_JavaAst.JavaAssign) {
-        var $156 = v.value0 === "main";
-        if ($156) {
+        var $164 = v.value0 === "main";
+        if ($164) {
             return "public static final java.util.function.Supplier<Void> main = () -> {\x0a            ((java.util.function.Supplier<Object>)(" + (printExpr(v.value1) + ")).get();\x0a            return null;\x0a        };");
         };
         return "public static final Object " + (v.value0 + (" = " + (printExpr(v.value1) + ";")));
@@ -385,7 +395,7 @@ var printExpr = function (v) {
         var getterName = "__lazy_get_" + v.value0;
         return "private static Object " + (valueName + (";\x0a" + ("private static int " + (stateName + (";\x0a" + ("private static Object " + (getterName + ("() { " + ("if (" + (stateName + (" == 2) return " + (valueName + ("; " + ("if (" + (stateName + (" == 1) throw new IllegalStateException(\"Recursive initialization of " + (escapeJavaString(v.value0) + ("\"); " + (stateName + (" = 1; " + (valueName + (" = " + (printExpr(v.value1) + ("; " + (stateName + (" = 2; " + ("return " + (valueName + ("; " + ("}\x0a" + printExpr(new Javapurs_JavaAst.JavaAssign(v.value0, new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaRaw(getterName), [  ])))))))))))))))))))))))))))))))));
     };
-    throw new Error("Failed pattern match at Javapurs.Printer (line 37, column 13 - line 178, column 69): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Printer (line 38, column 13 - line 182, column 69): " + [ v.constructor.name ]);
 };
 var printCountedLoop = function (args) {
     return function (intParams) {

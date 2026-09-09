@@ -5,7 +5,7 @@ import Prelude
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
-import Data.Foldable (foldl, foldr)
+import Data.Foldable (foldl, foldr, foldMap)
 import PureScript.Backend.Optimizer.Syntax (BackendSyntax(..), Level(..), Pair(..), BackendOperator(..), BackendOperator1(..), BackendOperator2(..), BackendAccessor(..), BackendOperatorOrd(..), BackendOperatorNum(..))
 import PureScript.Backend.Optimizer.FreeVars (localId)
 import Data.Array.NonEmpty as NEA
@@ -15,6 +15,8 @@ import Data.Newtype (unwrap)
 import PureScript.Backend.Optimizer.Codegen.Tco as Tco
 import Javapurs.JavaAst (JavaExpr(..), JavaFile)
 import Javapurs.IntLoops (intLoopParams)
+import Javapurs.RecordShapes (recordShape, recordShapeOf, collectRecordShapes)
+import Javapurs.RecordTypes (annotateRecordTypes)
 import Javapurs.Printer (hasDirectContinue, printExpr)
 import PureScript.Backend.Optimizer.Convert (BackendModule)
 import Debug as Debug
@@ -27,7 +29,7 @@ type LoopCtx = { ident :: String, params :: Array String, canContinue :: Boolean
 captureLoopCtx :: Array LoopCtx -> Array LoopCtx
 captureLoopCtx = map (_ { canContinue = false })
 
-type CodegenEnv = { moduleName :: String, lazyBindings :: Array String }
+type CodegenEnv = { moduleName :: String, lazyBindings :: Array String, typedRecords :: Boolean }
 
 type TransRes = { stmts :: Array JavaExpr, expr :: JavaExpr }
 
@@ -197,7 +199,19 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
         else JavaCall (JavaPropertyAccess resRest.expr "java.util.function.Supplier" "get") []
     in { stmts: Array.cons assignStmt resRest.stmts, expr: executedRestExpr }
   Fail msg -> pureExpr $ JavaThrow msg
-  Typed _ expr -> translateExprWith inEffectBlock env loopCtx isTail expr
+  Typed ty expr ->
+    case if env.typedRecords then recordShape ty else Nothing of
+      Just shape -> case unwrapTcoExpr expr of
+        Lit (LitRecord fields) ->
+          let values = map (\(Prop k v) -> Tuple k (wrapInBlock (translateExpr env loopCtx false v))) fields
+          in pureExpr $ JavaTypedRecord shape values
+        Update target updates | recordShapeOf target == Just shape ->
+          let
+            base = wrapInBlock (translateExpr env loopCtx false target)
+            values = map (\(Prop k v) -> Tuple k (wrapInBlock (translateExpr env loopCtx false v))) updates
+          in pureExpr $ JavaTypedRecordUpdate shape base values
+        _ -> translateExprWith inEffectBlock env loopCtx isTail expr
+      Nothing -> translateExprWith inEffectBlock env loopCtx isTail expr
   TypeApp expr _ -> translateExprWith inEffectBlock env loopCtx isTail expr
   CtorSaturated (Qualified mbMod _) _ _ (Ident ctorName) args ->
     let
@@ -225,7 +239,9 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
   Accessor expr acc -> case acc of
     GetProp prop ->
       let resExprExpr = wrapInBlock (translateExpr env loopCtx false expr)
-      in pureExpr $ JavaMapGet resExprExpr prop
+      in pureExpr $ case if env.typedRecords then recordShapeOf expr else Nothing of
+        Just shape -> JavaTypedRecordGet shape resExprExpr prop
+        Nothing -> JavaMapGet resExprExpr prop
     GetCtorField (Qualified mbMod _) _ _ (Ident ctorName) _ idx ->
       let
         safeCtorName = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") ctorName
@@ -389,7 +405,10 @@ unwrapTcoExpr (TcoExpr _ syntax) = case syntax of
   _ -> syntax
 
 translate :: BackendModule -> JavaFile
-translate mod =
+translate = translateWithRecords true
+
+translateWithRecords :: Boolean -> BackendModule -> JavaFile
+translateWithRecords typedRecords mod =
   let
     modNameStr = case mod.name of
       ModuleName m -> String.replaceAll (String.Pattern ".") (String.Replacement "_") m
@@ -397,7 +416,7 @@ translate mod =
     Tuple _ analyzedBindings = foldl
       (\(Tuple env acc) group ->
           let
-            tcoBinds = map (\(Tuple k v) -> Tuple k (Tco.analyze env v)) group.bindings
+            tcoBinds = map (\(Tuple k v) -> Tuple k (annotateRecordTypes (Tco.analyze env v))) group.bindings
           in
             Tuple env (Array.snoc acc { recursive: group.recursive, bindings: tcoBinds })
       )
@@ -410,6 +429,7 @@ translate mod =
             env =
               { moduleName: modNameStr
               , lazyBindings: if group.recursive then map (\(Tuple (Ident name) _) -> sanitizeName name) group.bindings else []
+              , typedRecords
               }
           in if group.recursive then
             map
@@ -454,7 +474,9 @@ translate mod =
 
     decls = dataClasses <> mainDecls
   in
-    { decls }
+    { decls
+    , recordShapes: if typedRecords then Array.nub $ foldMap (\group -> foldMap (\(Tuple _ expr) -> collectRecordShapes expr) group.bindings) analyzedBindings else []
+    }
 
 translateOperator1 :: String -> BackendOperator1 -> JavaExpr -> JavaExpr
 translateOperator1 modName op e = case op of

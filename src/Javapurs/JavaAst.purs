@@ -1,5 +1,6 @@
 module Javapurs.JavaAst where
 
+import Prelude (class Eq, class Ord)
 import Data.Maybe (Maybe)
 import Data.Tuple (Tuple)
 
@@ -14,6 +15,9 @@ data JavaExpr
   | JavaTernary JavaExpr JavaExpr JavaExpr
   | JavaThrow String
   | JavaRecord (Array (Tuple String JavaExpr))
+  | JavaTypedRecord JavaRecordShape (Array (Tuple String JavaExpr))
+  | JavaTypedRecordGet JavaRecordShape JavaExpr String
+  | JavaTypedRecordUpdate JavaRecordShape JavaExpr (Array (Tuple String JavaExpr))
   | JavaArray (Array JavaExpr)
   | JavaWhileTrue (Array String) (Array String) JavaExpr
   | JavaContinue String (Array JavaExpr)
@@ -34,6 +38,16 @@ data JavaExpr
   | JavaCast String JavaExpr
   | JavaBlock (Array JavaExpr) JavaExpr
 
+data JavaRecordFieldType = RecordInt | RecordObject | RecordNested
+
+newtype JavaRecordShape = JavaRecordShape (Array (Tuple String JavaRecordFieldType))
+
+derive instance eqJavaRecordFieldType :: Eq JavaRecordFieldType
+derive instance eqJavaRecordShape :: Eq JavaRecordShape
+derive instance ordJavaRecordFieldType :: Ord JavaRecordFieldType
+derive instance ordJavaRecordShape :: Ord JavaRecordShape
+
 type JavaFile =
   { decls :: Array JavaExpr
+  , recordShapes :: Array JavaRecordShape
   }

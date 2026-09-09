@@ -9,6 +9,7 @@ import Data.Tuple (Tuple(..))
 import Data.Char as Char
 import Data.Int as Int
 import Javapurs.CountedLoops (CountedLoop, countedLoop)
+import Javapurs.RecordPrinter as RecordPrinter
 import Javapurs.JavaAst (JavaExpr(..), JavaFile)
 
 
@@ -87,18 +88,21 @@ printExpr = case _ of
     "(new java.util.function.Supplier<Object>() { public Object get() { throw new TcoLoop(\"" <> loopId <> "\", new Object[]{" <> String.joinWith ", " (map printExpr argsExprs) <> "}); } }).get()"
   JavaRecord fields ->
     let
-      puts = map (\(Tuple k v) -> "__map.put(\"" <> k <> "\", " <> printExpr v <> "); ") fields
+      puts = map (\(Tuple k v) -> "__map.put(\"" <> escapeJavaString k <> "\", " <> printExpr v <> "); ") fields
     in
       "(new java.util.function.Supplier<Object>() { public Object get() { java.util.Map<String, Object> __map = new java.util.LinkedHashMap<>(); " <> String.joinWith "" puts <> " return __map; } }).get()"
+  JavaTypedRecord shape fields -> RecordPrinter.printRecord printExpr shape fields
+  JavaTypedRecordGet shape value prop -> RecordPrinter.printRecordGet printExpr shape value prop
+  JavaTypedRecordUpdate shape value updates -> RecordPrinter.printRecordUpdate printExpr shape value updates
   JavaArray items ->
     "new Object[]{" <> String.joinWith ", " (map printExpr items) <> "}"
   JavaMapGet expr prop ->
-    "((java.util.LinkedHashMap<String, Object>) " <> printExpr expr <> ").get(\"" <> prop <> "\")"
+    "((java.util.Map<String, Object>) " <> printExpr expr <> ").get(\"" <> escapeJavaString prop <> "\")"
   JavaMapUpdate expr updates ->
     let
-      upds = map (\(Tuple prop val) -> "__map.put(\"" <> prop <> "\", " <> printExpr val <> "); ") updates
+      upds = map (\(Tuple prop val) -> "__map.put(\"" <> escapeJavaString prop <> "\", " <> printExpr val <> "); ") updates
     in
-      "(new java.util.function.Supplier<Object>() { public Object get() { java.util.Map<String, Object> __map = new java.util.LinkedHashMap<>((java.util.LinkedHashMap<String, Object>) " <> printExpr expr <> "); " <> String.joinWith "" upds <> " return __map; } }).get()"
+      "(new java.util.function.Supplier<Object>() { public Object get() { java.util.Map<String, Object> __map = new java.util.LinkedHashMap<>((java.util.Map<String, Object>) " <> printExpr expr <> "); " <> String.joinWith "" upds <> " return __map; } }).get()"
   JavaInstanceOf expr className ->
     "(" <> printExpr expr <> " instanceof " <> className <> ")"
   JavaPropertyAccess expr className prop ->

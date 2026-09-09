@@ -58,6 +58,16 @@ rename env s = case _ of
   JavaRecord pairs ->
     let Tuple pairs' s1 = foldl (\(Tuple acc s') (Tuple k v) -> let Tuple v' s'' = rename env s' v in Tuple (Array.snoc acc (Tuple k v')) s'') (Tuple [] s) pairs
     in Tuple (JavaRecord pairs') s1
+  JavaTypedRecord shape pairs ->
+    let Tuple pairs' s1 = foldl (\(Tuple acc s') (Tuple k v) -> let Tuple v' s'' = rename env s' v in Tuple (Array.snoc acc (Tuple k v')) s'') (Tuple [] s) pairs
+    in Tuple (JavaTypedRecord shape pairs') s1
+  JavaTypedRecordGet shape e prop ->
+    let Tuple e' s1 = rename env s e
+    in Tuple (JavaTypedRecordGet shape e' prop) s1
+  JavaTypedRecordUpdate shape e pairs ->
+    let Tuple e' s1 = rename env s e
+        Tuple pairs' s2 = foldl (\(Tuple acc s') (Tuple k v) -> let Tuple v' s'' = rename env s' v in Tuple (Array.snoc acc (Tuple k v')) s'') (Tuple [] s1) pairs
+    in Tuple (JavaTypedRecordUpdate shape e' pairs') s2
   JavaArray args ->
     let Tuple args' s1 = foldl (\(Tuple acc s') arg -> let Tuple arg' s'' = rename env s' arg in Tuple (Array.snoc acc arg') s'') (Tuple [] s) args
     in Tuple (JavaArray args') s1

@@ -89,6 +89,12 @@ spago build --backend javapurs --backend-args "--main App.Main"
 | Option | Description |
 |---|---|
 | `--main <Module>` | *Optional*. Explicitly sets the entrypoint module. Without this flag, `javapurs` automatically targets the `Main` module. |
+| `--records=maps` | Diagnostic option for comparing the Map representation with the default typed records on the same TAST. |
+
+Closed records use immutable classes with final fields, including primitive `int`
+fields. Open or unknown record shapes retain the Map representation. Java FFI
+should access records through `java.util.Map<String, Object>` and copy them before
+mutation; generated records are not necessarily `LinkedHashMap` instances.
 
 ## Local development & testing
 

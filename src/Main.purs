@@ -19,7 +19,10 @@ import Data.List as List
 import Data.Array as Array
 import Data.Newtype (unwrap)
 import Data.String as String
-import Javapurs.CodeGen (translate)
+import Javapurs.CodeGen (translateWithRecords)
+import Javapurs.RecordShapes (recordClassName)
+import Javapurs.RecordPrinter (printRecordShape)
+import Data.Foldable (for_)
 import Node.Process (argv)
 import Javapurs.Printer (printFile, printExpr)
 import Javapurs.CodeGen (sanitizeName)
@@ -27,6 +30,8 @@ import Javapurs.CodeGen (sanitizeName)
 main :: Effect Unit
 main = launchAff_ do
   args <- liftEffect argv
+  -- Reference representation for paired benchmarks under the same TAST/PBO.
+  let typedRecords = not (Array.elem "--records=maps" args)
   let mainModule = case Array.findIndex (_ == "--main") args of
         Just i -> case Array.index args (i + 1) of
           Just m -> m
@@ -58,7 +63,7 @@ main = launchAff_ do
           Nothing -> pure ""
           Just p -> FS.readTextFile UTF8 p
         
-        let javaAst = translate backendMod
+        let javaAst = translateWithRecords typedRecords backendMod
         let foreignIdents = Map.keys backendMod.foreign
         let ffiStubs =
               if String.length ffiContent > 0 then
@@ -77,6 +82,8 @@ main = launchAff_ do
             "\n}\n"
             
         FS.writeTextFile UTF8 ("java_output/" <> safeModName <> ".java") classContent
+        for_ javaAst.recordShapes \shape ->
+          FS.writeTextFile UTF8 ("java_output/" <> recordClassName shape <> ".java") (printRecordShape shape)
         
         let
           tcoLoopCode =
