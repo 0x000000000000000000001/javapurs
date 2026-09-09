@@ -63,7 +63,7 @@ var getFieldOptional$prime = function (decode) {
                     return Data_Bifunctor.lmap(Data_Bifunctor.bifunctorEither)(Data_Argonaut_Decode_Error.AtKey.create(prop))(Data_Functor.map(Data_Either.functorEither)(Data_Maybe.Just.create)(decode(v.value0)));
                 };
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 457, column 3 - line 464, column 51): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 432, column 3 - line 439, column 51): " + [ v.constructor.name ]);
         };
     };
 };
@@ -77,7 +77,7 @@ var getField = function (decode) {
             if (v instanceof Data_Maybe.Just) {
                 return Data_Bifunctor.lmap(Data_Bifunctor.bifunctorEither)(Data_Argonaut_Decode_Error.AtKey.create(prop))(decode(v.value0));
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 449, column 3 - line 453, column 38): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 424, column 3 - line 428, column 38): " + [ v.constructor.name ]);
         };
     };
 };
@@ -148,7 +148,7 @@ var decodeArray = function (decoder) {
                                 ix = ix$prime + 1 | 0;
                                 return Data_Unit.unit;
                             };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 436, column 9 - line 444, column 22): " + [ v1.constructor.name ]);
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 411, column 9 - line 419, column 22): " + [ v1.constructor.name ]);
                         })();
                     };
                     return {};
@@ -156,7 +156,7 @@ var decodeArray = function (decoder) {
                 return res;
             })();
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 419, column 28 - line 445, column 19): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 394, column 28 - line 420, column 19): " + [ v.constructor.name ]);
     };
 };
 var decodeModuleName = /* #__PURE__ */ (function () {
@@ -217,7 +217,7 @@ var decodeInt = function (json) {
         if (v instanceof Data_Maybe.Just) {
             return new Data_Either.Right(v.value0);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 509, column 3 - line 516, column 16): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 484, column 3 - line 491, column 16): " + [ v.constructor.name ]);
     });
 };
 var decodeCodePoint = /* #__PURE__ */ Control_Bind.composeKleisliFlipped(Data_Either.bindEither)(/* #__PURE__ */ (function () {
@@ -242,43 +242,6 @@ var decodeConstraint = function (tt) {
             });
         });
     };
-};
-var decodeConstraintRef = function (j) {
-    return bind(decodeJObject(j))(function (o) {
-        return bind(getField(decodeArray(decodeString))(o)("fqn"))(function (fqn) {
-            return bind(getField(decodeArray(decodeInt))(o)("args"))(function (args) {
-                return Control_Applicative.pure(Data_Either.applicativeEither)({
-                    fqn: fqn,
-                    args: args
-                });
-            });
-        });
-    });
-};
-var decodeField = function (tt) {
-    return function (j) {
-        return bind(decodeJObject(j))(function (o) {
-            return bind(getField(decodeString)(o)("label"))(function (l) {
-                return bind(getField(decodeInt)(o)("type"))(function (tId) {
-                    return bind(Data_Either.note(new Data_Argonaut_Decode_Error.TypeMismatch("FieldType"))(Data_Array.index(tt)(tId)))(function (t) {
-                        return Control_Applicative.pure(Data_Either.applicativeEither)(new Data_Tuple.Tuple(l, t));
-                    });
-                });
-            });
-        });
-    };
-};
-var decodeFieldRef = function (j) {
-    return bind(decodeJObject(j))(function (o) {
-        return bind(getField(decodeString)(o)("label"))(function (label) {
-            return bind(getField(decodeInt)(o)("type"))(function (typeId) {
-                return Control_Applicative.pure(Data_Either.applicativeEither)({
-                    label: label,
-                    typeId: typeId
-                });
-            });
-        });
-    });
 };
 var decodeMeta = function (json) {
     return bind(decodeJObject(json))(function (obj) {
@@ -322,7 +285,7 @@ var decodeAnn = function (typeTable) {
                             if (typeId instanceof Data_Maybe.Nothing) {
                                 return Data_Maybe.Nothing.value;
                             };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 178, column 15 - line 180, column 35): " + [ typeId.constructor.name ]);
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 153, column 15 - line 155, column 35): " + [ typeId.constructor.name ]);
                         })();
                         return Data_Function.apply(pure2)({
                             span: PureScript_Backend_Optimizer_CoreFn.emptySpan,
@@ -757,7 +720,7 @@ var decodeModule$prime = function (decodeAnn$prime) {
                                                                 if (v1 instanceof Data_Maybe.Nothing) {
                                                                     return Control_Applicative.pure(Data_Either.applicativeEither)(new Data_Tuple.Tuple(v, Data_Maybe.Nothing.value));
                                                                 };
-                                                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 239, column 5 - line 244, column 35): " + [ v1.constructor.name ]);
+                                                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.Json (line 214, column 5 - line 219, column 35): " + [ v1.constructor.name ]);
                                                             })(foreign_arr))(function (foreign_list) {
                                                                 var foreignMap = Data_Map_Internal.fromFoldable(PureScript_Backend_Optimizer_CoreFn.ordIdent)(Data_Foldable.foldableArray)(foreign_list);
                                                                 return bind(getField(decodeArray(decodeComment))(obj)("comments"))(function (comments) {

@@ -78,11 +78,11 @@ var buildModules = function (dictMonad) {
                                         })(v1.value1);
                                     });
                                 };
-                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 70, column 5 - line 114, column 27): " + [ mbCachedMod.constructor.name ]);
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 66, column 5 - line 110, column 27): " + [ mbCachedMod.constructor.name ]);
                             });
                         });
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 60, column 3 - line 60, column 24): " + [ v.constructor.name, v1.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 56, column 3 - line 56, column 24): " + [ v.constructor.name, v1.constructor.name ]);
                 };
             };
             return Data_Function.apply($$void)(go({

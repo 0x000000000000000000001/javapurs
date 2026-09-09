@@ -58,9 +58,6 @@ var paramTypes = function (v) {
             };
         })(paramTypes(v.value1.value0))(Data_Array_NonEmpty.toArray(v.value1.value1));
     };
-    if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.TypeApp) {
-        return paramTypes(v.value1.value0);
-    };
     if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Abs) {
         return paramTypes(v.value1.value1);
     };
@@ -137,7 +134,7 @@ var paramTypes = function (v) {
         if (v.value1.value0 instanceof PureScript_Backend_Optimizer_Syntax.Op2) {
             return Data_Map_Internal.union(Data_Ord.ordString)(paramTypes(v.value1.value0.value1))(paramTypes(v.value1.value0.value2));
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.FreeVars (line 149, column 16 - line 151, column 61): " + [ v.value1.value0.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.FreeVars (line 147, column 16 - line 149, column 61): " + [ v.value1.value0.constructor.name ]);
     };
     if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.PrimEffect) {
         return Data_Map_Internal.empty;
@@ -148,7 +145,7 @@ var paramTypes = function (v) {
     if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Fail) {
         return Data_Map_Internal.empty;
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.FreeVars (line 121, column 31 - line 154, column 22): " + [ v.value1.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.FreeVars (line 120, column 31 - line 152, column 22): " + [ v.value1.constructor.name ]);
 };
 var localId = function (v) {
     return function (v1) {
@@ -312,10 +309,7 @@ var freeVars = function (v) {
     if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Typed) {
         return freeVars(v.value1.value1);
     };
-    if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.TypeApp) {
-        return freeVars(v.value1.value0);
-    };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.FreeVars (line 53, column 31 - line 118, column 28): " + [ v.value1.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.FreeVars (line 53, column 31 - line 117, column 26): " + [ v.value1.constructor.name ]);
 };
 export {
     sanitizeName,

@@ -62,7 +62,7 @@ var readCoreFnModule = function (filePath) {
                     if (v instanceof Data_Either.Right) {
                         return Control_Applicative.pure(Effect_Aff.applicativeAff)(new Data_Maybe.Just(v.value0));
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 49, column 9 - line 53, column 39): " + [ v.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 48, column 9 - line 52, column 39): " + [ v.constructor.name ]);
                 });
             };
             return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
@@ -79,7 +79,7 @@ var readCoreFnModule = function (filePath) {
                 return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
             });
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 45, column 3 - line 61, column 19): " + [ statRes.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 44, column 3 - line 60, column 19): " + [ statRes.constructor.name ]);
     });
 };
 var parseCLIArgs = function (argsRaw) {
@@ -94,7 +94,7 @@ var parseCLIArgs = function (argsRaw) {
         if (v instanceof Data_Maybe.Nothing) {
             return Data_Maybe.Nothing.value;
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 92, column 18 - line 94, column 25): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 91, column 18 - line 93, column 25): " + [ v.constructor.name ]);
     };
     return {
         mbMainModule: getArg("--main"),
@@ -144,7 +144,7 @@ var checkCache = function (version) {
                             if (cacheContentRes instanceof Data_Either.Left) {
                                 return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
                             };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 119, column 7 - line 121, column 31): " + [ cacheContentRes.constructor.name ]);
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 118, column 7 - line 120, column 31): " + [ cacheContentRes.constructor.name ]);
                         });
                     };
                     return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
