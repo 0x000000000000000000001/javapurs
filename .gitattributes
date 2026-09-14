@@ -23,3 +23,7 @@ bin/javapurs.js linguist-generated
 *.java linguist-vendored=false
 bin/* linguist-detectable=false
 bin/* linguist-vendored
+*.mjs linguist-detectable=false
+*.mjs linguist-vendored
+*.cjs linguist-detectable=false
+*.cjs linguist-vendored
