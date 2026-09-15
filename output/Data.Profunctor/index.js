@@ -5,12 +5,14 @@ var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.catego
 var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var wrap = /* #__PURE__ */ Data_Newtype.wrap();
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
+var wrap1 = /* #__PURE__ */ Data_Newtype.wrap();
 var profunctorFn = {
     dimap: function (a2b) {
         return function (c2d) {
             return function (b2c) {
-                return function ($13) {
-                    return c2d(b2c(a2b($13)));
+                return function ($15) {
+                    return c2d(b2c(a2b($15)));
                 };
             };
         };
@@ -37,7 +39,7 @@ var unwrapIso = function (dictProfunctor) {
 var wrapIso = function (dictProfunctor) {
     return function () {
         return function (v) {
-            return dimap(dictProfunctor)(unwrap)(wrap);
+            return dimap(dictProfunctor)(unwrap1)(wrap1);
         };
     };
 };

@@ -4,15 +4,16 @@ import * as Control_Monad_State_Trans from "../Control.Monad.State.Trans/index.j
 import * as Data_Identity from "../Data.Identity/index.js";
 import * as Data_Newtype from "../Data.Newtype/index.js";
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
 var withState = Control_Monad_State_Trans.withStateT;
 var runState = function (v) {
-    return function ($17) {
-        return unwrap(v($17));
+    return function ($18) {
+        return unwrap(v($18));
     };
 };
 var mapState = function (f) {
-    return Control_Monad_State_Trans.mapStateT(function ($18) {
-        return Data_Identity.Identity(f(unwrap($18)));
+    return Control_Monad_State_Trans.mapStateT(function ($19) {
+        return Data_Identity.Identity(f(unwrap1($19)));
     });
 };
 var execState = function (v) {

@@ -47,22 +47,36 @@ var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
 var unwrap2 = /* #__PURE__ */ Data_Newtype.unwrap();
 var unwrap3 = /* #__PURE__ */ Data_Newtype.unwrap();
 var unwrap4 = /* #__PURE__ */ Data_Newtype.unwrap();
-var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var fromFoldable = /* #__PURE__ */ Data_Array.fromFoldable(Data_List_Types.foldableList);
 var unwrap5 = /* #__PURE__ */ Data_Newtype.unwrap();
+var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var unwrap6 = /* #__PURE__ */ Data_Newtype.unwrap();
 var unwrap7 = /* #__PURE__ */ Data_Newtype.unwrap();
 var unwrap8 = /* #__PURE__ */ Data_Newtype.unwrap();
+var fromFoldable = /* #__PURE__ */ Data_Array.fromFoldable(Data_List_Types.foldableList);
+var unwrap9 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap10 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap11 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap12 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap13 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap14 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap15 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap16 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap17 = /* #__PURE__ */ Data_Newtype.unwrap();
+var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
+var unwrap18 = /* #__PURE__ */ Data_Newtype.unwrap();
+var identity2 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
+var unwrap19 = /* #__PURE__ */ Data_Newtype.unwrap();
+var identity3 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var unfolded = function (dictMonoid) {
     var Semigroup0 = dictMonoid.Semigroup0();
     return function (f) {
         return function (p) {
             var $lazy_go = $runtime_lazy("go", "Data.Lens.Fold", function () {
-                var $69 = Data_Maybe.maybe(Data_Monoid.mempty(dictMonoid))(function (v) {
+                var $83 = Data_Maybe.maybe(Data_Monoid.mempty(dictMonoid))(function (v) {
                     return Data_Semigroup.append(Semigroup0)(Data_Newtype.unwrap()(p)(v.value0))($lazy_go(232)(v.value1));
                 });
-                return function ($70) {
-                    return $69(f($70));
+                return function ($84) {
+                    return $83(f($84));
                 };
             });
             var go = $lazy_go(232);
@@ -95,15 +109,15 @@ var ifoldMapOf = function (p) {
 var ifoldlOf = function (p) {
     return function (f) {
         return function (r) {
-            var $71 = Data_Function.flip(unwrap1)(r);
-            var $72 = ifoldMapOf(p)(function (i) {
-                var $74 = Data_Function.flip(f(i));
-                return function ($75) {
-                    return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($74($75)));
+            var $85 = Data_Function.flip(unwrap1)(r);
+            var $86 = ifoldMapOf(p)(function (i) {
+                var $88 = Data_Function.flip(f(i));
+                return function ($89) {
+                    return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($88($89)));
                 };
             });
-            return function ($73) {
-                return $71(unwrap2($72($73)));
+            return function ($87) {
+                return $85(unwrap2($86($87)));
             };
         };
     };
@@ -111,15 +125,15 @@ var ifoldlOf = function (p) {
 var ifoldrOf = function (p) {
     return function (f) {
         return function (r) {
-            var $76 = Data_Function.flip(unwrap3)(r);
-            var $77 = ifoldMapOf(p)(function (i) {
-                var $79 = f(i);
-                return function ($80) {
-                    return Data_Monoid_Endo.Endo($79($80));
+            var $90 = Data_Function.flip(unwrap3)(r);
+            var $91 = ifoldMapOf(p)(function (i) {
+                var $93 = f(i);
+                return function ($94) {
+                    return Data_Monoid_Endo.Endo($93($94));
                 };
             });
-            return function ($78) {
-                return $76($77($78));
+            return function ($92) {
+                return $90($91($92));
             };
         };
     };
@@ -149,9 +163,9 @@ var itraverseOf_ = function (dictApplicative) {
     };
 };
 var iforOf_ = function (dictApplicative) {
-    var $81 = itraverseOf_(dictApplicative);
-    return function ($82) {
-        return Data_Function.flip($81($82));
+    var $95 = itraverseOf_(dictApplicative);
+    return function ($96) {
+        return Data_Function.flip($95($96));
     };
 };
 var ifindOf = function (p) {
@@ -159,8 +173,8 @@ var ifindOf = function (p) {
         return ifoldrOf(p)(function (i) {
             return function (a) {
                 return Data_Maybe.maybe((function () {
-                    var $63 = f(i)(a);
-                    if ($63) {
+                    var $77 = f(i)(a);
+                    if ($77) {
                         return new Data_Maybe.Just(a);
                     };
                     return Data_Maybe.Nothing.value;
@@ -172,14 +186,14 @@ var ifindOf = function (p) {
 var ianyOf = function (dictHeytingAlgebra) {
     return function (p) {
         return function (f) {
-            var $83 = ifoldMapOf(p)(function (i) {
-                var $85 = f(i);
-                return function ($86) {
-                    return Data_Monoid_Disj.Disj($85($86));
+            var $97 = ifoldMapOf(p)(function (i) {
+                var $99 = f(i);
+                return function ($100) {
+                    return Data_Monoid_Disj.Disj($99($100));
                 };
             });
-            return function ($84) {
-                return unwrap4($83($84));
+            return function ($98) {
+                return unwrap4($97($98));
             };
         };
     };
@@ -187,14 +201,14 @@ var ianyOf = function (dictHeytingAlgebra) {
 var iallOf = function (dictHeytingAlgebra) {
     return function (p) {
         return function (f) {
-            var $87 = ifoldMapOf(p)(function (i) {
-                var $89 = f(i);
-                return function ($90) {
-                    return Data_Monoid_Conj.Conj($89($90));
+            var $101 = ifoldMapOf(p)(function (i) {
+                var $103 = f(i);
+                return function ($104) {
+                    return Data_Monoid_Conj.Conj($103($104));
                 };
             });
-            return function ($88) {
-                return unwrap4($87($88));
+            return function ($102) {
+                return unwrap5($101($102));
             };
         };
     };
@@ -213,15 +227,15 @@ var foldOf = function (p) {
 var foldlOf = function (p) {
     return function (f) {
         return function (r) {
-            var $91 = Data_Function.flip(unwrap1)(r);
-            var $92 = foldMapOf(p)((function () {
-                var $94 = Data_Function.flip(f);
-                return function ($95) {
-                    return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($94($95)));
+            var $105 = Data_Function.flip(unwrap6)(r);
+            var $106 = foldMapOf(p)((function () {
+                var $108 = Data_Function.flip(f);
+                return function ($109) {
+                    return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($108($109)));
                 };
             })());
-            return function ($93) {
-                return $91(unwrap2($92($93)));
+            return function ($107) {
+                return $105(unwrap7($106($107)));
             };
         };
     };
@@ -229,12 +243,12 @@ var foldlOf = function (p) {
 var foldrOf = function (p) {
     return function (f) {
         return function (r) {
-            var $96 = Data_Function.flip(unwrap3)(r);
-            var $97 = foldMapOf(p)(function ($99) {
-                return Data_Monoid_Endo.Endo(f($99));
+            var $110 = Data_Function.flip(unwrap8)(r);
+            var $111 = foldMapOf(p)(function ($113) {
+                return Data_Monoid_Endo.Endo(f($113));
             });
-            return function ($98) {
-                return $96($97($98));
+            return function ($112) {
+                return $110($111($112));
             };
         };
     };
@@ -243,17 +257,17 @@ var maximumOf = function (dictOrd) {
     return function (p) {
         var max = function (a) {
             return function (b) {
-                var $65 = Data_Ord.greaterThan(dictOrd)(a)(b);
-                if ($65) {
+                var $79 = Data_Ord.greaterThan(dictOrd)(a)(b);
+                if ($79) {
                     return a;
                 };
                 return b;
             };
         };
         return foldrOf(p)(function (a) {
-            var $100 = Data_Maybe.maybe(a)(max(a));
-            return function ($101) {
-                return Data_Maybe.Just.create($100($101));
+            var $114 = Data_Maybe.maybe(a)(max(a));
+            return function ($115) {
+                return Data_Maybe.Just.create($114($115));
             };
         })(Data_Maybe.Nothing.value);
     };
@@ -262,17 +276,17 @@ var minimumOf = function (dictOrd) {
     return function (p) {
         var min = function (a) {
             return function (b) {
-                var $66 = Data_Ord.lessThan(dictOrd)(a)(b);
-                if ($66) {
+                var $80 = Data_Ord.lessThan(dictOrd)(a)(b);
+                if ($80) {
                     return a;
                 };
                 return b;
             };
         };
         return foldrOf(p)(function (a) {
-            var $102 = Data_Maybe.maybe(a)(min(a));
-            return function ($103) {
-                return Data_Maybe.Just.create($102($103));
+            var $116 = Data_Maybe.maybe(a)(min(a));
+            return function ($117) {
+                return Data_Maybe.Just.create($116($117));
             };
         })(Data_Maybe.Nothing.value);
     };
@@ -281,9 +295,9 @@ var toListOf = function (p) {
     return foldrOf(p)(Data_List_Types.Cons.create)(Data_List_Types.Nil.value);
 };
 var toArrayOf = function (p) {
-    var $104 = toListOf(p);
-    return function ($105) {
-        return fromFoldable($104($105));
+    var $118 = toListOf(p);
+    return function ($119) {
+        return fromFoldable($118($119));
     };
 };
 var toArrayOfOn = function (s) {
@@ -311,40 +325,40 @@ var traverseOf_ = function (dictApplicative) {
 };
 var has = function (dictHeytingAlgebra) {
     return function (p) {
-        var $106 = foldMapOf(p)(Data_Function["const"](Data_HeytingAlgebra.tt(dictHeytingAlgebra)));
-        return function ($107) {
-            return unwrap4($106($107));
+        var $120 = foldMapOf(p)(Data_Function["const"](Data_HeytingAlgebra.tt(dictHeytingAlgebra)));
+        return function ($121) {
+            return unwrap9($120($121));
         };
     };
 };
 var hasn$primet = function (dictHeytingAlgebra) {
     return function (p) {
-        var $108 = foldMapOf(p)(Data_Function["const"](Data_HeytingAlgebra.ff(dictHeytingAlgebra)));
-        return function ($109) {
-            return unwrap4($108($109));
+        var $122 = foldMapOf(p)(Data_Function["const"](Data_HeytingAlgebra.ff(dictHeytingAlgebra)));
+        return function ($123) {
+            return unwrap10($122($123));
         };
     };
 };
 var lastOf = function (p) {
-    var $110 = foldMapOf(p)(function ($112) {
-        return Data_Maybe_Last.Last(Data_Maybe.Just.create($112));
+    var $124 = foldMapOf(p)(function ($126) {
+        return Data_Maybe_Last.Last(Data_Maybe.Just.create($126));
     });
-    return function ($111) {
-        return unwrap5($110($111));
+    return function ($125) {
+        return unwrap11($124($125));
     };
 };
 var lengthOf = function (p) {
-    var $113 = foldMapOf(p)(Data_Function.apply(Data_Function["const"])(1));
-    return function ($114) {
-        return unwrap6($113($114));
+    var $127 = foldMapOf(p)(Data_Function.apply(Data_Function["const"])(1));
+    return function ($128) {
+        return unwrap12($127($128));
     };
 };
 var preview = function (p) {
-    var $115 = foldMapOf(p)(function ($117) {
-        return Data_Maybe_First.First(Data_Maybe.Just.create($117));
+    var $129 = foldMapOf(p)(function ($131) {
+        return Data_Maybe_First.First(Data_Maybe.Just.create($131));
     });
-    return function ($116) {
-        return unwrap5($115($116));
+    return function ($130) {
+        return unwrap13($129($130));
     };
 };
 var previewOn = function (s) {
@@ -354,48 +368,48 @@ var previewOn = function (s) {
 };
 var productOf = function (dictSemiring) {
     return function (p) {
-        var $118 = foldMapOf(p)(Data_Monoid_Multiplicative.Multiplicative);
-        return function ($119) {
-            return unwrap7($118($119));
+        var $132 = foldMapOf(p)(Data_Monoid_Multiplicative.Multiplicative);
+        return function ($133) {
+            return unwrap14($132($133));
         };
     };
 };
 var sequenceOf_ = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
     return function (p) {
-        var $120 = Data_Function.flip(unwrap8)(Control_Applicative.pure(dictApplicative)(Data_Unit.unit));
-        var $121 = foldMapOf(p)(function (f) {
+        var $134 = Data_Function.flip(unwrap15)(Control_Applicative.pure(dictApplicative)(Data_Unit.unit));
+        var $135 = foldMapOf(p)(function (f) {
             return function (v) {
                 return Control_Apply.applySecond(Apply0)(f)(v);
             };
         });
-        return function ($122) {
-            return $120($121($122));
+        return function ($136) {
+            return $134($135($136));
         };
     };
 };
 var sumOf = function (dictSemiring) {
     return function (p) {
-        var $123 = foldMapOf(p)(Data_Monoid_Additive.Additive);
-        return function ($124) {
-            return unwrap7($123($124));
+        var $137 = foldMapOf(p)(Data_Monoid_Additive.Additive);
+        return function ($138) {
+            return unwrap16($137($138));
         };
     };
 };
 var firstOf = function (p) {
-    var $125 = foldMapOf(p)(function ($127) {
-        return Data_Maybe_First.First(Data_Maybe.Just.create($127));
+    var $139 = foldMapOf(p)(function ($141) {
+        return Data_Maybe_First.First(Data_Maybe.Just.create($141));
     });
-    return function ($126) {
-        return unwrap5($125($126));
+    return function ($140) {
+        return unwrap17($139($140));
     };
 };
 var findOf = function (p) {
     return function (f) {
         return foldrOf(p)(function (a) {
             return Data_Maybe.maybe((function () {
-                var $67 = f(a);
-                if ($67) {
+                var $81 = f(a);
+                if ($81) {
                     return new Data_Maybe.Just(a);
                 };
                 return Data_Maybe.Nothing.value;
@@ -407,26 +421,26 @@ var filtered = function (dictChoice) {
     var right = Data_Profunctor_Choice.right(dictChoice);
     var Profunctor0 = dictChoice.Profunctor0();
     return function (f) {
-        var $128 = Data_Profunctor.dimap(Profunctor0)(function (x) {
-            var $68 = f(x);
-            if ($68) {
+        var $142 = Data_Profunctor.dimap(Profunctor0)(function (x) {
+            var $82 = f(x);
+            if ($82) {
                 return new Data_Either.Right(x);
             };
             return new Data_Either.Left(x);
-        })(Data_Either.either(identity)(identity));
-        return function ($129) {
-            return $128(right($129));
+        })(Data_Either.either(identity1)(identity1));
+        return function ($143) {
+            return $142(right($143));
         };
     };
 };
 var anyOf = function (dictHeytingAlgebra) {
     return function (p) {
         return function (f) {
-            var $130 = foldMapOf(p)(function ($132) {
-                return Data_Monoid_Disj.Disj(f($132));
+            var $144 = foldMapOf(p)(function ($146) {
+                return Data_Monoid_Disj.Disj(f($146));
             });
-            return function ($131) {
-                return unwrap4($130($131));
+            return function ($145) {
+                return unwrap18($144($145));
             };
         };
     };
@@ -442,24 +456,24 @@ var elemOf = function (dictEq) {
 };
 var orOf = function (dictHeytingAlgebra) {
     return function (p) {
-        return anyOf(dictHeytingAlgebra)(p)(identity);
+        return anyOf(dictHeytingAlgebra)(p)(identity2);
     };
 };
 var allOf = function (dictHeytingAlgebra) {
     return function (p) {
         return function (f) {
-            var $133 = foldMapOf(p)(function ($135) {
-                return Data_Monoid_Conj.Conj(f($135));
+            var $147 = foldMapOf(p)(function ($149) {
+                return Data_Monoid_Conj.Conj(f($149));
             });
-            return function ($134) {
-                return unwrap4($133($134));
+            return function ($148) {
+                return unwrap19($147($148));
             };
         };
     };
 };
 var andOf = function (dictHeytingAlgebra) {
     return function (p) {
-        return allOf(dictHeytingAlgebra)(p)(identity);
+        return allOf(dictHeytingAlgebra)(p)(identity3);
     };
 };
 var notElemOf = function (dictEq) {

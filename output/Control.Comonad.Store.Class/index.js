@@ -24,18 +24,18 @@ var peeks = function (dictComonadStore) {
 var seeks = function (dictComonadStore) {
     var duplicate = Control_Extend.duplicate((dictComonadStore.Comonad0()).Extend0());
     return function (f) {
-        var $40 = peeks(dictComonadStore)(f);
-        return function ($41) {
-            return $40(duplicate($41));
+        var $42 = peeks(dictComonadStore)(f);
+        return function ($43) {
+            return $42(duplicate($43));
         };
     };
 };
 var seek = function (dictComonadStore) {
     var duplicate = Control_Extend.duplicate((dictComonadStore.Comonad0()).Extend0());
     return function (s) {
-        var $42 = peek(dictComonadStore)(s);
-        return function ($43) {
-            return $42(duplicate($43));
+        var $44 = peek(dictComonadStore)(s);
+        return function ($45) {
+            return $44(duplicate($45));
         };
     };
 };
@@ -54,16 +54,20 @@ var comonadStoreTracedT = function (dictComonadStore) {
     var Comonad0 = dictComonadStore.Comonad0();
     var comonadTracedT = Control_Comonad_Traced_Trans.comonadTracedT(Comonad0);
     return function (dictMonoid) {
-        var lower1 = Control_Comonad_Trans_Class.lower(Control_Comonad_Traced_Trans.comonadTransTracedT(dictMonoid))(Comonad0);
+        var lower1 = Control_Comonad_Trans_Class.lower(Control_Comonad_Traced_Trans.comonadTransTracedT(dictMonoid));
+        var lower2 = lower1(Comonad0);
         var comonadTracedT1 = comonadTracedT(dictMonoid);
         return {
-            pos: function ($44) {
-                return pos1(lower1($44));
-            },
+            pos: (function () {
+                var $46 = lower1(Comonad0);
+                return function ($47) {
+                    return pos1($46($47));
+                };
+            })(),
             peek: function (s) {
-                var $45 = peek(dictComonadStore)(s);
-                return function ($46) {
-                    return $45(lower1($46));
+                var $48 = peek(dictComonadStore)(s);
+                return function ($49) {
+                    return $48(lower2($49));
                 };
             },
             Comonad0: function () {
@@ -94,15 +98,16 @@ var comonadStoreEnvT = function (dictComonadStore) {
     var comonadEnvT = Control_Comonad_Env_Trans.comonadEnvT(Comonad0);
     return {
         pos: (function () {
-            var $47 = pos(dictComonadStore);
-            return function ($48) {
-                return $47(lower1($48));
+            var $50 = pos(dictComonadStore);
+            var $51 = lower(Comonad0);
+            return function ($52) {
+                return $50($51($52));
             };
         })(),
         peek: function (s) {
-            var $49 = peek(dictComonadStore)(s);
-            return function ($50) {
-                return $49(lower1($50));
+            var $53 = peek(dictComonadStore)(s);
+            return function ($54) {
+                return $53(lower1($54));
             };
         },
         Comonad0: function () {

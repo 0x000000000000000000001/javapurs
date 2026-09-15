@@ -14,6 +14,7 @@ import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
+var identity2 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var JoinWith = function (x) {
     return x;
 };
@@ -74,8 +75,8 @@ var maximumBy = function (dictFoldable1) {
     return function (cmp) {
         return foldl1(dictFoldable1)(function (x) {
             return function (y) {
-                var $92 = Data_Eq.eq(Data_Ordering.eqOrdering)(cmp(x)(y))(Data_Ordering.GT.value);
-                if ($92) {
+                var $93 = Data_Eq.eq(Data_Ordering.eqOrdering)(cmp(x)(y))(Data_Ordering.GT.value);
+                if ($93) {
                     return x;
                 };
                 return y;
@@ -87,8 +88,8 @@ var minimumBy = function (dictFoldable1) {
     return function (cmp) {
         return foldl1(dictFoldable1)(function (x) {
             return function (y) {
-                var $93 = Data_Eq.eq(Data_Ordering.eqOrdering)(cmp(x)(y))(Data_Ordering.LT.value);
-                if ($93) {
+                var $94 = Data_Eq.eq(Data_Ordering.eqOrdering)(cmp(x)(y))(Data_Ordering.LT.value);
+                if ($94) {
                     return x;
                 };
                 return y;
@@ -201,10 +202,10 @@ var foldMap1DefaultR = function (dictFoldable1) {
         return function (dictSemigroup) {
             var append = Data_Semigroup.append(dictSemigroup);
             return function (f) {
-                var $131 = foldr1(dictFoldable1)(append);
-                var $132 = Data_Functor.map(dictFunctor)(f);
-                return function ($133) {
-                    return $131($132($133));
+                var $132 = foldr1(dictFoldable1)(append);
+                var $133 = Data_Functor.map(dictFunctor)(f);
+                return function ($134) {
+                    return $132($133($134));
                 };
             };
         };
@@ -215,10 +216,10 @@ var foldMap1DefaultL = function (dictFoldable1) {
         return function (dictSemigroup) {
             var append = Data_Semigroup.append(dictSemigroup);
             return function (f) {
-                var $134 = foldl1(dictFoldable1)(append);
-                var $135 = Data_Functor.map(dictFunctor)(f);
-                return function ($136) {
-                    return $134($135($136));
+                var $135 = foldl1(dictFoldable1)(append);
+                var $136 = Data_Functor.map(dictFunctor)(f);
+                return function ($137) {
+                    return $135($136($137));
                 };
             };
         };
@@ -228,21 +229,21 @@ var foldMap1 = function (dict) {
     return dict.foldMap1;
 };
 var foldl1Default = function (dictFoldable1) {
-    var $137 = Data_Function.flip((function () {
-        var $139 = Data_Newtype.alaF()()()()(Data_Monoid_Dual.Dual)(foldMap1(dictFoldable1)(semigroupDual))(mkFoldRight1);
-        return function ($140) {
-            return runFoldRight1($139($140));
+    var $138 = Data_Function.flip((function () {
+        var $140 = Data_Newtype.alaF()()()()(Data_Monoid_Dual.Dual)(foldMap1(dictFoldable1)(semigroupDual))(mkFoldRight1);
+        return function ($141) {
+            return runFoldRight1($140($141));
         };
     })());
-    return function ($138) {
-        return $137(Data_Function.flip($138));
+    return function ($139) {
+        return $138(Data_Function.flip($139));
     };
 };
 var foldr1Default = function (dictFoldable1) {
     return Data_Function.flip((function () {
-        var $141 = foldMap1(dictFoldable1)(foldRight1Semigroup)(mkFoldRight1);
-        return function ($142) {
-            return runFoldRight1($141($142));
+        var $142 = foldMap1(dictFoldable1)(foldRight1Semigroup)(mkFoldRight1);
+        return function ($143) {
+            return runFoldRight1($142($143));
         };
     })());
 };
@@ -252,8 +253,8 @@ var intercalateMap = function (dictFoldable1) {
         return function (j) {
             return function (f) {
                 return function (foldable) {
-                    return joinee(foldMap1(dictFoldable1)(semigroupJoinWith1)(function ($143) {
-                        return JoinWith(Data_Function["const"](f($143)));
+                    return joinee(foldMap1(dictFoldable1)(semigroupJoinWith1)(function ($144) {
+                        return JoinWith(Data_Function["const"](f($144)));
                     })(foldable))(j);
                 };
             };
@@ -284,8 +285,8 @@ var traverse1_ = function (dictFoldable1) {
         var semigroupAct1 = semigroupAct(dictApply);
         return function (f) {
             return function (t) {
-                return Data_Functor.voidRight(Functor0)(Data_Unit.unit)(getAct(foldMap1(dictFoldable1)(semigroupAct1)(function ($144) {
-                    return Act(f($144));
+                return Data_Functor.voidRight(Functor0)(Data_Unit.unit)(getAct(foldMap1(dictFoldable1)(semigroupAct1)(function ($145) {
+                    return Act(f($145));
                 })(t)));
             };
         };
@@ -304,7 +305,7 @@ var sequence1_ = function (dictFoldable1) {
 };
 var fold1 = function (dictFoldable1) {
     return function (dictSemigroup) {
-        return foldMap1(dictFoldable1)(dictSemigroup)(identity);
+        return foldMap1(dictFoldable1)(dictSemigroup)(identity2);
     };
 };
 export {

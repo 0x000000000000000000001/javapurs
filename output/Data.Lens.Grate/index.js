@@ -9,6 +9,7 @@ import * as Data_Profunctor from "../Data.Profunctor/index.js";
 import * as Data_Profunctor_Closed from "../Data.Profunctor.Closed/index.js";
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
+var identity2 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var zipWithOf = function (g) {
     return function (f) {
         return Data_Newtype.unwrap()(g(f));
@@ -42,10 +43,10 @@ var cotraversed = function (dictDistributive) {
 var collectOf = function (dictFunctor) {
     return function (g) {
         return function (f) {
-            var $8 = zipFWithOf(g)(identity1);
-            var $9 = Data_Functor.map(dictFunctor)(f);
-            return function ($10) {
-                return $8($9($10));
+            var $9 = zipFWithOf(g)(identity2);
+            var $10 = Data_Functor.map(dictFunctor)(f);
+            return function ($11) {
+                return $9($10($11));
             };
         };
     };

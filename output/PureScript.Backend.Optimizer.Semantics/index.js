@@ -1193,16 +1193,16 @@ var simplifyCondIsTag = function (v) {
                 if (Data_Boolean.otherwise) {
                     return Data_Maybe.Nothing.value;
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1675, column 1 - line 1675, column 81): " + [ v.constructor.name, v1.constructor.name, def.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1695, column 1 - line 1695, column 81): " + [ v.constructor.name, v1.constructor.name, def.constructor.name ]);
             };
-            var $739 = untypedExpr(v1.value0);
-            if ($739 instanceof ExprSyntax && ($739.value1 instanceof PureScript_Backend_Optimizer_Syntax.PrimOp && ($739.value1.value0 instanceof PureScript_Backend_Optimizer_Syntax.Op1 && $739.value1.value0.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIsTag))) {
-                var $740 = untypedExpr(v1.value1);
-                if ($740 instanceof ExprSyntax && ($740.value1 instanceof PureScript_Backend_Optimizer_Syntax.Lit && ($740.value1.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && !$740.value1.value0.value0))) {
-                    var $741 = untypedExpr(def);
-                    if ($741 instanceof ExprSyntax && ($741.value1 instanceof PureScript_Backend_Optimizer_Syntax.PrimOp && ($741.value1.value0 instanceof PureScript_Backend_Optimizer_Syntax.Op1 && $741.value1.value0.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIsTag))) {
-                        var $742 = Data_Eq.eq(eqBackendExpr)($739.value1.value0.value1)($741.value1.value0.value1);
-                        if ($742) {
+            var $744 = untypedExpr(v1.value0);
+            if ($744 instanceof ExprSyntax && ($744.value1 instanceof PureScript_Backend_Optimizer_Syntax.PrimOp && ($744.value1.value0 instanceof PureScript_Backend_Optimizer_Syntax.Op1 && $744.value1.value0.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIsTag))) {
+                var $745 = untypedExpr(v1.value1);
+                if ($745 instanceof ExprSyntax && ($745.value1 instanceof PureScript_Backend_Optimizer_Syntax.Lit && ($745.value1.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && !$745.value1.value0.value0))) {
+                    var $746 = untypedExpr(def);
+                    if ($746 instanceof ExprSyntax && ($746.value1 instanceof PureScript_Backend_Optimizer_Syntax.PrimOp && ($746.value1.value0 instanceof PureScript_Backend_Optimizer_Syntax.Op1 && $746.value1.value0.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIsTag))) {
+                        var $747 = Data_Eq.eq(eqBackendExpr)($744.value1.value0.value1)($746.value1.value0.value1);
+                        if ($747) {
                             return new Data_Maybe.Just(def);
                         };
                         return v2(true);
@@ -1224,12 +1224,12 @@ var shouldUnpackUpdate = function (ident) {
                     return Data_Maybe.Nothing.value;
                 };
                 if (binding instanceof ExprSyntax && binding.value1 instanceof PureScript_Backend_Optimizer_Syntax.Update) {
-                    var $763 = Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Syntax.ordLevel)(level)(v.usages);
-                    if ($763 instanceof Data_Maybe.Just) {
-                        var $764 = $763.value0.total === ($763.value0.access + $763.value0.update | 0);
-                        if ($764) {
-                            var analysis = Data_Function.apply(PureScript_Backend_Optimizer_Analysis.updated(level))(Data_Semigroup.append(PureScript_Backend_Optimizer_Analysis.semigroupBackendAnalysis)(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(binding.value1.value0))(Data_Foldable.foldr(Data_Foldable.foldableArray)(function ($2485) {
-                                return append(analysisOf(PureScript_Backend_Optimizer_CoreFn.propValue($2485)));
+                    var $768 = Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Syntax.ordLevel)(level)(v.usages);
+                    if ($768 instanceof Data_Maybe.Just) {
+                        var $769 = $768.value0.total === ($768.value0.access + $768.value0.update | 0);
+                        if ($769) {
+                            var analysis = Data_Function.apply(PureScript_Backend_Optimizer_Analysis.updated(level))(Data_Semigroup.append(PureScript_Backend_Optimizer_Analysis.semigroupBackendAnalysis)(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(binding.value1.value0))(Data_Foldable.foldr(Data_Foldable.foldableArray)(function ($2520) {
+                                return append(analysisOf(PureScript_Backend_Optimizer_CoreFn.propValue($2520)));
                             })(PureScript_Backend_Optimizer_Analysis.complex(PureScript_Backend_Optimizer_Analysis.NonTrivial.value)(PureScript_Backend_Optimizer_Analysis.bound(level)(v)))(binding.value1.value1)));
                             return Data_Function.apply(Data_Maybe.Just.create)(Data_Function.apply(ExprRewrite.create(PureScript_Backend_Optimizer_Analysis.withRewrite(analysis)))(new RewriteUnpackOp(ident, level, new UnpackUpdate(binding.value1.value0, binding.value1.value1), body)));
                         };
@@ -1251,12 +1251,12 @@ var shouldUnpackRecord = function (ident) {
                     return Data_Maybe.Nothing.value;
                 };
                 if (binding instanceof ExprSyntax && (binding.value1 instanceof PureScript_Backend_Optimizer_Syntax.Lit && binding.value1.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitRecord)) {
-                    var $772 = Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Syntax.ordLevel)(level)(v.usages);
-                    if ($772 instanceof Data_Maybe.Just) {
-                        var $773 = $772.value0.total === ($772.value0.access + $772.value0.update | 0);
-                        if ($773) {
-                            var analysis = Data_Foldable.foldr(Data_Foldable.foldableArray)(function ($2486) {
-                                return append(analysisOf(PureScript_Backend_Optimizer_CoreFn.propValue($2486)));
+                    var $777 = Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Syntax.ordLevel)(level)(v.usages);
+                    if ($777 instanceof Data_Maybe.Just) {
+                        var $778 = $777.value0.total === ($777.value0.access + $777.value0.update | 0);
+                        if ($778) {
+                            var analysis = Data_Foldable.foldr(Data_Foldable.foldableArray)(function ($2521) {
+                                return append(analysisOf(PureScript_Backend_Optimizer_CoreFn.propValue($2521)));
                             })(PureScript_Backend_Optimizer_Analysis.complex(PureScript_Backend_Optimizer_Analysis.NonTrivial.value)(PureScript_Backend_Optimizer_Analysis.bound(level)(v)))(binding.value1.value0.value0);
                             return Data_Function.apply(Data_Maybe.Just.create)(Data_Function.apply(ExprRewrite.create(PureScript_Backend_Optimizer_Analysis.withRewrite(analysis)))(new RewriteUnpackOp(ident, level, new UnpackRecord(binding.value1.value0.value0), body)));
                         };
@@ -1278,12 +1278,12 @@ var shouldUnpackCtor = function (ident) {
                     return Data_Maybe.Nothing.value;
                 };
                 if (a instanceof ExprSyntax && a.value1 instanceof PureScript_Backend_Optimizer_Syntax.CtorSaturated) {
-                    var $781 = Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Syntax.ordLevel)(level)(v.usages);
-                    if ($781 instanceof Data_Maybe.Just) {
-                        var $782 = $781.value0.total === ($781.value0.access + $781["value0"]["case"] | 0);
-                        if ($782) {
-                            var analysis = Data_Foldable.foldr(Data_Foldable.foldableArray)(function ($2487) {
-                                return append(analysisOf(Data_Tuple.snd($2487)));
+                    var $786 = Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Syntax.ordLevel)(level)(v.usages);
+                    if ($786 instanceof Data_Maybe.Just) {
+                        var $787 = $786.value0.total === ($786.value0.access + $786["value0"]["case"] | 0);
+                        if ($787) {
+                            var analysis = Data_Foldable.foldr(Data_Foldable.foldableArray)(function ($2522) {
+                                return append(analysisOf(Data_Tuple.snd($2522)));
                             })(PureScript_Backend_Optimizer_Analysis.complex(PureScript_Backend_Optimizer_Analysis.NonTrivial.value)(PureScript_Backend_Optimizer_Analysis.bound(level)(v)))(a.value1.value4);
                             return Data_Function.apply(Data_Maybe.Just.create)(Data_Function.apply(ExprRewrite.create(PureScript_Backend_Optimizer_Analysis.withRewrite(analysis)))(new RewriteUnpackOp(ident, level, new UnpackData(a.value1.value0, a.value1.value1, a.value1.value2, a.value1.value3, a.value1.value4), body)));
                         };
@@ -1305,12 +1305,12 @@ var shouldUnpackArray = function (ident) {
                     return Data_Maybe.Nothing.value;
                 };
                 if (binding instanceof ExprSyntax && (binding.value1 instanceof PureScript_Backend_Optimizer_Syntax.Lit && binding.value1.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitArray)) {
-                    var $793 = Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Syntax.ordLevel)(level)(v.usages);
-                    if ($793 instanceof Data_Maybe.Just) {
-                        var $794 = $793.value0.total === $793.value0.access;
-                        if ($794) {
-                            var analysis = Data_Foldable.foldr(Data_Foldable.foldableArray)(function ($2488) {
-                                return append(analysisOf($2488));
+                    var $798 = Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Syntax.ordLevel)(level)(v.usages);
+                    if ($798 instanceof Data_Maybe.Just) {
+                        var $799 = $798.value0.total === $798.value0.access;
+                        if ($799) {
+                            var analysis = Data_Foldable.foldr(Data_Foldable.foldableArray)(function ($2523) {
+                                return append(analysisOf($2523));
                             })(PureScript_Backend_Optimizer_Analysis.complex(PureScript_Backend_Optimizer_Analysis.NonTrivial.value)(PureScript_Backend_Optimizer_Analysis.bound(level)(v)))(binding.value1.value0.value0);
                             return Data_Function.apply(Data_Maybe.Just.create)(Data_Function.apply(ExprRewrite.create(PureScript_Backend_Optimizer_Analysis.withRewrite(analysis)))(new RewriteUnpackOp(ident, level, new UnpackArray(binding.value1.value0.value0), body)));
                         };
@@ -1361,7 +1361,7 @@ var shouldInlineExternLiteral = function (v) {
     if (v instanceof PureScript_Backend_Optimizer_CoreFn.LitRecord) {
         return Data_Array["null"](v.value0);
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1973, column 29 - line 1980, column 30): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1993, column 29 - line 2000, column 30): " + [ v.constructor.name ]);
 };
 var shouldInlineExternAppArg = function (v) {
     return function (v1) {
@@ -1405,12 +1405,12 @@ var shouldEtaReduce = function (level1) {
                 return Data_Maybe.Nothing.value;
             };
             if (v instanceof ExprSyntax && (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Abs && (v.value1.value1 instanceof ExprSyntax && (v.value1.value1.value1 instanceof PureScript_Backend_Optimizer_Syntax.App && (v.value1.value1.value1.value0 instanceof ExprSyntax && v.value1.value1.value1.value0.value1 instanceof PureScript_Backend_Optimizer_Syntax.Local))))) {
-                var $832 = Data_Eq.eq(PureScript_Backend_Optimizer_Syntax.eqLevel)(level1)(v.value1.value1.value1.value0.value1.value1);
-                if ($832) {
-                    var $833 = Data_Array_NonEmpty.length(v.value1.value0) === Data_Array_NonEmpty.length(v.value1.value1.value1.value1);
-                    if ($833) {
-                        var $834 = Data_Function.apply(and)(Data_Array_NonEmpty.zipWith(isSameArg)(v.value1.value0)(v.value1.value1.value1.value1));
-                        if ($834) {
+                var $837 = Data_Eq.eq(PureScript_Backend_Optimizer_Syntax.eqLevel)(level1)(v.value1.value1.value1.value0.value1.value1);
+                if ($837) {
+                    var $838 = Data_Array_NonEmpty.length(v.value1.value0) === Data_Array_NonEmpty.length(v.value1.value1.value1.value1);
+                    if ($838) {
+                        var $839 = Data_Function.apply(and)(Data_Array_NonEmpty.zipWith(isSameArg)(v.value1.value0)(v.value1.value1.value1.value1));
+                        if ($839) {
                             return new Data_Maybe.Just(binding);
                         };
                         return v1(true);
@@ -1433,14 +1433,14 @@ var shouldDistributeBranches = function (ident) {
                     return Data_Maybe.Nothing.value;
                 };
                 if (v1 instanceof ExprSyntax && v1.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
-                    var $849 = v.size <= 128;
-                    if ($849) {
-                        var $850 = Data_Eq.eq(PureScript_Backend_Optimizer_Analysis.eqResultTerm)(v1.value0.result)(PureScript_Backend_Optimizer_Analysis.KnownNeutral.value);
-                        if ($850) {
-                            var $851 = Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Syntax.ordLevel)(level)(v.usages);
-                            if ($851 instanceof Data_Maybe.Just) {
-                                var $852 = $851.value0.total === ($851.value0.access + $851["value0"]["case"] | 0);
-                                if ($852) {
+                    var $854 = v.size <= 128;
+                    if ($854) {
+                        var $855 = Data_Eq.eq(PureScript_Backend_Optimizer_Analysis.eqResultTerm)(v1.value0.result)(PureScript_Backend_Optimizer_Analysis.KnownNeutral.value);
+                        if ($855) {
+                            var $856 = Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Syntax.ordLevel)(level)(v.usages);
+                            if ($856 instanceof Data_Maybe.Just) {
+                                var $857 = $856.value0.total === ($856.value0.access + $856["value0"]["case"] | 0);
+                                if ($857) {
                                     var analysis = Data_Semigroup.append(PureScript_Backend_Optimizer_Analysis.semigroupBackendAnalysis)(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(a))(PureScript_Backend_Optimizer_Analysis.bound(level)(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(body)));
                                     return Data_Function.apply(Data_Maybe.Just.create)(Data_Function.apply(ExprRewrite.create(PureScript_Backend_Optimizer_Analysis.withRewrite(analysis)))(new RewriteDistBranchesLet(ident, level, v1.value1.value0, v1.value1.value1, body)));
                                 };
@@ -1461,14 +1461,14 @@ var shouldDistributeBranchUncurriedApps = function (analysis1) {
     return function (branches) {
         return function (def) {
             return function (spine) {
-                var $858 = Data_Array.all(function ($2489) {
+                var $863 = Data_Array.all(function ($2524) {
                     return (function (v) {
                         return Data_Ord.lessThanOrEq(PureScript_Backend_Optimizer_Analysis.ordComplexity)(v)(PureScript_Backend_Optimizer_Analysis.Deref.value);
                     })((function (v) {
                         return v.complexity;
-                    })(unwrap(analysisOf($2489))));
+                    })(unwrap(analysisOf($2524))));
                 })(spine);
-                if ($858) {
+                if ($863) {
                     var analysis = Data_Semigroup.append(PureScript_Backend_Optimizer_Analysis.semigroupBackendAnalysis)(analysis1)(Data_Foldable.foldMap(Data_Foldable.foldableArray)(PureScript_Backend_Optimizer_Analysis.monoidBackendAnalysis)(analysisOf)(spine));
                     return Data_Function.apply(Data_Maybe.Just.create)(Data_Function.apply(ExprRewrite.create(PureScript_Backend_Optimizer_Analysis.withRewrite(analysis)))(new RewriteDistBranchesOp(branches, def, new DistUncurriedApp(spine))));
                 };
@@ -1482,8 +1482,8 @@ var shouldDistributeBranchPrimOp2R = function (analysis1) {
         return function (def) {
             return function (lhs) {
                 return function (op2) {
-                    var $859 = Data_Ord.lessThanOrEq(PureScript_Backend_Optimizer_Analysis.ordComplexity)((Data_Newtype.unwrap()(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(lhs))).complexity)(PureScript_Backend_Optimizer_Analysis.Deref.value);
-                    if ($859) {
+                    var $864 = Data_Ord.lessThanOrEq(PureScript_Backend_Optimizer_Analysis.ordComplexity)((Data_Newtype.unwrap()(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(lhs))).complexity)(PureScript_Backend_Optimizer_Analysis.Deref.value);
+                    if ($864) {
                         var analysis = Data_Function.apply(PureScript_Backend_Optimizer_Analysis.bump)(Data_Semigroup.append(PureScript_Backend_Optimizer_Analysis.semigroupBackendAnalysis)(analysis1)(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(lhs)));
                         return Data_Function.apply(Data_Maybe.Just.create)(Data_Function.apply(ExprRewrite.create(PureScript_Backend_Optimizer_Analysis.withRewrite(analysis)))(new RewriteDistBranchesOp(branches, def, new DistPrimOp2R(lhs, op2))));
                     };
@@ -1498,8 +1498,8 @@ var shouldDistributeBranchPrimOp2L = function (analysis1) {
         return function (def) {
             return function (op2) {
                 return function (rhs) {
-                    var $860 = Data_Ord.lessThanOrEq(PureScript_Backend_Optimizer_Analysis.ordComplexity)((Data_Newtype.unwrap()(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(rhs))).complexity)(PureScript_Backend_Optimizer_Analysis.Deref.value);
-                    if ($860) {
+                    var $865 = Data_Ord.lessThanOrEq(PureScript_Backend_Optimizer_Analysis.ordComplexity)((Data_Newtype.unwrap()(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(rhs))).complexity)(PureScript_Backend_Optimizer_Analysis.Deref.value);
+                    if ($865) {
                         var analysis = Data_Function.apply(PureScript_Backend_Optimizer_Analysis.bump)(Data_Semigroup.append(PureScript_Backend_Optimizer_Analysis.semigroupBackendAnalysis)(analysis1)(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(rhs)));
                         return Data_Function.apply(Data_Maybe.Just.create)(Data_Function.apply(ExprRewrite.create(PureScript_Backend_Optimizer_Analysis.withRewrite(analysis)))(new RewriteDistBranchesOp(branches, def, new DistPrimOp2L(op2, rhs))));
                     };
@@ -1523,14 +1523,14 @@ var shouldDistributeBranchApps = function (analysis1) {
     return function (branches) {
         return function (def) {
             return function (spine) {
-                var $861 = Data_Array_NonEmpty.all(function ($2490) {
+                var $866 = Data_Array_NonEmpty.all(function ($2525) {
                     return (function (v) {
                         return Data_Ord.lessThanOrEq(PureScript_Backend_Optimizer_Analysis.ordComplexity)(v)(PureScript_Backend_Optimizer_Analysis.Deref.value);
                     })((function (v) {
                         return v.complexity;
-                    })(unwrap(analysisOf($2490))));
+                    })(unwrap(analysisOf($2525))));
                 })(spine);
-                if ($861) {
+                if ($866) {
                     var analysis = Data_Semigroup.append(PureScript_Backend_Optimizer_Analysis.semigroupBackendAnalysis)(analysis1)(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(PureScript_Backend_Optimizer_Analysis.monoidBackendAnalysis)(analysisOf)(spine));
                     return Data_Function.apply(Data_Maybe.Just.create)(Data_Function.apply(ExprRewrite.create(PureScript_Backend_Optimizer_Analysis.withRewrite(analysis)))(new RewriteDistBranchesOp(branches, def, new DistApp(spine))));
                 };
@@ -1562,7 +1562,7 @@ var rewriteInline = function (ident) {
                     if (v instanceof Data_Maybe.Nothing) {
                         return s2;
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1749, column 19 - line 1754, column 11): " + [ v.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1769, column 19 - line 1774, column 11): " + [ v.constructor.name ]);
                 })();
                 return Data_Function.apply(ExprRewrite.create(PureScript_Backend_Optimizer_Analysis.withRewrite(PureScript_Backend_Optimizer_Analysis.bound(level)(powAnalysis))))(new RewriteInline(ident, level, binding, body));
             };
@@ -1598,7 +1598,7 @@ var purely = function (v) {
     if (Data_Boolean.otherwise) {
         return v;
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1469, column 1 - line 1469, column 21): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1489, column 1 - line 1489, column 21): " + [ v.constructor.name ]);
 };
 var primOpOrdNot = function (v) {
     if (v instanceof PureScript_Backend_Optimizer_Syntax.OpEq) {
@@ -1657,8 +1657,8 @@ var lookupLocal = function (v) {
         return Data_Map_Internal.lookup(Data_Ord.ordInt)(v1)(v.locals);
     };
 };
-var liftString = function ($2491) {
-    return NeutLit.create(PureScript_Backend_Optimizer_CoreFn.LitString.create($2491));
+var liftString = function ($2526) {
+    return NeutLit.create(PureScript_Backend_Optimizer_CoreFn.LitString.create($2526));
 };
 var liftOp2 = function (op) {
     return function (a) {
@@ -1672,14 +1672,14 @@ var liftOp1 = function (op) {
         return new NeutPrimOp(new PureScript_Backend_Optimizer_Syntax.Op1(op, a));
     };
 };
-var liftNumber = function ($2492) {
-    return NeutLit.create(PureScript_Backend_Optimizer_CoreFn.LitNumber.create($2492));
+var liftNumber = function ($2527) {
+    return NeutLit.create(PureScript_Backend_Optimizer_CoreFn.LitNumber.create($2527));
 };
-var liftInt = function ($2493) {
-    return NeutLit.create(PureScript_Backend_Optimizer_CoreFn.LitInt.create($2493));
+var liftInt = function ($2528) {
+    return NeutLit.create(PureScript_Backend_Optimizer_CoreFn.LitInt.create($2528));
 };
-var liftBoolean = function ($2494) {
-    return NeutLit.create(PureScript_Backend_Optimizer_CoreFn.LitBoolean.create($2494));
+var liftBoolean = function ($2529) {
+    return NeutLit.create(PureScript_Backend_Optimizer_CoreFn.LitBoolean.create($2529));
 };
 var isSimplePredicate = function (e) {
     var v = untypedExpr(e);
@@ -1747,7 +1747,7 @@ var isNotTypeApp = function (v) {
     };
     return true;
 };
-var isKnownEffect = function ($2495) {
+var isKnownEffect = function ($2530) {
     return (function (v) {
         if (v instanceof Data_Maybe.Just && v.value0 instanceof PureScript_Backend_Optimizer_Syntax.PrimEffect) {
             return true;
@@ -1762,7 +1762,35 @@ var isKnownEffect = function ($2495) {
             return true;
         };
         return false;
-    })(syntaxOf($2495));
+    })(syntaxOf($2530));
+};
+var isIdentityImplementation = function (expr) {
+    var stripTyped = function ($copy_v) {
+        var $tco_done = false;
+        var $tco_result;
+        function $tco_loop(v) {
+            if (v instanceof PureScript_Backend_Optimizer_Syntax.Typed) {
+                $copy_v = v.value1;
+                return;
+            };
+            $tco_done = true;
+            return v;
+        };
+        while (!$tco_done) {
+            $tco_result = $tco_loop($copy_v);
+        };
+        return $tco_result;
+    };
+    var v = stripTyped(expr);
+    if (v instanceof PureScript_Backend_Optimizer_Syntax.Abs) {
+        var v1 = stripTyped(v.value1);
+        var v2 = Data_Array_NonEmpty.toArray(v.value0);
+        if (v2.length === 1 && v1 instanceof PureScript_Backend_Optimizer_Syntax.Local) {
+            return Data_Eq.eq(PureScript_Backend_Optimizer_Syntax.eqLevel)(v2[0].value1)(v1.value1);
+        };
+        return false;
+    };
+    return false;
 };
 var isEffectSemantics = function ($copy_v) {
     var $tco_done = false;
@@ -1814,7 +1842,7 @@ var isAssocPrimOp = function (v) {
     };
     return false;
 };
-var isAbs = function ($2496) {
+var isAbs = function ($2531) {
     return (function (v) {
         if (v instanceof Data_Maybe.Just && v.value0 instanceof PureScript_Backend_Optimizer_Syntax.Abs) {
             return true;
@@ -1829,7 +1857,7 @@ var isAbs = function ($2496) {
             return true;
         };
         return false;
-    })(syntaxOf($2496));
+    })(syntaxOf($2531));
 };
 var shouldInlineLet = function (level) {
     return function (a) {
@@ -1843,7 +1871,7 @@ var shouldInlineLet = function (level) {
             if (v2 instanceof Data_Maybe.Just) {
                 return Data_Eq.eq(PureScript_Backend_Optimizer_Analysis.eqComplexity)(v.complexity)(PureScript_Backend_Optimizer_Analysis.Trivial.value) || (Data_Eq.eq(PureScript_Backend_Optimizer_Analysis.eqCapture)(v2.value0.captured)(PureScript_Backend_Optimizer_Analysis.CaptureNone.value) && v2.value0.total === 1 || (Data_Ord.lessThanOrEq(PureScript_Backend_Optimizer_Analysis.ordCapture)(v2.value0.captured)(PureScript_Backend_Optimizer_Analysis.CaptureBranch.value) && (Data_Ord.lessThanOrEq(PureScript_Backend_Optimizer_Analysis.ordComplexity)(v.complexity)(PureScript_Backend_Optimizer_Analysis.Deref.value) && v.size < 5) || (Data_Eq.eq(PureScript_Backend_Optimizer_Analysis.eqComplexity)(v.complexity)(PureScript_Backend_Optimizer_Analysis.Deref.value) && v2.value0.call === v2.value0.total || (Data_Eq.eq(PureScript_Backend_Optimizer_Analysis.eqComplexity)(v.complexity)(PureScript_Backend_Optimizer_Analysis.KnownSize.value) && v2.value0.total === 1 || (isAbs(a) && (v2.value0.total === 1 || (Data_Map_Internal.isEmpty(v.usages) || v.size < 16)) || isKnownEffect(a) && v2.value0.total === 1)))));
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1907, column 3 - line 1917, column 43): " + [ v2.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1927, column 3 - line 1937, column 43): " + [ v2.constructor.name ]);
         };
     };
 };
@@ -1852,8 +1880,8 @@ var instantiateNeutralType = function (v) {
         if (v1 instanceof PureScript_Backend_Optimizer_Syntax.Typed && v1.value0 instanceof PureScript_Backend_Optimizer_CoreFn.ForAll) {
             return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Array.uncons(v1.value0.value0))(function (v2) {
                 var rest = (function () {
-                    var $966 = Data_Array["null"](v2.tail);
-                    if ($966) {
+                    var $984 = Data_Array["null"](v2.tail);
+                    if ($984) {
                         return v1.value0.value1;
                     };
                     return new PureScript_Backend_Optimizer_CoreFn.ForAll(v2.tail, v1.value0.value1);
@@ -1890,8 +1918,8 @@ var guardFailOver = function (dictFoldable) {
                     };
                     return Data_Maybe.Nothing.value;
                 };
-                var v = Data_Foldable.findMap(dictFoldable)(function ($2497) {
-                    return toFail(f($2497));
+                var v = Data_Foldable.findMap(dictFoldable)(function ($2532) {
+                    return toFail(f($2532));
                 })(as);
                 if (v instanceof Data_Maybe.Just) {
                     return v.value0;
@@ -1899,7 +1927,7 @@ var guardFailOver = function (dictFoldable) {
                 if (v instanceof Data_Maybe.Nothing) {
                     return k(as);
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2212, column 3 - line 2214, column 20): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2232, column 3 - line 2234, column 20): " + [ v.constructor.name ]);
             };
         };
     };
@@ -1942,7 +1970,7 @@ var foldBackendExpr = function (foldSyntax) {
                         if (v.value1.value2 instanceof UnpackData) {
                             return Data_Function.apply(foldSyntax)(new PureScript_Backend_Optimizer_Syntax.Let(v.value1.value0, v.value1.value1, foldSyntax(new PureScript_Backend_Optimizer_Syntax.CtorSaturated(v.value1.value2.value0, v.value1.value2.value1, v.value1.value2.value2, v.value1.value2.value3, Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(Data_Tuple.functorTuple)(go))(v.value1.value2.value4))), go(v.value1.value3)));
                         };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2142, column 11 - line 2150, column 117): " + [ v.value1.value2.constructor.name ]);
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2162, column 11 - line 2170, column 117): " + [ v.value1.value2.constructor.name ]);
                     };
                     if (v.value1 instanceof RewriteDistBranchesLet) {
                         return Data_Function.apply(foldSyntax)(new PureScript_Backend_Optimizer_Syntax.Let(v.value1.value0, v.value1.value1, foldSyntax(new PureScript_Backend_Optimizer_Syntax.Branch(Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(Data_Functor.map(PureScript_Backend_Optimizer_Syntax.functorPair)(go))(v.value1.value2), go(v.value1.value3))), go(v.value1.value4)));
@@ -1967,12 +1995,12 @@ var foldBackendExpr = function (foldSyntax) {
                         if (v.value1.value2 instanceof DistPrimOp2R) {
                             return Data_Function.apply(foldSyntax)(Data_Function.apply(PureScript_Backend_Optimizer_Syntax.PrimOp.create)(new PureScript_Backend_Optimizer_Syntax.Op2(v.value1.value2.value1, go(v.value1.value2.value0), branches$prime)));
                         };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2155, column 11 - line 2167, column 63): " + [ v.value1.value2.constructor.name ]);
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2175, column 11 - line 2187, column 63): " + [ v.value1.value2.constructor.name ]);
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2134, column 7 - line 2167, column 63): " + [ v.value1.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2154, column 7 - line 2187, column 63): " + [ v.value1.constructor.name ]);
                 })());
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2130, column 8 - line 2167, column 63): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2150, column 8 - line 2187, column 63): " + [ v.constructor.name ]);
         };
         return go;
     };
@@ -2267,7 +2295,7 @@ var effectfully = function (v) {
             effect: true
         };
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1463, column 1 - line 1463, column 26): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1483, column 1 - line 1483, column 26): " + [ v.constructor.name ]);
 };
 var deref = function ($copy_v) {
     var $tco_done = false;
@@ -2364,39 +2392,39 @@ var evalPrimOpNumInt = function (op) {
                 };
                 throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1024, column 1 - line 1024, column 105): " + [ op.constructor.name, x.constructor.name, y.constructor.name ]);
             };
-            var $1131 = deref(x);
-            if ($1131 instanceof NeutLit && $1131.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                var $1132 = deref(y);
-                if ($1132 instanceof NeutLit && $1132.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+            var $1149 = deref(x);
+            if ($1149 instanceof NeutLit && $1149.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                var $1150 = deref(y);
+                if ($1150 instanceof NeutLit && $1150.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
                     if (op instanceof PureScript_Backend_Optimizer_Syntax.OpAdd) {
-                        var res = $1131.value0.value0 + $1132.value0.value0 | 0;
-                        var $1134 = $1132.value0.value0 > 0 && res < $1131.value0.value0 || $1132.value0.value0 < 0 && res > $1131.value0.value0;
-                        if ($1134) {
+                        var res = $1149.value0.value0 + $1150.value0.value0 | 0;
+                        var $1152 = $1150.value0.value0 > 0 && res < $1149.value0.value0 || $1150.value0.value0 < 0 && res > $1149.value0.value0;
+                        if ($1152) {
                             return Data_Maybe.Nothing.value;
                         };
                         return Data_Function.apply(Data_Maybe.Just.create)(liftInt(res));
                     };
                     if (op instanceof PureScript_Backend_Optimizer_Syntax.OpMultiply) {
-                        var res = $1131.value0.value0 * $1132.value0.value0 | 0;
-                        var $1135 = $1131.value0.value0 !== Data_EuclideanRing.div(Data_EuclideanRing.euclideanRingInt)(res)($1132.value0.value0);
-                        if ($1135) {
+                        var res = $1149.value0.value0 * $1150.value0.value0 | 0;
+                        var $1153 = $1149.value0.value0 !== Data_EuclideanRing.div(Data_EuclideanRing.euclideanRingInt)(res)($1150.value0.value0);
+                        if ($1153) {
                             return Data_Maybe.Nothing.value;
                         };
                         return Data_Function.apply(Data_Maybe.Just.create)(liftInt(res));
                     };
                     if (op instanceof PureScript_Backend_Optimizer_Syntax.OpSubtract) {
-                        var res = $1131.value0.value0 - $1132.value0.value0 | 0;
-                        var $1136 = $1132.value0.value0 > 0 && res > $1131.value0.value0 || $1132.value0.value0 < 0 && res < $1131.value0.value0;
-                        if ($1136) {
+                        var res = $1149.value0.value0 - $1150.value0.value0 | 0;
+                        var $1154 = $1150.value0.value0 > 0 && res > $1149.value0.value0 || $1150.value0.value0 < 0 && res < $1149.value0.value0;
+                        if ($1154) {
                             return Data_Maybe.Nothing.value;
                         };
                         return Data_Function.apply(Data_Maybe.Just.create)(liftInt(res));
                     };
                     if (op instanceof PureScript_Backend_Optimizer_Syntax.OpDivide) {
-                        return Data_Function.apply(Data_Maybe.Just.create)(liftInt(Data_EuclideanRing.div(Data_EuclideanRing.euclideanRingInt)($1131.value0.value0)($1132.value0.value0)));
+                        return Data_Function.apply(Data_Maybe.Just.create)(liftInt(Data_EuclideanRing.div(Data_EuclideanRing.euclideanRingInt)($1149.value0.value0)($1150.value0.value0)));
                     };
                     if (op instanceof PureScript_Backend_Optimizer_Syntax.OpMod) {
-                        return Data_Function.apply(Data_Maybe.Just.create)(liftInt(Data_EuclideanRing.mod(Data_EuclideanRing.euclideanRingInt)($1131.value0.value0)($1132.value0.value0)));
+                        return Data_Function.apply(Data_Maybe.Just.create)(liftInt(Data_EuclideanRing.mod(Data_EuclideanRing.euclideanRingInt)($1149.value0.value0)($1150.value0.value0)));
                     };
                     throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1028, column 7 - line 1044, column 37): " + [ op.constructor.name ]);
                 };
@@ -2415,22 +2443,22 @@ var evalPrimOpNumNumber = function (op) {
                 };
                 throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1010, column 1 - line 1010, column 108): " + [ op.constructor.name, x.constructor.name, y.constructor.name ]);
             };
-            var $1147 = deref(x);
-            if ($1147 instanceof NeutLit && $1147.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitNumber) {
-                var $1148 = deref(y);
-                if ($1148 instanceof NeutLit && $1148.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitNumber) {
+            var $1165 = deref(x);
+            if ($1165 instanceof NeutLit && $1165.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitNumber) {
+                var $1166 = deref(y);
+                if ($1166 instanceof NeutLit && $1166.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitNumber) {
                     return Data_Function.apply(Data_Maybe.Just.create)(liftNumber((function () {
                         if (op instanceof PureScript_Backend_Optimizer_Syntax.OpAdd) {
-                            return $1147.value0.value0 + $1148.value0.value0;
+                            return $1165.value0.value0 + $1166.value0.value0;
                         };
                         if (op instanceof PureScript_Backend_Optimizer_Syntax.OpMultiply) {
-                            return $1147.value0.value0 * $1148.value0.value0;
+                            return $1165.value0.value0 * $1166.value0.value0;
                         };
                         if (op instanceof PureScript_Backend_Optimizer_Syntax.OpSubtract) {
-                            return $1147.value0.value0 - $1148.value0.value0;
+                            return $1165.value0.value0 - $1166.value0.value0;
                         };
                         if (op instanceof PureScript_Backend_Optimizer_Syntax.OpDivide) {
-                            return $1147.value0.value0 / $1148.value0.value0;
+                            return $1165.value0.value0 / $1166.value0.value0;
                         };
                         if (op instanceof PureScript_Backend_Optimizer_Syntax.OpMod) {
                             return 0.0;
@@ -2482,9 +2510,9 @@ var evalRef = function (v) {
                         }));
                     };
                     if (ref instanceof EvalExtern) {
-                        var $1166 = v.evalExternSpine(v)(ref.value0)(spine$prime);
-                        if ($1166 instanceof Data_Maybe.Just) {
-                            return $1166.value0;
+                        var $1184 = v.evalExternSpine(v)(ref.value0)(spine$prime);
+                        if ($1184 instanceof Data_Maybe.Just) {
+                            return $1184.value0;
                         };
                         return v1(true);
                     };
@@ -2513,52 +2541,52 @@ var evalPrimOp = function (env) {
                                             return new NeutFail(v16.value0);
                                         };
                                         return floatLet(v.value1)((function () {
-                                            var $2498 = PureScript_Backend_Optimizer_Syntax.Op1.create(v.value0);
-                                            return function ($2499) {
-                                                return NeutPrimOp.create($2498($2499));
+                                            var $2533 = PureScript_Backend_Optimizer_Syntax.Op1.create(v.value0);
+                                            return function ($2534) {
+                                                return NeutPrimOp.create($2533($2534));
                                             };
                                         })());
                                     };
                                     if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpNumberNegate) {
-                                        var $1178 = deref(v.value1);
-                                        if ($1178 instanceof NeutLit && $1178.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitNumber) {
-                                            return liftNumber(-$1178.value0.value0);
+                                        var $1196 = deref(v.value1);
+                                        if ($1196 instanceof NeutLit && $1196.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitNumber) {
+                                            return liftNumber(-$1196.value0.value0);
                                         };
                                         return v13(true);
                                     };
                                     return v13(true);
                                 };
                                 if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIntNegate) {
-                                    var $1183 = deref(v.value1);
-                                    if ($1183 instanceof NeutLit && $1183.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                                        return liftInt(-$1183.value0.value0 | 0);
+                                    var $1201 = deref(v.value1);
+                                    if ($1201 instanceof NeutLit && $1201.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                                        return liftInt(-$1201.value0.value0 | 0);
                                     };
                                     return v11(true);
                                 };
                                 return v11(true);
                             };
                             if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpArrayLength) {
-                                var $1188 = deref(v.value1);
-                                if ($1188 instanceof NeutLit && $1188.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitArray) {
-                                    return liftInt(Data_Array.length($1188.value0.value0));
+                                var $1206 = deref(v.value1);
+                                if ($1206 instanceof NeutLit && $1206.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitArray) {
+                                    return liftInt(Data_Array.length($1206.value0.value0));
                                 };
                                 return v9(true);
                             };
                             return v9(true);
                         };
                         if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIsTag) {
-                            var $1193 = deref(v.value1);
-                            if ($1193 instanceof NeutData) {
-                                return liftBoolean(Data_Eq.eq(eqQualified)(v.value0.value0)($1193.value0));
+                            var $1211 = deref(v.value1);
+                            if ($1211 instanceof NeutData) {
+                                return liftBoolean(Data_Eq.eq(eqQualified)(v.value0.value0)($1211.value0));
                             };
                             return v7(true);
                         };
                         return v7(true);
                     };
                     if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIntBitNot) {
-                        var $1202 = deref(v.value1);
-                        if ($1202 instanceof NeutLit && $1202.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                            return liftInt(~$1202.value0.value0);
+                        var $1220 = deref(v.value1);
+                        if ($1220 instanceof NeutLit && $1220.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                            return liftInt(~$1220.value0.value0);
                         };
                         return v5(true);
                     };
@@ -2573,9 +2601,9 @@ var evalPrimOp = function (env) {
                 return v3(true);
             };
             if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanNot) {
-                var $1211 = deref(v.value1);
-                if ($1211 instanceof NeutLit && $1211.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean) {
-                    return liftBoolean(!$1211.value0.value0);
+                var $1229 = deref(v.value1);
+                if ($1229 instanceof NeutLit && $1229.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean) {
+                    return liftBoolean(!$1229.value0.value0);
                 };
                 return v1(true);
             };
@@ -2635,8 +2663,8 @@ var evalPrimOp = function (env) {
                                                                                                                         };
                                                                                                                         return floatLet(v.value1)(function (x$prime) {
                                                                                                                             return floatLet(v.value2)(function (y$prime) {
-                                                                                                                                var $1229 = isAssocPrimOp(v.value0);
-                                                                                                                                if ($1229) {
+                                                                                                                                var $1247 = isAssocPrimOp(v.value0);
+                                                                                                                                if ($1247) {
                                                                                                                                     return evalAssocOp(env)(new Data_Either.Right(v.value0))(x$prime)(y$prime);
                                                                                                                                 };
                                                                                                                                 return new NeutPrimOp(new PureScript_Backend_Optimizer_Syntax.Op2(v.value0, x$prime, y$prime));
@@ -2663,11 +2691,11 @@ var evalPrimOp = function (env) {
                                                                                                                 return v51(true);
                                                                                                             };
                                                                                                             if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpStringOrd) {
-                                                                                                                var $1242 = deref(v.value1);
-                                                                                                                if ($1242 instanceof NeutLit && $1242.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitString) {
-                                                                                                                    var $1243 = deref(v.value2);
-                                                                                                                    if ($1243 instanceof NeutLit && $1243.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitString) {
-                                                                                                                        return liftBoolean(evalPrimOpOrd(Data_Ord.ordString)(v.value0.value0)($1242.value0.value0)($1243.value0.value0));
+                                                                                                                var $1260 = deref(v.value1);
+                                                                                                                if ($1260 instanceof NeutLit && $1260.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitString) {
+                                                                                                                    var $1261 = deref(v.value2);
+                                                                                                                    if ($1261 instanceof NeutLit && $1261.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitString) {
+                                                                                                                        return liftBoolean(evalPrimOpOrd(Data_Ord.ordString)(v.value0.value0)($1260.value0.value0)($1261.value0.value0));
                                                                                                                     };
                                                                                                                     return v49(true);
                                                                                                                 };
@@ -2676,11 +2704,11 @@ var evalPrimOp = function (env) {
                                                                                                             return v49(true);
                                                                                                         };
                                                                                                         if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpNumberOrd) {
-                                                                                                            var $1250 = deref(v.value1);
-                                                                                                            if ($1250 instanceof NeutLit && $1250.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitNumber) {
-                                                                                                                var $1251 = deref(v.value2);
-                                                                                                                if ($1251 instanceof NeutLit && $1251.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitNumber) {
-                                                                                                                    return liftBoolean(evalPrimOpOrdNumber(v.value0.value0)($1250.value0.value0)($1251.value0.value0));
+                                                                                                            var $1268 = deref(v.value1);
+                                                                                                            if ($1268 instanceof NeutLit && $1268.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitNumber) {
+                                                                                                                var $1269 = deref(v.value2);
+                                                                                                                if ($1269 instanceof NeutLit && $1269.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitNumber) {
+                                                                                                                    return liftBoolean(evalPrimOpOrdNumber(v.value0.value0)($1268.value0.value0)($1269.value0.value0));
                                                                                                                 };
                                                                                                                 return v47(true);
                                                                                                             };
@@ -2689,17 +2717,17 @@ var evalPrimOp = function (env) {
                                                                                                         return v47(true);
                                                                                                     };
                                                                                                     if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpNumberNum) {
-                                                                                                        var $1258 = evalPrimOpNumNumber(v.value0.value0)(v.value1)(v.value2);
-                                                                                                        if ($1258 instanceof Data_Maybe.Just) {
-                                                                                                            return $1258.value0;
+                                                                                                        var $1276 = evalPrimOpNumNumber(v.value0.value0)(v.value1)(v.value2);
+                                                                                                        if ($1276 instanceof Data_Maybe.Just) {
+                                                                                                            return $1276.value0;
                                                                                                         };
                                                                                                         return v45(true);
                                                                                                     };
                                                                                                     return v45(true);
                                                                                                 };
                                                                                                 if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpNumberNum && v.value0.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpSubtract) {
-                                                                                                    var $1262 = deref(v.value1);
-                                                                                                    if ($1262 instanceof NeutLit && ($1262.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitNumber && $1262.value0.value0 === 0.0)) {
+                                                                                                    var $1280 = deref(v.value1);
+                                                                                                    if ($1280 instanceof NeutLit && ($1280.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitNumber && $1280.value0.value0 === 0.0)) {
                                                                                                         return evalPrimOp(env)(new PureScript_Backend_Optimizer_Syntax.Op1(PureScript_Backend_Optimizer_Syntax.OpNumberNegate.value, v.value2));
                                                                                                     };
                                                                                                     return v43(true);
@@ -2707,11 +2735,11 @@ var evalPrimOp = function (env) {
                                                                                                 return v43(true);
                                                                                             };
                                                                                             if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIntOrd) {
-                                                                                                var $1267 = deref(v.value1);
-                                                                                                if ($1267 instanceof NeutLit && $1267.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                                                                                                    var $1268 = deref(v.value2);
-                                                                                                    if ($1268 instanceof NeutLit && $1268.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                                                                                                        return liftBoolean(evalPrimOpOrd(Data_Ord.ordInt)(v.value0.value0)($1267.value0.value0)($1268.value0.value0));
+                                                                                                var $1285 = deref(v.value1);
+                                                                                                if ($1285 instanceof NeutLit && $1285.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                                                                                                    var $1286 = deref(v.value2);
+                                                                                                    if ($1286 instanceof NeutLit && $1286.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                                                                                                        return liftBoolean(evalPrimOpOrd(Data_Ord.ordInt)(v.value0.value0)($1285.value0.value0)($1286.value0.value0));
                                                                                                     };
                                                                                                     return v41(true);
                                                                                                 };
@@ -2720,17 +2748,17 @@ var evalPrimOp = function (env) {
                                                                                             return v41(true);
                                                                                         };
                                                                                         if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIntNum) {
-                                                                                            var $1275 = evalPrimOpNumInt(v.value0.value0)(v.value1)(v.value2);
-                                                                                            if ($1275 instanceof Data_Maybe.Just) {
-                                                                                                return $1275.value0;
+                                                                                            var $1293 = evalPrimOpNumInt(v.value0.value0)(v.value1)(v.value2);
+                                                                                            if ($1293 instanceof Data_Maybe.Just) {
+                                                                                                return $1293.value0;
                                                                                             };
                                                                                             return v39(true);
                                                                                         };
                                                                                         return v39(true);
                                                                                     };
                                                                                     if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIntNum && v.value0.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpSubtract) {
-                                                                                        var $1279 = deref(v.value1);
-                                                                                        if ($1279 instanceof NeutLit && ($1279.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt && $1279.value0.value0 === 0)) {
+                                                                                        var $1297 = deref(v.value1);
+                                                                                        if ($1297 instanceof NeutLit && ($1297.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt && $1297.value0.value0 === 0)) {
                                                                                             return evalPrimOp(env)(new PureScript_Backend_Optimizer_Syntax.Op1(PureScript_Backend_Optimizer_Syntax.OpIntNegate.value, v.value2));
                                                                                         };
                                                                                         return v37(true);
@@ -2738,11 +2766,11 @@ var evalPrimOp = function (env) {
                                                                                     return v37(true);
                                                                                 };
                                                                                 if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIntBitZeroFillShiftRight) {
-                                                                                    var $1284 = deref(v.value1);
-                                                                                    if ($1284 instanceof NeutLit && $1284.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                                                                                        var $1285 = deref(v.value2);
-                                                                                        if ($1285 instanceof NeutLit && $1285.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                                                                                            return liftInt($1284.value0.value0 >>> $1285.value0.value0);
+                                                                                    var $1302 = deref(v.value1);
+                                                                                    if ($1302 instanceof NeutLit && $1302.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                                                                                        var $1303 = deref(v.value2);
+                                                                                        if ($1303 instanceof NeutLit && $1303.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                                                                                            return liftInt($1302.value0.value0 >>> $1303.value0.value0);
                                                                                         };
                                                                                         return v35(true);
                                                                                     };
@@ -2751,11 +2779,11 @@ var evalPrimOp = function (env) {
                                                                                 return v35(true);
                                                                             };
                                                                             if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIntBitXor) {
-                                                                                var $1291 = deref(v.value1);
-                                                                                if ($1291 instanceof NeutLit && $1291.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                                                                                    var $1292 = deref(v.value2);
-                                                                                    if ($1292 instanceof NeutLit && $1292.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                                                                                        return liftInt($1291.value0.value0 ^ $1292.value0.value0);
+                                                                                var $1309 = deref(v.value1);
+                                                                                if ($1309 instanceof NeutLit && $1309.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                                                                                    var $1310 = deref(v.value2);
+                                                                                    if ($1310 instanceof NeutLit && $1310.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                                                                                        return liftInt($1309.value0.value0 ^ $1310.value0.value0);
                                                                                     };
                                                                                     return v33(true);
                                                                                 };
@@ -2764,11 +2792,11 @@ var evalPrimOp = function (env) {
                                                                             return v33(true);
                                                                         };
                                                                         if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIntBitShiftRight) {
-                                                                            var $1298 = deref(v.value1);
-                                                                            if ($1298 instanceof NeutLit && $1298.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                                                                                var $1299 = deref(v.value2);
-                                                                                if ($1299 instanceof NeutLit && $1299.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                                                                                    return liftInt($1298.value0.value0 >> $1299.value0.value0);
+                                                                            var $1316 = deref(v.value1);
+                                                                            if ($1316 instanceof NeutLit && $1316.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                                                                                var $1317 = deref(v.value2);
+                                                                                if ($1317 instanceof NeutLit && $1317.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                                                                                    return liftInt($1316.value0.value0 >> $1317.value0.value0);
                                                                                 };
                                                                                 return v31(true);
                                                                             };
@@ -2777,11 +2805,11 @@ var evalPrimOp = function (env) {
                                                                         return v31(true);
                                                                     };
                                                                     if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIntBitShiftLeft) {
-                                                                        var $1305 = deref(v.value1);
-                                                                        if ($1305 instanceof NeutLit && $1305.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                                                                            var $1306 = deref(v.value2);
-                                                                            if ($1306 instanceof NeutLit && $1306.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                                                                                return liftInt($1305.value0.value0 << $1306.value0.value0);
+                                                                        var $1323 = deref(v.value1);
+                                                                        if ($1323 instanceof NeutLit && $1323.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                                                                            var $1324 = deref(v.value2);
+                                                                            if ($1324 instanceof NeutLit && $1324.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                                                                                return liftInt($1323.value0.value0 << $1324.value0.value0);
                                                                             };
                                                                             return v29(true);
                                                                         };
@@ -2790,11 +2818,11 @@ var evalPrimOp = function (env) {
                                                                     return v29(true);
                                                                 };
                                                                 if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIntBitOr) {
-                                                                    var $1312 = deref(v.value1);
-                                                                    if ($1312 instanceof NeutLit && $1312.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                                                                        var $1313 = deref(v.value2);
-                                                                        if ($1313 instanceof NeutLit && $1313.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                                                                            return liftInt($1312.value0.value0 | $1313.value0.value0);
+                                                                    var $1330 = deref(v.value1);
+                                                                    if ($1330 instanceof NeutLit && $1330.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                                                                        var $1331 = deref(v.value2);
+                                                                        if ($1331 instanceof NeutLit && $1331.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                                                                            return liftInt($1330.value0.value0 | $1331.value0.value0);
                                                                         };
                                                                         return v27(true);
                                                                     };
@@ -2803,11 +2831,11 @@ var evalPrimOp = function (env) {
                                                                 return v27(true);
                                                             };
                                                             if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpIntBitAnd) {
-                                                                var $1319 = deref(v.value1);
-                                                                if ($1319 instanceof NeutLit && $1319.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                                                                    var $1320 = deref(v.value2);
-                                                                    if ($1320 instanceof NeutLit && $1320.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                                                                        return liftInt($1319.value0.value0 & $1320.value0.value0);
+                                                                var $1337 = deref(v.value1);
+                                                                if ($1337 instanceof NeutLit && $1337.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                                                                    var $1338 = deref(v.value2);
+                                                                    if ($1338 instanceof NeutLit && $1338.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                                                                        return liftInt($1337.value0.value0 & $1338.value0.value0);
                                                                     };
                                                                     return v25(true);
                                                                 };
@@ -2816,11 +2844,11 @@ var evalPrimOp = function (env) {
                                                             return v25(true);
                                                         };
                                                         if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpCharOrd) {
-                                                            var $1326 = deref(v.value1);
-                                                            if ($1326 instanceof NeutLit && $1326.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitChar) {
-                                                                var $1327 = deref(v.value2);
-                                                                if ($1327 instanceof NeutLit && $1327.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitChar) {
-                                                                    return liftBoolean(evalPrimOpOrd(Data_Ord.ordChar)(v.value0.value0)($1326.value0.value0)($1327.value0.value0));
+                                                            var $1344 = deref(v.value1);
+                                                            if ($1344 instanceof NeutLit && $1344.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitChar) {
+                                                                var $1345 = deref(v.value2);
+                                                                if ($1345 instanceof NeutLit && $1345.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitChar) {
+                                                                    return liftBoolean(evalPrimOpOrd(Data_Ord.ordChar)(v.value0.value0)($1344.value0.value0)($1345.value0.value0));
                                                                 };
                                                                 return v23(true);
                                                             };
@@ -2829,11 +2857,11 @@ var evalPrimOp = function (env) {
                                                         return v23(true);
                                                     };
                                                     if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanOrd) {
-                                                        var $1334 = deref(v.value1);
-                                                        if ($1334 instanceof NeutLit && $1334.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean) {
-                                                            var $1335 = deref(v.value2);
-                                                            if ($1335 instanceof NeutLit && $1335.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean) {
-                                                                return liftBoolean(evalPrimOpOrd(Data_Ord.ordBoolean)(v.value0.value0)($1334.value0.value0)($1335.value0.value0));
+                                                        var $1352 = deref(v.value1);
+                                                        if ($1352 instanceof NeutLit && $1352.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean) {
+                                                            var $1353 = deref(v.value2);
+                                                            if ($1353 instanceof NeutLit && $1353.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean) {
+                                                                return liftBoolean(evalPrimOpOrd(Data_Ord.ordBoolean)(v.value0.value0)($1352.value0.value0)($1353.value0.value0));
                                                             };
                                                             return v21(true);
                                                         };
@@ -2842,9 +2870,9 @@ var evalPrimOp = function (env) {
                                                     return v21(true);
                                                 };
                                                 if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanOrd && v.value0.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpEq) {
-                                                    var $1342 = deref(v.value2);
-                                                    if ($1342 instanceof NeutLit && $1342.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean) {
-                                                        if ($1342.value0.value0) {
+                                                    var $1360 = deref(v.value2);
+                                                    if ($1360 instanceof NeutLit && $1360.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean) {
+                                                        if ($1360.value0.value0) {
                                                             return v.value1;
                                                         };
                                                         return evalPrimOp(env)(new PureScript_Backend_Optimizer_Syntax.Op1(PureScript_Backend_Optimizer_Syntax.OpBooleanNot.value, v.value1));
@@ -2854,9 +2882,9 @@ var evalPrimOp = function (env) {
                                                 return v19(true);
                                             };
                                             if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanOrd && v.value0.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpEq) {
-                                                var $1348 = deref(v.value1);
-                                                if ($1348 instanceof NeutLit && $1348.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean) {
-                                                    if ($1348.value0.value0) {
+                                                var $1366 = deref(v.value1);
+                                                if ($1366 instanceof NeutLit && $1366.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean) {
+                                                    if ($1366.value0.value0) {
                                                         return v.value2;
                                                     };
                                                     return evalPrimOp(env)(new PureScript_Backend_Optimizer_Syntax.Op1(PureScript_Backend_Optimizer_Syntax.OpBooleanNot.value, v.value2));
@@ -2866,8 +2894,8 @@ var evalPrimOp = function (env) {
                                             return v17(true);
                                         };
                                         if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanOr) {
-                                            var $1354 = deref(v.value2);
-                                            if ($1354 instanceof NeutLit && ($1354.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && $1354.value0.value0)) {
+                                            var $1372 = deref(v.value2);
+                                            if ($1372 instanceof NeutLit && ($1372.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && $1372.value0.value0)) {
                                                 return v.value2;
                                             };
                                             return v15(true);
@@ -2875,8 +2903,8 @@ var evalPrimOp = function (env) {
                                         return v15(true);
                                     };
                                     if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanOr) {
-                                        var $1358 = deref(v.value1);
-                                        if ($1358 instanceof NeutLit && ($1358.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && $1358.value0.value0)) {
+                                        var $1376 = deref(v.value1);
+                                        if ($1376 instanceof NeutLit && ($1376.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && $1376.value0.value0)) {
                                             return v.value1;
                                         };
                                         return v13(true);
@@ -2884,8 +2912,8 @@ var evalPrimOp = function (env) {
                                     return v13(true);
                                 };
                                 if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanOr) {
-                                    var $1362 = deref(v.value2);
-                                    if ($1362 instanceof NeutLit && ($1362.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && !$1362.value0.value0)) {
+                                    var $1380 = deref(v.value2);
+                                    if ($1380 instanceof NeutLit && ($1380.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && !$1380.value0.value0)) {
                                         return v.value1;
                                     };
                                     return v11(true);
@@ -2893,8 +2921,8 @@ var evalPrimOp = function (env) {
                                 return v11(true);
                             };
                             if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanOr) {
-                                var $1366 = deref(v.value1);
-                                if ($1366 instanceof NeutLit && ($1366.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && !$1366.value0.value0)) {
+                                var $1384 = deref(v.value1);
+                                if ($1384 instanceof NeutLit && ($1384.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && !$1384.value0.value0)) {
                                     return v.value2;
                                 };
                                 return v9(true);
@@ -2902,8 +2930,8 @@ var evalPrimOp = function (env) {
                             return v9(true);
                         };
                         if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanAnd) {
-                            var $1370 = deref(v.value2);
-                            if ($1370 instanceof NeutLit && ($1370.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && $1370.value0.value0)) {
+                            var $1388 = deref(v.value2);
+                            if ($1388 instanceof NeutLit && ($1388.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && $1388.value0.value0)) {
                                 return v.value1;
                             };
                             return v7(true);
@@ -2911,8 +2939,8 @@ var evalPrimOp = function (env) {
                         return v7(true);
                     };
                     if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanAnd) {
-                        var $1374 = deref(v.value1);
-                        if ($1374 instanceof NeutLit && ($1374.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && $1374.value0.value0)) {
+                        var $1392 = deref(v.value1);
+                        if ($1392 instanceof NeutLit && ($1392.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && $1392.value0.value0)) {
                             return v.value2;
                         };
                         return v5(true);
@@ -2920,8 +2948,8 @@ var evalPrimOp = function (env) {
                     return v5(true);
                 };
                 if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanAnd) {
-                    var $1378 = deref(v.value2);
-                    if ($1378 instanceof NeutLit && ($1378.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && !$1378.value0.value0)) {
+                    var $1396 = deref(v.value2);
+                    if ($1396 instanceof NeutLit && ($1396.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && !$1396.value0.value0)) {
                         return v.value2;
                     };
                     return v3(true);
@@ -2929,8 +2957,8 @@ var evalPrimOp = function (env) {
                 return v3(true);
             };
             if (v.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanAnd) {
-                var $1382 = deref(v.value1);
-                if ($1382 instanceof NeutLit && ($1382.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && !$1382.value0.value0)) {
+                var $1400 = deref(v.value1);
+                if ($1400 instanceof NeutLit && ($1400.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean && !$1400.value0.value0)) {
                     return v.value1;
                 };
                 return v1(true);
@@ -3004,10 +3032,10 @@ var evalAssocOp = function ($copy_env) {
                         return Data_Function.apply(SemAssocOp.create(op1))(Data_Array_NonEmpty["cons$prime"](v)([ v1 ]));
                     };
                     if (v instanceof SemAssocOp && v1 instanceof SemAssocOp) {
-                        var $1417 = Data_Eq.eq(eqEither)(op1)(v.value0);
-                        if ($1417) {
-                            var $1418 = Data_Eq.eq(eqEither)(v.value0)(v1.value0);
-                            if ($1418) {
+                        var $1435 = Data_Eq.eq(eqEither)(op1)(v.value0);
+                        if ($1435) {
+                            var $1436 = Data_Eq.eq(eqEither)(v.value0)(v1.value0);
+                            if ($1436) {
                                 var v3 = evalAssocOp$prime(env)(op1)(Data_Array_NonEmpty.last(v.value1))(Data_Array_NonEmpty.head(v1.value1));
                                 if (v3 instanceof SemAssocOp && Data_Eq.eq(eqEither)(v1.value0)(v3.value0)) {
                                     $tco_done = true;
@@ -3075,9 +3103,9 @@ var evalAccessor = function (env) {
                             };
                             if (v instanceof NeutData) {
                                 if (accessor instanceof PureScript_Backend_Optimizer_Syntax.GetCtorField) {
-                                    var $1460 = Data_Array.index(v.value4)(accessor.value5);
-                                    if ($1460 instanceof Data_Maybe.Just) {
-                                        return $1460.value0.value1;
+                                    var $1478 = Data_Array.index(v.value4)(accessor.value5);
+                                    if ($1478 instanceof Data_Maybe.Just) {
+                                        return $1478.value0.value1;
                                     };
                                     return v7(true);
                                 };
@@ -3087,9 +3115,9 @@ var evalAccessor = function (env) {
                         };
                         if (v instanceof NeutLit && v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitArray) {
                             if (accessor instanceof PureScript_Backend_Optimizer_Syntax.GetIndex) {
-                                var $1477 = Data_Array.index(v.value0.value0)(accessor.value0);
-                                if ($1477 instanceof Data_Maybe.Just) {
-                                    return $1477.value0;
+                                var $1495 = Data_Array.index(v.value0.value0)(accessor.value0);
+                                if ($1495 instanceof Data_Maybe.Just) {
+                                    return $1495.value0;
                                 };
                                 return v5(true);
                             };
@@ -3116,11 +3144,11 @@ var evalAccessor = function (env) {
                 };
                 if (v instanceof NeutLit && v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitRecord) {
                     if (accessor instanceof PureScript_Backend_Optimizer_Syntax.GetProp) {
-                        var $1497 = Data_Array.findMap(function (v2) {
+                        var $1515 = Data_Array.findMap(function (v2) {
                             return Data_Functor.voidLeft(Data_Maybe.functorMaybe)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(v2.value0 === accessor.value0))(v2.value1);
                         })(v.value0.value0);
-                        if ($1497 instanceof Data_Maybe.Just) {
-                            return $1497.value0;
+                        if ($1515 instanceof Data_Maybe.Just) {
+                            return $1515.value0;
                         };
                         return v1(true);
                     };
@@ -3144,16 +3172,16 @@ var evalTypeApp = function (env) {
                 return new SemTypeApp(v1, v);
             };
             if (v instanceof SemTyped && v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.ForAll) {
-                var $1511 = Data_Array.uncons(v.value0.value0);
-                if ($1511 instanceof Data_Maybe.Just) {
+                var $1529 = Data_Array.uncons(v.value0.value0);
+                if ($1529 instanceof Data_Maybe.Just) {
                     var rest = (function () {
-                        var $1512 = Data_Array["null"]($1511.value0.tail);
-                        if ($1512) {
+                        var $1530 = Data_Array["null"]($1529.value0.tail);
+                        if ($1530) {
                             return v.value0.value1;
                         };
-                        return new PureScript_Backend_Optimizer_CoreFn.ForAll($1511.value0.tail, v.value0.value1);
+                        return new PureScript_Backend_Optimizer_CoreFn.ForAll($1529.value0.tail, v.value0.value1);
                     })();
-                    var instantiated = PureScript_Backend_Optimizer_TypeSubstitution.substitute(Data_Map_Internal.singleton($1511.value0.head)(v1))(rest);
+                    var instantiated = PureScript_Backend_Optimizer_TypeSubstitution.substitute(Data_Map_Internal.singleton($1529.value0.head)(v1))(rest);
                     return new SemTyped(instantiated, evalTypeApp(env)(v.value1)(v1));
                 };
                 return v2(true);
@@ -3209,8 +3237,8 @@ var build = function (ctx) {
                                                                             return buildDefault(ctx)(v);
                                                                         };
                                                                         if (v instanceof PureScript_Backend_Optimizer_Syntax.EffectDefer) {
-                                                                            var $1561 = unwrapBackendExpr(v.value0);
-                                                                            if ($1561 instanceof ExprSyntax && $1561.value1 instanceof PureScript_Backend_Optimizer_Syntax.EffectDefer) {
+                                                                            var $1579 = unwrapBackendExpr(v.value0);
+                                                                            if ($1579 instanceof ExprSyntax && $1579.value1 instanceof PureScript_Backend_Optimizer_Syntax.EffectDefer) {
                                                                                 return v.value0;
                                                                             };
                                                                             return v33(true);
@@ -3218,12 +3246,12 @@ var build = function (ctx) {
                                                                         return v33(true);
                                                                     };
                                                                     if (v instanceof PureScript_Backend_Optimizer_Syntax.EffectBind) {
-                                                                        var $1567 = unwrapBackendExpr(v.value3);
-                                                                        if ($1567 instanceof ExprSyntax && $1567.value1 instanceof PureScript_Backend_Optimizer_Syntax.EffectPure) {
-                                                                            var $1568 = unwrapBackendExpr($1567.value1.value0);
-                                                                            if ($1568 instanceof ExprSyntax && $1568.value1 instanceof PureScript_Backend_Optimizer_Syntax.Local) {
-                                                                                var $1569 = Data_Eq.eq(PureScript_Backend_Optimizer_Syntax.eqLevel)(v.value1)($1568.value1.value1);
-                                                                                if ($1569) {
+                                                                        var $1585 = unwrapBackendExpr(v.value3);
+                                                                        if ($1585 instanceof ExprSyntax && $1585.value1 instanceof PureScript_Backend_Optimizer_Syntax.EffectPure) {
+                                                                            var $1586 = unwrapBackendExpr($1585.value1.value0);
+                                                                            if ($1586 instanceof ExprSyntax && $1586.value1 instanceof PureScript_Backend_Optimizer_Syntax.Local) {
+                                                                                var $1587 = Data_Eq.eq(PureScript_Backend_Optimizer_Syntax.eqLevel)(v.value1)($1586.value1.value1);
+                                                                                if ($1587) {
                                                                                     return v.value2;
                                                                                 };
                                                                                 return v31(true);
@@ -3235,29 +3263,29 @@ var build = function (ctx) {
                                                                     return v31(true);
                                                                 };
                                                                 if (v instanceof PureScript_Backend_Optimizer_Syntax.EffectBind) {
-                                                                    var $1582 = unwrapBackendExpr(v.value3);
-                                                                    if ($1582 instanceof ExprSyntax && $1582.value1 instanceof PureScript_Backend_Optimizer_Syntax.EffectDefer) {
-                                                                        return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.EffectBind(v.value0, v.value1, v.value2, $1582.value1.value0));
+                                                                    var $1600 = unwrapBackendExpr(v.value3);
+                                                                    if ($1600 instanceof ExprSyntax && $1600.value1 instanceof PureScript_Backend_Optimizer_Syntax.EffectDefer) {
+                                                                        return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.EffectBind(v.value0, v.value1, v.value2, $1600.value1.value0));
                                                                     };
                                                                     return v29(true);
                                                                 };
                                                                 return v29(true);
                                                             };
                                                             if (v instanceof PureScript_Backend_Optimizer_Syntax.EffectBind) {
-                                                                var $1591 = unwrapBackendExpr(v.value2);
-                                                                if ($1591 instanceof ExprSyntax && $1591.value1 instanceof PureScript_Backend_Optimizer_Syntax.EffectDefer) {
-                                                                    return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.EffectBind(v.value0, v.value1, $1591.value1.value0, v.value3));
+                                                                var $1609 = unwrapBackendExpr(v.value2);
+                                                                if ($1609 instanceof ExprSyntax && $1609.value1 instanceof PureScript_Backend_Optimizer_Syntax.EffectDefer) {
+                                                                    return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.EffectBind(v.value0, v.value1, $1609.value1.value0, v.value3));
                                                                 };
                                                                 return v27(true);
                                                             };
                                                             return v27(true);
                                                         };
                                                         if (v instanceof PureScript_Backend_Optimizer_Syntax.PrimOp && v.value0 instanceof PureScript_Backend_Optimizer_Syntax.Op2) {
-                                                            var $1600 = untypedExpr(v.value0.value2);
-                                                            if ($1600 instanceof ExprSyntax && $1600.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
-                                                                var $1601 = shouldDistributeBranchPrimOp2R(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(v.value0.value2))($1600.value1.value0)($1600.value1.value1)(v.value0.value1)(v.value0.value0);
-                                                                if ($1601 instanceof Data_Maybe.Just) {
-                                                                    return $1601.value0;
+                                                            var $1618 = untypedExpr(v.value0.value2);
+                                                            if ($1618 instanceof ExprSyntax && $1618.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
+                                                                var $1619 = shouldDistributeBranchPrimOp2R(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(v.value0.value2))($1618.value1.value0)($1618.value1.value1)(v.value0.value1)(v.value0.value0);
+                                                                if ($1619 instanceof Data_Maybe.Just) {
+                                                                    return $1619.value0;
                                                                 };
                                                                 return v25(true);
                                                             };
@@ -3266,11 +3294,11 @@ var build = function (ctx) {
                                                         return v25(true);
                                                     };
                                                     if (v instanceof PureScript_Backend_Optimizer_Syntax.PrimOp && v.value0 instanceof PureScript_Backend_Optimizer_Syntax.Op2) {
-                                                        var $1612 = untypedExpr(v.value0.value1);
-                                                        if ($1612 instanceof ExprSyntax && $1612.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
-                                                            var $1613 = shouldDistributeBranchPrimOp2L(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(v.value0.value1))($1612.value1.value0)($1612.value1.value1)(v.value0.value0)(v.value0.value2);
-                                                            if ($1613 instanceof Data_Maybe.Just) {
-                                                                return $1613.value0;
+                                                        var $1630 = untypedExpr(v.value0.value1);
+                                                        if ($1630 instanceof ExprSyntax && $1630.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
+                                                            var $1631 = shouldDistributeBranchPrimOp2L(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(v.value0.value1))($1630.value1.value0)($1630.value1.value1)(v.value0.value0)(v.value0.value2);
+                                                            if ($1631 instanceof Data_Maybe.Just) {
+                                                                return $1631.value0;
                                                             };
                                                             return v23(true);
                                                         };
@@ -3279,11 +3307,11 @@ var build = function (ctx) {
                                                     return v23(true);
                                                 };
                                                 if (v instanceof PureScript_Backend_Optimizer_Syntax.PrimOp && v.value0 instanceof PureScript_Backend_Optimizer_Syntax.Op1) {
-                                                    var $1624 = untypedExpr(v.value0.value1);
-                                                    if ($1624 instanceof ExprSyntax && $1624.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
-                                                        var $1625 = shouldDistributeBranchPrimOp1(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(v.value0.value1))($1624.value1.value0)($1624.value1.value1)(v.value0.value0);
-                                                        if ($1625 instanceof Data_Maybe.Just) {
-                                                            return $1625.value0;
+                                                    var $1642 = untypedExpr(v.value0.value1);
+                                                    if ($1642 instanceof ExprSyntax && $1642.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
+                                                        var $1643 = shouldDistributeBranchPrimOp1(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(v.value0.value1))($1642.value1.value0)($1642.value1.value1)(v.value0.value0);
+                                                        if ($1643 instanceof Data_Maybe.Just) {
+                                                            return $1643.value0;
                                                         };
                                                         return v21(true);
                                                     };
@@ -3292,11 +3320,11 @@ var build = function (ctx) {
                                                 return v21(true);
                                             };
                                             if (v instanceof PureScript_Backend_Optimizer_Syntax.Accessor) {
-                                                var $1635 = untypedExpr(v.value0);
-                                                if ($1635 instanceof ExprSyntax && $1635.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
-                                                    var $1636 = shouldDistributeBranchAccessor(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(v.value0))($1635.value1.value0)($1635.value1.value1)(v.value1);
-                                                    if ($1636 instanceof Data_Maybe.Just) {
-                                                        return $1636.value0;
+                                                var $1653 = untypedExpr(v.value0);
+                                                if ($1653 instanceof ExprSyntax && $1653.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
+                                                    var $1654 = shouldDistributeBranchAccessor(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(v.value0))($1653.value1.value0)($1653.value1.value1)(v.value1);
+                                                    if ($1654 instanceof Data_Maybe.Just) {
+                                                        return $1654.value0;
                                                     };
                                                     return v19(true);
                                                 };
@@ -3305,11 +3333,11 @@ var build = function (ctx) {
                                             return v19(true);
                                         };
                                         if (v instanceof PureScript_Backend_Optimizer_Syntax.UncurriedApp) {
-                                            var $1645 = untypedExpr(v.value0);
-                                            if ($1645 instanceof ExprSyntax && $1645.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
-                                                var $1646 = shouldDistributeBranchUncurriedApps(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(v.value0))($1645.value1.value0)($1645.value1.value1)(v.value1);
-                                                if ($1646 instanceof Data_Maybe.Just) {
-                                                    return $1646.value0;
+                                            var $1663 = untypedExpr(v.value0);
+                                            if ($1663 instanceof ExprSyntax && $1663.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
+                                                var $1664 = shouldDistributeBranchUncurriedApps(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(v.value0))($1663.value1.value0)($1663.value1.value1)(v.value1);
+                                                if ($1664 instanceof Data_Maybe.Just) {
+                                                    return $1664.value0;
                                                 };
                                                 return v17(true);
                                             };
@@ -3318,11 +3346,11 @@ var build = function (ctx) {
                                         return v17(true);
                                     };
                                     if (v instanceof PureScript_Backend_Optimizer_Syntax.App) {
-                                        var $1655 = untypedExpr(v.value0);
-                                        if ($1655 instanceof ExprSyntax && $1655.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
-                                            var $1656 = shouldDistributeBranchApps(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(v.value0))($1655.value1.value0)($1655.value1.value1)(v.value1);
-                                            if ($1656 instanceof Data_Maybe.Just) {
-                                                return $1656.value0;
+                                        var $1673 = untypedExpr(v.value0);
+                                        if ($1673 instanceof ExprSyntax && $1673.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
+                                            var $1674 = shouldDistributeBranchApps(PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(v.value0))($1673.value1.value0)($1673.value1.value1)(v.value1);
+                                            if ($1674 instanceof Data_Maybe.Just) {
+                                                return $1674.value0;
                                             };
                                             return v15(true);
                                         };
@@ -3331,63 +3359,63 @@ var build = function (ctx) {
                                     return v15(true);
                                 };
                                 if (v instanceof PureScript_Backend_Optimizer_Syntax.Let) {
-                                    var $1665 = shouldEtaReduce(v.value1)(v.value2)(v.value3);
-                                    if ($1665 instanceof Data_Maybe.Just) {
-                                        return $1665.value0;
+                                    var $1683 = shouldEtaReduce(v.value1)(v.value2)(v.value3);
+                                    if ($1683 instanceof Data_Maybe.Just) {
+                                        return $1683.value0;
                                     };
                                     return v13(true);
                                 };
                                 return v13(true);
                             };
                             if (v instanceof PureScript_Backend_Optimizer_Syntax.Let) {
-                                var $1672 = shouldDistributeBranches(v.value0)(v.value1)(v.value2)(v.value3);
-                                if ($1672 instanceof Data_Maybe.Just) {
-                                    return $1672.value0;
+                                var $1690 = shouldDistributeBranches(v.value0)(v.value1)(v.value2)(v.value3);
+                                if ($1690 instanceof Data_Maybe.Just) {
+                                    return $1690.value0;
                                 };
                                 return v11(true);
                             };
                             return v11(true);
                         };
                         if (v instanceof PureScript_Backend_Optimizer_Syntax.Let) {
-                            var $1679 = shouldUnpackArray(v.value0)(v.value1)(v.value2)(v.value3);
-                            if ($1679 instanceof Data_Maybe.Just) {
-                                return $1679.value0;
+                            var $1697 = shouldUnpackArray(v.value0)(v.value1)(v.value2)(v.value3);
+                            if ($1697 instanceof Data_Maybe.Just) {
+                                return $1697.value0;
                             };
                             return v9(true);
                         };
                         return v9(true);
                     };
                     if (v instanceof PureScript_Backend_Optimizer_Syntax.Let) {
-                        var $1686 = shouldUnpackCtor(v.value0)(v.value1)(v.value2)(v.value3);
-                        if ($1686 instanceof Data_Maybe.Just) {
-                            return $1686.value0;
+                        var $1704 = shouldUnpackCtor(v.value0)(v.value1)(v.value2)(v.value3);
+                        if ($1704 instanceof Data_Maybe.Just) {
+                            return $1704.value0;
                         };
                         return v7(true);
                     };
                     return v7(true);
                 };
                 if (v instanceof PureScript_Backend_Optimizer_Syntax.Let) {
-                    var $1693 = shouldUnpackUpdate(v.value0)(v.value1)(v.value2)(v.value3);
-                    if ($1693 instanceof Data_Maybe.Just) {
-                        return $1693.value0;
+                    var $1711 = shouldUnpackUpdate(v.value0)(v.value1)(v.value2)(v.value3);
+                    if ($1711 instanceof Data_Maybe.Just) {
+                        return $1711.value0;
                     };
                     return v5(true);
                 };
                 return v5(true);
             };
             if (v instanceof PureScript_Backend_Optimizer_Syntax.Let) {
-                var $1700 = shouldUnpackRecord(v.value0)(v.value1)(v.value2)(v.value3);
-                if ($1700 instanceof Data_Maybe.Just) {
-                    return $1700.value0;
+                var $1718 = shouldUnpackRecord(v.value0)(v.value1)(v.value2)(v.value3);
+                if ($1718 instanceof Data_Maybe.Just) {
+                    return $1718.value0;
                 };
                 return v3(true);
             };
             return v3(true);
         };
         if (v instanceof PureScript_Backend_Optimizer_Syntax.Let) {
-            var $1707 = shouldUncurryAbs(v.value0)(v.value1)(v.value2)(v.value3);
-            if ($1707 instanceof Data_Maybe.Just) {
-                return $1707.value0;
+            var $1725 = shouldUncurryAbs(v.value0)(v.value1)(v.value2)(v.value3);
+            if ($1725 instanceof Data_Maybe.Just) {
+                return $1725.value0;
             };
             return v1(true);
         };
@@ -3427,16 +3455,16 @@ var simplifyCondRedundantElse = function (ctx) {
                 if (Data_Boolean.otherwise) {
                     return Data_Maybe.Nothing.value;
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1716, column 1 - line 1716, column 89): " + [ ctx.constructor.name, v.constructor.name, def.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1736, column 1 - line 1736, column 89): " + [ ctx.constructor.name, v.constructor.name, def.constructor.name ]);
             };
-            var $1744 = untypedExpr(def);
-            if ($1744 instanceof ExprSyntax && $1744.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
-                var $1745 = Data_Array_NonEmpty.head($1744.value1.value0);
-                var $1746 = untypedExpr($1745.value0);
-                if ($1746 instanceof ExprSyntax && ($1746.value1 instanceof PureScript_Backend_Optimizer_Syntax.PrimOp && ($1746.value1.value0 instanceof PureScript_Backend_Optimizer_Syntax.Op1 && $1746.value1.value0.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanNot))) {
-                    var $1747 = Data_Eq.eq(eqBackendExpr)(v.value0)($1746.value1.value0.value1);
-                    if ($1747) {
-                        return Data_Function.apply(Data_Maybe.Just.create)(buildBranchCond(ctx)(new PureScript_Backend_Optimizer_Syntax.Pair(v.value0, v.value1))($1745.value1));
+            var $1762 = untypedExpr(def);
+            if ($1762 instanceof ExprSyntax && $1762.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
+                var $1763 = Data_Array_NonEmpty.head($1762.value1.value0);
+                var $1764 = untypedExpr($1763.value0);
+                if ($1764 instanceof ExprSyntax && ($1764.value1 instanceof PureScript_Backend_Optimizer_Syntax.PrimOp && ($1764.value1.value0 instanceof PureScript_Backend_Optimizer_Syntax.Op1 && $1764.value1.value0.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanNot))) {
+                    var $1765 = Data_Eq.eq(eqBackendExpr)(v.value0)($1764.value1.value0.value1);
+                    if ($1765) {
+                        return Data_Function.apply(Data_Maybe.Just.create)(buildBranchCond(ctx)(new PureScript_Backend_Optimizer_Syntax.Pair(v.value0, v.value1))($1763.value1));
                     };
                     return v1(true);
                 };
@@ -3453,15 +3481,15 @@ var simplifyCondLiftAnd = function (ctx) {
                 if (Data_Boolean.otherwise) {
                     return Data_Maybe.Nothing.value;
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1716, column 1 - line 1716, column 89): " + [ ctx.constructor.name, v.constructor.name, def1.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1736, column 1 - line 1736, column 89): " + [ ctx.constructor.name, v.constructor.name, def1.constructor.name ]);
             };
-            var $1769 = untypedExpr(v.value1);
-            if ($1769 instanceof ExprSyntax && $1769.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
-                var $1770 = Data_Array_NonEmpty.toArray($1769.value1.value0);
-                if ($1770.length === 1) {
-                    var $1771 = Data_Eq.eq(eqBackendExpr)(def1)($1769.value1.value1);
-                    if ($1771) {
-                        return Data_Function.apply(Data_Maybe.Just.create)(buildBranchCond(ctx)(new PureScript_Backend_Optimizer_Syntax.Pair(build(ctx)(new PureScript_Backend_Optimizer_Syntax.PrimOp(new PureScript_Backend_Optimizer_Syntax.Op2(PureScript_Backend_Optimizer_Syntax.OpBooleanAnd.value, v.value0, $1770[0].value0))), $1770[0].value1))(def1));
+            var $1787 = untypedExpr(v.value1);
+            if ($1787 instanceof ExprSyntax && $1787.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
+                var $1788 = Data_Array_NonEmpty.toArray($1787.value1.value0);
+                if ($1788.length === 1) {
+                    var $1789 = Data_Eq.eq(eqBackendExpr)(def1)($1787.value1.value1);
+                    if ($1789) {
+                        return Data_Function.apply(Data_Maybe.Just.create)(buildBranchCond(ctx)(new PureScript_Backend_Optimizer_Syntax.Pair(build(ctx)(new PureScript_Backend_Optimizer_Syntax.PrimOp(new PureScript_Backend_Optimizer_Syntax.Op2(PureScript_Backend_Optimizer_Syntax.OpBooleanAnd.value, v.value0, $1788[0].value0))), $1788[0].value1))(def1));
                     };
                     return v1(true);
                 };
@@ -3482,34 +3510,34 @@ var buildBranchCond = function (ctx) {
                                 if (Data_Boolean.otherwise) {
                                     return build(ctx)(new PureScript_Backend_Optimizer_Syntax.Branch(Data_Array_NonEmpty.singleton(pair), def));
                                 };
-                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1716, column 1 - line 1716, column 89): " + [ ctx.constructor.name, pair.constructor.name, def.constructor.name ]);
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1736, column 1 - line 1736, column 89): " + [ ctx.constructor.name, pair.constructor.name, def.constructor.name ]);
                             };
                             if (def instanceof ExprSyntax && def.value1 instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
                                 return build(ctx)(new PureScript_Backend_Optimizer_Syntax.Branch(Data_Array_NonEmpty.cons(pair)(def.value1.value0), def.value1.value1));
                             };
                             return v8(true);
                         };
-                        var $1795 = simplifyCondRedundantElse(ctx)(pair)(def);
-                        if ($1795 instanceof Data_Maybe.Just) {
-                            return $1795.value0;
+                        var $1813 = simplifyCondRedundantElse(ctx)(pair)(def);
+                        if ($1813 instanceof Data_Maybe.Just) {
+                            return $1813.value0;
                         };
                         return v6(true);
                     };
-                    var $1800 = simplifyCondLiftAnd(ctx)(pair)(def);
-                    if ($1800 instanceof Data_Maybe.Just) {
-                        return $1800.value0;
+                    var $1818 = simplifyCondLiftAnd(ctx)(pair)(def);
+                    if ($1818 instanceof Data_Maybe.Just) {
+                        return $1818.value0;
                     };
                     return v4(true);
                 };
-                var $1805 = simplifyCondBoolean(ctx)(pair)(def);
-                if ($1805 instanceof Data_Maybe.Just) {
-                    return $1805.value0;
+                var $1823 = simplifyCondBoolean(ctx)(pair)(def);
+                if ($1823 instanceof Data_Maybe.Just) {
+                    return $1823.value0;
                 };
                 return v2(true);
             };
-            var $1810 = simplifyCondIsTag(ctx)(pair)(def);
-            if ($1810 instanceof Data_Maybe.Just) {
-                return $1810.value0;
+            var $1828 = simplifyCondIsTag(ctx)(pair)(def);
+            if ($1828 instanceof Data_Maybe.Just) {
+                return $1828.value0;
             };
             return v(true);
         };
@@ -3526,7 +3554,7 @@ var $lazy_quote = /* #__PURE__ */ $runtime_lazy("quote", "PureScript.Backend.Opt
             };
             if (v instanceof SemLet) {
                 var v1 = nextLevel(ctx);
-                return Data_Function.apply(build(ctx))(Data_Function.apply(PureScript_Backend_Optimizer_Syntax.Let.create(v.value0)(v1.value0)($lazy_quote(1486)(purely(ctx))(v.value1)))(Data_Function.apply($lazy_quote(1486)(v1.value1))(Data_Function.apply(v.value2)(Data_Function.apply(SemRef.create(new EvalLocal(v.value0, v1.value0))([  ]))(Data_Lazy.defer(function (v2) {
+                return Data_Function.apply(build(ctx))(Data_Function.apply(PureScript_Backend_Optimizer_Syntax.Let.create(v.value0)(v1.value0)($lazy_quote(1506)(purely(ctx))(v.value1)))(Data_Function.apply($lazy_quote(1506)(v1.value1))(Data_Function.apply(v.value2)(Data_Function.apply(SemRef.create(new EvalLocal(v.value0, v1.value0))([  ]))(Data_Lazy.defer(function (v2) {
                     return deref(v.value1);
                 }))))));
             };
@@ -3538,30 +3566,30 @@ var $lazy_quote = /* #__PURE__ */ $runtime_lazy("quote", "PureScript.Backend.Opt
                     }));
                 })(v.value0);
                 return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.LetRec(v1.value0, Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(Data_Functor.map(Data_Tuple.functorTuple)(function (b) {
-                    return Data_Function.apply($lazy_quote(1495)(purely(v1.value1)))(b(neutBindings));
-                }))(v.value0), Data_Function.apply($lazy_quote(1496)(v1.value1))(v.value1(neutBindings))));
+                    return Data_Function.apply($lazy_quote(1515)(purely(v1.value1)))(b(neutBindings));
+                }))(v.value0), Data_Function.apply($lazy_quote(1516)(v1.value1))(v.value1(neutBindings))));
             };
             if (v instanceof SemEffectBind) {
                 var ctx$prime = effectfully(ctx);
                 var v1 = nextLevel(ctx$prime);
-                return Data_Function.apply(build(ctx))(Data_Function.apply(PureScript_Backend_Optimizer_Syntax.EffectBind.create(v.value0)(v1.value0)($lazy_quote(1500)(ctx$prime)(v.value1)))(Data_Function.apply($lazy_quote(1500)(v1.value1))(Data_Function.apply(v.value2)(new NeutLocal(v.value0, v1.value0)))));
+                return Data_Function.apply(build(ctx))(Data_Function.apply(PureScript_Backend_Optimizer_Syntax.EffectBind.create(v.value0)(v1.value0)($lazy_quote(1520)(ctx$prime)(v.value1)))(Data_Function.apply($lazy_quote(1520)(v1.value1))(Data_Function.apply(v.value2)(new NeutLocal(v.value0, v1.value0)))));
             };
             if (v instanceof SemEffectPure) {
-                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.EffectPure($lazy_quote(1502)(purely(ctx))(v.value0)));
+                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.EffectPure($lazy_quote(1522)(purely(ctx))(v.value0)));
             };
             if (v instanceof SemEffectDefer) {
-                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.EffectDefer($lazy_quote(1504)(effectfully(ctx))(v.value0)));
+                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.EffectDefer($lazy_quote(1524)(effectfully(ctx))(v.value0)));
             };
             if (v instanceof SemBranch) {
                 var ctx$prime = purely(ctx);
                 var quoteCond = function (v1) {
-                    return new PureScript_Backend_Optimizer_Syntax.Pair(Data_Function.apply($lazy_quote(1507)(ctx$prime))(Data_Lazy.force(v1.value0)), Data_Function.apply($lazy_quote(1507)(ctx))(Data_Lazy.force(v1.value1)));
+                    return new PureScript_Backend_Optimizer_Syntax.Pair(Data_Function.apply($lazy_quote(1527)(ctx$prime))(Data_Lazy.force(v1.value0)), Data_Function.apply($lazy_quote(1527)(ctx))(Data_Lazy.force(v1.value1)));
                 };
                 var branches$prime = Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(quoteCond)(v.value0);
                 return Data_Foldable.foldr(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(buildBranchCond(ctx))(Data_Function.apply((function () {
-                    var $2500 = $lazy_quote(1509)(ctx);
-                    return function ($2501) {
-                        return $2500(Data_Lazy.force($2501));
+                    var $2535 = $lazy_quote(1529)(ctx);
+                    return function ($2536) {
+                        return $2535(Data_Lazy.force($2536));
                     };
                 })())(v.value1))(branches$prime);
             };
@@ -3572,11 +3600,11 @@ var $lazy_quote = /* #__PURE__ */ $runtime_lazy("quote", "PureScript.Backend.Opt
                 if (v.value0 instanceof EvalLocal) {
                     return Data_Function.apply(go(ctx))(neutralSpine(new NeutLocal(v.value0.value0, v.value0.value1))(v.value1));
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1513, column 7 - line 1517, column 57): " + [ v.value0.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1533, column 7 - line 1537, column 57): " + [ v.value0.constructor.name ]);
             };
             if (v instanceof SemLam) {
                 var v1 = nextLevel(ctx);
-                return Data_Function.apply(build(ctx))(Data_Function.apply(PureScript_Backend_Optimizer_Syntax.Abs.create(Data_Array_NonEmpty.singleton(new Data_Tuple.Tuple(v.value0, v1.value0))))(Data_Function.apply($lazy_quote(1520)(purely(v1.value1)))(Data_Function.apply(v.value1)(new NeutLocal(v.value0, v1.value0)))));
+                return Data_Function.apply(build(ctx))(Data_Function.apply(PureScript_Backend_Optimizer_Syntax.Abs.create(Data_Array_NonEmpty.singleton(new Data_Tuple.Tuple(v.value0, v1.value0))))(Data_Function.apply($lazy_quote(1540)(purely(v1.value1)))(Data_Function.apply(v.value1)(new NeutLocal(v.value0, v1.value0)))));
             };
             if (v instanceof SemMkFn) {
                 var loop = function ($copy_ctx$prime) {
@@ -3596,9 +3624,9 @@ var $lazy_quote = /* #__PURE__ */ $runtime_lazy("quote", "PureScript.Backend.Opt
                                 };
                                 if (v1 instanceof MkFnApplied) {
                                     $tco_done = true;
-                                    return Data_Function.apply(build(ctx$prime))(Data_Function.apply(PureScript_Backend_Optimizer_Syntax.UncurriedAbs.create(idents))($lazy_quote(1528)(purely(ctx$prime))(v1.value0)));
+                                    return Data_Function.apply(build(ctx$prime))(Data_Function.apply(PureScript_Backend_Optimizer_Syntax.UncurriedAbs.create(idents))($lazy_quote(1548)(purely(ctx$prime))(v1.value0)));
                                 };
-                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1523, column 28 - line 1528, column 72): " + [ v1.constructor.name ]);
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1543, column 28 - line 1548, column 72): " + [ v1.constructor.name ]);
                             };
                             while (!$tco_done) {
                                 $tco_result = $tco_loop($tco_var_ctx$prime, $tco_var_idents, $copy_v1);
@@ -3627,9 +3655,9 @@ var $lazy_quote = /* #__PURE__ */ $runtime_lazy("quote", "PureScript.Backend.Opt
                                 };
                                 if (v1 instanceof MkFnApplied) {
                                     $tco_done1 = true;
-                                    return Data_Function.apply(build(ctx$prime))(Data_Function.apply(PureScript_Backend_Optimizer_Syntax.UncurriedEffectAbs.create(idents))($lazy_quote(1537)(purely(ctx$prime))(v1.value0)));
+                                    return Data_Function.apply(build(ctx$prime))(Data_Function.apply(PureScript_Backend_Optimizer_Syntax.UncurriedEffectAbs.create(idents))($lazy_quote(1557)(purely(ctx$prime))(v1.value0)));
                                 };
-                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1532, column 28 - line 1537, column 78): " + [ v1.constructor.name ]);
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1552, column 28 - line 1557, column 78): " + [ v1.constructor.name ]);
                             };
                             while (!$tco_done1) {
                                 $tco_result = $tco_loop($tco_var_ctx$prime, $tco_var_idents, $copy_v1);
@@ -3644,14 +3672,14 @@ var $lazy_quote = /* #__PURE__ */ $runtime_lazy("quote", "PureScript.Backend.Opt
                 return PureScript_Backend_Optimizer_Utils.foldl1Array(function (a) {
                     return function (b) {
                         if (v.value0 instanceof Data_Either.Left) {
-                            return Data_Function.apply(build(ctx))(Data_Function.apply(PureScript_Backend_Optimizer_Syntax.App.create(build(ctx)(new PureScript_Backend_Optimizer_Syntax.Var(v.value0.value0))))(Data_Array_NonEmpty["cons$prime"](a)([ $lazy_quote(1543)(ctx)(b) ])));
+                            return Data_Function.apply(build(ctx))(Data_Function.apply(PureScript_Backend_Optimizer_Syntax.App.create(build(ctx)(new PureScript_Backend_Optimizer_Syntax.Var(v.value0.value0))))(Data_Array_NonEmpty["cons$prime"](a)([ $lazy_quote(1563)(ctx)(b) ])));
                         };
                         if (v.value0 instanceof Data_Either.Right) {
-                            return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.PrimOp(new PureScript_Backend_Optimizer_Syntax.Op2(v.value0.value0, a, $lazy_quote(1545)(ctx)(b))));
+                            return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.PrimOp(new PureScript_Backend_Optimizer_Syntax.Op2(v.value0.value0, a, $lazy_quote(1565)(ctx)(b))));
                         };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1541, column 19 - line 1545, column 62): " + [ v.value0.constructor.name ]);
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1561, column 19 - line 1565, column 62): " + [ v.value0.constructor.name ]);
                     };
-                })($lazy_quote(1547)(ctx))(v.value1);
+                })($lazy_quote(1567)(ctx))(v.value1);
             };
             if (v instanceof NeutLocal) {
                 return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.Local(v.value0, v.value1));
@@ -3663,47 +3691,47 @@ var $lazy_quote = /* #__PURE__ */ $runtime_lazy("quote", "PureScript.Backend.Opt
                 return buildStop(ctx)(v.value0);
             };
             if (v instanceof NeutData) {
-                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.CtorSaturated(v.value0, v.value1, v.value2, v.value3, Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(Data_Tuple.functorTuple)($lazy_quote(1556)(ctx)))(v.value4)));
+                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.CtorSaturated(v.value0, v.value1, v.value2, v.value3, Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(Data_Tuple.functorTuple)($lazy_quote(1576)(ctx)))(v.value4)));
             };
             if (v instanceof NeutCtorDef) {
                 return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.CtorDef(v.value1, v.value2, v.value3, v.value4));
             };
             if (v instanceof NeutUncurriedApp) {
                 var ctx$prime = purely(ctx);
-                var hd$prime = $lazy_quote(1561)(ctx$prime)(v.value0);
-                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.UncurriedApp(hd$prime, Data_Functor.map(Data_Functor.functorArray)($lazy_quote(1562)(ctx$prime))(v.value1)));
+                var hd$prime = $lazy_quote(1581)(ctx$prime)(v.value0);
+                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.UncurriedApp(hd$prime, Data_Functor.map(Data_Functor.functorArray)($lazy_quote(1582)(ctx$prime))(v.value1)));
             };
             if (v instanceof NeutUncurriedEffectApp) {
                 var ctx$prime = purely(ctx);
-                var hd$prime = $lazy_quote(1565)(ctx$prime)(v.value0);
-                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.UncurriedEffectApp(hd$prime, Data_Functor.map(Data_Functor.functorArray)($lazy_quote(1566)(ctx$prime))(v.value1)));
+                var hd$prime = $lazy_quote(1585)(ctx$prime)(v.value0);
+                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.UncurriedEffectApp(hd$prime, Data_Functor.map(Data_Functor.functorArray)($lazy_quote(1586)(ctx$prime))(v.value1)));
             };
             if (v instanceof NeutApp) {
                 var ctx$prime = purely(ctx);
-                var hd$prime = $lazy_quote(1569)(ctx$prime)(v.value0);
-                var v1 = Data_Array_NonEmpty.fromArray(Data_Functor.map(Data_Functor.functorArray)($lazy_quote(1570)(ctx$prime))(v.value1));
+                var hd$prime = $lazy_quote(1589)(ctx$prime)(v.value0);
+                var v1 = Data_Array_NonEmpty.fromArray(Data_Functor.map(Data_Functor.functorArray)($lazy_quote(1590)(ctx$prime))(v.value1));
                 if (v1 instanceof Data_Maybe.Nothing) {
                     return hd$prime;
                 };
                 if (v1 instanceof Data_Maybe.Just) {
                     return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.App(hd$prime, v1.value0));
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1570, column 7 - line 1574, column 35): " + [ v1.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1590, column 7 - line 1594, column 35): " + [ v1.constructor.name ]);
             };
             if (v instanceof NeutAccessor) {
-                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.Accessor($lazy_quote(1576)(ctx)(v.value0), v.value1));
+                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.Accessor($lazy_quote(1596)(ctx)(v.value0), v.value1));
             };
             if (v instanceof NeutUpdate) {
-                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.Update($lazy_quote(1578)(ctx)(v.value0), Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(PureScript_Backend_Optimizer_CoreFn.functorProp)($lazy_quote(1578)(ctx)))(v.value1)));
+                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.Update($lazy_quote(1598)(ctx)(v.value0), Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(PureScript_Backend_Optimizer_CoreFn.functorProp)($lazy_quote(1598)(ctx)))(v.value1)));
             };
             if (v instanceof NeutLit) {
-                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.Lit(Data_Functor.map(PureScript_Backend_Optimizer_CoreFn.functorLiteral)($lazy_quote(1580)(ctx))(v.value0)));
+                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.Lit(Data_Functor.map(PureScript_Backend_Optimizer_CoreFn.functorLiteral)($lazy_quote(1600)(ctx))(v.value0)));
             };
             if (v instanceof NeutPrimOp) {
-                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.PrimOp(Data_Functor.map(PureScript_Backend_Optimizer_Syntax.functorBackendOperator)($lazy_quote(1582)(ctx))(v.value0)));
+                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.PrimOp(Data_Functor.map(PureScript_Backend_Optimizer_Syntax.functorBackendOperator)($lazy_quote(1602)(ctx))(v.value0)));
             };
             if (v instanceof NeutPrimEffect) {
-                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.PrimEffect(Data_Functor.map(PureScript_Backend_Optimizer_Syntax.functorBackendEffect)($lazy_quote(1584)(purely(ctx)))(v.value0)));
+                return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.PrimEffect(Data_Functor.map(PureScript_Backend_Optimizer_Syntax.functorBackendEffect)($lazy_quote(1604)(purely(ctx)))(v.value0)));
             };
             if (v instanceof NeutPrimUndefined) {
                 return build(ctx)(PureScript_Backend_Optimizer_Syntax.PrimUndefined.value);
@@ -3711,12 +3739,12 @@ var $lazy_quote = /* #__PURE__ */ $runtime_lazy("quote", "PureScript.Backend.Opt
             if (v instanceof NeutFail) {
                 return Data_Function.apply(build(ctx))(new PureScript_Backend_Optimizer_Syntax.Fail(v.value0));
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1478, column 12 - line 1588, column 27): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 1498, column 12 - line 1608, column 27): " + [ v.constructor.name ]);
         };
     };
     return go;
 });
-var quote = /* #__PURE__ */ $lazy_quote(1475);
+var quote = /* #__PURE__ */ $lazy_quote(1495);
 var bindLocal = function (v) {
     return function (sem) {
         return {
@@ -3802,8 +3830,8 @@ var evalApp = function (env) {
                             var finalTy = (function () {
                                 if (mbTy instanceof Data_Maybe.Just && mbTy.value0 instanceof PureScript_Backend_Optimizer_CoreFn.Func) {
                                     var remaining = Data_Array.drop(Data_List.length(v1))(mbTy.value0.value0);
-                                    var $1953 = Data_Array.length(remaining) > 0;
-                                    if ($1953) {
+                                    var $1971 = Data_Array.length(remaining) > 0;
+                                    if ($1971) {
                                         return new Data_Maybe.Just(new PureScript_Backend_Optimizer_CoreFn.Func(remaining, mbTy.value0.value1));
                                     };
                                     return new Data_Maybe.Just(mbTy.value0.value1);
@@ -3835,9 +3863,9 @@ var evalMkFn = function (env) {
             if (Data_Boolean.otherwise) {
                 if (sem instanceof SemLam) {
                     return new MkFnNext(sem.value0, (function () {
-                        var $2502 = evalMkFn(env)(n - 1 | 0);
-                        return function ($2503) {
-                            return $2502(sem.value1($2503));
+                        var $2537 = evalMkFn(env)(n - 1 | 0);
+                        return function ($2538) {
+                            return $2537(sem.value1($2538));
                         };
                     })());
                 };
@@ -3846,7 +3874,7 @@ var evalMkFn = function (env) {
                     return evalMkFn(env$prime)(n - 1 | 0)(evalApp(env$prime)(sem)([ nextArg ]));
                 });
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2170, column 1 - line 2170, column 68): " + [ env.constructor.name, n.constructor.name, sem.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2190, column 1 - line 2190, column 68): " + [ env.constructor.name, n.constructor.name, sem.constructor.name ]);
         };
     };
 };
@@ -3945,7 +3973,7 @@ var mkUncurriedAppRewrite = function (env) {
                         return go(Data_Array.snoc(acc)(arg))(n - 1 | 0);
                     });
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2186, column 3 - line 2190, column 42): " + [ acc.constructor.name, n.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2206, column 3 - line 2210, column 42): " + [ acc.constructor.name, n.constructor.name ]);
             };
         };
         return go([  ]);
@@ -4014,17 +4042,17 @@ var mkFnFromArgs = function (dictEval) {
                     return function (next) {
                         return function (env$prime) {
                             return new MkFnNext(v.value0, (function () {
-                                var $2504 = bindLocal(env$prime);
-                                return function ($2505) {
-                                    return next($2504(One.create($2505)));
+                                var $2539 = bindLocal(env$prime);
+                                return function ($2540) {
+                                    return next($2539(One.create($2540)));
                                 };
                             })());
                         };
                     };
                 })((function () {
-                    var $2506 = Data_Function.flip(eval1)(body);
-                    return function ($2507) {
-                        return MkFnApplied.create($2506($2507));
+                    var $2541 = Data_Function.flip(eval1)(body);
+                    return function ($2542) {
+                        return MkFnApplied.create($2541($2542));
                     };
                 })())(args)(env));
             };
@@ -4064,9 +4092,9 @@ var evalBackendSyntax = function (dictEval) {
                         return Data_Function.apply(Partial_Unsafe.unsafeCrashWith)("Unbound local at level " + Data_Show.show(Data_Show.showInt)(Data_Newtype.unwrap()(v1.value1)));
                     };
                     if (v2 instanceof Data_Maybe.Just && v2.value0 instanceof Group) {
-                        var $2010 = Control_Bind.bindFlipped(Data_Maybe.bindMaybe)(Data_Function.flip(lookup)(v2.value0.value0))(v1.value0);
-                        if ($2010 instanceof Data_Maybe.Just) {
-                            return Data_Lazy.force($2010.value0);
+                        var $2028 = Control_Bind.bindFlipped(Data_Maybe.bindMaybe)(Data_Function.flip(lookup)(v2.value0.value0))(v1.value0);
+                        if ($2028 instanceof Data_Maybe.Just) {
+                            return Data_Lazy.force($2028.value0);
                         };
                         return v3(true);
                     };
@@ -4121,9 +4149,9 @@ var evalBackendSyntax = function (dictEval) {
                         return function (next) {
                             return function (env$prime) {
                                 return new SemLam(v2.value0, (function () {
-                                    var $2508 = bindLocal(env$prime);
-                                    return function ($2509) {
-                                        return next($2508(One.create($2509)));
+                                    var $2543 = bindLocal(env$prime);
+                                    return function ($2544) {
+                                        return next($2543(One.create($2544)));
                                     };
                                 })());
                             };
@@ -4131,10 +4159,10 @@ var evalBackendSyntax = function (dictEval) {
                     })(function (v2) {
                         return function (env$prime) {
                             return new SemLam(v2.value0, (function () {
-                                var $2510 = Data_Function.flip(eval1)(v1.value1);
-                                var $2511 = bindLocal(env$prime);
-                                return function ($2512) {
-                                    return $2510($2511(One.create($2512)));
+                                var $2545 = Data_Function.flip(eval1)(v1.value1);
+                                var $2546 = bindLocal(env$prime);
+                                return function ($2547) {
+                                    return $2545($2546(One.create($2547)));
                                 };
                             })());
                         };
@@ -4142,29 +4170,29 @@ var evalBackendSyntax = function (dictEval) {
                 };
                 if (v1 instanceof PureScript_Backend_Optimizer_Syntax.Let) {
                     return makeLet(v1.value0)($$eval(dictEval)(v)(v1.value2))((function () {
-                        var $2513 = Data_Function.flip(eval1)(v1.value3);
-                        var $2514 = bindLocal(v);
-                        return function ($2515) {
-                            return $2513($2514(One.create($2515)));
+                        var $2548 = Data_Function.flip(eval1)(v1.value3);
+                        var $2549 = bindLocal(v);
+                        return function ($2550) {
+                            return $2548($2549(One.create($2550)));
                         };
                     })());
                 };
                 if (v1 instanceof PureScript_Backend_Optimizer_Syntax.LetRec) {
                     var bindGroup = function (sem) {
-                        var $2516 = Data_Function.flip(eval1)(sem);
-                        var $2517 = bindLocal(v);
-                        return function ($2518) {
-                            return $2516($2517(Group.create($2518)));
+                        var $2551 = Data_Function.flip(eval1)(sem);
+                        var $2552 = bindLocal(v);
+                        return function ($2553) {
+                            return $2551($2552(Group.create($2553)));
                         };
                     };
                     return new SemLetRec(Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(Data_Functor.map(Data_Tuple.functorTuple)(bindGroup))(v1.value1), bindGroup(v1.value2));
                 };
                 if (v1 instanceof PureScript_Backend_Optimizer_Syntax.EffectBind) {
                     return makeEffectBind(v1.value0)($$eval(dictEval)(v)(v1.value2))((function () {
-                        var $2519 = Data_Function.flip(eval1)(v1.value3);
-                        var $2520 = bindLocal(v);
-                        return function ($2521) {
-                            return $2519($2520(One.create($2521)));
+                        var $2554 = Data_Function.flip(eval1)(v1.value3);
+                        var $2555 = bindLocal(v);
+                        return function ($2556) {
+                            return $2554($2555(One.create($2556)));
                         };
                     })());
                 };
@@ -4251,10 +4279,10 @@ var $lazy_evalBackendExpr = /* #__PURE__ */ $runtime_lazy("evalBackendExpr", "Pu
                                             };
                                         };
                                     })((function () {
-                                        var $2522 = Data_Function.flip($$eval($lazy_evalBackendExpr(0)))(v.value1.value3);
-                                        var $2523 = bindLocal(env);
-                                        return function ($2524) {
-                                            return $2522($2523(One.create(NeutLit.create(PureScript_Backend_Optimizer_CoreFn.LitRecord.create($2524)))));
+                                        var $2557 = Data_Function.flip($$eval($lazy_evalBackendExpr(0)))(v.value1.value3);
+                                        var $2558 = bindLocal(env);
+                                        return function ($2559) {
+                                            return $2557($2558(One.create(NeutLit.create(PureScript_Backend_Optimizer_CoreFn.LitRecord.create($2559)))));
                                         };
                                     })())(v.value1.value2.value0)([  ]);
                                 };
@@ -4270,11 +4298,11 @@ var $lazy_evalBackendExpr = /* #__PURE__ */ $runtime_lazy("evalBackendExpr", "Pu
                                                 };
                                             };
                                         })((function () {
-                                            var $2525 = Data_Function.flip($$eval($lazy_evalBackendExpr(0)))(v.value1.value3);
-                                            var $2526 = bindLocal(env);
-                                            var $2527 = NeutUpdate.create(hd$prime);
-                                            return function ($2528) {
-                                                return $2525($2526(One.create($2527($2528))));
+                                            var $2560 = Data_Function.flip($$eval($lazy_evalBackendExpr(0)))(v.value1.value3);
+                                            var $2561 = bindLocal(env);
+                                            var $2562 = NeutUpdate.create(hd$prime);
+                                            return function ($2563) {
+                                                return $2560($2561(One.create($2562($2563))));
                                             };
                                         })())(v.value1.value2.value1)([  ]);
                                     });
@@ -4290,10 +4318,10 @@ var $lazy_evalBackendExpr = /* #__PURE__ */ $runtime_lazy("evalBackendExpr", "Pu
                                             };
                                         };
                                     })((function () {
-                                        var $2529 = Data_Function.flip($$eval($lazy_evalBackendExpr(0)))(v.value1.value3);
-                                        var $2530 = bindLocal(env);
-                                        return function ($2531) {
-                                            return $2529($2530(One.create(NeutLit.create(PureScript_Backend_Optimizer_CoreFn.LitArray.create($2531)))));
+                                        var $2564 = Data_Function.flip($$eval($lazy_evalBackendExpr(0)))(v.value1.value3);
+                                        var $2565 = bindLocal(env);
+                                        return function ($2566) {
+                                            return $2564($2565(One.create(NeutLit.create(PureScript_Backend_Optimizer_CoreFn.LitArray.create($2566)))));
                                         };
                                     })())(v.value1.value2.value0)([  ]);
                                 };
@@ -4308,11 +4336,11 @@ var $lazy_evalBackendExpr = /* #__PURE__ */ $runtime_lazy("evalBackendExpr", "Pu
                                             };
                                         };
                                     })((function () {
-                                        var $2532 = Data_Function.flip($$eval($lazy_evalBackendExpr(0)))(v.value1.value3);
-                                        var $2533 = bindLocal(env);
-                                        var $2534 = NeutData.create(v.value1.value2.value0)(v.value1.value2.value1)(v.value1.value2.value2)(v.value1.value2.value3);
-                                        return function ($2535) {
-                                            return $2532($2533(One.create($2534($2535))));
+                                        var $2567 = Data_Function.flip($$eval($lazy_evalBackendExpr(0)))(v.value1.value3);
+                                        var $2568 = bindLocal(env);
+                                        var $2569 = NeutData.create(v.value1.value2.value0)(v.value1.value2.value1)(v.value1.value2.value2)(v.value1.value2.value3);
+                                        return function ($2570) {
+                                            return $2567($2568(One.create($2569($2570))));
                                         };
                                     })())(v.value1.value2.value4)([  ]);
                                 };
@@ -4321,10 +4349,10 @@ var $lazy_evalBackendExpr = /* #__PURE__ */ $runtime_lazy("evalBackendExpr", "Pu
                             if (v.value1 instanceof RewriteDistBranchesLet) {
                                 $tco_done = true;
                                 return Data_Function.apply(rewriteBranches((function () {
-                                    var $2536 = Data_Function.flip($$eval($lazy_evalBackendExpr(0)))(v.value1.value4);
-                                    var $2537 = bindLocal(env);
-                                    return function ($2538) {
-                                        return $2536($2537(One.create($2538)));
+                                    var $2571 = Data_Function.flip($$eval($lazy_evalBackendExpr(0)))(v.value1.value4);
+                                    var $2572 = bindLocal(env);
+                                    return function ($2573) {
+                                        return $2571($2572(One.create($2573)));
                                     };
                                 })()))(evalBranches(env)(Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(evalPair($lazy_evalBackendExpr(0))(env))(v.value1.value2))(Data_Lazy.defer(function (v1) {
                                     return $$eval($lazy_evalBackendExpr(0))(env)(v.value1.value3);
@@ -4342,24 +4370,24 @@ var $lazy_evalBackendExpr = /* #__PURE__ */ $runtime_lazy("evalBackendExpr", "Pu
                                         return Data_Function.flip(evalAccessor(env))(v.value1.value2.value0);
                                     };
                                     if (v.value1.value2 instanceof DistPrimOp1) {
-                                        var $2539 = evalPrimOp(env);
-                                        var $2540 = PureScript_Backend_Optimizer_Syntax.Op1.create(v.value1.value2.value0);
-                                        return function ($2541) {
-                                            return $2539($2540($2541));
+                                        var $2574 = evalPrimOp(env);
+                                        var $2575 = PureScript_Backend_Optimizer_Syntax.Op1.create(v.value1.value2.value0);
+                                        return function ($2576) {
+                                            return $2574($2575($2576));
                                         };
                                     };
                                     if (v.value1.value2 instanceof DistPrimOp2L) {
-                                        var $2542 = evalPrimOp(env);
-                                        var $2543 = Data_Function.flip(PureScript_Backend_Optimizer_Syntax.Op2.create(v.value1.value2.value0))($$eval($lazy_evalBackendExpr(0))(env)(v.value1.value2.value1));
-                                        return function ($2544) {
-                                            return $2542($2543($2544));
+                                        var $2577 = evalPrimOp(env);
+                                        var $2578 = Data_Function.flip(PureScript_Backend_Optimizer_Syntax.Op2.create(v.value1.value2.value0))($$eval($lazy_evalBackendExpr(0))(env)(v.value1.value2.value1));
+                                        return function ($2579) {
+                                            return $2577($2578($2579));
                                         };
                                     };
                                     if (v.value1.value2 instanceof DistPrimOp2R) {
-                                        var $2545 = evalPrimOp(env);
-                                        var $2546 = PureScript_Backend_Optimizer_Syntax.Op2.create(v.value1.value2.value1)($$eval($lazy_evalBackendExpr(0))(env)(v.value1.value2.value0));
-                                        return function ($2547) {
-                                            return $2545($2546($2547));
+                                        var $2580 = evalPrimOp(env);
+                                        var $2581 = PureScript_Backend_Optimizer_Syntax.Op2.create(v.value1.value2.value1)($$eval($lazy_evalBackendExpr(0))(env)(v.value1.value2.value0));
+                                        return function ($2582) {
+                                            return $2580($2581($2582));
                                         };
                                     };
                                     throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 447, column 20 - line 459, column 58): " + [ v.value1.value2.constructor.name ]);
@@ -4408,8 +4436,8 @@ var optimize = function (traceSteps) {
                             return function (e) {
                                 return function (expr) {
                                     var v1 = PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(expr);
-                                    var $2141 = v1.size <= 2000;
-                                    if ($2141) {
+                                    var $2159 = v1.size <= 2000;
+                                    if ($2159) {
                                         return quote(c)($$eval(evalBackendExpr)(e)(expr));
                                     };
                                     if (expr instanceof ExprSyntax && expr.value1 instanceof PureScript_Backend_Optimizer_Syntax.Typed) {
@@ -4505,17 +4533,17 @@ var optimize = function (traceSteps) {
                                     if (expr instanceof ExprRewrite) {
                                         return quote(c)($$eval(evalBackendExpr)(e)(expr));
                                     };
-                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2044, column 9 - line 2120, column 34): " + [ expr.constructor.name ]);
+                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2064, column 9 - line 2140, column 34): " + [ expr.constructor.name ]);
                                 };
                             };
                         };
                         var goStep = function (n) {
                             return function (expr1) {
                                 if (n === 0) {
-                                    var name = Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(Data_Monoid.monoidString)(function ($2548) {
+                                    var name = Data_Foldable.foldMap(Data_Foldable.foldableMaybe)(Data_Monoid.monoidString)(function ($2583) {
                                         return (function (v1) {
                                             return v1 + ".";
-                                        })(unwrap1($2548));
+                                        })(unwrap1($2583));
                                     })(v.value0) + v.value1;
                                     return Data_Function.apply(Partial_Unsafe.unsafeCrashWith)(name + ": Possible infinite optimization loop.");
                                 };
@@ -4525,11 +4553,11 @@ var optimize = function (traceSteps) {
                                         var v3 = PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(expr2);
                                         return new Data_Tuple.Tuple(v3.rewrite, expr2);
                                     };
-                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2006, column 1 - line 2006, column 116): " + [ n.constructor.name, expr1.constructor.name ]);
+                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Semantics (line 2026, column 1 - line 2026, column 116): " + [ n.constructor.name, expr1.constructor.name ]);
                                 };
-                                var $2209 = PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(expr1);
-                                var $2210 = $2209.size > 2000;
-                                if ($2210) {
+                                var $2227 = PureScript_Backend_Optimizer_Analysis.analysisOf(hasAnalysisBackendExpr)(expr1);
+                                var $2228 = $2227.size > 2000;
+                                if ($2228) {
                                     var expr2 = optimizeChunk(ctx)(env)(expr1);
                                     return new Data_Tuple.Tuple(false, expr2);
                                 };
@@ -4636,16 +4664,26 @@ var evalExternFromImpl = function ($copy_v) {
                 function $tco_loop(v, v1, v2, v3) {
                     var v4 = function (v5) {
                         var v6 = function (v7) {
-                            if (v2.value1 instanceof ExternExpr && Data_Array.any(function ($2549) {
-                                return !isNotTypeApp($2549);
+                            if (v2.value1 instanceof ExternExpr && (v2.value1.value1 instanceof PureScript_Backend_Optimizer_Syntax.Typed && (v2.value1.value1.value0 instanceof PureScript_Backend_Optimizer_CoreFn.ForAll && (v3.length === 1 && (v3[0] instanceof ExternApp && (v3[0].value0.length === 1 && isIdentityImplementation(v2.value1.value1))))))) {
+                                var v8 = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordEvalRef)(new EvalExtern(v1))(v.directives))(Data_Map_Internal.lookup(ordInlineAccessor)(InlineRef.value));
+                                if (v8 instanceof Data_Maybe.Just && v8.value0 instanceof InlineNever) {
+                                    return Data_Function.apply(Data_Maybe.Just.create)(neutralSpine(new NeutStop(v1))(v3));
+                                };
+                                if (v8 instanceof Data_Maybe.Just && (v8.value0 instanceof InlineArity && v8.value0.value0 > 1)) {
+                                    return Data_Maybe.Nothing.value;
+                                };
+                                return new Data_Maybe.Just(v3[0]["value0"][0]);
+                            };
+                            if (v2.value1 instanceof ExternExpr && (v2.value1.value1 instanceof PureScript_Backend_Optimizer_Syntax.Typed && v2.value1.value1.value0 instanceof PureScript_Backend_Optimizer_CoreFn.ForAll)) {
+                                return Data_Maybe.Nothing.value;
+                            };
+                            if (v2.value1 instanceof ExternExpr && Data_Array.any(function ($2584) {
+                                return !isNotTypeApp($2584);
                             })(v3)) {
                                 return Data_Maybe.Nothing.value;
                             };
                             var v8 = Data_Array.filter(isNotTypeApp)(v3);
                             if (v8.length === 0) {
-                                if (v2.value1 instanceof ExternExpr && (v2.value1.value1 instanceof PureScript_Backend_Optimizer_Syntax.Typed && v2.value1.value1.value0 instanceof PureScript_Backend_Optimizer_CoreFn.ForAll)) {
-                                    return Data_Maybe.Nothing.value;
-                                };
                                 if (v2.value1 instanceof ExternExpr) {
                                     var ref = new EvalExtern(v1);
                                     var v9 = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordEvalRef)(ref)(v.directives))(Data_Map_Internal.lookup(ordInlineAccessor)(InlineRef.value));
@@ -4687,21 +4725,21 @@ var evalExternFromImpl = function ($copy_v) {
                                     return Data_Maybe.Nothing.value;
                                 };
                                 if (v2.value1 instanceof ExternDict) {
-                                    var $2268 = PureScript_Backend_Optimizer_CoreFn.findProp(v8[0].value0.value0)(v2.value1.value1);
-                                    if ($2268 instanceof Data_Maybe.Just) {
+                                    var $2303 = PureScript_Backend_Optimizer_CoreFn.findProp(v8[0].value0.value0)(v2.value1.value1);
+                                    if ($2303 instanceof Data_Maybe.Just) {
                                         var ref = new EvalExtern(v1);
                                         var v10 = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordEvalRef)(ref)(v.directives))(Data_Map_Internal.lookup(ordInlineAccessor)(new InlineProp(v8[0].value0.value0)));
                                         if (v10 instanceof Data_Maybe.Just && v10.value0 instanceof InlineNever) {
                                             return Data_Function.apply(Data_Maybe.Just.create)(neutralSpine(new NeutStop(v1))(v3));
                                         };
                                         if (v10 instanceof Data_Maybe.Just && v10.value0 instanceof InlineAlways) {
-                                            return Data_Function.apply(Data_Maybe.Just.create)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineProp(v8[0].value0.value0))(v2.value1.value0))($2268.value0.value1));
+                                            return Data_Function.apply(Data_Maybe.Just.create)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineProp(v8[0].value0.value0))(v2.value1.value0))($2303.value0.value1));
                                         };
                                         if (v10 instanceof Data_Maybe.Just && v10.value0 instanceof InlineArity) {
                                             return Data_Maybe.Nothing.value;
                                         };
-                                        if (shouldInlineExternAccessor(v1)($2268.value0.value0)($2268.value0.value1)(v8[0].value0)) {
-                                            return Data_Function.apply(Data_Maybe.Just.create)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineProp(v8[0].value0.value0))(v2.value1.value0))($2268.value0.value1));
+                                        if (shouldInlineExternAccessor(v1)($2303.value0.value0)($2303.value0.value1)(v8[0].value0)) {
+                                            return Data_Function.apply(Data_Maybe.Just.create)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineProp(v8[0].value0.value0))(v2.value1.value0))($2303.value0.value1));
                                         };
                                         return Data_Maybe.Nothing.value;
                                     };
@@ -4733,26 +4771,26 @@ var evalExternFromImpl = function ($copy_v) {
                                     return Data_Maybe.Nothing.value;
                                 };
                                 if (v2.value1 instanceof ExternDict) {
-                                    var $2291 = PureScript_Backend_Optimizer_CoreFn.findProp(v8[0].value0.value0)(v2.value1.value1);
-                                    if ($2291 instanceof Data_Maybe.Just) {
+                                    var $2326 = PureScript_Backend_Optimizer_CoreFn.findProp(v8[0].value0.value0)(v2.value1.value1);
+                                    if ($2326 instanceof Data_Maybe.Just) {
                                         var ref = new EvalExtern(v1);
                                         var v10 = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordEvalRef)(ref)(v.directives))(Data_Map_Internal.lookup(ordInlineAccessor)(new InlineProp(v8[0].value0.value0)));
                                         if (v10 instanceof Data_Maybe.Just && v10.value0 instanceof InlineNever) {
                                             return Data_Function.apply(Data_Maybe.Just.create)(neutralSpine(new NeutStop(v1))(v3));
                                         };
                                         if (v10 instanceof Data_Maybe.Just && v10.value0 instanceof InlineAlways) {
-                                            return Data_Function.apply(Data_Maybe.Just.create)(evalApp(v)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineProp(v8[0].value0.value0))(v2.value1.value0))($2291.value0.value1))(v8[1].value0));
+                                            return Data_Function.apply(Data_Maybe.Just.create)(evalApp(v)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineProp(v8[0].value0.value0))(v2.value1.value0))($2326.value0.value1))(v8[1].value0));
                                         };
                                         if (v10 instanceof Data_Maybe.Just && v10.value0 instanceof InlineArity) {
                                             if (Data_Array.length(v8[1].value0) >= v10.value0.value0) {
-                                                return Data_Function.apply(Data_Maybe.Just.create)(evalApp(v)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineProp(v8[0].value0.value0))(v2.value1.value0))($2291.value0.value1))(v8[1].value0));
+                                                return Data_Function.apply(Data_Maybe.Just.create)(evalApp(v)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineProp(v8[0].value0.value0))(v2.value1.value0))($2326.value0.value1))(v8[1].value0));
                                             };
                                             if (Data_Boolean.otherwise) {
                                                 return Data_Maybe.Nothing.value;
                                             };
                                         };
-                                        if (shouldInlineExternApp(v1)($2291.value0.value0)($2291.value0.value1)(v8[1].value0)) {
-                                            return Data_Function.apply(Data_Maybe.Just.create)(evalApp(v)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineProp(v8[0].value0.value0))(v2.value1.value0))($2291.value0.value1))(v8[1].value0));
+                                        if (shouldInlineExternApp(v1)($2326.value0.value0)($2326.value0.value1)(v8[1].value0)) {
+                                            return Data_Function.apply(Data_Maybe.Just.create)(evalApp(v)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineProp(v8[0].value0.value0))(v2.value1.value0))($2326.value0.value1))(v8[1].value0));
                                         };
                                         return Data_Maybe.Nothing.value;
                                     };
@@ -4855,8 +4893,8 @@ var evalExternFromImpl = function ($copy_v) {
                                     var v13 = function (v14) {
                                         return Data_Maybe.Nothing.value;
                                     };
-                                    var $2391 = Data_Array.uncons(Data_Array.filter(isNotTypeApp)(v3));
-                                    if ($2391 instanceof Data_Maybe.Just && $2391.value0.head instanceof ExternApp) {
+                                    var $2426 = Data_Array.uncons(Data_Array.filter(isNotTypeApp)(v3));
+                                    if ($2426 instanceof Data_Maybe.Just && $2426.value0.head instanceof ExternApp) {
                                         if (v2.value1 instanceof ExternExpr) {
                                             var ref = new EvalExtern(v1);
                                             var v14 = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordEvalRef)(ref)(v.directives))(Data_Map_Internal.lookup(ordInlineAccessor)(InlineRef.value));
@@ -4869,15 +4907,15 @@ var evalExternFromImpl = function ($copy_v) {
                                     };
                                     return v13(true);
                                 };
-                                var $2402 = Data_Array.uncons(Data_Array.filter(isNotTypeApp)(v3));
-                                if ($2402 instanceof Data_Maybe.Just && $2402.value0.head instanceof ExternApp) {
-                                    var $2403 = Data_Array.uncons($2402.value0.tail);
-                                    if ($2403 instanceof Data_Maybe.Just && ($2403.value0.head instanceof ExternAccessor && $2403.value0.head.value0 instanceof PureScript_Backend_Optimizer_Syntax.GetProp)) {
+                                var $2437 = Data_Array.uncons(Data_Array.filter(isNotTypeApp)(v3));
+                                if ($2437 instanceof Data_Maybe.Just && $2437.value0.head instanceof ExternApp) {
+                                    var $2438 = Data_Array.uncons($2437.value0.tail);
+                                    if ($2438 instanceof Data_Maybe.Just && ($2438.value0.head instanceof ExternAccessor && $2438.value0.head.value0 instanceof PureScript_Backend_Optimizer_Syntax.GetProp)) {
                                         if (v2.value1 instanceof ExternExpr) {
                                             var ref = new EvalExtern(v1);
-                                            var v12 = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordEvalRef)(ref)(v.directives))(Data_Map_Internal.lookup(ordInlineAccessor)(new InlineSpineProp($2403.value0.head.value0.value0)));
+                                            var v12 = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordEvalRef)(ref)(v.directives))(Data_Map_Internal.lookup(ordInlineAccessor)(new InlineSpineProp($2438.value0.head.value0.value0)));
                                             if (v12 instanceof Data_Maybe.Just && v12.value0 instanceof InlineAlways) {
-                                                return Data_Function.apply(Data_Maybe.Just.create)(evalSpine(v)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineSpineProp($2403.value0.head.value0.value0))(v2.value1.value0))(v2.value1.value1))(v3));
+                                                return Data_Function.apply(Data_Maybe.Just.create)(evalSpine(v)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineSpineProp($2438.value0.head.value0.value0))(v2.value1.value0))(v2.value1.value1))(v3));
                                             };
                                             return Data_Maybe.Nothing.value;
                                         };
@@ -4887,13 +4925,13 @@ var evalExternFromImpl = function ($copy_v) {
                                 };
                                 return v11(true);
                             };
-                            var $2419 = Data_Array.uncons(Data_Array.filter(isNotTypeApp)(v3));
-                            if ($2419 instanceof Data_Maybe.Just && ($2419.value0.head instanceof ExternAccessor && $2419.value0.head.value0 instanceof PureScript_Backend_Optimizer_Syntax.GetProp)) {
+                            var $2454 = Data_Array.uncons(Data_Array.filter(isNotTypeApp)(v3));
+                            if ($2454 instanceof Data_Maybe.Just && ($2454.value0.head instanceof ExternAccessor && $2454.value0.head.value0 instanceof PureScript_Backend_Optimizer_Syntax.GetProp)) {
                                 if (v2.value1 instanceof ExternExpr) {
                                     var ref = new EvalExtern(v1);
-                                    var v10 = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordEvalRef)(ref)(v.directives))(Data_Map_Internal.lookup(ordInlineAccessor)(new InlineProp($2419.value0.head.value0.value0)));
+                                    var v10 = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordEvalRef)(ref)(v.directives))(Data_Map_Internal.lookup(ordInlineAccessor)(new InlineProp($2454.value0.head.value0.value0)));
                                     if (v10 instanceof Data_Maybe.Just && v10.value0 instanceof InlineAlways) {
-                                        return Data_Function.apply(Data_Maybe.Just.create)(evalSpine(v)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineProp($2419.value0.head.value0.value0))(v2.value1.value0))(v2.value1.value1))(v3));
+                                        return Data_Function.apply(Data_Maybe.Just.create)(evalSpine(v)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineProp($2454.value0.head.value0.value0))(v2.value1.value0))(v2.value1.value1))(v3));
                                     };
                                     return Data_Maybe.Nothing.value;
                                 };
@@ -4901,12 +4939,12 @@ var evalExternFromImpl = function ($copy_v) {
                                     return Data_Maybe.Nothing.value;
                                 };
                                 if (v2.value1 instanceof ExternDict) {
-                                    var $2426 = PureScript_Backend_Optimizer_CoreFn.findProp($2419.value0.head.value0.value0)(v2.value1.value1);
-                                    if ($2426 instanceof Data_Maybe.Just) {
+                                    var $2461 = PureScript_Backend_Optimizer_CoreFn.findProp($2454.value0.head.value0.value0)(v2.value1.value1);
+                                    if ($2461 instanceof Data_Maybe.Just) {
                                         var ref = new EvalExtern(v1);
-                                        var v11 = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordEvalRef)(ref)(v.directives))(Data_Map_Internal.lookup(ordInlineAccessor)(new InlineProp($2419.value0.head.value0.value0)));
+                                        var v11 = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordEvalRef)(ref)(v.directives))(Data_Map_Internal.lookup(ordInlineAccessor)(new InlineProp($2454.value0.head.value0.value0)));
                                         if (v11 instanceof Data_Maybe.Just && v11.value0 instanceof InlineAlways) {
-                                            return Data_Function.apply(Data_Maybe.Just.create)(evalSpine(v)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineProp($2419.value0.head.value0.value0))(v2.value1.value0))($2426.value0.value1))($2419.value0.tail));
+                                            return Data_Function.apply(Data_Maybe.Just.create)(evalSpine(v)($$eval(evalNeutralExpr)(envForGroup(v)(ref)(new InlineProp($2454.value0.head.value0.value0))(v2.value1.value0))($2461.value0.value1))($2454.value0.tail));
                                         };
                                         return Data_Maybe.Nothing.value;
                                     };
@@ -4917,14 +4955,14 @@ var evalExternFromImpl = function ($copy_v) {
                             return v9(true);
                         };
                         if (v2.value1 instanceof ExternExpr) {
-                            var $2445 = Data_Array.uncons(v3);
-                            if ($2445 instanceof Data_Maybe.Just && $2445.value0.head instanceof ExternTypeApp) {
-                                var $2446 = instantiateNeutralType($2445.value0.head.value0)(v2.value1.value1);
-                                if ($2446 instanceof Data_Maybe.Just) {
+                            var $2480 = Data_Array.uncons(v3);
+                            if ($2480 instanceof Data_Maybe.Just && $2480.value0.head instanceof ExternTypeApp) {
+                                var $2481 = instantiateNeutralType($2480.value0.head.value0)(v2.value1.value1);
+                                if ($2481 instanceof Data_Maybe.Just) {
                                     $tco_var_v = v;
                                     $tco_var_v1 = v1;
-                                    $tco_var_v2 = new Data_Tuple.Tuple(v2.value0, new ExternExpr(v2.value1.value0, $2446.value0));
-                                    $copy_v3 = $2445.value0.tail;
+                                    $tco_var_v2 = new Data_Tuple.Tuple(v2.value0, new ExternExpr(v2.value1.value0, $2481.value0));
+                                    $copy_v3 = $2480.value0.tail;
                                     return;
                                 };
                                 $tco_done = true;
@@ -4937,10 +4975,10 @@ var evalExternFromImpl = function ($copy_v) {
                         return v6(true);
                     };
                     if (v2.value1 instanceof ExternExpr) {
-                        var $2460 = Data_Array.uncons(v3);
-                        if ($2460 instanceof Data_Maybe.Just && $2460.value0.head instanceof ExternTypeApp) {
-                            var $2461 = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordEvalRef)(new EvalExtern(v1))(v.directives))(Data_Map_Internal.lookup(ordInlineAccessor)(InlineRef.value));
-                            if ($2461 instanceof Data_Maybe.Just && $2461.value0 instanceof InlineNever) {
+                        var $2495 = Data_Array.uncons(v3);
+                        if ($2495 instanceof Data_Maybe.Just && $2495.value0.head instanceof ExternTypeApp) {
+                            var $2496 = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordEvalRef)(new EvalExtern(v1))(v.directives))(Data_Map_Internal.lookup(ordInlineAccessor)(InlineRef.value));
+                            if ($2496 instanceof Data_Maybe.Just && $2496.value0 instanceof InlineNever) {
                                 $tco_done = true;
                                 return Data_Function.apply(Data_Maybe.Just.create)(neutralSpine(new NeutStop(v1))(v3));
                             };

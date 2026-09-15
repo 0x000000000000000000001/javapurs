@@ -58,6 +58,7 @@ var monoidDual = /* #__PURE__ */ Data_Monoid_Dual.monoidDual(/* #__PURE__ */ Dat
 var monoidEndo = /* #__PURE__ */ Data_Monoid_Endo.monoidEndo(Control_Category.categoryFn);
 var monoidEndo1 = /* #__PURE__ */ Data_Monoid_Endo.monoidEndo(Control_Category.categoryFn);
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
 var foldrWithIndex = function (dict) {
     return dict.foldrWithIndex;
 };
@@ -66,9 +67,9 @@ var traverseWithIndex_ = function (dictApplicative) {
     return function (dictFoldableWithIndex) {
         return function (f) {
             return foldrWithIndex(dictFoldableWithIndex)(function (i) {
-                var $235 = f(i);
-                return function ($236) {
-                    return applySecond($235($236));
+                var $236 = f(i);
+                return function ($237) {
+                    return applySecond($236($237));
                 };
             })(Control_Applicative.pure(dictApplicative)(Data_Unit.unit));
         };
@@ -389,27 +390,27 @@ var $lazy_foldableWithIndexArray = /* #__PURE__ */ $runtime_lazy("foldableWithIn
     return {
         foldrWithIndex: function (f) {
             return function (z) {
-                var $237 = Data_Foldable.foldr(Data_Foldable.foldableArray)(function (v) {
+                var $238 = Data_Foldable.foldr(Data_Foldable.foldableArray)(function (v) {
                     return function (y) {
                         return f(v.value0)(v.value1)(y);
                     };
                 })(z);
-                var $238 = Data_FunctorWithIndex.mapWithIndex(Data_FunctorWithIndex.functorWithIndexArray)(Data_Tuple.Tuple.create);
-                return function ($239) {
-                    return $237($238($239));
+                var $239 = Data_FunctorWithIndex.mapWithIndex(Data_FunctorWithIndex.functorWithIndexArray)(Data_Tuple.Tuple.create);
+                return function ($240) {
+                    return $238($239($240));
                 };
             };
         },
         foldlWithIndex: function (f) {
             return function (z) {
-                var $240 = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (y) {
+                var $241 = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (y) {
                     return function (v) {
                         return f(v.value0)(y)(v.value1);
                     };
                 })(z);
-                var $241 = Data_FunctorWithIndex.mapWithIndex(Data_FunctorWithIndex.functorWithIndexArray)(Data_Tuple.Tuple.create);
-                return function ($242) {
-                    return $240($241($242));
+                var $242 = Data_FunctorWithIndex.mapWithIndex(Data_FunctorWithIndex.functorWithIndexArray)(Data_Tuple.Tuple.create);
+                return function ($243) {
+                    return $241($242($243));
                 };
             };
         },
@@ -489,9 +490,9 @@ var foldableWithIndexCompose = function (dictFoldableWithIndex) {
                 return function (i) {
                     return function (v) {
                         return foldlWithIndex(dictFoldableWithIndex)((function () {
-                            var $243 = Data_Tuple.curry(f);
-                            return function ($244) {
-                                return foldlWithIndex1($243($244));
+                            var $244 = Data_Tuple.curry(f);
+                            return function ($245) {
+                                return foldlWithIndex1($244($245));
                             };
                         })())(i)(v);
                     };
@@ -502,9 +503,9 @@ var foldableWithIndexCompose = function (dictFoldableWithIndex) {
                 return function (f) {
                     return function (v) {
                         return foldMapWithIndex(dictFoldableWithIndex)(dictMonoid)((function () {
-                            var $245 = Data_Tuple.curry(f);
-                            return function ($246) {
-                                return foldMapWithIndex2($245($246));
+                            var $246 = Data_Tuple.curry(f);
+                            return function ($247) {
+                                return foldMapWithIndex2($246($247));
                             };
                         })())(v);
                     };
@@ -523,28 +524,28 @@ var foldableWithIndexCoproduct = function (dictFoldableWithIndex) {
         return {
             foldrWithIndex: function (f) {
                 return function (z) {
-                    return Data_Functor_Coproduct.coproduct(foldrWithIndex(dictFoldableWithIndex)(function ($247) {
-                        return f(Data_Either.Left.create($247));
-                    })(z))(foldrWithIndex(dictFoldableWithIndex1)(function ($248) {
-                        return f(Data_Either.Right.create($248));
+                    return Data_Functor_Coproduct.coproduct(foldrWithIndex(dictFoldableWithIndex)(function ($248) {
+                        return f(Data_Either.Left.create($248));
+                    })(z))(foldrWithIndex(dictFoldableWithIndex1)(function ($249) {
+                        return f(Data_Either.Right.create($249));
                     })(z));
                 };
             },
             foldlWithIndex: function (f) {
                 return function (z) {
-                    return Data_Functor_Coproduct.coproduct(foldlWithIndex(dictFoldableWithIndex)(function ($249) {
-                        return f(Data_Either.Left.create($249));
-                    })(z))(foldlWithIndex(dictFoldableWithIndex1)(function ($250) {
-                        return f(Data_Either.Right.create($250));
+                    return Data_Functor_Coproduct.coproduct(foldlWithIndex(dictFoldableWithIndex)(function ($250) {
+                        return f(Data_Either.Left.create($250));
+                    })(z))(foldlWithIndex(dictFoldableWithIndex1)(function ($251) {
+                        return f(Data_Either.Right.create($251));
                     })(z));
                 };
             },
             foldMapWithIndex: function (dictMonoid) {
                 return function (f) {
-                    return Data_Functor_Coproduct.coproduct(foldMapWithIndex(dictFoldableWithIndex)(dictMonoid)(function ($251) {
-                        return f(Data_Either.Left.create($251));
-                    }))(foldMapWithIndex(dictFoldableWithIndex1)(dictMonoid)(function ($252) {
-                        return f(Data_Either.Right.create($252));
+                    return Data_Functor_Coproduct.coproduct(foldMapWithIndex(dictFoldableWithIndex)(dictMonoid)(function ($252) {
+                        return f(Data_Either.Left.create($252));
+                    }))(foldMapWithIndex(dictFoldableWithIndex1)(dictMonoid)(function ($253) {
+                        return f(Data_Either.Right.create($253));
                     }));
                 };
             },
@@ -562,10 +563,10 @@ var foldableWithIndexProduct = function (dictFoldableWithIndex) {
             foldrWithIndex: function (f) {
                 return function (z) {
                     return function (v) {
-                        return foldrWithIndex(dictFoldableWithIndex)(function ($253) {
-                            return f(Data_Either.Left.create($253));
-                        })(foldrWithIndex(dictFoldableWithIndex1)(function ($254) {
-                            return f(Data_Either.Right.create($254));
+                        return foldrWithIndex(dictFoldableWithIndex)(function ($254) {
+                            return f(Data_Either.Left.create($254));
+                        })(foldrWithIndex(dictFoldableWithIndex1)(function ($255) {
+                            return f(Data_Either.Right.create($255));
                         })(z)(v.value1))(v.value0);
                     };
                 };
@@ -573,10 +574,10 @@ var foldableWithIndexProduct = function (dictFoldableWithIndex) {
             foldlWithIndex: function (f) {
                 return function (z) {
                     return function (v) {
-                        return foldlWithIndex(dictFoldableWithIndex1)(function ($255) {
-                            return f(Data_Either.Right.create($255));
-                        })(foldlWithIndex(dictFoldableWithIndex)(function ($256) {
-                            return f(Data_Either.Left.create($256));
+                        return foldlWithIndex(dictFoldableWithIndex1)(function ($256) {
+                            return f(Data_Either.Right.create($256));
+                        })(foldlWithIndex(dictFoldableWithIndex)(function ($257) {
+                            return f(Data_Either.Left.create($257));
                         })(z)(v.value0))(v.value1);
                     };
                 };
@@ -585,10 +586,10 @@ var foldableWithIndexProduct = function (dictFoldableWithIndex) {
                 var Semigroup0 = dictMonoid.Semigroup0();
                 return function (f) {
                     return function (v) {
-                        return Data_Semigroup.append(Semigroup0)(foldMapWithIndex(dictFoldableWithIndex)(dictMonoid)(function ($257) {
-                            return f(Data_Either.Left.create($257));
-                        })(v.value0))(foldMapWithIndex(dictFoldableWithIndex1)(dictMonoid)(function ($258) {
-                            return f(Data_Either.Right.create($258));
+                        return Data_Semigroup.append(Semigroup0)(foldMapWithIndex(dictFoldableWithIndex)(dictMonoid)(function ($258) {
+                            return f(Data_Either.Left.create($258));
+                        })(v.value0))(foldMapWithIndex(dictFoldableWithIndex1)(dictMonoid)(function ($259) {
+                            return f(Data_Either.Right.create($259));
                         })(v.value1));
                     };
                 };
@@ -604,9 +605,9 @@ var foldlWithIndexDefault = function (dictFoldableWithIndex) {
         return function (u) {
             return function (xs) {
                 return Data_Newtype.unwrap()(Data_Newtype.unwrap()(foldMapWithIndex(dictFoldableWithIndex)(monoidDual)(function (i) {
-                    var $259 = Data_Function.flip(c(i));
-                    return function ($260) {
-                        return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($259($260)));
+                    var $260 = Data_Function.flip(c(i));
+                    return function ($261) {
+                        return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($260($261)));
                     };
                 })(xs)))(u);
             };
@@ -618,9 +619,9 @@ var foldrWithIndexDefault = function (dictFoldableWithIndex) {
         return function (u) {
             return function (xs) {
                 return Data_Newtype.unwrap()(foldMapWithIndex(dictFoldableWithIndex)(monoidEndo)(function (i) {
-                    var $261 = c(i);
-                    return function ($262) {
-                        return Data_Monoid_Endo.Endo($261($262));
+                    var $262 = c(i);
+                    return function ($263) {
+                        return Data_Monoid_Endo.Endo($262($263));
                     };
                 })(xs))(u);
             };
@@ -689,14 +690,14 @@ var anyWithIndex = function (dictFoldableWithIndex) {
     return function (dictHeytingAlgebra) {
         var monoidDisj = Data_Monoid_Disj.monoidDisj(dictHeytingAlgebra);
         return function (t) {
-            var $263 = foldMapWithIndex(dictFoldableWithIndex)(monoidDisj)(function (i) {
-                var $265 = t(i);
-                return function ($266) {
-                    return Data_Monoid_Disj.Disj($265($266));
+            var $264 = foldMapWithIndex(dictFoldableWithIndex)(monoidDisj)(function (i) {
+                var $266 = t(i);
+                return function ($267) {
+                    return Data_Monoid_Disj.Disj($266($267));
                 };
             });
-            return function ($264) {
-                return unwrap($263($264));
+            return function ($265) {
+                return unwrap($264($265));
             };
         };
     };
@@ -705,14 +706,14 @@ var allWithIndex = function (dictFoldableWithIndex) {
     return function (dictHeytingAlgebra) {
         var monoidConj = Data_Monoid_Conj.monoidConj(dictHeytingAlgebra);
         return function (t) {
-            var $267 = foldMapWithIndex(dictFoldableWithIndex)(monoidConj)(function (i) {
-                var $269 = t(i);
-                return function ($270) {
-                    return Data_Monoid_Conj.Conj($269($270));
+            var $268 = foldMapWithIndex(dictFoldableWithIndex)(monoidConj)(function (i) {
+                var $270 = t(i);
+                return function ($271) {
+                    return Data_Monoid_Conj.Conj($270($271));
                 };
             });
-            return function ($268) {
-                return unwrap($267($268));
+            return function ($269) {
+                return unwrap1($268($269));
             };
         };
     };

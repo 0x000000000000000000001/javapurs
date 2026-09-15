@@ -29,35 +29,36 @@ var functorStateT = /* #__PURE__ */ Control_Monad_State_Trans.functorStateT(Data
 var get = /* #__PURE__ */ Control_Monad_State_Class.get(/* #__PURE__ */ Control_Monad_State_Trans.monadStateStateT(Data_Identity.monadIdentity));
 var applicativeStateT = /* #__PURE__ */ Control_Monad_State_Trans.applicativeStateT(Data_Identity.monadIdentity);
 var monadStateStateT = /* #__PURE__ */ Control_Monad_State_Trans.monadStateStateT(Data_Identity.monadIdentity);
+var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var unIndex = function (dictProfunctor) {
     return function (l) {
-        var $32 = Data_Profunctor.dimap(dictProfunctor)(Data_Tuple.snd)(identity);
-        return function ($33) {
-            return l(Data_Lens_Internal_Indexed.Indexed($32($33)));
+        var $33 = Data_Profunctor.dimap(dictProfunctor)(Data_Tuple.snd)(identity);
+        return function ($34) {
+            return l(Data_Lens_Internal_Indexed.Indexed($33($34)));
         };
     };
 };
 var reindexed = function (dictProfunctor) {
     return function (ij) {
         return function (v) {
-            var $34 = Data_Lens_Setter.over(_Newtype)(Data_Profunctor.lcmap(dictProfunctor)(Data_Profunctor_Strong.first(Data_Profunctor_Strong.strongFn)(ij)));
-            return function ($35) {
-                return v($34($35));
+            var $35 = Data_Lens_Setter.over(_Newtype)(Data_Profunctor.lcmap(dictProfunctor)(Data_Profunctor_Strong.first(Data_Profunctor_Strong.strongFn)(ij)));
+            return function ($36) {
+                return v($35($36));
             };
         };
     };
 };
 var iwander = function (itr) {
     return function (dictWander) {
-        var $36 = Data_Lens_Internal_Wander.wander(dictWander)(function (dictApplicative) {
+        var $37 = Data_Lens_Internal_Wander.wander(dictWander)(function (dictApplicative) {
             return function (f) {
                 return function (s) {
                     return itr(dictApplicative)(Data_Tuple.curry(f))(s);
                 };
             };
         });
-        return function ($37) {
-            return $36(unwrap($37));
+        return function ($38) {
+            return $37(unwrap($38));
         };
     };
 };
@@ -87,9 +88,9 @@ var itraversed = function (dictTraversableWithIndex) {
 };
 var asIndex = function (dictProfunctor) {
     return function (l) {
-        var $38 = Data_Profunctor.dimap(dictProfunctor)(Data_Tuple.fst)(identity);
-        return function ($39) {
-            return l(Data_Lens_Internal_Indexed.Indexed($38($39)));
+        var $39 = Data_Profunctor.dimap(dictProfunctor)(Data_Tuple.fst)(identity1);
+        return function ($40) {
+            return l(Data_Lens_Internal_Indexed.Indexed($39($40)));
         };
     };
 };

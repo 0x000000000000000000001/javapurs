@@ -618,16 +618,16 @@ var print = function (v) {
                 throw new Error("Failed pattern match at Dodo (line 361, column 20 - line 499, column 70): " + [ stack.constructor.name ]);
             };
         };
-        var $114 = Data_Function.flip(go)(initState);
-        return function ($115) {
-            return $114(pure(Doc.create($115)));
+        var $115 = Data_Function.flip(go)(initState);
+        return function ($116) {
+            return $115(pure(Doc.create($116)));
         };
     };
 };
 var $$break = /* #__PURE__ */ (function () {
     return Dodo_Internal.Break.value;
 })();
-var softBreak = /* #__PURE__ */ flexAlt(mempty)($$break);
+var softBreak = /* #__PURE__ */ flexAlt(/* #__PURE__ */ Data_Monoid.mempty(Dodo_Internal.monoidDoc))($$break);
 var spaceBreak = /* #__PURE__ */ flexAlt(space)($$break);
 var appendSpaceBreak = /* #__PURE__ */ Dodo_Internal.bothNotEmpty(function (a) {
     return function (b) {
@@ -639,11 +639,11 @@ var paragraph = function (dictFoldable) {
 };
 var textParagraph = /* #__PURE__ */ (function () {
     var spaceRegex = Data_String_Regex_Unsafe.unsafeRegex("[\\s\\n]+")(Data_String_Regex_Flags.global);
-    var $116 = paragraph(Data_Foldable.foldableArray);
-    var $117 = Data_Functor.map(Data_Functor.functorArray)(text);
-    var $118 = Data_String_Regex.split(spaceRegex);
-    return function ($119) {
-        return $116($117($118(Data_String_Common.trim($119))));
+    var $117 = paragraph(Data_Foldable.foldableArray);
+    var $118 = Data_Functor.map(Data_Functor.functorArray)(text);
+    var $119 = Data_String_Regex.split(spaceRegex);
+    return function ($120) {
+        return $117($118($119(Data_String_Common.trim($120))));
     };
 })();
 var appendSpace = /* #__PURE__ */ Dodo_Internal.bothNotEmpty(function (a) {
@@ -662,8 +662,8 @@ var appendBreak = /* #__PURE__ */ Dodo_Internal.bothNotEmpty(function (a) {
 var lines = function (dictFoldable) {
     return Data_Foldable.foldr(dictFoldable)(appendBreak)(Dodo_Internal.Empty.value);
 };
-var annotate = function ($120) {
-    return Dodo_Internal.notEmpty(Dodo_Internal.Annotate.create($120));
+var annotate = function ($121) {
+    return Dodo_Internal.notEmpty(Dodo_Internal.Annotate.create($121));
 };
 var align = function (n) {
     return function (doc) {

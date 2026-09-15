@@ -30,14 +30,16 @@ var toUnfoldable1 = function (dictUnfoldable1) {
     })(function (v) {
         return Partial_Unsafe.unsafeCrashWith("toUnfoldable1: impossible");
     });
-    var $66 = Data_Unfoldable1.unfoldr1(dictUnfoldable1)(function (v) {
+    var $68 = Data_Unfoldable1.unfoldr1(dictUnfoldable1)(function (v) {
         return Data_Functor.map(Data_Tuple.functorTuple)(stepNext)(v);
     });
-    return function ($67) {
-        return $66(stepHead(Data_Map_Internal.toMapIter(Data_Set.toMap(coerce($67)))));
+    return function ($69) {
+        return $68(stepHead(Data_Map_Internal.toMapIter(Data_Set.toMap(coerce($69)))));
     };
 };
 var toUnfoldable11 = /* #__PURE__ */ toUnfoldable1(Data_List_Types.unfoldable1NonEmptyList);
+var toUnfoldable12 = /* #__PURE__ */ toUnfoldable1(Data_List_Types.unfoldable1NonEmptyList);
+var toUnfoldable13 = /* #__PURE__ */ toUnfoldable1(Data_List_Types.unfoldable1NonEmptyList);
 var toUnfoldable = function (dictUnfoldable) {
     return Safe_Coerce.coerce()(Data_Set.toUnfoldable(dictUnfoldable));
 };
@@ -86,8 +88,8 @@ var insert = function (dictOrd) {
     return Safe_Coerce.coerce()(Data_Set.insert(dictOrd));
 };
 var fromSet = function (s) {
-    var $59 = Data_Set.isEmpty(s);
-    if ($59) {
+    var $61 = Data_Set.isEmpty(s);
+    if ($61) {
         return Data_Maybe.Nothing.value;
     };
     return new Data_Maybe.Just(s);
@@ -107,9 +109,9 @@ var fromFoldable1 = function (dictFoldable1) {
 var fromFoldable = function (dictFoldable) {
     var fromFoldable2 = Data_Set.fromFoldable(dictFoldable);
     return function (dictOrd) {
-        var $68 = fromFoldable2(dictOrd);
-        return function ($69) {
-            return fromSet($68($69));
+        var $70 = fromFoldable2(dictOrd);
+        return function ($71) {
+            return fromSet($70($71));
         };
     };
 };
@@ -117,22 +119,22 @@ var foldableNonEmptySet = Data_Set.foldableSet;
 var foldable1NonEmptySet = {
     foldMap1: function (dictSemigroup) {
         return function (f) {
-            var $70 = Data_Semigroup_Foldable.foldMap1(Data_List_Types.foldable1NonEmptyList)(dictSemigroup)(f);
-            return function ($71) {
-                return $70(toUnfoldable11($71));
+            var $72 = Data_Semigroup_Foldable.foldMap1(Data_List_Types.foldable1NonEmptyList)(dictSemigroup)(f);
+            return function ($73) {
+                return $72(toUnfoldable11($73));
             };
         };
     },
     foldr1: function (f) {
-        var $72 = Data_Semigroup_Foldable.foldr1(Data_List_Types.foldable1NonEmptyList)(f);
-        return function ($73) {
-            return $72(toUnfoldable11($73));
+        var $74 = Data_Semigroup_Foldable.foldr1(Data_List_Types.foldable1NonEmptyList)(f);
+        return function ($75) {
+            return $74(toUnfoldable12($75));
         };
     },
     foldl1: function (f) {
-        var $74 = Data_Semigroup_Foldable.foldl1(Data_List_Types.foldable1NonEmptyList)(f);
-        return function ($75) {
-            return $74(toUnfoldable11($75));
+        var $76 = Data_Semigroup_Foldable.foldl1(Data_List_Types.foldable1NonEmptyList)(f);
+        return function ($77) {
+            return $76(toUnfoldable13($77));
         };
     },
     Foldable0: function () {

@@ -8,6 +8,7 @@ import * as Data_Maybe from "../Data.Maybe/index.js";
 var not = /* #__PURE__ */ Data_HeytingAlgebra.not(Data_HeytingAlgebra.heytingAlgebraBoolean);
 var $$void = /* #__PURE__ */ Data_Functor["void"](Control_Monad_ST_Internal.functorST);
 var void1 = /* #__PURE__ */ Data_Functor["void"](Control_Monad_ST_Internal.functorST);
+var void2 = /* #__PURE__ */ Data_Functor["void"](Control_Monad_ST_Internal.functorST);
 var Iterator = /* #__PURE__ */ (function () {
     function Iterator(value0, value1) {
         this.value0 = value0;
@@ -70,7 +71,7 @@ var iterate = function (iter) {
                         return f(mx.value0)();
                     };
                     if (mx instanceof Data_Maybe.Nothing) {
-                        return Data_Function.apply(void1)(Control_Monad_ST_Internal.write(true)($$break))();
+                        return Data_Function.apply(void2)(Control_Monad_ST_Internal.write(true)($$break))();
                     };
                     throw new Error("Failed pattern match at Data.Array.ST.Iterator (line 42, column 5 - line 44, column 47): " + [ mx.constructor.name ]);
                 })();
@@ -80,9 +81,9 @@ var iterate = function (iter) {
     };
 };
 var exhausted = /* #__PURE__ */ (function () {
-    var $16 = Data_Functor.map(Control_Monad_ST_Internal.functorST)(Data_Maybe.isNothing);
-    return function ($17) {
-        return $16(peek($17));
+    var $17 = Data_Functor.map(Control_Monad_ST_Internal.functorST)(Data_Maybe.isNothing);
+    return function ($18) {
+        return $17(peek($18));
     };
 })();
 export {

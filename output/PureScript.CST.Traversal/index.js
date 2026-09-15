@@ -140,7 +140,6 @@ var traverseModule = function (dictApplicative) {
         };
     };
 };
-var traverseModule1 = /* #__PURE__ */ traverseModule(Control_Monad_Free.freeApplicative);
 var traverseLambda = function (dictApplicative) {
     var Apply0 = dictApplicative.Apply0();
     var Functor0 = (dictApplicative.Apply0()).Functor0();
@@ -719,9 +718,9 @@ var topDownTraversalWithContextM = function (dictMonad) {
             onBinder: function (a) {
                 return function (ctx) {
                     return Control_Bind.bind(Bind1)(visitor.onBinder(ctx)(a))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                        var $479 = traverseBinder(applicativeReaderT1)(visitor$prime);
-                        return function ($480) {
-                            return Control_Monad_Reader_Trans.runReaderT($479($480));
+                        var $480 = traverseBinder(applicativeReaderT1)(visitor$prime);
+                        return function ($481) {
+                            return Control_Monad_Reader_Trans.runReaderT($480($481));
                         };
                     })())));
                 };
@@ -729,9 +728,9 @@ var topDownTraversalWithContextM = function (dictMonad) {
             onExpr: function (a) {
                 return function (ctx) {
                     return Control_Bind.bind(Bind1)(visitor.onExpr(ctx)(a))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                        var $481 = traverseExpr(applicativeReaderT1)(visitor$prime);
-                        return function ($482) {
-                            return Control_Monad_Reader_Trans.runReaderT($481($482));
+                        var $482 = traverseExpr(applicativeReaderT1)(visitor$prime);
+                        return function ($483) {
+                            return Control_Monad_Reader_Trans.runReaderT($482($483));
                         };
                     })())));
                 };
@@ -739,9 +738,9 @@ var topDownTraversalWithContextM = function (dictMonad) {
             onDecl: function (a) {
                 return function (ctx) {
                     return Control_Bind.bind(Bind1)(visitor.onDecl(ctx)(a))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                        var $483 = traverseDecl(applicativeReaderT1)(visitor$prime);
-                        return function ($484) {
-                            return Control_Monad_Reader_Trans.runReaderT($483($484));
+                        var $484 = traverseDecl(applicativeReaderT1)(visitor$prime);
+                        return function ($485) {
+                            return Control_Monad_Reader_Trans.runReaderT($484($485));
                         };
                     })())));
                 };
@@ -749,9 +748,9 @@ var topDownTraversalWithContextM = function (dictMonad) {
             onType: function (a) {
                 return function (ctx) {
                     return Control_Bind.bind(Bind1)(visitor.onType(ctx)(a))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                        var $485 = traverseType(applicativeReaderT1)(visitor$prime);
-                        return function ($486) {
-                            return Control_Monad_Reader_Trans.runReaderT($485($486));
+                        var $486 = traverseType(applicativeReaderT1)(visitor$prime);
+                        return function ($487) {
+                            return Control_Monad_Reader_Trans.runReaderT($486($487));
                         };
                     })())));
                 };
@@ -765,9 +764,9 @@ var topDownTraversalWithContext = function (visitor) {
         onBinder: function (a) {
             return function (ctx) {
                 return Control_Bind.bind(Data_Identity.bindIdentity)(Control_Applicative.pure(Data_Identity.applicativeIdentity)(visitor.onBinder(ctx)(a)))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                    var $487 = traverseBinder(applicativeReaderT)(visitor$prime);
-                    return function ($488) {
-                        return Control_Monad_Reader_Trans.runReaderT($487($488));
+                    var $488 = traverseBinder(applicativeReaderT)(visitor$prime);
+                    return function ($489) {
+                        return Control_Monad_Reader_Trans.runReaderT($488($489));
                     };
                 })())));
             };
@@ -775,9 +774,9 @@ var topDownTraversalWithContext = function (visitor) {
         onExpr: function (a) {
             return function (ctx) {
                 return Control_Bind.bind(Data_Identity.bindIdentity)(Control_Applicative.pure(Data_Identity.applicativeIdentity)(visitor.onExpr(ctx)(a)))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                    var $489 = traverseExpr(applicativeReaderT)(visitor$prime);
-                    return function ($490) {
-                        return Control_Monad_Reader_Trans.runReaderT($489($490));
+                    var $490 = traverseExpr(applicativeReaderT)(visitor$prime);
+                    return function ($491) {
+                        return Control_Monad_Reader_Trans.runReaderT($490($491));
                     };
                 })())));
             };
@@ -785,9 +784,9 @@ var topDownTraversalWithContext = function (visitor) {
         onDecl: function (a) {
             return function (ctx) {
                 return Control_Bind.bind(Data_Identity.bindIdentity)(Control_Applicative.pure(Data_Identity.applicativeIdentity)(visitor.onDecl(ctx)(a)))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                    var $491 = traverseDecl(applicativeReaderT)(visitor$prime);
-                    return function ($492) {
-                        return Control_Monad_Reader_Trans.runReaderT($491($492));
+                    var $492 = traverseDecl(applicativeReaderT)(visitor$prime);
+                    return function ($493) {
+                        return Control_Monad_Reader_Trans.runReaderT($492($493));
                     };
                 })())));
             };
@@ -795,9 +794,9 @@ var topDownTraversalWithContext = function (visitor) {
         onType: function (a) {
             return function (ctx) {
                 return Control_Bind.bind(Data_Identity.bindIdentity)(Control_Applicative.pure(Data_Identity.applicativeIdentity)(visitor.onType(ctx)(a)))(Data_Tuple.uncurry(Data_Function.flip((function () {
-                    var $493 = traverseType(applicativeReaderT)(visitor$prime);
-                    return function ($494) {
-                        return Control_Monad_Reader_Trans.runReaderT($493($494));
+                    var $494 = traverseType(applicativeReaderT)(visitor$prime);
+                    return function ($495) {
+                        return Control_Monad_Reader_Trans.runReaderT($494($495));
                     };
                 })())));
             };
@@ -890,10 +889,10 @@ var rewriteTypeTopDownM = function (dictMonad) {
 var rewriteTopDown = function (traversal) {
     return function (visitor) {
         var visitor$prime = topDownPureTraversal(visitor);
-        var $495 = Control_Monad_Free.runFree(Data_Identity.functorIdentity)(Data_Newtype.un()(Data_Identity.Identity));
-        var $496 = traversal(visitor$prime);
-        return function ($497) {
-            return $495($496($497));
+        var $496 = Control_Monad_Free.runFree(Data_Identity.functorIdentity)(Data_Newtype.un()(Data_Identity.Identity));
+        var $497 = traversal(visitor$prime);
+        return function ($498) {
+            return $496($497($498));
         };
     };
 };
@@ -907,7 +906,7 @@ var rewriteModuleWithContext = /* #__PURE__ */ rewriteWithContext(/* #__PURE__ *
 var rewriteModuleTopDownM = function (dictMonad) {
     return rewriteTopDownM(dictMonad)(traverseModule(dictMonad.Applicative0()));
 };
-var rewriteModuleTopDown = /* #__PURE__ */ rewriteTopDown(traverseModule1);
+var rewriteModuleTopDown = /* #__PURE__ */ rewriteTopDown(/* #__PURE__ */ traverseModule(Control_Monad_Free.freeApplicative));
 var rewriteExprWithContextM = function (dictMonad) {
     return rewriteWithContextM(dictMonad)(function (v) {
         return v.onExpr;
@@ -1126,23 +1125,23 @@ var rewriteTypeBottomUpM = function (dictMonad) {
 var bottomUpPureTraversal = function (visitor) {
     var visitor$prime = {
         onBinder: function (a) {
-            return Control_Bind.bindFlipped(Control_Monad_Free.freeBind)(function ($498) {
-                return pure(visitor.onBinder($498));
+            return Control_Bind.bindFlipped(Control_Monad_Free.freeBind)(function ($499) {
+                return pure(visitor.onBinder($499));
             })(traverseBinder(Control_Monad_Free.freeApplicative)(visitor$prime)(a));
         },
         onExpr: function (a) {
-            return Control_Bind.bindFlipped(Control_Monad_Free.freeBind)(function ($499) {
-                return pure1(visitor.onExpr($499));
+            return Control_Bind.bindFlipped(Control_Monad_Free.freeBind)(function ($500) {
+                return pure1(visitor.onExpr($500));
             })(traverseExpr(Control_Monad_Free.freeApplicative)(visitor$prime)(a));
         },
         onType: function (a) {
-            return Control_Bind.bindFlipped(Control_Monad_Free.freeBind)(function ($500) {
-                return pure2(visitor.onType($500));
+            return Control_Bind.bindFlipped(Control_Monad_Free.freeBind)(function ($501) {
+                return pure2(visitor.onType($501));
             })(traverseType(Control_Monad_Free.freeApplicative)(visitor$prime)(a));
         },
         onDecl: function (a) {
-            return Control_Bind.bindFlipped(Control_Monad_Free.freeBind)(function ($501) {
-                return pure3(visitor.onDecl($501));
+            return Control_Bind.bindFlipped(Control_Monad_Free.freeBind)(function ($502) {
+                return pure3(visitor.onDecl($502));
             })(traverseDecl(Control_Monad_Free.freeApplicative)(visitor$prime)(a));
         }
     };
@@ -1151,10 +1150,10 @@ var bottomUpPureTraversal = function (visitor) {
 var rewriteBottomUp = function (traversal) {
     return function (visitor) {
         var visitor$prime = bottomUpPureTraversal(visitor);
-        var $502 = Control_Monad_Free.runFree(Data_Identity.functorIdentity)(Data_Newtype.un()(Data_Identity.Identity));
-        var $503 = traversal(visitor$prime);
-        return function ($504) {
-            return $502($503($504));
+        var $503 = Control_Monad_Free.runFree(Data_Identity.functorIdentity)(Data_Newtype.un()(Data_Identity.Identity));
+        var $504 = traversal(visitor$prime);
+        return function ($505) {
+            return $503($504($505));
         };
     };
 };
@@ -1167,7 +1166,7 @@ var rewriteDeclBottomUp = /* #__PURE__ */ rewriteBottomUp(function (v) {
 var rewriteExprBottomUp = /* #__PURE__ */ rewriteBottomUp(function (v) {
     return v.onExpr;
 });
-var rewriteModuleBottomUp = /* #__PURE__ */ rewriteBottomUp(traverseModule1);
+var rewriteModuleBottomUp = /* #__PURE__ */ rewriteBottomUp(/* #__PURE__ */ traverseModule(Control_Monad_Free.freeApplicative));
 var rewriteTypeBottomUp = /* #__PURE__ */ rewriteBottomUp(function (v) {
     return v.onType;
 });

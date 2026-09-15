@@ -16,6 +16,7 @@ import * as Data_Semiring from "../Data.Semiring/index.js";
 import * as Data_Show from "../Data.Show/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
+var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var Nothing = /* #__PURE__ */ (function () {
     function Nothing() {
 
@@ -145,7 +146,7 @@ var fromMaybe$prime = function (a) {
     return maybe$prime(a)(identity);
 };
 var fromMaybe = function (a) {
-    return maybe(a)(identity);
+    return maybe(a)(identity1);
 };
 var fromJust = function () {
     return function (v) {

@@ -26,6 +26,12 @@ import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Unfoldable from "../Data.Unfoldable/index.js";
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap2 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap3 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap4 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap5 = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap6 = /* #__PURE__ */ Data_Newtype.unwrap();
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var Pattern = function (x) {
     return x;
@@ -118,9 +124,9 @@ var takeWhile = function (p) {
         };
         return Data_List_Lazy_Types.Nil.value;
     };
-    var $286 = Data_Functor.map(Data_Lazy.functorLazy)(go);
-    return function ($287) {
-        return Data_List_Lazy_Types.List($286(unwrap($287)));
+    var $292 = Data_Functor.map(Data_Lazy.functorLazy)(go);
+    return function ($293) {
+        return Data_List_Lazy_Types.List($292(unwrap($293)));
     };
 };
 var take = function (n) {
@@ -135,13 +141,13 @@ var take = function (n) {
             throw new Error("Failed pattern match at Data.List.Lazy (line 505, column 3 - line 505, column 32): " + [ v.constructor.name, v1.constructor.name ]);
         };
     };
-    var $157 = n <= 0;
-    if ($157) {
+    var $163 = n <= 0;
+    if ($163) {
         return Data_Function["const"](Data_List_Lazy_Types.nil);
     };
-    var $288 = Data_Functor.map(Data_Lazy.functorLazy)(go(n));
-    return function ($289) {
-        return Data_List_Lazy_Types.List($288(unwrap($289)));
+    var $294 = Data_Functor.map(Data_Lazy.functorLazy)(go(n));
+    return function ($295) {
+        return Data_List_Lazy_Types.List($294(unwrap1($295)));
     };
 };
 var tail = function (xs) {
@@ -290,8 +296,8 @@ var range = function (start) {
 var partition = function (f) {
     var go = function (x) {
         return function (v) {
-            var $185 = f(x);
-            if ($185) {
+            var $191 = f(x);
+            if ($191) {
                 return {
                     yes: Data_List_Lazy_Types.cons(x)(v.yes),
                     no: v.no
@@ -308,8 +314,8 @@ var partition = function (f) {
         no: Data_List_Lazy_Types.nil
     });
 };
-var $$null = function ($290) {
-    return Data_Maybe.isNothing(uncons($290));
+var $$null = function ($296) {
+    return Data_Maybe.isNothing(uncons($296));
 };
 var nubBy = function (p) {
     var goStep = function (v) {
@@ -370,9 +376,9 @@ var mapMaybe = function (f) {
         };
         return $tco_result;
     };
-    var $291 = Data_Functor.map(Data_Lazy.functorLazy)(go);
-    return function ($292) {
-        return Data_List_Lazy_Types.List($291(unwrap($292)));
+    var $297 = Data_Functor.map(Data_Lazy.functorLazy)(go);
+    return function ($298) {
+        return Data_List_Lazy_Types.List($297(unwrap2($298)));
     };
 };
 var some = function (dictAlternative) {
@@ -423,8 +429,8 @@ var last = /* #__PURE__ */ (function () {
         };
         return $tco_result;
     };
-    return function ($293) {
-        return go(Data_List_Lazy_Types.step($293));
+    return function ($299) {
+        return go(Data_List_Lazy_Types.step($299));
     };
 })();
 var iterate = function (f) {
@@ -465,8 +471,8 @@ var init = /* #__PURE__ */ (function () {
         };
         return Data_Maybe.Nothing.value;
     };
-    return function ($294) {
-        return go(Data_List_Lazy_Types.step($294));
+    return function ($300) {
+        return go(Data_List_Lazy_Types.step($300));
     };
 })();
 var index = function (xs) {
@@ -534,18 +540,18 @@ var groupBy = function (eq) {
         };
         throw new Error("Failed pattern match at Data.List.Lazy (line 576, column 3 - line 576, column 15): " + [ v.constructor.name ]);
     };
-    var $295 = Data_Functor.map(Data_Lazy.functorLazy)(go);
-    return function ($296) {
-        return Data_List_Lazy_Types.List($295(unwrap($296)));
+    var $301 = Data_Functor.map(Data_Lazy.functorLazy)(go);
+    return function ($302) {
+        return Data_List_Lazy_Types.List($301(unwrap3($302)));
     };
 };
 var group = function (dictEq) {
     return groupBy(Data_Eq.eq(dictEq));
 };
 var fromStep = /* #__PURE__ */ (function () {
-    var $297 = Control_Applicative.pure(Data_Lazy.applicativeLazy);
-    return function ($298) {
-        return Data_List_Lazy_Types.List($297($298));
+    var $303 = Control_Applicative.pure(Data_Lazy.applicativeLazy);
+    return function ($304) {
+        return Data_List_Lazy_Types.List($303($304));
     };
 })();
 var insertBy = function (cmp) {
@@ -617,8 +623,8 @@ var findIndex = function (fn) {
     var go = function (n) {
         return function (list) {
             return Control_Bind.bind(Data_Maybe.bindMaybe)(uncons(list))(function (o) {
-                var $246 = fn(o.head);
-                if ($246) {
+                var $252 = fn(o.head);
+                if ($252) {
                     return Control_Applicative.pure(Data_Maybe.applicativeMaybe)(n);
                 };
                 return go(n + 1 | 0)(o.tail);
@@ -685,9 +691,9 @@ var filter = function (p) {
         };
         return $tco_result;
     };
-    var $299 = Data_Functor.map(Data_Lazy.functorLazy)(go);
-    return function ($300) {
-        return Data_List_Lazy_Types.List($299(unwrap($300)));
+    var $305 = Data_Functor.map(Data_Lazy.functorLazy)(go);
+    return function ($306) {
+        return Data_List_Lazy_Types.List($305(unwrap4($306)));
     };
 };
 var intersectBy = function (eq) {
@@ -714,9 +720,9 @@ var nubByEq = function (eq) {
         };
         throw new Error("Failed pattern match at Data.List.Lazy (line 633, column 3 - line 633, column 15): " + [ v.constructor.name ]);
     };
-    var $301 = Data_Functor.map(Data_Lazy.functorLazy)(go);
-    return function ($302) {
-        return Data_List_Lazy_Types.List($301(unwrap($302)));
+    var $307 = Data_Functor.map(Data_Lazy.functorLazy)(go);
+    return function ($308) {
+        return Data_List_Lazy_Types.List($307(unwrap5($308)));
     };
 };
 var nubEq = function (dictEq) {
@@ -777,8 +783,8 @@ var dropWhile = function (p) {
         };
         return $tco_result;
     };
-    return function ($303) {
-        return go(Data_List_Lazy_Types.step($303));
+    return function ($309) {
+        return go(Data_List_Lazy_Types.step($309));
     };
 };
 var drop = function (n) {
@@ -809,9 +815,9 @@ var drop = function (n) {
             return $tco_result;
         };
     };
-    var $304 = Data_Functor.map(Data_Lazy.functorLazy)(go(n));
-    return function ($305) {
-        return Data_List_Lazy_Types.List($304(unwrap($305)));
+    var $310 = Data_Functor.map(Data_Lazy.functorLazy)(go(n));
+    return function ($311) {
+        return Data_List_Lazy_Types.List($310(unwrap6($311)));
     };
 };
 var slice = function (start) {
@@ -917,8 +923,8 @@ var alterAt = function (n) {
 };
 var modifyAt = function (n) {
     return function (f) {
-        return alterAt(n)(function ($306) {
-            return Data_Maybe.Just.create(f($306));
+        return alterAt(n)(function ($312) {
+            return Data_Maybe.Just.create(f($312));
         });
     };
 };

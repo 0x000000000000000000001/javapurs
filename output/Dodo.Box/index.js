@@ -566,8 +566,8 @@ var resume = /* #__PURE__ */ (function () {
                         return;
                     };
                     if (cmd.value0 instanceof StpPad) {
-                        var $117 = cmd.value0.value1 === 0;
-                        if ($117) {
+                        var $118 = cmd.value0.value1 === 0;
+                        if ($118) {
                             $tco_var_cmd = new ResumeEnter(cmd.value0.value2);
                             $copy_stack = stack;
                             return;
@@ -619,9 +619,9 @@ var resume = /* #__PURE__ */ (function () {
             return $tco_result;
         };
     };
-    var $258 = Data_Function.flip(go)(ResumeNil.value);
-    return function ($259) {
-        return $258(ResumeEnter.create($259));
+    var $259 = Data_Function.flip(go)(ResumeNil.value);
+    return function ($260) {
+        return $259(ResumeEnter.create($260));
     };
 })();
 var padWithAlign = function (appendFn) {
@@ -821,9 +821,9 @@ var formatLine = /* #__PURE__ */ (function () {
             return $tco_result;
         };
     };
-    var $260 = go(mempty);
-    return function ($261) {
-        return $260(Data_List.singleton($261));
+    var $261 = go(Data_Monoid.mempty(Dodo_Internal.monoidDoc));
+    return function ($262) {
+        return $261(Data_List.singleton($262));
     };
 })();
 var fill = function (ch) {
@@ -1092,9 +1092,9 @@ var toDoc = /* #__PURE__ */ (function () {
         };
         throw new Error("Failed pattern match at Dodo.Box (line 273, column 9 - line 276, column 42): " + [ v.constructor.name ]);
     };
-    var $262 = build(AsIs.value)(StpDone.value);
-    return function ($263) {
-        return go1(resume($262($263)));
+    var $263 = build(AsIs.value)(StpDone.value);
+    return function ($264) {
+        return go1(resume($263($264)));
     };
 })();
 export {

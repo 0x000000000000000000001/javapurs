@@ -19,6 +19,7 @@ var monoidDual = /* #__PURE__ */ Data_Monoid_Dual.monoidDual(/* #__PURE__ */ Dat
 var monoidEndo = /* #__PURE__ */ Data_Monoid_Endo.monoidEndo(Control_Category.categoryFn);
 var identity2 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
+var unwrap1 = /* #__PURE__ */ Data_Newtype.unwrap();
 var bifoldr = function (dict) {
     return dict.bifoldr;
 };
@@ -29,10 +30,10 @@ var bitraverse_ = function (dictBifoldable) {
         var applySecond1 = Control_Apply.applySecond(Apply0);
         return function (f) {
             return function (g) {
-                return bifoldr(dictBifoldable)(function ($173) {
-                    return applySecond(f($173));
-                })(function ($174) {
-                    return applySecond1(g($174));
+                return bifoldr(dictBifoldable)(function ($174) {
+                    return applySecond(f($174));
+                })(function ($175) {
+                    return applySecond1(g($175));
                 })(Control_Applicative.pure(dictApplicative)(Data_Unit.unit));
             };
         };
@@ -231,10 +232,10 @@ var bifoldMapDefaultR = function (dictBifoldable) {
         var mempty = Data_Monoid.mempty(dictMonoid);
         return function (f) {
             return function (g) {
-                return bifoldr(dictBifoldable)(function ($175) {
-                    return append(f($175));
-                })(function ($176) {
-                    return append(g($176));
+                return bifoldr(dictBifoldable)(function ($176) {
+                    return append(f($176));
+                })(function ($177) {
+                    return append(g($177));
                 })(mempty);
             };
         };
@@ -299,14 +300,14 @@ var bifoldlDefault = function (dictBifoldable) {
             return function (z) {
                 return function (p) {
                     return Data_Newtype.unwrap()(Data_Newtype.unwrap()(bifoldMap(dictBifoldable)(monoidDual)((function () {
-                        var $177 = Data_Function.flip(f);
-                        return function ($178) {
-                            return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($177($178)));
+                        var $178 = Data_Function.flip(f);
+                        return function ($179) {
+                            return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($178($179)));
                         };
                     })())((function () {
-                        var $179 = Data_Function.flip(g);
-                        return function ($180) {
-                            return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($179($180)));
+                        var $180 = Data_Function.flip(g);
+                        return function ($181) {
+                            return Data_Monoid_Dual.Dual(Data_Monoid_Endo.Endo($180($181)));
                         };
                     })())(p)))(z);
                 };
@@ -319,10 +320,10 @@ var bifoldrDefault = function (dictBifoldable) {
         return function (g) {
             return function (z) {
                 return function (p) {
-                    return Data_Newtype.unwrap()(bifoldMap(dictBifoldable)(monoidEndo)(function ($181) {
-                        return Data_Monoid_Endo.Endo(f($181));
-                    })(function ($182) {
-                        return Data_Monoid_Endo.Endo(g($182));
+                    return Data_Newtype.unwrap()(bifoldMap(dictBifoldable)(monoidEndo)(function ($182) {
+                        return Data_Monoid_Endo.Endo(f($182));
+                    })(function ($183) {
+                        return Data_Monoid_Endo.Endo(g($183));
                     })(p))(z);
                 };
             };
@@ -373,13 +374,13 @@ var biany = function (dictBifoldable) {
         var monoidDisj = Data_Monoid_Disj.monoidDisj(dictBooleanAlgebra.HeytingAlgebra0());
         return function (p) {
             return function (q) {
-                var $183 = bifoldMap(dictBifoldable)(monoidDisj)(function ($185) {
-                    return Data_Monoid_Disj.Disj(p($185));
-                })(function ($186) {
-                    return Data_Monoid_Disj.Disj(q($186));
+                var $184 = bifoldMap(dictBifoldable)(monoidDisj)(function ($186) {
+                    return Data_Monoid_Disj.Disj(p($186));
+                })(function ($187) {
+                    return Data_Monoid_Disj.Disj(q($187));
                 });
-                return function ($184) {
-                    return unwrap($183($184));
+                return function ($185) {
+                    return unwrap($184($185));
                 };
             };
         };
@@ -390,13 +391,13 @@ var biall = function (dictBifoldable) {
         var monoidConj = Data_Monoid_Conj.monoidConj(dictBooleanAlgebra.HeytingAlgebra0());
         return function (p) {
             return function (q) {
-                var $187 = bifoldMap(dictBifoldable)(monoidConj)(function ($189) {
-                    return Data_Monoid_Conj.Conj(p($189));
-                })(function ($190) {
-                    return Data_Monoid_Conj.Conj(q($190));
+                var $188 = bifoldMap(dictBifoldable)(monoidConj)(function ($190) {
+                    return Data_Monoid_Conj.Conj(p($190));
+                })(function ($191) {
+                    return Data_Monoid_Conj.Conj(q($191));
                 });
-                return function ($188) {
-                    return unwrap($187($188));
+                return function ($189) {
+                    return unwrap1($188($189));
                 };
             };
         };

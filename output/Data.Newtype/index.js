@@ -12,6 +12,7 @@ var coerce8 = /* #__PURE__ */ Safe_Coerce.coerce();
 var coerce9 = /* #__PURE__ */ Safe_Coerce.coerce();
 var coerce10 = /* #__PURE__ */ Safe_Coerce.coerce();
 var coerce11 = /* #__PURE__ */ Safe_Coerce.coerce();
+var coerce12 = /* #__PURE__ */ Safe_Coerce.coerce();
 var wrap = function () {
     return coerce;
 };
@@ -163,7 +164,7 @@ var alaF = function () {
         return function () {
             return function () {
                 return function (v) {
-                    return coerce3;
+                    return coerce12;
                 };
             };
         };

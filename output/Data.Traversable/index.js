@@ -37,6 +37,7 @@ var $runtime_lazy = function (name, moduleName, init) {
     };
 };
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
+var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var traverse = function (dict) {
     return dict.traverse;
 };
@@ -311,7 +312,7 @@ var traversableAdditive = {
 };
 var sequenceDefault = function (dictTraversable) {
     return function (dictApplicative) {
-        return traverse(dictTraversable)(dictApplicative)(identity);
+        return traverse(dictTraversable)(dictApplicative)(identity1);
     };
 };
 var $lazy_traversableArray = /* #__PURE__ */ $runtime_lazy("traversableArray", "Data.Traversable", function () {
@@ -374,20 +375,20 @@ var traversableCoproduct = function (dictTraversable) {
                 var Functor0 = (dictApplicative.Apply0()).Functor0();
                 return function (f) {
                     return Data_Functor_Coproduct.coproduct((function () {
-                        var $238 = Data_Functor.map(Functor0)(function ($241) {
-                            return Data_Functor_Coproduct.Coproduct(Data_Either.Left.create($241));
+                        var $239 = Data_Functor.map(Functor0)(function ($242) {
+                            return Data_Functor_Coproduct.Coproduct(Data_Either.Left.create($242));
                         });
-                        var $239 = traverse(dictTraversable)(dictApplicative)(f);
-                        return function ($240) {
-                            return $238($239($240));
+                        var $240 = traverse(dictTraversable)(dictApplicative)(f);
+                        return function ($241) {
+                            return $239($240($241));
                         };
                     })())((function () {
-                        var $242 = Data_Functor.map(Functor0)(function ($245) {
-                            return Data_Functor_Coproduct.Coproduct(Data_Either.Right.create($245));
+                        var $243 = Data_Functor.map(Functor0)(function ($246) {
+                            return Data_Functor_Coproduct.Coproduct(Data_Either.Right.create($246));
                         });
-                        var $243 = traverse(dictTraversable1)(dictApplicative)(f);
-                        return function ($244) {
-                            return $242($243($244));
+                        var $244 = traverse(dictTraversable1)(dictApplicative)(f);
+                        return function ($245) {
+                            return $243($244($245));
                         };
                     })());
                 };
@@ -395,20 +396,20 @@ var traversableCoproduct = function (dictTraversable) {
             sequence: function (dictApplicative) {
                 var Functor0 = (dictApplicative.Apply0()).Functor0();
                 return Data_Functor_Coproduct.coproduct((function () {
-                    var $246 = Data_Functor.map(Functor0)(function ($249) {
-                        return Data_Functor_Coproduct.Coproduct(Data_Either.Left.create($249));
+                    var $247 = Data_Functor.map(Functor0)(function ($250) {
+                        return Data_Functor_Coproduct.Coproduct(Data_Either.Left.create($250));
                     });
-                    var $247 = sequence1(dictApplicative);
-                    return function ($248) {
-                        return $246($247($248));
+                    var $248 = sequence1(dictApplicative);
+                    return function ($249) {
+                        return $247($248($249));
                     };
                 })())((function () {
-                    var $250 = Data_Functor.map(Functor0)(function ($253) {
-                        return Data_Functor_Coproduct.Coproduct(Data_Either.Right.create($253));
+                    var $251 = Data_Functor.map(Functor0)(function ($254) {
+                        return Data_Functor_Coproduct.Coproduct(Data_Either.Right.create($254));
                     });
-                    var $251 = sequence2(dictApplicative);
-                    return function ($252) {
-                        return $250($251($252));
+                    var $252 = sequence2(dictApplicative);
+                    return function ($253) {
+                        return $251($252($253));
                     };
                 })());
             },
