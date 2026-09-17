@@ -1,5 +1,7 @@
 # javapurs
 
+<img width="949" height="332" alt="logo white" src="https://github.com/user-attachments/assets/8e1340b8-a974-41d7-bfe9-605867858669" />
+
 _Experimental WIP. The compiler and Java library ports are under active development._
 
 An optimizing **PureScript-to-Java compiler**, written in PureScript, bringing pure business logic to the **JVM**, its JIT compiler, garbage collector, and Java ecosystem.
