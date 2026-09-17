@@ -1,3 +1,4 @@
+<img width="829" height="283" alt="Screenshot 2026-09-17 at 16 44 38" src="https://github.com/user-attachments/assets/4d352a38-e89e-41c3-9b63-d49c34bbaeb5" />
 # javapurs
 
 <img height="160" alt="Screenshot 2026-09-17 at 16 44 38" src="https://github.com/user-attachments/assets/e2e22be7-47a1-4130-9f3f-a77bdde43964" />
