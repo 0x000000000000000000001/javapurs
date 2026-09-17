@@ -1,6 +1,6 @@
 # javapurs
 
-<img width="949" height="332" alt="logo white" src="https://github.com/user-attachments/assets/8e1340b8-a974-41d7-bfe9-605867858669" />
+<img height="160" alt="Screenshot 2026-09-17 at 16 44 38" src="https://github.com/user-attachments/assets/e2e22be7-47a1-4130-9f3f-a77bdde43964" />
 
 _Experimental WIP. The compiler and Java library ports are under active development._
 
