@@ -120,6 +120,8 @@ This prints `Hello from javapurs`. The example supplies its own Java console bin
 
 Create `java_output` before the backend runs: the CLI writes into it without creating it. Spago invokes the configured backend after producing enriched `output/<Module>/corefn.json`. Verify that a generated file includes `dataDecls`, `classDecls`, and, with the current fork, `typeTable`. Missing metadata indicates an incompatible compiler or stale output; select the fork explicitly on `PATH` and rebuild in a fresh output directory.
 
+Each invocation reports monotonic elapsed times in milliseconds to stderr: TAST loading and sorting, preparation, optimization and file emission, and the backend total. The total includes these phases; it excludes the preceding `purs` compilation and subsequent `javac` compilation. A failed phase and its enclosing total are marked `(failed)` before the error is propagated.
+
 Generated classes use the default Java package, with dots in PureScript module names replaced by underscores: `App.Main` becomes `App_Main.java`. `MainRun.java` is the executable launcher. `Main.java` represents the PureScript module and is not the JVM entrypoint. Record helpers, `__IntFn.java`, and `TcoLoop.java` are emitted alongside modules. Use a fresh `java_output` when removing or renaming modules, as the backend does not remove old files.
 
 To regenerate Java from existing TAST without recompiling PureScript, invoke the backend directly:

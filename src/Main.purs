@@ -21,6 +21,7 @@ import Data.Newtype (unwrap)
 import Data.String as String
 import Javapurs.CodeGen (sanitizeName, translateWithIntFunctions)
 import Javapurs.IntFunctions (runtimeSource)
+import Javapurs.Metrics as Metrics
 import Javapurs.RecordShapes (recordClassName)
 import Javapurs.RecordPrinter (printRecordShape)
 import Data.Foldable (for_)
@@ -28,7 +29,7 @@ import Node.Process (argv)
 import Javapurs.Printer (printExpr)
 
 main :: Effect Unit
-main = launchAff_ do
+main = launchAff_ $ Metrics.measure "backend total" \_ -> do
   args <- liftEffect argv
   -- Reference representation for paired benchmarks under the same TAST/PBO.
   let typedRecords = not (Array.elem "--records=maps" args)
@@ -42,14 +43,16 @@ main = launchAff_ do
         Nothing -> "Main"
 
   liftEffect $ log "Loading corefn.json files..."
-  modules <- coreFnModulesFromOutput "output"
+  modules <- Metrics.measure "load TAST + sort" \_ -> coreFnModulesFromOutput "output"
   let count = List.length modules
   liftEffect $ log $ "Successfully loaded " <> show count <> " modules."
 
-  directives <- loadDirectives
-  FS.writeTextFile UTF8 "java_output/__IntFn.java" runtimeSource
+  directives <- Metrics.measure "prepare" \_ -> do
+    loaded <- loadDirectives
+    FS.writeTextFile UTF8 "java_output/__IntFn.java" runtimeSource
+    pure loaded
   
-  buildModules
+  Metrics.measure "optimize + emit" \_ -> buildModules
     { directives
     , rewriteLimit: 10000
     , analyzeCustom: \_ _ -> Nothing
