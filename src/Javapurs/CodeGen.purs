@@ -340,6 +340,9 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
         javaClass = modPart <> "." <> safeCtorName
         resExprExpr = wrapInBlock (translateExpr env loopCtx false expr)
       in pureExpr $ JavaPropertyAccess resExprExpr javaClass ("value" <> show idx)
+    GetIndex index ->
+      let resExprExpr = wrapInBlock (translateExpr env loopCtx false expr)
+      in pureExpr $ JavaArrayIndex resExprExpr (JavaRaw (show index))
     _ -> pureExpr $ JavaRaw "null /* TODO: Accessor */"
   Update expr updates ->
     let resExprExpr = wrapInBlock (translateExpr env loopCtx false expr)
