@@ -123,8 +123,8 @@ for test_file in "${TEST_FILES[@]}"; do
 
   echo "=> Testing $test_name"
 
-  rm -rf src/Main.purs src/Main.java output java_output classes
-  mkdir -p java_output classes
+  rm -rf src output java_output classes
+  mkdir -p src java_output classes
 
   cp "$test_file" "src/Main.purs"
   # Auxiliary modules live in a directory named after the test.
