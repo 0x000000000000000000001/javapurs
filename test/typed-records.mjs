@@ -15,7 +15,7 @@ import { translateWithRecords } from "../output/Javapurs.CodeGen/index.js";
 import { printExpr } from "../output/Javapurs.Printer/index.js";
 import { printRecordShape } from "../output/Javapurs.RecordPrinter/index.js";
 import { recordShape, recordShapeOf, recordClassName } from "../output/Javapurs.RecordShapes/index.js";
-import { rename } from "../output/Javapurs.Rename/index.js";
+import { renameWith } from "../output/Javapurs.Rename/index.js";
 
 // Run after the project backend build; --records=maps exercises the same values
 // and open/closed record operations using the retained Map representation.
@@ -255,10 +255,9 @@ const renameCases = [
   new A.JavaTypedRecordUpdate(recordLayout, renamedLocal, [new Tuple("r", renamedLocal)]),
 ];
 for (const expression of renameCases) {
-  const renamed = rename(renameEnvironment)(8)(expression);
-  assert.equal(renamed.value1, 8);
-  assert.deepEqual(renamed.value0.value0, recordLayout);
-  const text = printExpr(renamed.value0);
+  const renamed = renameWith(renameEnvironment)(expression);
+  assert.deepEqual(renamed.value0, recordLayout);
+  const text = printExpr(renamed);
   assert.ok(text.includes("renamed"));
   assert.ok(text.includes('"r"'), "renaming must preserve the record key");
 }

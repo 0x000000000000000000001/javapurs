@@ -28,6 +28,7 @@ import Javapurs.RecordPrinter (printRecordShape)
 import Data.Foldable (for_)
 import Node.Process (argv)
 import Javapurs.Printer (printExpr)
+import Javapurs.Rename (renameExpr)
 
 main :: Effect Unit
 main = launchAff_ $ Metrics.measure "backend total" \_ -> do
@@ -87,7 +88,7 @@ main = launchAff_ $ Metrics.measure "backend total" \_ -> do
             "        public Object apply(Object arg) { throw new UnsupportedOperationException(\"Missing Java FFI in " <> modNameStr <> "\"); }\n" <>
             "    };\n" <>
             ffiStubs <> "\n\n" <>
-            String.joinWith "\n" (map printExpr javaAst.decls) <>
+            String.joinWith "\n" (map (printExpr <<< renameExpr) javaAst.decls) <>
             "\n}\n"
             
         FS.writeTextFile UTF8 ("java_output/" <> safeModName <> ".java") classContent

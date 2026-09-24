@@ -11,7 +11,7 @@ import { Just, Nothing } from "../output/Data.Maybe/index.js";
 import { Tuple } from "../output/Data.Tuple/index.js";
 import { translate } from "../output/Javapurs.CodeGen/index.js";
 import { printExpr } from "../output/Javapurs.Printer/index.js";
-import { rename, renameExpr } from "../output/Javapurs.Rename/index.js";
+import { renameWith, renameExpr } from "../output/Javapurs.Rename/index.js";
 
 // Run after rebuilding the backend: node test/nullary-constructors.mjs
 const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
@@ -94,14 +94,13 @@ assert.ok(sources.get("Test_Consumer.java").includes("Test_Tags.__singleton$Quot
 assert.ok(sources.get("Test_Consumer.java").includes("new Test_Tags.Box("), "saturated constructors with fields must still allocate");
 
 const singleton = new A.JavaCtorSingleton("Test_Tags", "Quote_prime_");
-const renamed = rename([new Tuple("Test_Tags", "WrongModule"), new Tuple("Quote_prime_", "WrongConstructor")])(17)(singleton);
-assert.ok(renamed.value0 instanceof A.JavaCtorSingleton);
-assert.equal(renamed.value0.value0, "Test_Tags");
-assert.equal(renamed.value0.value1, "Quote_prime_");
-assert.equal(renamed.value1, 17);
-assert.equal(printExpr(renamed.value0), "Test_Tags.__singleton$Quote_prime_.value");
+const renamed = renameWith([new Tuple("Test_Tags", "WrongModule"), new Tuple("Quote_prime_", "WrongConstructor")])(singleton);
+assert.ok(renamed instanceof A.JavaCtorSingleton);
+assert.equal(renamed.value0, "Test_Tags");
+assert.equal(renamed.value1, "Quote_prime_");
+assert.equal(printExpr(renamed), "Test_Tags.__singleton$Quote_prime_.value");
 const inLambda = renameExpr(new A.JavaAbs(["Test_Tags", "Quote_prime_"], singleton));
-assert.equal(printExpr(inLambda.value1), printExpr(singleton), "local renaming must preserve singleton qualification");
+assert.ok(printExpr(inLambda).includes("Test_Tags.__singleton$Quote_prime_.value"), "local renaming must preserve singleton qualification");
 
 sources.set("InitProbe.java", "public final class InitProbe { public static int outerInitializations; }\n");
 sources.set("NullaryChecks.java", `

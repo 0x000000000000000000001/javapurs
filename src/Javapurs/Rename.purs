@@ -1,205 +1,182 @@
+-- | Makes every Java local unique within its method.
+-- |
+-- | TAST levels are reused across sibling scopes and inlining can translate the
+-- | same binding twice, but Java rejects one local hiding another. Declarations
+-- | (let and let-rec binders, lambda parameters and local assignment statements)
+-- | are renamed and their references follow. Scopes are restored when a block,
+-- | lambda or let body ends, so references outside their scope keep their name.
 module Javapurs.Rename where
 
 import Prelude
-import Javapurs.JavaAst (JavaExpr(..))
-import Data.Tuple (Tuple(..), fst)
-import Data.Array as Array
-import Data.Maybe (Maybe(..))
-import Data.Foldable (foldl)
-import Data.String as String
 
-type State = Int
+import Control.Monad.State (State, gets, modify_, runState)
+import Data.Array as Array
+import Data.Array.NonEmpty as NonEmptyArray
+import Data.Char as Char
+import Data.Maybe (Maybe(..))
+import Data.String as String
+import Data.String.CodeUnits as StringCodeUnits
+import Data.Traversable (traverse)
+import Data.Tuple (Tuple(..), fst)
+import Javapurs.JavaAst (JavaExpr(..))
+
+type RenameState = { counter :: Int, env :: Array (Tuple String String) }
 
 renameExpr :: JavaExpr -> JavaExpr
-renameExpr e = let Tuple e' _ = rename [] 0 e in e'
+renameExpr = renameWith []
+
+-- | Renames with a starting environment, for the regression scripts that
+-- | check how a given binding is rewritten.
+renameWith :: Array (Tuple String String) -> JavaExpr -> JavaExpr
+renameWith env expression = case runState (rename expression) { counter: 0, env } of
+  Tuple result _ -> result
 
 lookupName :: String -> Array (Tuple String String) -> String
-lookupName name env = case Array.find (\(Tuple k _) -> k == name) env of
-  Just (Tuple _ v) -> v
+lookupName name env = case Array.find (\(Tuple key _) -> key == name) env of
+  Just (Tuple _ value) -> value
   Nothing -> name
 
-rename :: Array (Tuple String String) -> State -> JavaExpr -> Tuple JavaExpr State
-rename env s = case _ of
-  JavaString str -> Tuple (JavaString str) s
-  JavaCall f args ->
-    let Tuple f' s1 = rename env s f
-        Tuple args' s2 = foldl (\(Tuple acc s') arg -> let Tuple arg' s'' = rename env s' arg in Tuple (Array.snoc acc arg') s'') (Tuple [] s1) args
-    in Tuple (JavaCall f' args') s2
-  JavaApply f a ->
-    let Tuple f' s1 = rename env s f
-        Tuple a' s2 = rename env s1 a
-    in Tuple (JavaApply f' a') s2
-  JavaIntApply f a ->
-    let Tuple f' s1 = rename env s f
-        Tuple a' s2 = rename env s1 a
-    in Tuple (JavaIntApply f' a') s2
-  JavaFunction e ->
-    let Tuple e' s1 = rename env s e
-    in Tuple (JavaFunction e') s1
-  JavaLocal n ->
-    if String.take 8 n == "__final_" then
-      let baseName = String.drop 8 n
-          renamed = lookupName baseName env
-      in Tuple (JavaLocal ("__final_" <> renamed)) s
-    else
-      Tuple (JavaLocal (lookupName n env)) s
-  JavaAbs args body ->
-    let args' = map (\n -> n <> "_i" <> show s) args
-        env' = foldl (\acc (Tuple n newN) -> Array.cons (Tuple n newN) acc) env (Array.zip args args')
-        s1 = s + Array.length args
-        Tuple body' s2 = rename env' s1 body
-    in Tuple (JavaAbs args' body') s2
-  JavaTypedAbs params body ->
-    let names = map fst params
-        names' = map (\n -> n <> "_i" <> show s) names
-        env' = foldl (\acc (Tuple n newN) -> Array.cons (Tuple n newN) acc) env (Array.zip names names')
-        s1 = s + Array.length names
-        Tuple body' s2 = rename env' s1 body
-    in Tuple (JavaTypedAbs (Array.zipWith (\(Tuple _ ty) newN -> Tuple newN ty) params names') body') s2
-  JavaIntAbs arg body ->
-    let arg' = arg <> "_i" <> show s
-        Tuple body' next = rename (Array.cons (Tuple arg arg') env) (s + 1) body
-    in Tuple (JavaIntAbs arg' body') next
-  JavaStaticMethod name args body ->
-    let names = map fst args
-        names' = map (\n -> n <> "_i" <> show s) names
-        env' = Array.zip names names'
-        Tuple body' s1 = rename env' (s + Array.length names) body
-    in Tuple (JavaStaticMethod name (Array.zipWith (\(Tuple _ ty) newN -> Tuple newN ty) args names') body') s1
-  JavaNew c args ->
-    let Tuple args' s2 = foldl (\(Tuple acc s') arg -> let Tuple arg' s'' = rename env s' arg in Tuple (Array.snoc acc arg') s'') (Tuple [] s) args
-    in Tuple (JavaNew c args') s2
-  JavaCtorSingleton modName ctorName -> Tuple (JavaCtorSingleton modName ctorName) s
-  JavaTernary c t f ->
-    let Tuple c' s1 = rename env s c
-        Tuple t' s2 = rename env s1 t
-        Tuple f' s3 = rename env s2 f
-    in Tuple (JavaTernary c' t' f') s3
-  JavaThrow msg -> Tuple (JavaThrow msg) s
-  JavaRecord pairs ->
-    let Tuple pairs' s1 = foldl (\(Tuple acc s') (Tuple k v) -> let Tuple v' s'' = rename env s' v in Tuple (Array.snoc acc (Tuple k v')) s'') (Tuple [] s) pairs
-    in Tuple (JavaRecord pairs') s1
-  JavaTypedRecord shape pairs ->
-    let Tuple pairs' s1 = foldl (\(Tuple acc s') (Tuple k v) -> let Tuple v' s'' = rename env s' v in Tuple (Array.snoc acc (Tuple k v')) s'') (Tuple [] s) pairs
-    in Tuple (JavaTypedRecord shape pairs') s1
-  JavaTypedRecordGet shape e prop ->
-    let Tuple e' s1 = rename env s e
-    in Tuple (JavaTypedRecordGet shape e' prop) s1
-  JavaTypedRecordUpdate shape e pairs ->
-    let Tuple e' s1 = rename env s e
-        Tuple pairs' s2 = foldl (\(Tuple acc s') (Tuple k v) -> let Tuple v' s'' = rename env s' v in Tuple (Array.snoc acc (Tuple k v')) s'') (Tuple [] s1) pairs
-    in Tuple (JavaTypedRecordUpdate shape e' pairs') s2
-  JavaArray args ->
-    let Tuple args' s1 = foldl (\(Tuple acc s') arg -> let Tuple arg' s'' = rename env s' arg in Tuple (Array.snoc acc arg') s'') (Tuple [] s) args
-    in Tuple (JavaArray args') s1
-  JavaWhileTrue args intParams body ->
-    let args' = map (\n -> lookupName n env) args
-        intParams' = map (\n -> lookupName n env) intParams
-        Tuple body' s2 = rename env s body
-    in Tuple (JavaWhileTrue args' intParams' body') s2
-  JavaMemoizedLoop args intParams invariants body ->
-    let
-      args' = map (\n -> lookupName n env) args
-      intParams' = map (\n -> lookupName n env) intParams
-      names = map (\(Tuple name _) -> name) invariants
-      names' = Array.mapWithIndex (\i name -> name <> "_i" <> show (s + i)) names
-      env' = foldl (\acc pair -> Array.cons pair acc) env (Array.zip names names')
-      Tuple values' s1 = foldl (\(Tuple acc state) (Tuple (Tuple _ value) name) ->
-        let Tuple value' next = rename env state value
-        in Tuple (Array.snoc acc (Tuple name value')) next)
-        (Tuple [] (s + Array.length names)) (Array.zip invariants names')
-      Tuple body' s2 = rename env' s1 body
-    in Tuple (JavaMemoizedLoop args' intParams' values' body') s2
-  JavaLoopInvariant name -> Tuple (JavaLoopInvariant (lookupName name env)) s
-  JavaContinue n args ->
-    let Tuple args' s1 = foldl (\(Tuple acc s') arg -> let Tuple arg' s'' = rename env s' arg in Tuple (Array.snoc acc arg') s'') (Tuple [] s) args
-    in Tuple (JavaContinue (lookupName n env) args') s1
-  JavaMapGet e p ->
-    let Tuple e' s1 = rename env s e
-    in Tuple (JavaMapGet e' p) s1
-  JavaMapUpdate e pairs ->
-    let Tuple e' s1 = rename env s e
-        Tuple pairs' s2 = foldl (\(Tuple acc s') (Tuple k v) -> let Tuple v' s'' = rename env s' v in Tuple (Array.snoc acc (Tuple k v')) s'') (Tuple [] s1) pairs
-    in Tuple (JavaMapUpdate e' pairs') s2
-  JavaInstanceOf e c ->
-    let Tuple e' s1 = rename env s e
-    in Tuple (JavaInstanceOf e' c) s1
-  JavaPropertyAccess e c p ->
-    let Tuple e' s1 = rename env s e
-    in Tuple (JavaPropertyAccess e' c p) s1
-  JavaLet n val body ->
-    let Tuple val' s1 = rename env s val
-        newN = n <> "_i" <> show s1
-        env' = Array.cons (Tuple n newN) env
-        Tuple body' s2 = rename env' (s1 + 1) body
-    in Tuple (JavaLet newN val' body') s2
-  JavaLetRec binds body ->
-    let names = map (\(Tuple n _) -> n) binds
-        newNames = Array.mapWithIndex (\i n -> n <> "_i" <> show (s + i)) names
-        s1 = s + Array.length names
-        env' = foldl (\acc (Tuple n newN) -> Array.cons (Tuple n newN) acc) env (Array.zip names newNames)
-        Tuple binds' s2 = foldl (\(Tuple acc s') (Tuple (Tuple _ val) newN) ->
-                                    let Tuple val' s'' = rename env' s' val
-                                    in Tuple (Array.snoc acc (Tuple newN val')) s''
-                                ) (Tuple [] s1) (Array.zip binds newNames)
-        Tuple body' s3 = rename env' s2 body
-    in Tuple (JavaLetRec binds' body') s3
-  JavaGlobalVar m n -> Tuple (JavaGlobalVar m n) s
-  JavaClassDecl c args mutable -> Tuple (JavaClassDecl c args mutable) s
-  JavaRaw r -> Tuple (JavaRaw r) s
-  JavaAssign n e ->
-    let Tuple e' s1 = rename env s e
-    in Tuple (JavaAssign (lookupName n env) e') s1
-  JavaLazyAssign n e ->
-    let Tuple e' s1 = rename env s e
-    in Tuple (JavaLazyAssign (lookupName n env) e') s1
-  JavaBinaryOp op l r ->
-    let Tuple l' s1 = rename env s l
-        Tuple r' s2 = rename env s1 r
-    in Tuple (JavaBinaryOp op l' r') s2
-  JavaUnaryOp op value ->
-    let Tuple value' next = rename env s value
-    in Tuple (JavaUnaryOp op value') next
-  JavaArrayIndex array index ->
-    let Tuple array' s1 = rename env s array
-        Tuple index' s2 = rename env s1 index
-    in Tuple (JavaArrayIndex array' index') s2
-  JavaArraySet array index value ->
-    let Tuple array' s1 = rename env s array
-        Tuple index' s2 = rename env s1 index
-        Tuple value' s3 = rename env s2 value
-    in Tuple (JavaArraySet array' index' value') s3
-  JavaCast c e ->
-    let Tuple e' s1 = rename env s e
-    in Tuple (JavaCast c e') s1
-  JavaLocalAssign n e ->
-    let Tuple e' s1 = rename env s e
-    in Tuple (JavaLocalAssign (lookupName n env) e') s1
-  JavaIntLocalAssign n e ->
-    let Tuple e' s1 = rename env s e
-    in Tuple (JavaIntLocalAssign (lookupName n env) e') s1
-  JavaBlock stmts e ->
-    let Tuple stmts' s1 = foldl (\(Tuple acc s') stmt ->
-                                   let Tuple stmt' s'' = rename env s' stmt
-                                   in Tuple (Array.snoc acc stmt') s''
-                                ) (Tuple [] s) stmts
-        Tuple e' s2 = rename env s1 e
-    in Tuple (JavaBlock stmts' e') s2
+localName :: String -> State RenameState String
+localName name = do
+  state <- gets identity
+  modify_ \current -> current { counter = current.counter + 1 }
+  pure (name <> "_i" <> show state.counter)
+
+-- | Renames the given binders, runs the body with them in scope, and then
+-- | restores the enclosing scope.
+scoped :: Array String -> (Array String -> State RenameState JavaExpr) -> State RenameState JavaExpr
+scoped names body = do
+  outerEnv <- gets _.env
+  renamedNames <- traverse localName names
+  modify_ \state -> state { env = Array.zipWith Tuple names renamedNames <> outerEnv }
+  result <- body renamedNames
+  modify_ \state -> state { env = outerEnv }
+  pure result
+
+rename :: JavaExpr -> State RenameState JavaExpr
+rename expression = case expression of
+  JavaString str -> pure (JavaString str)
+  JavaCall fn args -> JavaCall <$> rename fn <*> traverse rename args
+  JavaApply fn arg -> JavaApply <$> rename fn <*> rename arg
+  JavaIntApply fn arg -> JavaIntApply <$> rename fn <*> rename arg
+  JavaFunction value -> JavaFunction <$> rename value
+  JavaLocal name
+    | String.take 8 name == "__final_" -> do
+        renamed <- lookupCurrent (String.drop 8 name)
+        pure (JavaLocal ("__final_" <> renamed))
+    | otherwise -> JavaLocal <$> lookupCurrent name
+  JavaAbs args body -> scoped args \renamed -> JavaAbs renamed <$> rename body
+  JavaTypedAbs params body -> scoped (map fst params) \renamed ->
+    JavaTypedAbs (Array.zipWith (\(Tuple _ ty) name -> Tuple name ty) params renamed) <$> rename body
+  JavaIntAbs arg body -> scoped [ arg ] \renamed -> case renamed of
+    [ name ] -> JavaIntAbs name <$> rename body
+    _ -> pure expression
+  JavaStaticMethod name args body -> scoped (map fst args) \renamed ->
+    JavaStaticMethod name (Array.zipWith (\(Tuple _ ty) newName -> Tuple newName ty) args renamed) <$> rename body
+  JavaNew className args -> JavaNew className <$> traverse rename args
+  JavaCtorSingleton modName ctorName -> pure (JavaCtorSingleton modName ctorName)
+  JavaTernary condition yes no -> JavaTernary <$> rename condition <*> rename yes <*> rename no
+  JavaThrow msg -> pure (JavaThrow msg)
+  JavaRecord fields -> JavaRecord <$> renameFields fields
+  JavaTypedRecord shape fields -> JavaTypedRecord shape <$> renameFields fields
+  JavaTypedRecordGet shape value prop -> (\value' -> JavaTypedRecordGet shape value' prop) <$> rename value
+  JavaTypedRecordUpdate shape value updates -> JavaTypedRecordUpdate shape <$> rename value <*> renameFields updates
+  JavaArray items -> JavaArray <$> traverse rename items
+  JavaWhileTrue args intParams body -> do
+    args' <- traverse lookupCurrent args
+    intParams' <- traverse lookupCurrent intParams
+    JavaWhileTrue args' intParams' <$> rename body
+  JavaMemoizedLoop args intParams invariants body -> do
+    args' <- traverse lookupCurrent args
+    intParams' <- traverse lookupCurrent intParams
+    outerEnv <- gets _.env
+    renamedNames <- traverse (\(Tuple name _) -> localName name) invariants
+    modify_ \state -> state { env = Array.zipWith (\entry name -> Tuple (fst entry) name) invariants renamedNames <> outerEnv }
+    values <- traverse (\(Tuple (Tuple _ value) name) -> Tuple name <$> rename value) (Array.zip invariants renamedNames)
+    body' <- rename body
+    modify_ \state -> state { env = outerEnv }
+    pure (JavaMemoizedLoop args' intParams' values body')
+  JavaLoopInvariant name -> JavaLoopInvariant <$> lookupCurrent name
+  JavaContinue ctx args -> JavaContinue <$> lookupCurrent ctx <*> traverse rename args
+  JavaMapGet value prop -> (\value' -> JavaMapGet value' prop) <$> rename value
+  JavaMapUpdate value updates -> JavaMapUpdate <$> rename value <*> renameFields updates
+  JavaInstanceOf value className -> (\value' -> JavaInstanceOf value' className) <$> rename value
+  JavaPropertyAccess value className prop -> (\value' -> JavaPropertyAccess value' className prop) <$> rename value
+  JavaLet name value body -> do
+    value' <- rename value
+    scoped [ name ] \renamed -> case renamed of
+      [ bound ] -> JavaLet bound value' <$> rename body
+      _ -> pure expression
+  JavaLetRec binds body -> do
+    outerEnv <- gets _.env
+    renamedNames <- traverse (\(Tuple name _) -> localName name) binds
+    modify_ \state -> state { env = Array.zipWith (\(Tuple name _) newName -> Tuple name newName) binds renamedNames <> outerEnv }
+    renamedBinds <- traverse (\(Tuple (Tuple _ value) name) -> Tuple name <$> rename value) (Array.zip binds renamedNames)
+    body' <- rename body
+    modify_ \state -> state { env = outerEnv }
+    pure (JavaLetRec renamedBinds body')
+  JavaGlobalVar modName name -> pure (JavaGlobalVar modName name)
+  JavaClassDecl className fields mutable -> pure (JavaClassDecl className fields mutable)
+  JavaRaw code -> do
+    env <- gets _.env
+    pure (JavaRaw (renameRaw env code))
+  JavaAssign name value -> JavaAssign <$> lookupCurrent name <*> rename value
+  JavaLazyAssign name value -> JavaLazyAssign <$> lookupCurrent name <*> rename value
+  JavaBinaryOp op left right -> JavaBinaryOp op <$> rename left <*> rename right
+  JavaUnaryOp op value -> JavaUnaryOp op <$> rename value
+  JavaArrayIndex array index -> JavaArrayIndex <$> rename array <*> rename index
+  JavaArraySet array index value -> JavaArraySet <$> rename array <*> rename index <*> rename value
+  JavaCast ty value -> JavaCast ty <$> rename value
+  JavaLocalAssign name value -> do
+    value' <- rename value
+    renamed <- localName name
+    modify_ \state -> state { env = Array.cons (Tuple name renamed) state.env }
+    pure (JavaLocalAssign renamed value')
+  JavaIntLocalAssign name value -> do
+    value' <- rename value
+    renamed <- localName name
+    modify_ \state -> state { env = Array.cons (Tuple name renamed) state.env }
+    pure (JavaIntLocalAssign renamed value')
+  JavaBlock stmts body -> do
+    outerEnv <- gets _.env
+    stmts' <- traverse rename stmts
+    body' <- rename body
+    modify_ \state -> state { env = outerEnv }
+    pure (JavaBlock stmts' body')
   JavaFieldSet target className fieldName fieldType value ->
-    let Tuple target' s1 = rename env s target
-        Tuple value' s2 = rename env s1 value
-    in Tuple (JavaFieldSet target' className fieldName fieldType value') s2
-  JavaLocalSet n e ->
-    let Tuple e' s1 = rename env s e
-    in Tuple (JavaLocalSet (lookupName n env) e') s1
-  JavaIf condition thenStmts elseStmts ->
-    let Tuple condition' s1 = rename env s condition
-        Tuple thenStmts' s2 = foldl (\(Tuple acc s') stmt ->
-                                     let Tuple stmt' s'' = rename env s' stmt
-                                     in Tuple (Array.snoc acc stmt') s''
-                                  ) (Tuple [] s1) thenStmts
-        Tuple elseStmts' s3 = foldl (\(Tuple acc s') stmt ->
-                                     let Tuple stmt' s'' = rename env s' stmt
-                                     in Tuple (Array.snoc acc stmt') s''
-                                  ) (Tuple [] s2) elseStmts
-    in Tuple (JavaIf condition' thenStmts' elseStmts') s3
+    JavaFieldSet <$> rename target <*> pure className <*> pure fieldName <*> pure fieldType <*> rename value
+  JavaLocalSet name value -> do
+    renamed <- lookupCurrent name
+    JavaLocalSet renamed <$> rename value
+  JavaIf condition thenStmts elseStmts -> do
+    condition' <- rename condition
+    outerEnv <- gets _.env
+    thenStmts' <- traverse rename thenStmts
+    modify_ \state -> state { env = outerEnv }
+    elseStmts' <- traverse rename elseStmts
+    modify_ \state -> state { env = outerEnv }
+    pure (JavaIf condition' thenStmts' elseStmts')
+  where
+  lookupCurrent name = do
+    env <- gets _.env
+    pure (lookupName name env)
+
+  renameFields fields = traverse (\(Tuple key value) -> Tuple key <$> rename value) fields
+
+-- | Raw Java is opaque except for identifiers that name a renamed local, which
+-- | the operator translations reference from generated text.
+renameRaw :: Array (Tuple String String) -> String -> String
+renameRaw env code =
+  String.joinWith "" (map (renamePart <<< NonEmptyArray.toArray) (Array.groupBy sameKind (StringCodeUnits.toCharArray code)))
+  where
+  isIdentifierChar char =
+    let code = Char.toCharCode char
+    in (code >= 97 && code <= 122)
+      || (code >= 65 && code <= 90)
+      || (code >= 48 && code <= 57)
+      || char == '_'
+      || char == '$'
+  sameKind left right = isIdentifierChar left && isIdentifierChar right
+  renamePart chars = case Array.head chars of
+    Just first | isIdentifierChar first -> lookupName (StringCodeUnits.fromCharArray chars) env
+    _ -> StringCodeUnits.fromCharArray chars
