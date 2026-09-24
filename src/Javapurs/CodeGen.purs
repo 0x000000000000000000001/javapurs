@@ -19,6 +19,7 @@ import Javapurs.RecordShapes (recordShape, recordShapeOf, collectRecordShapes)
 import Javapurs.RecordTypes (annotateRecordTypes)
 import Javapurs.LoopInvariants (prepareLoop)
 import Javapurs.DirectCalls (directCalls)
+import Javapurs.Reuse (reuseConstructors)
 import Javapurs.FunctionTypes (annotateFunctionTypes)
 import Javapurs.IntFunctions (abstractFunction, applyFunction)
 import PureScript.Backend.Optimizer.CoreFn as CoreFn
@@ -566,7 +567,8 @@ translateWithIntFunctions options@{ typedRecords, loopInvariants, intFunctions }
       { decls
       , recordShapes: if typedRecords then Array.nub $ foldMap (\group -> foldMap (\(Tuple _ expr) -> collectRecordShapes expr) group.bindings) analyzedBindings else []
       }
-  in if options.directCalls then directCalls modNameStr file else file
+    rewritten = if options.directCalls then directCalls modNameStr file else file
+  in reuseConstructors modNameStr rewritten
 
 translateOperator1 :: String -> BackendOperator1 -> JavaExpr -> JavaExpr
 translateOperator1 modName op e = case op of
