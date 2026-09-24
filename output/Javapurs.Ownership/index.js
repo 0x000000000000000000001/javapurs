@@ -3,6 +3,7 @@ import * as Control_Alternative from "../Control.Alternative/index.js";
 import * as Control_Applicative from "../Control.Applicative/index.js";
 import * as Control_Bind from "../Control.Bind/index.js";
 import * as Control_Category from "../Control.Category/index.js";
+import * as Control_Monad_State from "../Control.Monad.State/index.js";
 import * as Control_Monad_State_Class from "../Control.Monad.State.Class/index.js";
 import * as Control_Monad_State_Trans from "../Control.Monad.State.Trans/index.js";
 import * as Control_Monad_Trans_Class from "../Control.Monad.Trans.Class/index.js";
@@ -14,6 +15,7 @@ import * as Data_Foldable from "../Data.Foldable/index.js";
 import * as Data_Function from "../Data.Function/index.js";
 import * as Data_Functor from "../Data.Functor/index.js";
 import * as Data_HeytingAlgebra from "../Data.HeytingAlgebra/index.js";
+import * as Data_Identity from "../Data.Identity/index.js";
 import * as Data_List_Types from "../Data.List.Types/index.js";
 import * as Data_Map from "../Data.Map/index.js";
 import * as Data_Map_Internal from "../Data.Map.Internal/index.js";
@@ -30,6 +32,7 @@ import * as Data_String_CodeUnits from "../Data.String.CodeUnits/index.js";
 import * as Data_String_Common from "../Data.String.Common/index.js";
 import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
+import * as Data_Unfoldable from "../Data.Unfoldable/index.js";
 import * as Javapurs_JavaAst from "../Javapurs.JavaAst/index.js";
 import * as Javapurs_Naming from "../Javapurs.Naming/index.js";
 import * as Javapurs_Operators from "../Javapurs.Operators/index.js";
@@ -56,27 +59,32 @@ var get = /* #__PURE__ */ Control_Monad_State_Class.get(/* #__PURE__ */ Control_
 var monadStateStateT = /* #__PURE__ */ Control_Monad_State_Trans.monadStateStateT(Data_Maybe.monadMaybe);
 var applicativeStateT = /* #__PURE__ */ Control_Monad_State_Trans.applicativeStateT(Data_Maybe.monadMaybe);
 var ordArray = /* #__PURE__ */ Data_Ord.ordArray(Data_Ord.ordInt);
+var eqMaybe = /* #__PURE__ */ Data_Maybe.eqMaybe(PureScript_Backend_Optimizer_CoreFn.eqIdent);
+var ordMaybe = /* #__PURE__ */ Data_Maybe.ordMaybe(PureScript_Backend_Optimizer_CoreFn.ordIdent);
+var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var lift = /* #__PURE__ */ Control_Monad_Trans_Class.lift(Control_Monad_State_Trans.monadTransStateT);
 var lift1 = /* #__PURE__ */ lift(Data_Maybe.monadMaybe);
-var monadStateT = /* #__PURE__ */ Control_Monad_State_Trans.monadStateT(Data_Maybe.monadMaybe);
-var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var lift2 = /* #__PURE__ */ lift(Data_Maybe.monadMaybe);
 var fromFoldable1 = /* #__PURE__ */ Data_Array.fromFoldable(Data_List_Types.foldableList);
 var ordTuple = /* #__PURE__ */ Data_Tuple.ordTuple(/* #__PURE__ */ Data_Maybe.ordMaybe(PureScript_Backend_Optimizer_CoreFn.ordIdent));
 var ordTuple1 = /* #__PURE__ */ ordTuple(PureScript_Backend_Optimizer_Syntax.ordLevel);
 var eqQualified = /* #__PURE__ */ PureScript_Backend_Optimizer_CoreFn.eqQualified(PureScript_Backend_Optimizer_CoreFn.eqIdent);
-var eqMaybe = /* #__PURE__ */ Data_Maybe.eqMaybe(/* #__PURE__ */ PureScript_Backend_Optimizer_CoreFn.eqQualified(PureScript_Backend_Optimizer_CoreFn.eqIdent));
-var pure = /* #__PURE__ */ Control_Applicative.pure(Data_Maybe.applicativeMaybe);
-var eqMaybe1 = /* #__PURE__ */ Data_Maybe.eqMaybe(Data_Eq.eqString);
+var lift2 = /* #__PURE__ */ lift(Data_Maybe.monadMaybe);
 var lift3 = /* #__PURE__ */ lift(Data_Maybe.monadMaybe);
+var monadStateT = /* #__PURE__ */ Control_Monad_State_Trans.monadStateT(Data_Maybe.monadMaybe);
+var eqMaybe1 = /* #__PURE__ */ Data_Maybe.eqMaybe(/* #__PURE__ */ PureScript_Backend_Optimizer_CoreFn.eqQualified(PureScript_Backend_Optimizer_CoreFn.eqIdent));
+var bindStateT1 = /* #__PURE__ */ Control_Monad_State_Trans.bindStateT(Data_Identity.monadIdentity);
+var monadStateStateT1 = /* #__PURE__ */ Control_Monad_State_Trans.monadStateStateT(Data_Identity.monadIdentity);
+var applicativeStateT1 = /* #__PURE__ */ Control_Monad_State_Trans.applicativeStateT(Data_Identity.monadIdentity);
+var functorStateT = /* #__PURE__ */ Control_Monad_State_Trans.functorStateT(Data_Identity.functorIdentity);
+var pure = /* #__PURE__ */ Control_Applicative.pure(/* #__PURE__ */ Control_Monad_State_Trans.applicativeStateT(Data_Identity.monadIdentity));
+var eqMaybe2 = /* #__PURE__ */ Data_Maybe.eqMaybe(Data_Eq.eqString);
 var pure1 = /* #__PURE__ */ Control_Applicative.pure(/* #__PURE__ */ Control_Monad_State_Trans.applicativeStateT(Data_Maybe.monadMaybe));
 var lift4 = /* #__PURE__ */ lift(Data_Maybe.monadMaybe);
 var fromFoldable2 = /* #__PURE__ */ Data_Map_Internal.fromFoldable(/* #__PURE__ */ ordTuple(PureScript_Backend_Optimizer_Syntax.ordLevel))(Data_Foldable.foldableArray);
 var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
-var fromFoldable3 = /* #__PURE__ */ Data_Map_Internal.fromFoldable(PureScript_Backend_Optimizer_CoreFn.ordIdent)(Data_Foldable.foldableArray);
-var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
-var fromFoldable4 = /* #__PURE__ */ Data_Map_Internal.fromFoldable(Data_Ord.ordString)(Data_Foldable.foldableArray);
 var nub = /* #__PURE__ */ Data_Array.nub(Data_Ord.ordString);
+var fromFoldable3 = /* #__PURE__ */ Data_Map_Internal.fromFoldable(Data_Ord.ordString)(Data_Foldable.foldableArray);
+var unwrap = /* #__PURE__ */ Data_Newtype.unwrap();
 var TermReturn = /* #__PURE__ */ (function () {
     function TermReturn(value0) {
         this.value0 = value0;
@@ -194,6 +202,27 @@ var ObjectField = /* #__PURE__ */ (function () {
     ObjectField.value = new ObjectField();
     return ObjectField;
 })();
+var TopLevelKey = /* #__PURE__ */ (function () {
+    function TopLevelKey(value0) {
+        this.value0 = value0;
+    };
+    TopLevelKey.create = function (value0) {
+        return new TopLevelKey(value0);
+    };
+    return TopLevelKey;
+})();
+var LocalKey = /* #__PURE__ */ (function () {
+    function LocalKey(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    LocalKey.create = function (value0) {
+        return function (value1) {
+            return new LocalKey(value0, value1);
+        };
+    };
+    return LocalKey;
+})();
 var TreeArg = /* #__PURE__ */ (function () {
     function TreeArg(value0) {
         this.value0 = value0;
@@ -292,7 +321,7 @@ var termExpr = function (v) {
     if (v instanceof TermStmts) {
         return new Javapurs_JavaAst.JavaBlock(v.value0, termExpr(v.value1));
     };
-    throw new Error("Failed pattern match at Javapurs.Ownership (line 120, column 12 - line 124, column 58): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Ownership (line 127, column 12 - line 131, column 58): " + [ v.constructor.name ]);
 };
 var termSize = function (term) {
     return Data_String_CodePoints.length(Javapurs_Printer.printExpr(termExpr(term)));
@@ -410,14 +439,14 @@ var reserveWorkers = function (mod) {
                     var $tco_result;
                     function $tco_loop(index) {
                         var candidateName = (function () {
-                            var $182 = index === 0;
-                            if ($182) {
+                            var $224 = index === 0;
+                            if ($224) {
                                 return fn.javaName;
                             };
                             return fn.javaName + ("_" + Data_Show.show(Data_Show.showInt)(index));
                         })();
-                        var $183 = Data_Set.member(Data_Ord.ordString)(candidateName)(acc.reserved);
-                        if ($183) {
+                        var $225 = Data_Set.member(Data_Ord.ordString)(candidateName)(acc.reserved);
+                        if ($225) {
                             $copy_index = index + 1 | 0;
                             return;
                         };
@@ -426,6 +455,8 @@ var reserveWorkers = function (mod) {
                             argTypes: fn.argTypes,
                             args: fn.args,
                             body: fn.body,
+                            captures: fn.captures,
+                            key: fn.key,
                             original: fn.original,
                             spec: fn.spec,
                             javaName: candidateName,
@@ -458,15 +489,15 @@ var qualify = function (current) {
     };
 };
 var prefixes = function (v) {
-    var $189 = Data_Array["null"](v.value1);
-    if ($189) {
+    var $231 = Data_Array["null"](v.value1);
+    if ($231) {
         return [  ];
     };
     return Data_Functor.map(Data_Functor.functorArray)((function () {
-        var $507 = Path.create(v.value0);
-        var $508 = Data_Function.flip(Data_Array.take)(v.value1);
-        return function ($509) {
-            return $507($508($509));
+        var $622 = Path.create(v.value0);
+        var $623 = Data_Function.flip(Data_Array.take)(v.value1);
+        return function ($624) {
+            return $622($623($624));
         };
     })())(Data_Array.range(0)(Data_Array.length(v.value1) - 1 | 0));
 };
@@ -542,16 +573,16 @@ var operatorScalarType = function (v) {
     if (v instanceof PureScript_Backend_Optimizer_Syntax.OpArrayIndex) {
         return ScalarObject.value;
     };
-    throw new Error("Failed pattern match at Javapurs.Ownership (line 438, column 22 - line 455, column 31): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Ownership (line 504, column 22 - line 521, column 31): " + [ v.constructor.name ]);
 };
 var nullaryCtorNames = function (decls) {
     return Data_Function.apply(fromFoldable)(Data_Array.concatMap(function (decl) {
         return Data_Functor.map(Data_Functor.functorArray)(function (v) {
             return v.name;
-        })(Data_Array.filter(function ($510) {
+        })(Data_Array.filter(function ($625) {
             return Data_Array["null"]((function (v) {
                 return v.fields;
-            })($510));
+            })($625));
         })(decl.constructors));
     })(decls));
 };
@@ -622,7 +653,7 @@ var literalScalar = function (v) {
 var $lazy_leaves = /* #__PURE__ */ $runtime_lazy("leaves", "Javapurs.Ownership", function () {
     var argumentLeaves = function (v) {
         if (v instanceof TreeArg) {
-            return $lazy_leaves(521)(v.value0);
+            return $lazy_leaves(588)(v.value0);
         };
         return [  ];
     };
@@ -639,7 +670,7 @@ var $lazy_leaves = /* #__PURE__ */ $runtime_lazy("leaves", "Javapurs.Ownership",
         return [  ];
     };
 });
-var leaves = /* #__PURE__ */ $lazy_leaves(514);
+var leaves = /* #__PURE__ */ $lazy_leaves(581);
 var leafValue = function (spec) {
     if (spec.leaf instanceof Data_Maybe.Just) {
         return new Javapurs_JavaAst.JavaCtorSingleton(Javapurs_Naming.modulePrefix(Data_Maybe.fromMaybe("")(spec.leaf.value0.value0)), Javapurs_Naming.safeCtorName(spec.leaf.value0.value1));
@@ -647,7 +678,7 @@ var leafValue = function (spec) {
     if (spec.leaf instanceof Data_Maybe.Nothing) {
         return new Javapurs_JavaAst.JavaRaw("null");
     };
-    throw new Error("Failed pattern match at Javapurs.Ownership (line 376, column 18 - line 379, column 28): " + [ spec.leaf.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Ownership (line 442, column 18 - line 445, column 28): " + [ spec.leaf.constructor.name ]);
 };
 var hasTermContinue = function (v) {
     if (v instanceof TermReturn) {
@@ -662,7 +693,7 @@ var hasTermContinue = function (v) {
     if (v instanceof TermStmts) {
         return hasTermContinue(v.value1);
     };
-    throw new Error("Failed pattern match at Javapurs.Ownership (line 113, column 19 - line 117, column 43): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Ownership (line 120, column 19 - line 124, column 43): " + [ v.constructor.name ]);
 };
 var fullTypeName = function (mod) {
     return function (decl) {
@@ -694,7 +725,7 @@ var snapshotArgument = function (spec) {
                 });
             });
         };
-        throw new Error("Failed pattern match at Javapurs.Ownership (line 556, column 25 - line 562, column 99): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.Ownership (line 623, column 25 - line 629, column 99): " + [ v.constructor.name ]);
     };
 };
 var snapshot = function (spec) {
@@ -766,7 +797,15 @@ var takeCell = function (context) {
                 });
             });
         };
-        throw new Error("Failed pattern match at Javapurs.Ownership (line 578, column 25 - line 596, column 8): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.Ownership (line 645, column 25 - line 663, column 8): " + [ v.constructor.name ]);
+    };
+};
+var freeLocalsBelow = function (level) {
+    return function (v) {
+        if (v instanceof PureScript_Backend_Optimizer_Syntax.Local && Data_Newtype.unwrap()(v.value1) < level) {
+            return [ new Data_Tuple.Tuple(v.value0, v.value1) ];
+        };
+        return Data_Foldable.foldMap(PureScript_Backend_Optimizer_Syntax.foldableBackendSyntax)(Data_Monoid.monoidArray)(freeLocalsBelow(level))(v);
     };
 };
 var fieldJavaType = function (spec) {
@@ -788,7 +827,7 @@ var fieldArgType = function (v) {
     if (v instanceof ObjectField) {
         return ArgObject.value;
     };
-    throw new Error("Failed pattern match at Javapurs.Ownership (line 509, column 16 - line 512, column 27): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Ownership (line 576, column 16 - line 579, column 27): " + [ v.constructor.name ]);
 };
 var eqScalarType = {
     eq: function (x) {
@@ -847,6 +886,49 @@ var eqFieldType = {
         };
     }
 };
+var eqCandidateKey = {
+    eq: function (x) {
+        return function (y) {
+            if (x instanceof TopLevelKey && y instanceof TopLevelKey) {
+                return Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqIdent)(x.value0)(y.value0);
+            };
+            if (x instanceof LocalKey && y instanceof LocalKey) {
+                return Data_Eq.eq(eqMaybe)(x.value0)(y.value0) && Data_Eq.eq(PureScript_Backend_Optimizer_Syntax.eqLevel)(x.value1)(y.value1);
+            };
+            return false;
+        };
+    }
+};
+var ordCandidateKey = {
+    compare: function (x) {
+        return function (y) {
+            if (x instanceof TopLevelKey && y instanceof TopLevelKey) {
+                return Data_Ord.compare(PureScript_Backend_Optimizer_CoreFn.ordIdent)(x.value0)(y.value0);
+            };
+            if (x instanceof TopLevelKey) {
+                return Data_Ordering.LT.value;
+            };
+            if (y instanceof TopLevelKey) {
+                return Data_Ordering.GT.value;
+            };
+            if (x instanceof LocalKey && y instanceof LocalKey) {
+                var v = Data_Ord.compare(ordMaybe)(x.value0)(y.value0);
+                if (v instanceof Data_Ordering.LT) {
+                    return Data_Ordering.LT.value;
+                };
+                if (v instanceof Data_Ordering.GT) {
+                    return Data_Ordering.GT.value;
+                };
+                return Data_Ord.compare(PureScript_Backend_Optimizer_Syntax.ordLevel)(x.value1)(y.value1);
+            };
+            throw new Error("Failed pattern match at Javapurs.Ownership (line 0, column 0 - line 0, column 0): " + [ x.constructor.name, y.constructor.name ]);
+        };
+    },
+    Eq0: function () {
+        return eqCandidateKey;
+    }
+};
+var fromFoldable4 = /* #__PURE__ */ Data_Map_Internal.fromFoldable(ordCandidateKey)(Data_Foldable.foldableArray);
 var eqArgType = {
     eq: function (x) {
         return function (y) {
@@ -863,125 +945,6 @@ var eqArgType = {
         };
     }
 };
-var emitTree = function (context) {
-    return function (pool) {
-        return function (outer) {
-            return function (v) {
-                if (v instanceof Existing) {
-                    return Control_Applicative.pure(applicativeStateT)({
-                        stmts: [  ],
-                        expr: v.value0,
-                        pool: pool
-                    });
-                };
-                if (v instanceof Empty) {
-                    return Control_Applicative.pure(applicativeStateT)({
-                        stmts: [  ],
-                        expr: leafValue(context.candidate.spec),
-                        pool: pool
-                    });
-                };
-                if (v instanceof Keep) {
-                    return Control_Monad_Trans_Class.lift(Control_Monad_State_Trans.monadTransStateT)(Data_Maybe.monadMaybe)(Data_Maybe.Nothing.value);
-                };
-                if (v instanceof Construct) {
-                    return Control_Bind.bind(bindStateT)(emitArguments(context)(pool)(v.value0))(function (values) {
-                        return Control_Bind.bind(bindStateT)(takeCell(context)(values.pool))(function (cell) {
-                            return Control_Bind.bind(bindStateT)((function () {
-                                if (cell.expr instanceof Javapurs_JavaAst.JavaLocal) {
-                                    return Control_Applicative.pure(applicativeStateT)(cell.expr.value0);
-                                };
-                                return Control_Monad_Trans_Class.lift(Control_Monad_State_Trans.monadTransStateT)(Data_Maybe.monadMaybe)(Data_Maybe.Nothing.value);
-                            })())(function (name) {
-                                var result = new Javapurs_JavaAst.JavaLocal(name);
-                                var assigns = Data_Array.mapWithIndex(function (index) {
-                                    return function (value) {
-                                        return new Javapurs_JavaAst.JavaFieldSet(new Javapurs_JavaAst.JavaLocal(name), context.candidate.spec.nodeClass, "value" + Data_Show.show(Data_Show.showInt)(index), fieldJavaType(context.candidate.spec)(index), value);
-                                    };
-                                })(values.exprs);
-                                if (cell.nonNull) {
-                                    return Control_Applicative.pure(applicativeStateT)({
-                                        stmts: Data_Semigroup.append(Data_Semigroup.semigroupArray)(values.stmts)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(cell.stmts)(assigns)),
-                                        expr: result,
-                                        pool: cell.pool
-                                    });
-                                };
-                                return Control_Applicative.pure(applicativeStateT)({
-                                    stmts: Data_Semigroup.append(Data_Semigroup.semigroupArray)(values.stmts)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(cell.stmts)([ new Javapurs_JavaAst.JavaIf(new Javapurs_JavaAst.JavaBinaryOp("==", new Javapurs_JavaAst.JavaLocal(name), new Javapurs_JavaAst.JavaRaw("null")), [ new Javapurs_JavaAst.JavaLocalSet(name, new Javapurs_JavaAst.JavaNew(context.candidate.spec.nodeClass, values.exprs)) ], assigns) ])),
-                                    expr: result,
-                                    pool: cell.pool
-                                });
-                            });
-                        });
-                    });
-                };
-                if (v instanceof Call) {
-                    return Control_Bind.bind(bindStateT)(Data_Function.apply(lift1)(Data_Map_Internal.lookup(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v.value0)(context.candidates)))(function (fn) {
-                        return Control_Bind.bind(bindStateT)(emitArguments(context)(pool)(v.value1))(function (values) {
-                            return Control_Bind.bind(bindStateT)((function () {
-                                if (outer) {
-                                    return takeCell(context)(values.pool);
-                                };
-                                return Control_Applicative.pure(applicativeStateT)({
-                                    stmts: [  ],
-                                    expr: new Javapurs_JavaAst.JavaRaw("null"),
-                                    pool: values.pool,
-                                    nonNull: false
-                                });
-                            })())(function (donor) {
-                                return Control_Bind.bind(bindStateT)(freshName("__result_"))(function (result) {
-                                    return Control_Applicative.pure(applicativeStateT)({
-                                        stmts: Data_Semigroup.append(Data_Semigroup.semigroupArray)(values.stmts)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(donor.stmts)([ new Javapurs_JavaAst.JavaLocalAssign(result, new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaLocal(fn.javaName), Data_Semigroup.append(Data_Semigroup.semigroupArray)(values.exprs)([ donor.expr ]))) ])),
-                                        expr: new Javapurs_JavaAst.JavaLocal(result),
-                                        pool: donor.pool
-                                    });
-                                });
-                            });
-                        });
-                    });
-                };
-                throw new Error("Failed pattern match at Javapurs.Ownership (line 599, column 31 - line 638, column 8): " + [ v.constructor.name ]);
-            };
-        };
-    };
-};
-var emitArguments = function (context) {
-    return function (pool) {
-        var step = function (result) {
-            return function (arg) {
-                return Control_Bind.bind(bindStateT)(emitArgument(context)(result.pool)(arg))(function (value) {
-                    return Control_Applicative.pure(applicativeStateT)({
-                        stmts: Data_Semigroup.append(Data_Semigroup.semigroupArray)(result.stmts)(value.stmts),
-                        exprs: Data_Array.snoc(result.exprs)(value.expr),
-                        pool: value.pool
-                    });
-                });
-            };
-        };
-        return Data_Foldable.foldM(Data_Foldable.foldableArray)(monadStateT)(step)({
-            stmts: [  ],
-            exprs: [  ],
-            pool: pool
-        });
-    };
-};
-var emitArgument = function (context) {
-    return function (pool) {
-        return function (v) {
-            if (v instanceof TreeArg) {
-                return emitTree(context)(pool)(false)(v.value0);
-            };
-            if (v instanceof ScalarArg) {
-                return Control_Applicative.pure(applicativeStateT)({
-                    stmts: [  ],
-                    expr: v.value0.expr,
-                    pool: pool
-                });
-            };
-            throw new Error("Failed pattern match at Javapurs.Ownership (line 654, column 29 - line 656, column 64): " + [ v.constructor.name ]);
-        };
-    };
-};
 var disjoint = function (paths) {
     return Data_Foldable.all(Data_Foldable.foldableArray)(Data_HeytingAlgebra.heytingAlgebraBoolean)(identity)(Data_Array.mapWithIndex(function (index) {
         return function (path) {
@@ -993,7 +956,7 @@ var plan = function (context) {
     return function (env) {
         return function (future) {
             return function (term) {
-                return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Data_Function.apply(lift2)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(Data_Function.apply(disjoint)(leaves(term)))))(function () {
+                return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Data_Function.apply(lift1)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(Data_Function.apply(disjoint)(leaves(term)))))(function () {
                     return Control_Bind.bind(bindStateT)(snapshot(context.candidate.spec)(term))(function (captured) {
                         var roots = Data_Array.mapMaybe(function (v) {
                             if (v instanceof Tree) {
@@ -1032,10 +995,10 @@ var plan = function (context) {
                                         })(slots)),
                                         nullable: Data_Semigroup.append(Data_Semigroup.semigroupArray)([ donor ])(Data_Functor.map(Data_Functor.functorArray)(function (v) {
                                             return v.name;
-                                        })(Data_Array.filter(function ($511) {
+                                        })(Data_Array.filter(function ($626) {
                                             return !(function (v) {
                                                 return v.nonNull;
-                                            })($511);
+                                            })($626);
                                         })(slots)))
                                     },
                                     retired: Data_Semigroup.append(Data_Semigroup.semigroupArray)(retained)(dead)
@@ -1122,11 +1085,11 @@ var compileTerm = function (name) {
             };
             var caseCount = Data_Array.length(decision.cases);
             var fallbackName = caseName(caseCount);
-            var caseArgs = Data_Functor.map(Data_Functor.functorArray)(function ($512) {
-                return Javapurs_JavaAst.JavaLocal.create(Data_Tuple.fst($512));
+            var caseArgs = Data_Functor.map(Data_Functor.functorArray)(function ($627) {
+                return Javapurs_JavaAst.JavaLocal.create(Data_Tuple.fst($627));
             })(allParams);
-            var $309 = termSize(term) <= termBudget || Data_Array["null"](decision.cases);
-            if ($309) {
+            var $362 = termSize(term) <= termBudget || Data_Array["null"](decision.cases);
+            if ($362) {
                 return [ new Javapurs_JavaAst.JavaStaticMethod(name, allParams, termExpr(term)) ];
             };
             var go = function (index) {
@@ -1137,7 +1100,7 @@ var compileTerm = function (name) {
                 if (v instanceof Data_Maybe.Nothing) {
                     return new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaLocal(fallbackName), caseArgs);
                 };
-                throw new Error("Failed pattern match at Javapurs.Ownership (line 772, column 20 - line 775, column 64): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.Ownership (line 845, column 20 - line 848, column 64): " + [ v.constructor.name ]);
             };
             var fallbackDecls = compileTerm(fallbackName)(allParams)(decision.fallback);
             var caseDecls = Data_Function.apply(Data_Array.concat)(Data_Array.mapWithIndex(function (index) {
@@ -1257,7 +1220,7 @@ var scalar = function (context) {
                         });
                     });
                 };
-                throw new Error("Failed pattern match at Javapurs.Ownership (line 402, column 40 - line 409, column 98): " + [ v1.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.Ownership (line 468, column 40 - line 475, column 98): " + [ v1.constructor.name ]);
             };
             if (v instanceof PureScript_Backend_Optimizer_Syntax.PrimOp && v.value0 instanceof PureScript_Backend_Optimizer_Syntax.Op1) {
                 return Control_Bind.bind(Data_Maybe.bindMaybe)(scalar(context)(env)(v.value0.value1))(function (value$prime) {
@@ -1283,25 +1246,156 @@ var scalar = function (context) {
         };
     };
 };
+var emitTree = function (context) {
+    return function (env) {
+        return function (pool) {
+            return function (outer) {
+                return function (v) {
+                    if (v instanceof Existing) {
+                        return Control_Applicative.pure(applicativeStateT)({
+                            stmts: [  ],
+                            expr: v.value0,
+                            pool: pool
+                        });
+                    };
+                    if (v instanceof Empty) {
+                        return Control_Applicative.pure(applicativeStateT)({
+                            stmts: [  ],
+                            expr: leafValue(context.candidate.spec),
+                            pool: pool
+                        });
+                    };
+                    if (v instanceof Keep) {
+                        return Control_Monad_Trans_Class.lift(Control_Monad_State_Trans.monadTransStateT)(Data_Maybe.monadMaybe)(Data_Maybe.Nothing.value);
+                    };
+                    if (v instanceof Construct) {
+                        return Control_Bind.bind(bindStateT)(emitArguments(context)(env)(pool)(v.value0))(function (values) {
+                            return Control_Bind.bind(bindStateT)(takeCell(context)(values.pool))(function (cell) {
+                                return Control_Bind.bind(bindStateT)((function () {
+                                    if (cell.expr instanceof Javapurs_JavaAst.JavaLocal) {
+                                        return Control_Applicative.pure(applicativeStateT)(cell.expr.value0);
+                                    };
+                                    return Control_Monad_Trans_Class.lift(Control_Monad_State_Trans.monadTransStateT)(Data_Maybe.monadMaybe)(Data_Maybe.Nothing.value);
+                                })())(function (name) {
+                                    var result = new Javapurs_JavaAst.JavaLocal(name);
+                                    var assigns = Data_Array.mapWithIndex(function (index) {
+                                        return function (value) {
+                                            return new Javapurs_JavaAst.JavaFieldSet(new Javapurs_JavaAst.JavaLocal(name), context.candidate.spec.nodeClass, "value" + Data_Show.show(Data_Show.showInt)(index), fieldJavaType(context.candidate.spec)(index), value);
+                                        };
+                                    })(values.exprs);
+                                    if (cell.nonNull) {
+                                        return Control_Applicative.pure(applicativeStateT)({
+                                            stmts: Data_Semigroup.append(Data_Semigroup.semigroupArray)(values.stmts)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(cell.stmts)(assigns)),
+                                            expr: result,
+                                            pool: cell.pool
+                                        });
+                                    };
+                                    return Control_Applicative.pure(applicativeStateT)({
+                                        stmts: Data_Semigroup.append(Data_Semigroup.semigroupArray)(values.stmts)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(cell.stmts)([ new Javapurs_JavaAst.JavaIf(new Javapurs_JavaAst.JavaBinaryOp("==", new Javapurs_JavaAst.JavaLocal(name), new Javapurs_JavaAst.JavaRaw("null")), [ new Javapurs_JavaAst.JavaLocalSet(name, new Javapurs_JavaAst.JavaNew(context.candidate.spec.nodeClass, values.exprs)) ], assigns) ])),
+                                        expr: result,
+                                        pool: cell.pool
+                                    });
+                                });
+                            });
+                        });
+                    };
+                    if (v instanceof Call) {
+                        return Control_Bind.bind(bindStateT)(Data_Function.apply(lift2)(Data_Map_Internal.lookup(ordCandidateKey)(v.value0)(context.candidates)))(function (fn) {
+                            return Control_Bind.bind(bindStateT)(emitArguments(context)(env)(pool)(v.value1))(function (values) {
+                                return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(function (ref) {
+                                    return Data_Function.apply(lift3)(scalar(context)(env)(new PureScript_Backend_Optimizer_Syntax.Local(Data_Tuple.fst(ref), Data_Tuple.snd(ref))));
+                                })(fn.captures))(function (captures) {
+                                    return Control_Bind.bind(bindStateT)((function () {
+                                        if (outer) {
+                                            return takeCell(context)(values.pool);
+                                        };
+                                        return Control_Applicative.pure(applicativeStateT)({
+                                            stmts: [  ],
+                                            expr: new Javapurs_JavaAst.JavaRaw("null"),
+                                            pool: values.pool,
+                                            nonNull: false
+                                        });
+                                    })())(function (donor) {
+                                        return Control_Bind.bind(bindStateT)(freshName("__result_"))(function (result) {
+                                            return Control_Applicative.pure(applicativeStateT)({
+                                                stmts: Data_Semigroup.append(Data_Semigroup.semigroupArray)(values.stmts)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(donor.stmts)([ new Javapurs_JavaAst.JavaLocalAssign(result, new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaLocal(fn.javaName), Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Functor.map(Data_Functor.functorArray)(function (v1) {
+                                                    return v1.expr;
+                                                })(captures))(Data_Semigroup.append(Data_Semigroup.semigroupArray)(values.exprs)([ donor.expr ])))) ])),
+                                                expr: new Javapurs_JavaAst.JavaLocal(result),
+                                                pool: donor.pool
+                                            });
+                                        });
+                                    });
+                                });
+                            });
+                        });
+                    };
+                    throw new Error("Failed pattern match at Javapurs.Ownership (line 666, column 35 - line 710, column 8): " + [ v.constructor.name ]);
+                };
+            };
+        };
+    };
+};
+var emitArguments = function (context) {
+    return function (env) {
+        return function (pool) {
+            var step = function (result) {
+                return function (arg) {
+                    return Control_Bind.bind(bindStateT)(emitArgument(context)(env)(result.pool)(arg))(function (value) {
+                        return Control_Applicative.pure(applicativeStateT)({
+                            stmts: Data_Semigroup.append(Data_Semigroup.semigroupArray)(result.stmts)(value.stmts),
+                            exprs: Data_Array.snoc(result.exprs)(value.expr),
+                            pool: value.pool
+                        });
+                    });
+                };
+            };
+            return Data_Foldable.foldM(Data_Foldable.foldableArray)(monadStateT)(step)({
+                stmts: [  ],
+                exprs: [  ],
+                pool: pool
+            });
+        };
+    };
+};
+var emitArgument = function (context) {
+    return function (env) {
+        return function (pool) {
+            return function (v) {
+                if (v instanceof TreeArg) {
+                    return emitTree(context)(env)(pool)(false)(v.value0);
+                };
+                if (v instanceof ScalarArg) {
+                    return Control_Applicative.pure(applicativeStateT)({
+                        stmts: [  ],
+                        expr: v.value0.expr,
+                        pool: pool
+                    });
+                };
+                throw new Error("Failed pattern match at Javapurs.Ownership (line 726, column 33 - line 728, column 64): " + [ v.constructor.name ]);
+            };
+        };
+    };
+};
 var freshTree = function (context) {
     return function (expr) {
         var v = strip(expr);
         if (v instanceof PureScript_Backend_Optimizer_Syntax.CtorSaturated) {
             var qualified = qualify(context.moduleName)(v.value0);
-            var $374 = Data_Eq.eq(eqMaybe)(new Data_Maybe.Just(qualified))(context.candidate.spec.leaf);
-            if ($374) {
+            var $440 = Data_Eq.eq(eqMaybe1)(new Data_Maybe.Just(qualified))(context.candidate.spec.leaf);
+            if ($440) {
                 return Data_Array["null"](v.value4);
             };
             return Data_Eq.eq(eqQualified)(qualified)(context.candidate.spec.nodeCtor) && (Data_Array.length(v.value4) === Data_Array.length(context.candidate.spec.fields) && Data_Foldable.all(Data_Foldable.foldableArray)(Data_HeytingAlgebra.heytingAlgebraBoolean)(function (v1) {
-                var $376 = Data_Eq.eq(eqFieldType)(v1.value0)(TreeField.value);
-                if ($376) {
+                var $442 = Data_Eq.eq(eqFieldType)(v1.value0)(TreeField.value);
+                if ($442) {
                     return freshTree(context)(v1.value1.value1);
                 };
                 return Data_Maybe.isJust(scalar(context)(Data_Map_Internal.empty)(v1.value1.value1));
             })(Data_Array.zip(context.candidate.spec.fields)(v.value4)));
         };
         if (v instanceof PureScript_Backend_Optimizer_Syntax.Var) {
-            return Data_Eq.eq(eqMaybe)(new Data_Maybe.Just(qualify(context.moduleName)(v.value0)))(context.candidate.spec.leaf);
+            return Data_Eq.eq(eqMaybe1)(new Data_Maybe.Just(qualify(context.moduleName)(v.value0)))(context.candidate.spec.leaf);
         };
         return false;
     };
@@ -1310,37 +1404,95 @@ var rewrite = function (moduleName) {
     return function (dataDecls) {
         return function (candidates) {
             return function (v) {
+                var contextFor = function (fn) {
+                    return {
+                        moduleName: moduleName,
+                        candidate: fn,
+                        candidates: candidates,
+                        dataDecls: dataDecls,
+                        donorName: "__donor"
+                    };
+                };
                 var call = spine(v);
-                var target = (function () {
+                var callToWorker = (function () {
                     var v1 = strip(call.head);
                     if (v1 instanceof PureScript_Backend_Optimizer_Syntax.Var) {
                         var v2 = qualify(moduleName)(v1.value0);
                         if (v2.value0 instanceof Data_Maybe.Just && Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqModuleName)(v2.value0.value0)(moduleName)) {
-                            return Data_Map_Internal.lookup(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v2.value1)(candidates);
+                            var v3 = Data_Map_Internal.lookup(ordCandidateKey)(new TopLevelKey(v2.value1))(candidates);
+                            var v4 = function (v5) {
+                                return Data_Maybe.Nothing.value;
+                            };
+                            if (v3 instanceof Data_Maybe.Just) {
+                                var $460 = Data_Newtype.unwrap()(v3.value0.worker) === Data_Newtype.unwrap()(v2.value1);
+                                if ($460) {
+                                    var $461 = Data_Array.length(call.args) === (Data_Array.length(v3.value0.captures) + Data_Array.length(v3.value0.args) | 0);
+                                    if ($461) {
+                                        return new Data_Maybe.Just(v3.value0.key);
+                                    };
+                                    return v4(true);
+                                };
+                                return v4(true);
+                            };
+                            return v4(true);
                         };
                         return Data_Maybe.Nothing.value;
                     };
                     return Data_Maybe.Nothing.value;
                 })();
-                var choose = Control_Bind.bind(Data_Maybe.bindMaybe)(target)(function (fn) {
-                    return Control_Bind.discard(Control_Bind.discardUnit)(Data_Maybe.bindMaybe)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(Data_Array.length(call.args) === Data_Array.length(fn.args)))(function () {
-                        var context = {
-                            moduleName: moduleName,
-                            candidate: fn,
-                            candidates: candidates,
-                            dataDecls: dataDecls,
-                            donorName: "__donor"
+                var target = (function () {
+                    var v1 = strip(call.head);
+                    if (v1 instanceof PureScript_Backend_Optimizer_Syntax.Var) {
+                        var v2 = qualify(moduleName)(v1.value0);
+                        if (v2.value0 instanceof Data_Maybe.Just && Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqModuleName)(v2.value0.value0)(moduleName)) {
+                            return Data_Map_Internal.lookup(ordCandidateKey)(new TopLevelKey(v2.value1))(candidates);
                         };
-                        return Control_Bind.discard(Control_Bind.discardUnit)(Data_Maybe.bindMaybe)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(Data_Foldable.all(Data_Foldable.foldableArray)(Data_HeytingAlgebra.heytingAlgebraBoolean)(function (v1) {
-                            return Data_Eq.notEq(eqArgType)(v1.value0)(ArgTree.value) || freshTree(context)(v1.value1);
-                        })(Data_Array.zip(fn.argTypes)(call.args))))(function () {
-                            return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Array_NonEmpty.fromArray(Data_Functor.map(Data_Functor.functorArray)(rewrite(moduleName)(dataDecls)(candidates))(call.args)))(function (args) {
-                                return Data_Function.apply(pure)(Data_Function.apply(PureScript_Backend_Optimizer_Semantics.NeutralExpr)(new PureScript_Backend_Optimizer_Syntax.App(Data_Function.apply(PureScript_Backend_Optimizer_Semantics.NeutralExpr)(new PureScript_Backend_Optimizer_Syntax.Var(new PureScript_Backend_Optimizer_CoreFn.Qualified(new Data_Maybe.Just(moduleName), fn.worker))), args)));
-                            });
-                        });
+                        return Data_Maybe.Nothing.value;
+                    };
+                    if (v1 instanceof PureScript_Backend_Optimizer_Syntax.Local) {
+                        return Data_Map_Internal.lookup(ordCandidateKey)(new LocalKey(v1.value0, v1.value1))(candidates);
+                    };
+                    return Data_Maybe.Nothing.value;
+                })();
+                if (callToWorker instanceof Data_Maybe.Just) {
+                    return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT1)(Control_Monad_State_Class.modify_(monadStateStateT1)(Data_Set.insert(ordCandidateKey)(callToWorker.value0)))(function () {
+                        return Control_Applicative.pure(applicativeStateT1)(v);
                     });
-                });
-                return Data_Maybe.fromMaybe(Data_Function.apply(PureScript_Backend_Optimizer_Semantics.NeutralExpr)(Data_Functor.map(PureScript_Backend_Optimizer_Syntax.functorBackendSyntax)(rewrite(moduleName)(dataDecls)(candidates))(v)))(choose);
+                };
+                if (callToWorker instanceof Data_Maybe.Nothing) {
+                    var v1 = function (v2) {
+                        return Data_Functor.map(functorStateT)(PureScript_Backend_Optimizer_Semantics.NeutralExpr)(Data_Traversable.traverse(PureScript_Backend_Optimizer_Syntax.traversableBackendSyntax)(applicativeStateT1)(rewrite(moduleName)(dataDecls)(candidates))(v));
+                    };
+                    if (target instanceof Data_Maybe.Just) {
+                        var $478 = Data_Array.length(call.args) === Data_Array.length(target.value0.args);
+                        if ($478) {
+                            var $482 = Data_Foldable.all(Data_Foldable.foldableArray)(Data_HeytingAlgebra.heytingAlgebraBoolean)(function (v2) {
+                                return Data_Eq.notEq(eqArgType)(v2.value0)(ArgTree.value) || freshTree(contextFor(target.value0))(v2.value1);
+                            })(Data_Array.zip(target.value0.argTypes)(call.args));
+                            if ($482) {
+                                return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT1)(Control_Monad_State_Class.modify_(monadStateStateT1)(Data_Set.insert(ordCandidateKey)(target.value0.key)))(function () {
+                                    return Control_Bind.bind(bindStateT1)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT1)(rewrite(moduleName)(dataDecls)(candidates))(call.args))(function (args) {
+                                        var captureArgs = Data_Functor.map(Data_Functor.functorArray)(function (ref) {
+                                            return new PureScript_Backend_Optimizer_Syntax.Local(Data_Tuple.fst(ref), Data_Tuple.snd(ref));
+                                        })(target.value0.captures);
+                                        var v2 = Data_Array_NonEmpty.fromArray(Data_Semigroup.append(Data_Semigroup.semigroupArray)(captureArgs)(args));
+                                        if (v2 instanceof Data_Maybe.Just) {
+                                            return Data_Function.apply(pure)(Data_Function.apply(PureScript_Backend_Optimizer_Semantics.NeutralExpr)(new PureScript_Backend_Optimizer_Syntax.App(Data_Function.apply(PureScript_Backend_Optimizer_Semantics.NeutralExpr)(new PureScript_Backend_Optimizer_Syntax.Var(new PureScript_Backend_Optimizer_CoreFn.Qualified(new Data_Maybe.Just(moduleName), target.value0.worker))), v2.value0)));
+                                        };
+                                        if (v2 instanceof Data_Maybe.Nothing) {
+                                            return Control_Applicative.pure(applicativeStateT1)(v);
+                                        };
+                                        throw new Error("Failed pattern match at Javapurs.Ownership (line 945, column 13 - line 947, column 39): " + [ v2.constructor.name ]);
+                                    });
+                                });
+                            };
+                            return v1(true);
+                        };
+                        return v1(true);
+                    };
+                    return v1(true);
+                };
+                throw new Error("Failed pattern match at Javapurs.Ownership (line 933, column 3 - line 948, column 82): " + [ callToWorker.constructor.name ]);
             };
         };
     };
@@ -1373,7 +1525,7 @@ var adtName = function (v) {
 };
 var isTreeType = function (name) {
     return function (ty) {
-        return Data_Eq.eq(eqMaybe1)(adtName(ty))(new Data_Maybe.Just(name));
+        return Data_Eq.eq(eqMaybe2)(adtName(ty))(new Data_Maybe.Just(name));
     };
 };
 var argType = function (decls) {
@@ -1393,9 +1545,9 @@ var argType = function (decls) {
                 if (v instanceof Data_Maybe.Nothing) {
                     return Data_Maybe.Nothing.value;
                 };
-                throw new Error("Failed pattern match at Javapurs.Ownership (line 267, column 17 - line 270, column 25): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.Ownership (line 306, column 17 - line 309, column 25): " + [ v.constructor.name ]);
             };
-            throw new Error("Failed pattern match at Javapurs.Ownership (line 264, column 1 - line 264, column 72): " + [ decls.constructor.name, spec.constructor.name, ty.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Ownership (line 303, column 1 - line 303, column 72): " + [ decls.constructor.name, spec.constructor.name, ty.constructor.name ]);
         };
     };
 };
@@ -1411,22 +1563,22 @@ var fieldType = function (decls) {
                 };
                 return Data_Functor.voidRight(Data_Maybe.functorMaybe)(ObjectField.value)(scalarType(decls)(field));
             };
-            throw new Error("Failed pattern match at Javapurs.Ownership (line 257, column 1 - line 257, column 74): " + [ decls.constructor.name, treeName.constructor.name, field.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Ownership (line 296, column 1 - line 296, column 74): " + [ decls.constructor.name, treeName.constructor.name, field.constructor.name ]);
         };
     };
 };
 var treeSpecs = function (mod) {
     var decls = declByName(mod.name)(mod.dataDecls);
     var make = function (decl) {
-        var nullary = Data_Array.filter(function ($513) {
+        var nullary = Data_Array.filter(function ($628) {
             return Data_Array["null"]((function (v) {
                 return v.fields;
-            })($513));
+            })($628));
         })(decl.constructors);
-        var nodes = Data_Array.filter(function ($514) {
+        var nodes = Data_Array.filter(function ($629) {
             return !Data_Array["null"]((function (v) {
                 return v.fields;
-            })($514));
+            })($629));
         })(decl.constructors);
         var fullName = fullTypeName(mod.name)(decl);
         var ty = new PureScript_Backend_Optimizer_CoreFn.ADT(fullName, Data_String_Common.split(".")(fullName), Data_Functor.map(Data_Functor.functorArray)(PureScript_Backend_Optimizer_CoreFn.TypeVar.create)(decl.vars));
@@ -1463,14 +1615,17 @@ var knownCall = function (context) {
             if (v instanceof PureScript_Backend_Optimizer_Syntax.Var) {
                 var v1 = qualify(context.moduleName)(v.value0);
                 if (v1.value0 instanceof Data_Maybe.Just && Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqModuleName)(v1.value0.value0)(context.moduleName)) {
-                    return new Data_Maybe.Just(v1.value1);
+                    return new Data_Maybe.Just(new TopLevelKey(v1.value1));
                 };
                 return Data_Maybe.Nothing.value;
             };
+            if (v instanceof PureScript_Backend_Optimizer_Syntax.Local) {
+                return new Data_Maybe.Just(new LocalKey(v.value0, v.value1));
+            };
             return Data_Maybe.Nothing.value;
-        })())(function (name) {
-            return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(PureScript_Backend_Optimizer_CoreFn.ordIdent)(name)(context.candidates))(function (fn) {
-                return Control_Bind.discard(Control_Bind.discardUnit)(Data_Maybe.bindMaybe)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(Data_Eq.eq(eqMaybe1)(adtName(fn.spec.ty))(adtName(context.candidate.spec.ty)) && Data_Array.length(call.args) === Data_Array.length(fn.args)))(function () {
+        })())(function (key) {
+            return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordCandidateKey)(key)(context.candidates))(function (fn) {
+                return Control_Bind.discard(Control_Bind.discardUnit)(Data_Maybe.bindMaybe)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(Data_Eq.eq(eqMaybe2)(adtName(fn.spec.ty))(adtName(context.candidate.spec.ty)) && Data_Array.length(call.args) === Data_Array.length(fn.args)))(function () {
                     return Control_Applicative.pure(Data_Maybe.applicativeMaybe)({
                         fn: fn,
                         args: call.args
@@ -1478,6 +1633,20 @@ var knownCall = function (context) {
                 });
             });
         });
+    };
+};
+var callees = function (context) {
+    return function (v) {
+        return Data_Semigroup.append(Data_Semigroup.semigroupArray)((function () {
+            var v1 = knownCall(context)(v);
+            if (v1 instanceof Data_Maybe.Just) {
+                return [ v1.value0.fn.key ];
+            };
+            if (v1 instanceof Data_Maybe.Nothing) {
+                return [  ];
+            };
+            throw new Error("Failed pattern match at Javapurs.Ownership (line 957, column 4 - line 959, column 18): " + [ v1.constructor.name ]);
+        })())(Data_Foldable.foldMap(PureScript_Backend_Optimizer_Syntax.foldableBackendSyntax)(Data_Monoid.monoidArray)(callees(context))(v));
     };
 };
 var treeTerm = function (context) {
@@ -1491,8 +1660,8 @@ var treeTerm = function (context) {
                 var v1 = strip(expr);
                 if (v1 instanceof PureScript_Backend_Optimizer_Syntax.CtorSaturated) {
                     var qualified = qualify(context.moduleName)(v1.value0);
-                    var $431 = Data_Eq.eq(eqMaybe)(new Data_Maybe.Just(qualified))(context.candidate.spec.leaf) && Data_Array["null"](v1.value4);
-                    if ($431) {
+                    var $523 = Data_Eq.eq(eqMaybe1)(new Data_Maybe.Just(qualified))(context.candidate.spec.leaf) && Data_Array["null"](v1.value4);
+                    if ($523) {
                         return Control_Applicative.pure(Data_Maybe.applicativeMaybe)(Empty.value);
                     };
                     return Control_Bind.discard(Control_Bind.discardUnit)(Data_Maybe.bindMaybe)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(Data_Eq.eq(eqQualified)(qualified)(context.candidate.spec.nodeCtor)))(function () {
@@ -1503,16 +1672,16 @@ var treeTerm = function (context) {
                         });
                     });
                 };
-                if (v1 instanceof PureScript_Backend_Optimizer_Syntax.Var && Data_Eq.eq(eqMaybe)(new Data_Maybe.Just(qualify(context.moduleName)(v1.value0)))(context.candidate.spec.leaf)) {
+                if (v1 instanceof PureScript_Backend_Optimizer_Syntax.Var && Data_Eq.eq(eqMaybe1)(new Data_Maybe.Just(qualify(context.moduleName)(v1.value0)))(context.candidate.spec.leaf)) {
                     return new Data_Maybe.Just(Empty.value);
                 };
                 return Control_Bind.bind(Data_Maybe.bindMaybe)(knownCall(context)(expr))(function (call) {
-                    return Data_Functor.map(Data_Maybe.functorMaybe)(Call.create(call.fn.original))(Data_Traversable.traverse(Data_Traversable.traversableArray)(Data_Maybe.applicativeMaybe)(function (v2) {
+                    return Data_Functor.map(Data_Maybe.functorMaybe)(Call.create(call.fn.key))(Data_Traversable.traverse(Data_Traversable.traversableArray)(Data_Maybe.applicativeMaybe)(function (v2) {
                         return argument(context)(env)(v2.value0)(v2.value1);
                     })(Data_Array.zip(call.fn.argTypes)(call.args)));
                 });
             };
-            throw new Error("Failed pattern match at Javapurs.Ownership (line 484, column 29 - line 499, column 47): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Ownership (line 551, column 29 - line 566, column 47): " + [ v.constructor.name ]);
         };
     };
 };
@@ -1520,8 +1689,8 @@ var argument = function (context) {
     return function (env) {
         return function (expected) {
             return function (expr) {
-                var $446 = Data_Eq.eq(eqArgType)(expected)(ArgTree.value);
-                if ($446) {
+                var $538 = Data_Eq.eq(eqArgType)(expected)(ArgTree.value);
+                if ($538) {
                     return Data_Functor.map(Data_Maybe.functorMaybe)(TreeArg.create)(treeTerm(context)(env)(expr));
                 };
                 return Control_Bind.bind(Data_Maybe.bindMaybe)(scalar(context)(env)(expr))(function (value) {
@@ -1558,6 +1727,9 @@ var emitBody = function (context) {
             if (v instanceof PureScript_Backend_Optimizer_Syntax.Fail) {
                 return Control_Applicative.pure(applicativeStateT)(new TermReturn(new Javapurs_JavaAst.JavaThrow(v.value0)));
             };
+            if (v instanceof PureScript_Backend_Optimizer_Syntax.LetRec) {
+                return emitBody(context)(env)(v.value2);
+            };
             if (v instanceof PureScript_Backend_Optimizer_Syntax.Let) {
                 var v1 = pathValue(context)(env)(v.value2);
                 if (v1 instanceof Data_Maybe.Just) {
@@ -1576,11 +1748,11 @@ var emitBody = function (context) {
                         return Control_Bind.bind(bindStateT)(Data_Function.apply(lift4)(treeTerm(context)(env)(v.value2)))(function (term) {
                             var future = continuationPaths(env)(v.value3);
                             var consumed = leaves(term);
-                            return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Data_Function.apply(lift2)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(!Data_Foldable.any(Data_Foldable.foldableArray)(Data_HeytingAlgebra.heytingAlgebraBoolean)(function (path) {
+                            return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Data_Function.apply(lift1)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(!Data_Foldable.any(Data_Foldable.foldableArray)(Data_HeytingAlgebra.heytingAlgebraBoolean)(function (path) {
                                 return Data_Foldable.any(Data_Foldable.foldableArray)(Data_HeytingAlgebra.heytingAlgebraBoolean)(overlap(path))(future);
                             })(consumed))))(function () {
                                 return Control_Bind.bind(bindStateT)(plan(context)(env)(future)(term))(function (prepared) {
-                                    return Control_Bind.bind(bindStateT)(emitTree(context)(prepared.pool)(true)(prepared.term))(function (result) {
+                                    return Control_Bind.bind(bindStateT)(emitTree(context)(env)(prepared.pool)(true)(prepared.term))(function (result) {
                                         return Control_Bind.bind(bindStateT)(freshName("__let_tree_"))(function (temporary) {
                                             var remaining = Data_Map_Internal.filter(ordTuple1)(function (v3) {
                                                 if (v3 instanceof Tree) {
@@ -1591,7 +1763,7 @@ var emitBody = function (context) {
                                                         return Data_Foldable.any(Data_Foldable.foldableArray)(Data_HeytingAlgebra.heytingAlgebraBoolean)(overlap(path))(prepared.retired);
                                                     })(v3.value0.reads);
                                                 };
-                                                throw new Error("Failed pattern match at Javapurs.Ownership (line 710, column 35 - line 712, column 97): " + [ v3.constructor.name ]);
+                                                throw new Error("Failed pattern match at Javapurs.Ownership (line 783, column 35 - line 785, column 97): " + [ v3.constructor.name ]);
                                             })(env);
                                             var nextEnv = Data_Map_Internal.insert(ordTuple1)(new Data_Tuple.Tuple(v.value0, v.value1))(new Tree(new Path(temporary, [  ])))(remaining);
                                             return Control_Bind.bind(bindStateT)(emitBody(context)(nextEnv)(v.value3))(function (rest) {
@@ -1603,20 +1775,20 @@ var emitBody = function (context) {
                             });
                         });
                     };
-                    throw new Error("Failed pattern match at Javapurs.Ownership (line 696, column 16 - line 720, column 16): " + [ v2.constructor.name ]);
+                    throw new Error("Failed pattern match at Javapurs.Ownership (line 769, column 16 - line 793, column 16): " + [ v2.constructor.name ]);
                 };
-                throw new Error("Failed pattern match at Javapurs.Ownership (line 694, column 34 - line 720, column 16): " + [ v1.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.Ownership (line 767, column 34 - line 793, column 16): " + [ v1.constructor.name ]);
             };
             return Control_Bind.bind(bindStateT)(Data_Function.apply(lift4)(treeTerm(context)(env)(expr)))(function (term) {
                 return Control_Bind.bind(bindStateT)(plan(context)(env)([  ])(term))(function (prepared) {
-                    if (prepared.term instanceof Call && Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqIdent)(prepared.term.value0)(context.candidate.original)) {
-                        return Control_Bind.bind(bindStateT)(emitArguments(context)(prepared.pool)(prepared.term.value1))(function (values) {
+                    if (prepared.term instanceof Call && Data_Eq.eq(eqCandidateKey)(prepared.term.value0)(context.candidate.key)) {
+                        return Control_Bind.bind(bindStateT)(emitArguments(context)(env)(prepared.pool)(prepared.term.value1))(function (values) {
                             return Control_Bind.bind(bindStateT)(takeCell(context)(values.pool))(function (donor) {
                                 return Control_Applicative.pure(applicativeStateT)(new TermStmts(Data_Semigroup.append(Data_Semigroup.semigroupArray)(prepared.stmts)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(values.stmts)(donor.stmts)), new TermContinue(new Javapurs_JavaAst.JavaContinue(Data_Newtype.unwrap()(context.candidate.worker), Data_Semigroup.append(Data_Semigroup.semigroupArray)(values.exprs)([ donor.expr ])))));
                             });
                         });
                     };
-                    return Control_Bind.bind(bindStateT)(emitTree(context)(prepared.pool)(true)(prepared.term))(function (result) {
+                    return Control_Bind.bind(bindStateT)(emitTree(context)(env)(prepared.pool)(true)(prepared.term))(function (result) {
                         return Control_Applicative.pure(applicativeStateT)(new TermStmts(Data_Semigroup.append(Data_Semigroup.semigroupArray)(prepared.stmts)(result.stmts), new TermReturn(result.expr)));
                     });
                 });
@@ -1641,7 +1813,7 @@ var hasTailSelfCall = function (context) {
             };
             var v1 = treeTerm(context)(env)(expr);
             if (v1 instanceof Data_Maybe.Just && v1.value0 instanceof Call) {
-                return Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqIdent)(v1.value0.value0)(context.candidate.original);
+                return Data_Eq.eq(eqCandidateKey)(v1.value0.value0)(context.candidate.key);
             };
             return false;
         };
@@ -1654,8 +1826,22 @@ var workerDeclarations = function (context) {
                 return new Data_Tuple.Tuple("owned" + Data_Show.show(Data_Show.showInt)(index), argJavaType(argTy));
             };
         })(fn.argTypes);
-        var envWith = function (nameOf) {
-            return Data_Function.apply(fromFoldable2)(Data_Array.mapWithIndex(function (index) {
+        var captureParams = Data_Array.mapWithIndex(function (index) {
+            return function (v) {
+                return new Data_Tuple.Tuple("captured" + Data_Show.show(Data_Show.showInt)(index), Javapurs_JavaAst.ParamObject.value);
+            };
+        })(fn.captures);
+        var captureEnv = Data_Function.apply(fromFoldable2)(Data_Array.mapWithIndex(function (index) {
+            return function (ref) {
+                return new Data_Tuple.Tuple(ref, new Scalar({
+                    expr: new Javapurs_JavaAst.JavaLocal("captured" + Data_Show.show(Data_Show.showInt)(index)),
+                    ty: ScalarObject.value,
+                    reads: [  ]
+                }));
+            };
+        })(fn.captures));
+        var argEnv = function (nameOf) {
+            return Data_Array.mapWithIndex(function (index) {
                 return function (ref) {
                     var name = "owned" + Data_Show.show(Data_Show.showInt)(index);
                     var argTy = Data_Maybe.fromMaybe(ArgObject.value)(Data_Array.index(fn.argTypes)(index));
@@ -1677,19 +1863,16 @@ var workerDeclarations = function (context) {
                                 reads: [  ]
                             });
                         };
-                        throw new Error("Failed pattern match at Javapurs.Ownership (line 789, column 20 - line 792, column 93): " + [ argTy.constructor.name ]);
+                        throw new Error("Failed pattern match at Javapurs.Ownership (line 865, column 20 - line 868, column 93): " + [ argTy.constructor.name ]);
                     })());
                 };
-            })(fn.args));
+            })(fn.args);
+        };
+        var envWith = function (nameOf) {
+            return Data_Map_Internal.fromFoldable(ordTuple1)(Data_Foldable.foldableArray)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Map_Internal.toUnfoldable(Data_Unfoldable.unfoldableArray)(captureEnv))(argEnv(nameOf)));
         };
         var plainEnv = envWith(identity1);
         var loops = hasTailSelfCall(context)(plainEnv)(fn.body);
-        var env = envWith(function (name) {
-            if (loops) {
-                return "__final_" + name;
-            };
-            return name;
-        });
         var donorName = (function () {
             if (loops) {
                 return "__donorOwned";
@@ -1703,11 +1886,17 @@ var workerDeclarations = function (context) {
             candidate: fn,
             donorName: donorName
         };
+        var env = envWith(function (name) {
+            if (loops) {
+                return "__final_" + name;
+            };
+            return name;
+        });
         return Control_Bind.bind(Data_Maybe.bindMaybe)(Control_Monad_State_Trans.evalStateT(Data_Maybe.functorMaybe)(emitBody(context$prime)(env)(fn.body))(0))(function (term) {
             var loopArgs = Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst)(params))([ "donor" ]);
             var intParams = Data_Array.mapMaybe(function (v) {
-                var $487 = Data_Eq.eq(Javapurs_JavaAst.eqJavaParamType)(v.value1)(Javapurs_JavaAst.ParamInt.value);
-                if ($487) {
+                var $582 = Data_Eq.eq(Javapurs_JavaAst.eqJavaParamType)(v.value1)(Javapurs_JavaAst.ParamInt.value);
+                if ($582) {
                     return new Data_Maybe.Just(v.value0);
                 };
                 return Data_Maybe.Nothing.value;
@@ -1718,7 +1907,7 @@ var workerDeclarations = function (context) {
                 };
                 return [  ];
             })();
-            var allParams = Data_Semigroup.append(Data_Semigroup.semigroupArray)(params)([ new Data_Tuple.Tuple("donor", Javapurs_JavaAst.ParamObject.value) ]);
+            var allParams = Data_Semigroup.append(Data_Semigroup.semigroupArray)(captureParams)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(params)([ new Data_Tuple.Tuple("donor", Javapurs_JavaAst.ParamObject.value) ]));
             if (loops) {
                 return Control_Applicative.pure(Data_Maybe.applicativeMaybe)([ new Javapurs_JavaAst.JavaStaticMethod(fn.javaName, allParams, new Javapurs_JavaAst.JavaWhileTrue(loopArgs, intParams, new Javapurs_JavaAst.JavaBlock(initialize, termExpr(term)))) ]);
             };
@@ -1741,11 +1930,11 @@ var validateCandidates = function ($copy_mod) {
                     donorName: "__donor"
                 };
             };
-            var accepted = Data_Map_Internal.filter(PureScript_Backend_Optimizer_CoreFn.ordIdent)(function (fn) {
+            var accepted = Data_Map_Internal.filter(ordCandidateKey)(function (fn) {
                 return Data_Maybe.isJust(workerDeclarations(contextOf(fn))(fn));
             })(candidates);
-            var $492 = Data_Map_Internal.size(accepted) === Data_Map_Internal.size(candidates);
-            if ($492) {
+            var $587 = Data_Map_Internal.size(accepted) === Data_Map_Internal.size(candidates);
+            if ($587) {
                 $tco_done = true;
                 return accepted;
             };
@@ -1780,42 +1969,94 @@ var abstractions = function (expr) {
         body: expr
     };
 };
-var candidate = function (mod) {
+var mkCandidate = function (mod) {
     return function (specs) {
-        return function (v) {
-            return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Functor.map(Data_Maybe.functorMaybe)(arrow)(annotation(v.value1)))(function (signature) {
-                return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Array.find(function (s) {
-                    return Data_Eq.eq(eqMaybe1)(adtName(s.ty))(adtName(signature.result));
-                })(specs))(function (spec) {
-                    var lambda = abstractions(v.value1);
-                    return Control_Bind.discard(Control_Bind.discardUnit)(Data_Maybe.bindMaybe)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(!Data_Array["null"](lambda.args) && Data_Array.length(lambda.args) === Data_Array.length(signature.args)))(function () {
-                        return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Traversable.traverse(Data_Traversable.traversableArray)(Data_Maybe.applicativeMaybe)(argType(declByName(mod.name)(mod.dataDecls))(spec))(signature.args))(function (argTypes) {
-                            return Control_Bind.discard(Control_Bind.discardUnit)(Data_Maybe.bindMaybe)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(Data_Array.elem(eqArgType)(ArgTree.value)(argTypes)))(function () {
-                                var javaName = Javapurs_Naming.sanitizeName("__owned_" + v.value0);
-                                return Control_Applicative.pure(Data_Maybe.applicativeMaybe)({
-                                    original: v.value0,
-                                    worker: "__owned_" + v.value0,
-                                    javaName: javaName,
-                                    spec: spec,
-                                    args: lambda.args,
-                                    argTypes: argTypes,
-                                    body: lambda.body
+        return function (key) {
+            return function (level) {
+                return function (original) {
+                    return function (expr) {
+                        return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Functor.map(Data_Maybe.functorMaybe)(arrow)(annotation(expr)))(function (signature) {
+                            return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Array.find(function (s) {
+                                return Data_Eq.eq(eqMaybe2)(adtName(s.ty))(adtName(signature.result));
+                            })(specs))(function (spec) {
+                                var lambda = abstractions(expr);
+                                return Control_Bind.discard(Control_Bind.discardUnit)(Data_Maybe.bindMaybe)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(!Data_Array["null"](lambda.args) && Data_Array.length(lambda.args) === Data_Array.length(signature.args)))(function () {
+                                    return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Traversable.traverse(Data_Traversable.traversableArray)(Data_Maybe.applicativeMaybe)(argType(declByName(mod.name)(mod.dataDecls))(spec))(signature.args))(function (argTypes) {
+                                        return Control_Bind.discard(Control_Bind.discardUnit)(Data_Maybe.bindMaybe)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(Data_Array.elem(eqArgType)(ArgTree.value)(argTypes)))(function () {
+                                            var name = Data_Newtype.unwrap()(original);
+                                            var javaName = Javapurs_Naming.sanitizeName("__owned_" + name);
+                                            var captures = (function () {
+                                                if (level instanceof Data_Maybe.Nothing) {
+                                                    return [  ];
+                                                };
+                                                if (level instanceof Data_Maybe.Just) {
+                                                    return Data_Array.nub(ordTuple1)(freeLocalsBelow(level.value0)(lambda.body));
+                                                };
+                                                throw new Error("Failed pattern match at Javapurs.Ownership (line 346, column 16 - line 348, column 76): " + [ level.constructor.name ]);
+                                            })();
+                                            return Control_Applicative.pure(Data_Maybe.applicativeMaybe)({
+                                                original: original,
+                                                key: key,
+                                                worker: "__owned_" + name,
+                                                javaName: javaName,
+                                                spec: spec,
+                                                captures: captures,
+                                                args: lambda.args,
+                                                argTypes: argTypes,
+                                                body: lambda.body
+                                            });
+                                        });
+                                    });
                                 });
                             });
                         });
-                    });
-                });
-            });
+                    };
+                };
+            };
         };
+    };
+};
+var candidate = function (mod) {
+    return function (specs) {
+        return function (v) {
+            return mkCandidate(mod)(specs)(new TopLevelKey(v.value0))(Data_Maybe.Nothing.value)(v.value0)(v.value1);
+        };
+    };
+};
+var localCandidate = function (mod) {
+    return function (specs) {
+        return function (level) {
+            return function (v) {
+                return mkCandidate(mod)(specs)(new LocalKey(new Data_Maybe.Just(v.value0), level))(new Data_Maybe.Just(Data_Newtype.unwrap()(level)))(v.value0)(v.value1);
+            };
+        };
+    };
+};
+var localCandidates = function (mod) {
+    return function (specs) {
+        var walk = function (v) {
+            if (v instanceof PureScript_Backend_Optimizer_Syntax.LetRec) {
+                var members = Data_Array_NonEmpty.toArray(v.value1);
+                return Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Array.mapMaybe(localCandidate(mod)(specs)(v.value0))(members))(Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Array.concatMap(function ($630) {
+                    return walk(Data_Tuple.snd($630));
+                })(members))(walk(v.value2)));
+            };
+            return Data_Foldable.foldMap(PureScript_Backend_Optimizer_Syntax.foldableBackendSyntax)(Data_Monoid.monoidArray)(walk)(v);
+        };
+        return Data_Array.concatMap(function (group) {
+            return Data_Array.concatMap(function ($631) {
+                return walk(Data_Tuple.snd($631));
+            })(group.bindings);
+        })(mod.bindings);
     };
 };
 var prepare = function (mod) {
     var specs = treeSpecs(mod);
-    var found = Data_Function.apply(reserveWorkers(mod))(Data_Array.mapMaybe(candidate(mod)(specs))(Data_Array.concatMap(function (v) {
+    var found = reserveWorkers(mod)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Array.mapMaybe(candidate(mod)(specs))(Data_Array.concatMap(function (v) {
         return v.bindings;
-    })(mod.bindings)));
-    var initial = Data_Function.apply(fromFoldable3)(Data_Functor.map(Data_Functor.functorArray)(function (fn) {
-        return new Data_Tuple.Tuple(fn.original, fn);
+    })(mod.bindings)))(localCandidates(mod)(specs)));
+    var initial = Data_Function.apply(fromFoldable4)(Data_Functor.map(Data_Functor.functorArray)(function (fn) {
+        return new Data_Tuple.Tuple(fn.key, fn);
     })(found));
     var accepted = validateCandidates(mod)(initial);
     var contextOf = function (fn) {
@@ -1827,30 +2068,77 @@ var prepare = function (mod) {
             donorName: "__donor"
         };
     };
-    var workers = Data_Array.fromFoldable(Data_List_Types.foldableList)(Data_Map_Internal.values(accepted));
-    var declarations = Data_Foldable.foldMap(Data_Foldable.foldableArray)(Data_Monoid.monoidArray)(function (fn) {
-        return Data_Maybe.fromMaybe([  ])(workerDeclarations(contextOf(fn))(fn));
-    })(workers);
-    var diagnostics = Data_Array.concat([ [ "ownership: " + (Data_Show.show(Data_Show.showInt)(Data_Array.length(specs)) + (" tree types, " + (Data_Show.show(Data_Show.showInt)(Data_Map_Internal.size(initial)) + (" candidates, " + (Data_Show.show(Data_Show.showInt)(Data_Map_Internal.size(accepted)) + " accepted"))))) ], (function () {
-        var $503 = Data_Array["null"](workers);
-        if ($503) {
-            return [  ];
-        };
-        return [ "ownership: consuming workers for " + Data_String_Common.joinWith(", ")(Data_Functor.map(Data_Functor.functorArray)(function ($515) {
-            return unwrap((function (v) {
-                return v.original;
-            })($515));
-        })(workers)) ];
-    })() ]);
-    var functions = Data_Function.apply(fromFoldable4)(Data_Functor.map(Data_Functor.functorArray)(function (fn) {
-        return new Data_Tuple.Tuple(Data_Newtype.unwrap()(fn.worker), {
-            javaName: fn.javaName,
-            params: Data_Semigroup.append(Data_Semigroup.semigroupArray)(argJavaTypes(fn.argTypes))([ Javapurs_JavaAst.ParamObject.value ])
+    var v = Control_Monad_State.runState(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT1)(function (group) {
+        return Control_Bind.bind(bindStateT1)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT1)(function (v1) {
+            return Control_Bind.bind(bindStateT1)(rewrite(mod.name)(mod.dataDecls)(accepted)(v1.value1))(function (expr$prime) {
+                return Control_Applicative.pure(applicativeStateT1)(new Data_Tuple.Tuple(v1.value0, expr$prime));
+            });
+        })(group.bindings))(function (bindings) {
+            return Control_Applicative.pure(applicativeStateT1)({
+                recursive: group.recursive,
+                bindings: bindings
+            });
         });
-    })(workers));
+    })(mod.bindings))(Data_Set.empty);
+    var reachable = (function () {
+        var closeCallees = function ($copy_seen) {
+            return function ($copy_pending) {
+                var $tco_var_seen = $copy_seen;
+                var $tco_done = false;
+                var $tco_result;
+                function $tco_loop(seen, pending) {
+                    var v1 = Data_Array.index(pending)(0);
+                    if (v1 instanceof Data_Maybe.Nothing) {
+                        $tco_done = true;
+                        return seen;
+                    };
+                    if (v1 instanceof Data_Maybe.Just) {
+                        var v2 = Data_Map_Internal.lookup(ordCandidateKey)(v1.value0)(accepted);
+                        if (v2 instanceof Data_Maybe.Just && !Data_Set.member(ordCandidateKey)(v1.value0)(seen)) {
+                            $tco_var_seen = Data_Set.insert(ordCandidateKey)(v1.value0)(seen);
+                            $copy_pending = Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Array.drop(1)(pending))(callees(contextOf(v2.value0))(v2.value0.body));
+                            return;
+                        };
+                        $tco_var_seen = seen;
+                        $copy_pending = Data_Array.drop(1)(pending);
+                        return;
+                    };
+                    throw new Error("Failed pattern match at Javapurs.Ownership (line 167, column 35 - line 173, column 58): " + [ v1.constructor.name ]);
+                };
+                while (!$tco_done) {
+                    $tco_result = $tco_loop($tco_var_seen, $copy_pending);
+                };
+                return $tco_result;
+            };
+        };
+        return closeCallees(Data_Set.empty)(Data_Array.fromFoldable(Data_Set.foldableSet)(v.value1));
+    })();
+    var workers = Data_Array.mapMaybe(function (key) {
+        return Data_Map_Internal.lookup(ordCandidateKey)(key)(accepted);
+    })(Data_Array.fromFoldable(Data_Set.foldableSet)(reachable));
     var mutableClasses = Data_Function.apply(nub)(Data_Functor.map(Data_Functor.functorArray)(function (fn) {
         return fn.spec.nodeClass;
     })(workers));
+    var functions = Data_Function.apply(fromFoldable3)(Data_Functor.map(Data_Functor.functorArray)(function (fn) {
+        return new Data_Tuple.Tuple(Data_Newtype.unwrap()(fn.worker), {
+            javaName: fn.javaName,
+            params: Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Functor.map(Data_Functor.functorArray)(Data_Function["const"](Javapurs_JavaAst.ParamObject.value))(fn.captures))(Data_Semigroup.append(Data_Semigroup.semigroupArray)(argJavaTypes(fn.argTypes))([ Javapurs_JavaAst.ParamObject.value ]))
+        });
+    })(workers));
+    var diagnostics = Data_Array.concat([ [ "ownership: " + (Data_Show.show(Data_Show.showInt)(Data_Array.length(specs)) + (" tree types, " + (Data_Show.show(Data_Show.showInt)(Data_Map_Internal.size(initial)) + (" candidates, " + (Data_Show.show(Data_Show.showInt)(Data_Map_Internal.size(accepted)) + " accepted"))))) ], (function () {
+        var $619 = Data_Array["null"](workers);
+        if ($619) {
+            return [  ];
+        };
+        return [ "ownership: consuming workers for " + Data_String_Common.joinWith(", ")(Data_Functor.map(Data_Functor.functorArray)(function ($632) {
+            return unwrap((function (v1) {
+                return v1.original;
+            })($632));
+        })(workers)) ];
+    })() ]);
+    var declarations = Data_Foldable.foldMap(Data_Foldable.foldableArray)(Data_Monoid.monoidArray)(function (fn) {
+        return Data_Maybe.fromMaybe([  ])(workerDeclarations(contextOf(fn))(fn));
+    })(workers);
     return {
         module: {
             name: mod.name,
@@ -1864,14 +2152,7 @@ var prepare = function (mod) {
             foreign: mod.foreign,
             implementations: mod.implementations,
             directives: mod.directives,
-            bindings: Data_Functor.map(Data_Functor.functorArray)(function (group) {
-                return {
-                    recursive: group.recursive,
-                    bindings: Data_Functor.map(Data_Functor.functorArray)(function (v2) {
-                        return new Data_Tuple.Tuple(v2.value0, rewrite(mod.name)(mod.dataDecls)(accepted)(v2.value1));
-                    })(group.bindings)
-                };
-            })(mod.bindings)
+            bindings: v.value0
         },
         declarations: declarations,
         functions: functions,

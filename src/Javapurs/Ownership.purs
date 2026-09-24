@@ -11,7 +11,7 @@ module Javapurs.Ownership (prepare) where
 import Prelude
 
 import Control.Alternative (guard)
-import Control.Monad.State (StateT, evalStateT, get, put)
+import Control.Monad.State (State, StateT, evalStateT, get, modify_, put, runState)
 import Control.Monad.Trans.Class (lift)
 import Data.Array as Array
 import Data.Array.NonEmpty as NonEmptyArray
@@ -25,7 +25,7 @@ import Data.String as String
 import Data.String.CodeUnits as StringCodeUnits
 import Data.String.Pattern (Pattern(..))
 import Data.Traversable (traverse)
-import Data.Tuple (Tuple(..), fst)
+import Data.Tuple (Tuple(..), fst, snd)
 import Javapurs.JavaAst (JavaExpr(..), JavaParamType(..))
 import Javapurs.Naming (constructorClassName, modulePrefix, safeCtorName, sanitizeName)
 import Javapurs.Operators (translateOperator1, translateOperator2)
@@ -67,11 +67,18 @@ type TreeSpec =
   , fields :: Array FieldType
   }
 
+-- | Top-level bindings and local recursive groups share the machinery.
+data CandidateKey = TopLevelKey Ident | LocalKey (Maybe Ident) Level
+derive instance eqCandidateKey :: Eq CandidateKey
+derive instance ordCandidateKey :: Ord CandidateKey
+
 type Candidate =
   { original :: Ident
+  , key :: CandidateKey
   , worker :: Ident
   , javaName :: String
   , spec :: TreeSpec
+  , captures :: Array LocalRef
   , args :: Array LocalRef
   , argTypes :: Array ArgType
   , body :: NeutralExpr
@@ -80,7 +87,7 @@ type Candidate =
 type Context =
   { moduleName :: ModuleName
   , candidate :: Candidate
-  , candidates :: Map Ident Candidate
+  , candidates :: Map CandidateKey Candidate
   , dataDecls :: Array DataDecl
   , donorName :: String
   }
@@ -91,7 +98,7 @@ data TreeTerm
   = Keep Path
   | Empty
   | Construct (Array Argument)
-  | Call Ident (Array Argument)
+  | Call CandidateKey (Array Argument)
   | Existing JavaExpr
 
 data Argument = TreeArg TreeTerm | ScalarArg Scalar
@@ -137,10 +144,10 @@ prepare :: BackendModule -> Prepared
 prepare mod =
   let
     specs = treeSpecs mod
-    found = reserveWorkers mod $ Array.mapMaybe (candidate mod specs) (Array.concatMap _.bindings mod.bindings)
-    initial = Map.fromFoldable $ map (\fn -> Tuple fn.original fn) found
+    found = reserveWorkers mod
+      (Array.mapMaybe (candidate mod specs) (Array.concatMap _.bindings mod.bindings) <> localCandidates mod specs)
+    initial = Map.fromFoldable $ map (\fn -> Tuple fn.key fn) found
     accepted = validateCandidates mod initial
-    workers = Array.fromFoldable (Map.values accepted)
     contextOf fn =
       { moduleName: mod.name
       , candidate: fn
@@ -148,9 +155,28 @@ prepare mod =
       , dataDecls: mod.dataDecls
       , donorName: "__donor"
       }
+    Tuple rewrittenGroups usedKeys = runState
+      (traverse (\group -> do
+          bindings <- traverse (\(Tuple name expr) -> do
+            expr' <- rewrite mod.name mod.dataDecls accepted expr
+            pure (Tuple name expr')) group.bindings
+          pure group { bindings = bindings }) mod.bindings)
+      Set.empty
+    reachable = closeCallees Set.empty (Array.fromFoldable usedKeys)
+      where
+      closeCallees seen pending = case Array.index pending 0 of
+        Nothing -> seen
+        Just key ->
+          case Map.lookup key accepted of
+            Just fn | not (Set.member key seen) ->
+              closeCallees (Set.insert key seen) (Array.drop 1 pending <> callees (contextOf fn) fn.body)
+            _ -> closeCallees seen (Array.drop 1 pending)
+    workers = Array.mapMaybe (\key -> Map.lookup key accepted) (Array.fromFoldable reachable)
     declarations = foldMap (\fn -> fromMaybe [] (workerDeclarations (contextOf fn) fn)) workers
     functions = Map.fromFoldable $ map (\fn -> Tuple (unwrap fn.worker)
-      { javaName: fn.javaName, params: argJavaTypes fn.argTypes <> [ ParamObject ] }) workers
+      { javaName: fn.javaName
+      , params: map (const ParamObject) fn.captures <> argJavaTypes fn.argTypes <> [ ParamObject ]
+      }) workers
     mutableClasses = Array.nub $ map (\fn -> fn.spec.nodeClass) workers
     diagnostics = Array.concat
       [ [ "ownership: " <> show (Array.length specs) <> " tree types, "
@@ -160,13 +186,26 @@ prepare mod =
         else [ "ownership: consuming workers for " <> String.joinWith ", " (map (unwrap <<< _.original) workers) ]
       ]
   in
-    { module: mod { bindings = map (\group -> group { bindings = map (\(Tuple name expr) ->
-        Tuple name (rewrite mod.name mod.dataDecls accepted expr)) group.bindings }) mod.bindings }
+    { module: mod { bindings = rewrittenGroups }
     , declarations
     , functions
     , mutableClasses
     , diagnostics
     }
+
+-- | Every recursive local group of the module, tried as a candidate. Nested
+-- | groups are visited too.
+localCandidates :: BackendModule -> Array TreeSpec -> Array Candidate
+localCandidates mod specs =
+  Array.concatMap (\group -> Array.concatMap (walk <<< snd) group.bindings) mod.bindings
+  where
+  walk (NeutralExpr syn) = case syn of
+    LetRec level binds body ->
+      let members = NonEmptyArray.toArray binds
+      in Array.mapMaybe (localCandidate mod specs level) members
+        <> Array.concatMap (walk <<< snd) members
+        <> walk body
+    _ -> foldMap walk syn
 
 strip :: NeutralExpr -> BackendSyntax NeutralExpr
 strip (NeutralExpr syn) = case syn of
@@ -283,15 +322,42 @@ scalarJavaType = case _ of
   _ -> ScalarObject
 
 candidate :: BackendModule -> Array TreeSpec -> Tuple Ident NeutralExpr -> Maybe Candidate
-candidate mod specs (Tuple original@(Ident name) expr) = do
+candidate mod specs (Tuple original expr) =
+  mkCandidate mod specs (TopLevelKey original) Nothing original expr
+
+-- | Local recursive groups share the machinery with top-level bindings. The
+-- | group level identifies each member; references to enclosing binders become
+-- | captured parameters of the worker.
+localCandidate :: BackendModule -> Array TreeSpec -> Level -> Tuple Ident NeutralExpr -> Maybe Candidate
+localCandidate mod specs level (Tuple original expr) =
+  mkCandidate mod specs (LocalKey (Just original) level) (Just (unwrap level)) original expr
+
+mkCandidate :: BackendModule -> Array TreeSpec -> CandidateKey -> Maybe Int -> Ident -> NeutralExpr -> Maybe Candidate
+mkCandidate mod specs key level original expr = do
   signature <- arrow <$> annotation expr
   spec <- Array.find (\s -> adtName s.ty == adtName signature.result) specs
   let lambda = abstractions expr
   guard (not (Array.null lambda.args) && Array.length lambda.args == Array.length signature.args)
   argTypes <- traverse (argType (declByName mod.name mod.dataDecls) spec) signature.args
   guard (Array.elem ArgTree argTypes)
-  let javaName = sanitizeName ("__owned_" <> name)
-  pure { original, worker: Ident ("__owned_" <> name), javaName, spec, args: lambda.args, argTypes, body: lambda.body }
+  -- Enclosing binders below the group are captured; a captured tree would be
+  -- borrowed rather than owned, so a tree use later rejects the candidate.
+  let
+    captures = case level of
+      Nothing -> []
+      Just groupLevel -> Array.nub (freeLocalsBelow groupLevel lambda.body)
+    name = unwrap original
+    javaName = sanitizeName ("__owned_" <> name)
+  pure { original, key, worker: Ident ("__owned_" <> name), javaName, spec, captures, args: lambda.args, argTypes, body: lambda.body }
+
+-- | Local references whose absolute level sits below the group. Nested binders
+-- | allocate higher levels, so this is exactly the enclosing scope.
+freeLocalsBelow :: Int -> NeutralExpr -> Array LocalRef
+freeLocalsBelow level (NeutralExpr syn) =
+  case syn of
+    Local name lvl
+      | unwrap lvl < level -> [ Tuple name lvl ]
+    _ -> foldMap (freeLocalsBelow level) syn
 
 -- | Worker names must not collide with an existing binding or foreign symbol.
 reserveWorkers :: BackendModule -> Array Candidate -> Array Candidate
@@ -471,12 +537,13 @@ spine expr = case strip expr of
 knownCall :: Context -> NeutralExpr -> Maybe { fn :: Candidate, args :: Array NeutralExpr }
 knownCall context expr = do
   let call = spine expr
-  name <- case strip call.head of
+  key <- case strip call.head of
     Var qualified -> case qualify context.moduleName qualified of
-      Qualified (Just mod) name | mod == context.moduleName -> Just name
+      Qualified (Just mod) name | mod == context.moduleName -> Just (TopLevelKey name)
       _ -> Nothing
+    Local name level -> Just (LocalKey name level)
     _ -> Nothing
-  fn <- Map.lookup name context.candidates
+  fn <- Map.lookup key context.candidates
   guard (adtName fn.spec.ty == adtName context.candidate.spec.ty && Array.length call.args == Array.length fn.args)
   pure { fn, args: call.args }
 
@@ -495,7 +562,7 @@ treeTerm context env expr = case pathValue context env expr of
     Var ctor | Just (qualify context.moduleName ctor) == context.candidate.spec.leaf -> Just Empty
     _ -> do
       call <- knownCall context expr
-      Call call.fn.original <$> traverse (\(Tuple kind value) -> argument context env kind value)
+      Call call.fn.key <$> traverse (\(Tuple kind value) -> argument context env kind value)
         (Array.zip call.fn.argTypes call.args)
 
 argument :: Context -> Env -> ArgType -> NeutralExpr -> Maybe Argument
@@ -571,7 +638,7 @@ hasTailSelfCall context env expr = case strip expr of
   Let _ _ _ body -> hasTailSelfCall context env body
   Fail _ -> false
   _ -> case treeTerm context env expr of
-    Just (Call name _) -> name == context.candidate.original
+    Just (Call key _) -> key == context.candidate.key
     _ -> false
 
 takeCell :: Context -> CellPool -> Gen TakenCell
@@ -595,13 +662,13 @@ takeCell context pool = case Array.uncons pool.known of
       , nonNull: false
       }
 
-emitTree :: Context -> CellPool -> Boolean -> TreeTerm -> Gen Generated
-emitTree context pool outer = case _ of
+emitTree :: Context -> Env -> CellPool -> Boolean -> TreeTerm -> Gen Generated
+emitTree context env pool outer = case _ of
   Existing expr -> pure { stmts: [], expr, pool }
   Empty -> pure { stmts: [], expr: leafValue context.candidate.spec, pool }
   Keep _ -> lift Nothing
   Construct args -> do
-    values <- emitArguments context pool args
+    values <- emitArguments context env pool args
     cell <- takeCell context values.pool
     name <- case cell.expr of
       JavaLocal name -> pure name
@@ -624,15 +691,20 @@ emitTree context pool outer = case _ of
         , expr: result
         , pool: cell.pool
         }
-  Call name args -> do
-    fn <- lift $ Map.lookup name context.candidates
-    values <- emitArguments context pool args
+  Call key args -> do
+    fn <- lift $ Map.lookup key context.candidates
+    values <- emitArguments context env pool args
+    -- A local candidate is called from inside the scope that binds its
+    -- captures, so each capture resolves as a scalar of the caller.
+    captures <- traverse (\ref ->
+      lift $ scalar context env (NeutralExpr (Syn.Local (fst ref) (snd ref)))) fn.captures
     donor <- if outer then takeCell context values.pool
       else pure { stmts: [], expr: JavaRaw "null", pool: values.pool, nonNull: false }
     result <- freshName "__result_"
     pure
       { stmts: values.stmts <> donor.stmts
-          <> [ JavaLocalAssign result (JavaCall (JavaLocal fn.javaName) (values.exprs <> [ donor.expr ])) ]
+          <> [ JavaLocalAssign result
+                 (JavaCall (JavaLocal fn.javaName) (map _.expr captures <> values.exprs <> [ donor.expr ])) ]
       , expr: JavaLocal result
       , pool: donor.pool
       }
@@ -642,17 +714,17 @@ fieldJavaType spec index = case Array.index spec.fields index of
   Just IntField -> ParamInt
   _ -> ParamObject
 
-emitArguments :: Context -> CellPool -> Array Argument -> Gen
+emitArguments :: Context -> Env -> CellPool -> Array Argument -> Gen
   { stmts :: Array JavaExpr, exprs :: Array JavaExpr, pool :: CellPool }
-emitArguments context pool = foldM step { stmts: [], exprs: [], pool }
+emitArguments context env pool = foldM step { stmts: [], exprs: [], pool }
   where
   step result arg = do
-    value <- emitArgument context result.pool arg
+    value <- emitArgument context env result.pool arg
     pure { stmts: result.stmts <> value.stmts, exprs: Array.snoc result.exprs value.expr, pool: value.pool }
 
-emitArgument :: Context -> CellPool -> Argument -> Gen Generated
-emitArgument context pool = case _ of
-  TreeArg tree -> emitTree context pool false tree
+emitArgument :: Context -> Env -> CellPool -> Argument -> Gen Generated
+emitArgument context env pool = case _ of
+  TreeArg tree -> emitTree context env pool false tree
   ScalarArg value -> pure { stmts: [], expr: value.expr, pool }
 
 plan :: Context -> Env -> Array Path -> TreeTerm -> Gen
@@ -691,6 +763,7 @@ emitBody context env expr = case strip expr of
       pure { condition: cond.expr, term: result }) (NonEmptyArray.toArray branches)
     pure $ Array.foldr (\branch rest -> TermIf branch.condition branch.term rest) def cases
   Fail message -> pure (TermReturn (JavaThrow message))
+  LetRec _ _ body -> emitBody context env body
   Let name level binding body -> case pathValue context env binding of
     Just path -> emitBody context (Map.insert (Tuple name level) (Tree path) env) body
     Nothing -> case scalar context env binding of
@@ -704,7 +777,7 @@ emitBody context env expr = case strip expr of
             future = continuationPaths env body
         lift $ guard (not (any (\path -> any (overlap path) future) consumed))
         prepared <- plan context env future term
-        result <- emitTree context prepared.pool true prepared.term
+        result <- emitTree context env prepared.pool true prepared.term
         temporary <- freshName "__let_tree_"
         let
           remaining = Map.filter (case _ of
@@ -722,14 +795,14 @@ emitBody context env expr = case strip expr of
     term <- lift $ treeTerm context env expr
     prepared <- plan context env [] term
     case prepared.term of
-      Call name args | name == context.candidate.original -> do
-        values <- emitArguments context prepared.pool args
+      Call key args | key == context.candidate.key -> do
+        values <- emitArguments context env prepared.pool args
         donor <- takeCell context values.pool
         pure (TermStmts
           (prepared.stmts <> values.stmts <> donor.stmts)
           (TermContinue (JavaContinue (unwrap context.candidate.worker) (values.exprs <> [ donor.expr ]))))
       _ -> do
-        result <- emitTree context prepared.pool true prepared.term
+        result <- emitTree context env prepared.pool true prepared.term
         pure (TermStmts (prepared.stmts <> result.stmts) (TermReturn result.expr))
 
 type Decision = { cases :: Array (Tuple JavaExpr Term), fallback :: Term }
@@ -779,9 +852,12 @@ compileTerm name allParams term =
 workerDeclarations :: Context -> Candidate -> Maybe (Array JavaExpr)
 workerDeclarations context fn = do
   let
+    captureParams = Array.mapWithIndex (\index _ -> Tuple ("captured" <> show index) ParamObject) fn.captures
+    captureEnv = Map.fromFoldable $ Array.mapWithIndex (\index ref ->
+      Tuple ref (Scalar { expr: JavaLocal ("captured" <> show index), ty: ScalarObject, reads: [] })) fn.captures
     params = Array.mapWithIndex (\index argTy -> Tuple ("owned" <> show index) (argJavaType argTy)) fn.argTypes
     donorArg = "donor"
-    envWith nameOf = Map.fromFoldable $ Array.mapWithIndex (\index ref ->
+    argEnv nameOf = Array.mapWithIndex (\index ref ->
       let
         name = "owned" <> show index
         argTy = fromMaybe ArgObject (Array.index fn.argTypes index)
@@ -790,6 +866,7 @@ workerDeclarations context fn = do
           ArgTree -> Tree (Path (nameOf name) [])
           ArgInt -> Scalar { expr: JavaLocal (nameOf name), ty: ScalarInt, reads: [] }
           ArgObject -> Scalar { expr: JavaLocal (nameOf name), ty: ScalarObject, reads: [] })) fn.args
+    envWith nameOf = Map.fromFoldable (Map.toUnfoldable captureEnv <> argEnv nameOf)
     plainEnv = envWith identity
     loops = hasTailSelfCall context plainEnv fn.body
     env = envWith (\name -> if loops then "__final_" <> name else name)
@@ -799,14 +876,14 @@ workerDeclarations context fn = do
   let
     intParams = Array.mapMaybe (\(Tuple name javaTy) -> if javaTy == ParamInt then Just name else Nothing) params
     loopArgs = map fst params <> [ donorArg ]
-    allParams = params <> [ Tuple donorArg ParamObject ]
+    allParams = captureParams <> params <> [ Tuple donorArg ParamObject ]
     initialize = if loops then [ JavaLocalAssign donorName (JavaLocal ("__final_" <> donorArg)) ] else []
   if loops then
     pure [ JavaStaticMethod fn.javaName allParams (JavaWhileTrue loopArgs intParams (JavaBlock initialize (termExpr term))) ]
   else
     pure (compileTerm fn.javaName allParams term)
 
-validateCandidates :: BackendModule -> Map Ident Candidate -> Map Ident Candidate
+validateCandidates :: BackendModule -> Map CandidateKey Candidate -> Map CandidateKey Candidate
 validateCandidates mod candidates =
   let accepted = Map.filter (\fn -> isJust (workerDeclarations (contextOf fn) fn)) candidates
   in if Map.size accepted == Map.size candidates then accepted else validateCandidates mod accepted
@@ -833,27 +910,50 @@ freshTree context expr = case strip expr of
   Var ctor -> Just (qualify context.moduleName ctor) == context.candidate.spec.leaf
   _ -> false
 
-rewrite :: ModuleName -> Array DataDecl -> Map Ident Candidate -> NeutralExpr -> NeutralExpr
-rewrite moduleName dataDecls candidates original@(NeutralExpr syn) =
+rewrite :: ModuleName -> Array DataDecl -> Map CandidateKey Candidate -> NeutralExpr -> State (Set.Set CandidateKey) NeutralExpr
+rewrite moduleName dataDecls candidates original@(NeutralExpr syn) = do
   let
     call = spine original
     target = case strip call.head of
       Var qualified -> case qualify moduleName qualified of
-        Qualified (Just mod) name | mod == moduleName -> Map.lookup name candidates
+        Qualified (Just mod) name | mod == moduleName -> Map.lookup (TopLevelKey name) candidates
+        _ -> Nothing
+      Local name level -> Map.lookup (LocalKey name level) candidates
+      _ -> Nothing
+    callToWorker = case strip call.head of
+      Var qualified -> case qualify moduleName qualified of
+        Qualified (Just mod) name | mod == moduleName ->
+          case Map.lookup (TopLevelKey name) candidates of
+            Just fn
+              | unwrap fn.worker == unwrap name
+              , Array.length call.args == Array.length fn.captures + Array.length fn.args -> Just fn.key
+            _ -> Nothing
         _ -> Nothing
       _ -> Nothing
-    choose = do
-      fn <- target
-      guard (Array.length call.args == Array.length fn.args)
-      let context =
-            { moduleName
-            , candidate: fn
-            , candidates
-            , dataDecls
-            , donorName: "__donor"
-            }
-      guard (all (\(Tuple kind value) -> kind /= ArgTree || freshTree context value) (Array.zip fn.argTypes call.args))
-      args <- NonEmptyArray.fromArray (map (rewrite moduleName dataDecls candidates) call.args)
-      pure $ NeutralExpr $ Syn.App (NeutralExpr $ Syn.Var (Qualified (Just moduleName) fn.worker)) args
-  in
-    fromMaybe (NeutralExpr $ map (rewrite moduleName dataDecls candidates) syn) choose
+  case callToWorker of
+    -- Applying the pass twice must keep the same workers reachable.
+    Just key -> do
+      modify_ (Set.insert key)
+      pure original
+    Nothing -> case target of
+      Just fn
+        | Array.length call.args == Array.length fn.args
+        , all (\(Tuple kind value) -> kind /= ArgTree || freshTree (contextFor fn) value) (Array.zip fn.argTypes call.args) -> do
+            modify_ (Set.insert fn.key)
+            args <- traverse (rewrite moduleName dataDecls candidates) call.args
+            let captureArgs = map (\ref -> NeutralExpr (Syn.Local (fst ref) (snd ref))) fn.captures
+            case NonEmptyArray.fromArray (captureArgs <> args) of
+              Just combined -> pure $ NeutralExpr $ Syn.App (NeutralExpr $ Syn.Var (Qualified (Just moduleName) fn.worker)) combined
+              Nothing -> pure original
+      _ -> NeutralExpr <$> traverse (rewrite moduleName dataDecls candidates) syn
+  where
+  contextFor fn =
+    { moduleName, candidate: fn, candidates, dataDecls, donorName: "__donor" }
+
+-- | Candidate calls reachable from a worker body. A worker that is called must
+-- | have every worker it calls emitted as well.
+callees :: Context -> NeutralExpr -> Array CandidateKey
+callees context expr@(NeutralExpr syn) =
+  (case knownCall context expr of
+    Just call -> [ call.fn.key ]
+    Nothing -> []) <> foldMap (callees context) syn

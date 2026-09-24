@@ -78,7 +78,7 @@ const treeModule = (extras = [], built = true) => ({
   ],
 });
 const options = { typedRecords: false, loopInvariants: true, directCalls: true, intFunctions: true, ownership: true };
-const generate = mod => printFile(moduleName)(translateWithIntFunctions(options)(prepare(mod).module));
+const generate = mod => printFile(moduleName)(translateWithIntFunctions(options)(mod));
 const occurrences = (text, needle) => text.split(needle).length - 1;
 const definitions = (text, name) => text.split(`private static Object ${name}(`).length - 1;
 
@@ -141,12 +141,67 @@ const listModule = {
     { recursive: true, bindings: [new Tuple("append", appendBody)] },
   ],
 };
+// A local recursive group: duplicate consumes its list and captures a scalar.
+const localName = "Ownership_Local";
+const localType = new C.ADT(`${localName}.List`, [localName, "List"], [new C.TypeVar("a")]);
+const localFunctionType = new C.Func([C.Int.value, localType], localType);
+const localQ = name => new C.Qualified(new Just(localName), name);
+const localCall = (name, args) => bApply(new S.Var(localQ(name)), args);
+const localCtor = (name, fields) => new S.CtorSaturated(localQ(name), C.ProductType.value, "List", name,
+  fields.map((value, index) => new Tuple(`value${index}`, value)));
+const localAccessor = (base, index) => new S.Accessor(base,
+  new S.GetCtorField(localQ("Cons"), C.ProductType.value, "List", "Cons", `value${index}`, index));
+const localTag = (name, value) => new S.PrimOp(new S.Op1(new S.OpIsTag(localQ(name)), value));
+const ref = (name, level) => new S.Local(new Just(name), level);
+const localCons = (head, tail) => localCtor("Cons", [head, tail]);
+const localNil = () => localCtor("Nil", []);
+// go rest = case rest of
+//   Nil -> Nil
+//   Cons x more -> Cons x (Cons count (go more))
+const goDefinition = typed(new C.Func([localType], localType), abs([["rest", 3]],
+  branch(
+    [[localTag("Nil", ref("rest", 3)), localNil()]],
+    branch(
+      [[localTag("Cons", ref("rest", 3)),
+        localCons(localAccessor(ref("rest", 3), 0),
+          localCons(ref("count", 0), bApply(ref("go", 2), [localAccessor(ref("rest", 3), 1)])))]],
+      typed(localType, new S.Fail("Failed pattern match"))))));
+const duplicateBody = typed(localFunctionType, abs([["count", 0], ["xs", 1]],
+  new S.LetRec(2, [new Tuple("go", goDefinition)], bApply(ref("go", 2), [ref("xs", 1)]))));
+const localModule = {
+  name: localName,
+  dataDecls: [{
+    name: "List",
+    vars: ["a"],
+    constructors: [
+      { name: "Nil", fields: [] },
+      { name: "Cons", fields: [new C.TypeVar("a"), localType] },
+    ],
+  }],
+  foreign: PursMap.empty,
+  bindings: [
+    { recursive: false, bindings: [new Tuple("duplicated", typed(localType, localCall("duplicate", [
+      lit(7), localCons(lit(1), localCons(lit(2), localNil()))])))] },
+    { recursive: false, bindings: [new Tuple("duplicate", duplicateBody)] },
+  ],
+};
+const localPrepared = prepare(localModule);
+assert.ok(localPrepared.diagnostics.some(line => line.includes("duplicate, go")),
+  "a function with a local recursive group must be accepted");
+assert.deepEqual(localPrepared.mutableClasses, [`${localName}.Cons`],
+  "the local list node class must allow field updates");
+const localSource = printFile(localName)(translateWithIntFunctions(options)(localModule));
+assert.ok(definitions(localSource, "__owned_duplicate") >= 1, "the enclosing function must become a worker");
+assert.ok(definitions(localSource, "__owned_go") >= 1, "the local recursive group must become a worker");
+assert.match(localSource, /__owned_go\(owned0, /,
+  "the worker call must pass the captured scalar");
+
 const listPrepared = prepare(listModule);
 assert.deepEqual(listPrepared.mutableClasses, [`${listName}.Cons`],
   "a polymorphic node class must allow field updates");
 assert.ok(listPrepared.diagnostics.some(line => line.includes("append")),
   "the polymorphic worker must be accepted");
-const listSource = printFile(listName)(translateWithIntFunctions(options)(listPrepared.module));
+const listSource = printFile(listName)(translateWithIntFunctions(options)(listModule));
 assert.ok(definitions(listSource, "__owned_append") >= 1, "the polymorphic worker must be emitted");
 assert.doesNotMatch(listSource, /public final Object value0;/, "the polymorphic node must stay mutable");
 
@@ -155,6 +210,7 @@ const directory = mkdtempSync(join(tmpdir(), "javapurs-ownership-"));
 try {
   writeFileSync(join(directory, `${moduleName}.java`), source);
   writeFileSync(join(directory, `${listName}.java`), listSource);
+  writeFileSync(join(directory, `${localName}.java`), localSource);
   writeFileSync(join(directory, "TcoLoop.java"), `public class TcoLoop extends RuntimeException {
     public String loopId;
     public Object[] args;
@@ -176,6 +232,13 @@ try {
             list = node.value1;
         }
     }
+    static void collectLocal(Object list, java.util.List<Object> items) {
+        while (list != ${localName}.__singleton$Nil.value) {
+            ${localName}.Cons node = (${localName}.Cons) list;
+            items.add(node.value0);
+            list = node.value1;
+        }
+    }
     @SuppressWarnings("unchecked")
     static Object persistent() {
         java.util.function.Function<Object, Object> build = (java.util.function.Function<Object, Object>) ${moduleName}.build;
@@ -186,17 +249,19 @@ try {
         java.util.List<Integer> owned = new java.util.ArrayList<>();
         java.util.List<Integer> shared = new java.util.ArrayList<>();
         java.util.List<Object> appended = new java.util.ArrayList<>();
+        java.util.List<Object> duplicated = new java.util.ArrayList<>();
         collect(${moduleName}.built, owned);
         collect(persistent(), shared);
         collectList(${listName}.appended, appended);
-        System.out.println(owned.equals(shared) + " " + owned + " " + appended);
+        collectLocal(${localName}.duplicated, duplicated);
+        System.out.println(owned.equals(shared) + " " + owned + " " + appended + " " + duplicated);
     }
 }`);
-  execFileSync(javac, ["-d", directory, join(directory, `${moduleName}.java`), join(directory, `${listName}.java`), join(directory, "TcoLoop.java"), join(directory, "OwnershipRun.java")], { stdio: "pipe" });
+  execFileSync(javac, ["-d", directory, join(directory, `${moduleName}.java`), join(directory, `${listName}.java`), join(directory, `${localName}.java`), join(directory, "TcoLoop.java"), join(directory, "OwnershipRun.java")], { stdio: "pipe" });
   const output = execFileSync(java, ["-cp", directory, "OwnershipRun"], { encoding: "utf8" }).trim();
-  assert.equal(output, "true [1, 2, 3, 4, 5, 6, 7, 8] [1, 2, 3]",
-    "the consuming builds must match the persistent tree and the polymorphic list");
-  console.log("Ownership: workers, rewrite guards, runtime tree and polymorphic list passed");
+  assert.equal(output, "true [1, 2, 3, 4, 5, 6, 7, 8] [1, 2, 3] [1, 7, 2, 7]",
+    "the consuming builds must match the persistent tree, list and local group");
+  console.log("Ownership: workers, rewrite guards, runtime tree, polymorphic list and local group passed");
 } finally {
   rmSync(directory, { recursive: true, force: true });
 }
