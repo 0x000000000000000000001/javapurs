@@ -134,7 +134,7 @@ var translateOperator2 = function (v) {
                     return new Javapurs_JavaAst.JavaBinaryOp("*", new Javapurs_JavaAst.JavaCast("int", e1), new Javapurs_JavaAst.JavaCast("int", e2));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpIntNum && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpDivide) {
-                    return new Javapurs_JavaAst.JavaBinaryOp("/", new Javapurs_JavaAst.JavaCast("int", e1), new Javapurs_JavaAst.JavaCast("int", e2));
+                    return new Javapurs_JavaAst.JavaBlock([ new Javapurs_JavaAst.JavaLocalAssign("__div_l", e1), new Javapurs_JavaAst.JavaLocalAssign("__div_r", e2) ], new Javapurs_JavaAst.JavaRaw("(((Integer) __div_r) == 0 ? 0 : (((Integer) __div_r) > 0 ? (int) Math.floor((double) ((Integer) __div_l) / ((Integer) __div_r)) : -(int) Math.floor((double) ((Integer) __div_l) / -((double) ((Integer) __div_r)))))"));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpIntNum && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpMod) {
                     return new Javapurs_JavaAst.JavaBlock([ new Javapurs_JavaAst.JavaLocalAssign("__mod_l", e1), new Javapurs_JavaAst.JavaLocalAssign("__mod_r", e2) ], new Javapurs_JavaAst.JavaRaw("(((Integer) __mod_r) == 0 ? 0 : (int) Math.floorMod((long) ((Integer) __mod_l), Math.abs((long) ((Integer) __mod_r))))"));
@@ -214,7 +214,7 @@ var translateOperator2 = function (v) {
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpArrayIndex) {
                     return new Javapurs_JavaAst.JavaArrayIndex(e1, e2);
                 };
-                throw new Error("Failed pattern match at Javapurs.CodeGen (line 591, column 33 - line 647, column 39): " + [ op.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.CodeGen (line 591, column 33 - line 654, column 39): " + [ op.constructor.name ]);
             };
         };
     };

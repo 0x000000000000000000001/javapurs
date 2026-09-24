@@ -612,7 +612,14 @@ translateOperator2 _ op e1 e2 = case op of
   OpIntNum OpAdd -> JavaBinaryOp "+" (JavaCast "int" e1) (JavaCast "int" e2)
   OpIntNum OpSubtract -> JavaBinaryOp "-" (JavaCast "int" e1) (JavaCast "int" e2)
   OpIntNum OpMultiply -> JavaBinaryOp "*" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpIntNum OpDivide -> JavaBinaryOp "/" (JavaCast "int" e1) (JavaCast "int" e2)
+  OpIntNum OpDivide ->
+    -- EuclideanRing intDiv: floor towards negative infinity for a positive
+    -- divisor, mirrored for a negative one, and a zero divisor returns zero
+    -- instead of throwing. The negation stays in double precision so that
+    -- Int.MIN_VALUE remains a usable divisor.
+    JavaBlock
+      [ JavaLocalAssign "__div_l" e1, JavaLocalAssign "__div_r" e2 ]
+      (JavaRaw "(((Integer) __div_r) == 0 ? 0 : (((Integer) __div_r) > 0 ? (int) Math.floor((double) ((Integer) __div_l) / ((Integer) __div_r)) : -(int) Math.floor((double) ((Integer) __div_l) / -((double) ((Integer) __div_r)))))")
   OpIntNum OpMod ->
     JavaBlock
       [ JavaLocalAssign "__mod_l" e1, JavaLocalAssign "__mod_r" e2 ]
