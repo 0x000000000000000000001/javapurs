@@ -1,0 +1,198 @@
+#!/usr/bin/env bash
+
+# Test runner for javapurs
+# Compiles and runs the PureScript passing tests through the Java backend.
+#
+# Usage: ./bin/test [tests...] [options]
+#   -c, --clean            Rebuild the backend and the runner caches first
+#   --list                 Print the selection without building or running
+#   --keep-going           Report every failure instead of stopping at the first
+#   skip_before=NAME       Resume inclusively at that test
+#   until=NAME             Stop after that test
+#
+# A test argument may be a file name (1110 or 1110.purs) or a full path.
+
+ROOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
+FORK_PASSING_DIR="$ROOT_DIR/../../purescript/tests/purs/passing"
+LOCAL_PASSING_DIR="$ROOT_DIR/tests/passing"
+RUNNER_DIR="$ROOT_DIR/tests/runner"
+
+JAVAC=${JAVAC:-$(command -v javac || echo /opt/homebrew/opt/openjdk/bin/javac)}
+JAVA=${JAVA:-$(command -v java || echo /opt/homebrew/opt/openjdk/bin/java)}
+
+source "$(dirname "$0")/pkg"
+
+if [ -d "$FORK_PASSING_DIR" ]; then
+  PASSING_DIR="$FORK_PASSING_DIR"
+elif [ -d "$LOCAL_PASSING_DIR" ]; then
+  PASSING_DIR="$LOCAL_PASSING_DIR"
+else
+  echo "Missing passing tests: neither $FORK_PASSING_DIR nor $LOCAL_PASSING_DIR exists."
+  exit 1
+fi
+
+for pkg in "${CORE_PACKAGES[@]}"; do
+  if [ ! -d "$ROOT_DIR/../javapurs-$pkg" ]; then
+    echo "Missing sibling checkout: javapurs-$pkg"
+    echo "Check the javapurs repository layout before running the tests."
+    exit 1
+  fi
+done
+
+mkdir -p "$RUNNER_DIR/src"
+
+CLEAN_CACHE=0
+LIST_ONLY=0
+KEEP_GOING=0
+SKIP_BEFORE=""
+UNTIL=""
+TEST_FILES=()
+
+for arg in "$@"; do
+  case "$arg" in
+    -c|--clean) CLEAN_CACHE=1 ;;
+    --list) LIST_ONLY=1 ;;
+    --keep-going) KEEP_GOING=1 ;;
+    skip_before=*|--skip-before=*) SKIP_BEFORE="${arg#*=}" ;;
+    until=*|--until=*) UNTIL="${arg#*=}" ;;
+    *)
+      candidate=""
+      if [ -f "$ROOT_DIR/$arg" ]; then candidate="$ROOT_DIR/$arg"
+      elif [ -f "$arg" ]; then candidate="$arg"
+      elif [ -f "$PASSING_DIR/$arg" ]; then candidate="$PASSING_DIR/$arg"
+      elif [ -f "$PASSING_DIR/$arg.purs" ]; then candidate="$PASSING_DIR/$arg.purs"
+      fi
+      if [ -n "$candidate" ]; then
+        TEST_FILES+=("$candidate")
+      else
+        echo "Test file $arg not found."
+      fi
+      ;;
+  esac
+done
+
+if [ "$CLEAN_CACHE" -eq 1 ]; then
+  echo "Building javapurs backend..."
+  (cd "$ROOT_DIR" && ./bin/build) || { echo "javapurs build failed!"; exit 1; }
+fi
+
+cd "$RUNNER_DIR"
+
+if [ "$CLEAN_CACHE" -eq 1 ]; then
+  echo "=> Cleaning spago, output and runner caches..."
+  rm -rf .spago/* output/* java_output classes
+fi
+
+if [ ${#TEST_FILES[@]} -eq 0 ]; then
+  while IFS= read -r file; do TEST_FILES+=("$file"); done < <(ls "$PASSING_DIR"/*.purs | sort -V)
+fi
+
+# Resume inclusively at a test and stop after the requested one.
+SELECTED=()
+skipping=0
+if [ -n "$SKIP_BEFORE" ]; then skipping=1; fi
+for test_file in "${TEST_FILES[@]}"; do
+  name=$(basename "$test_file" .purs)
+  if [ "$skipping" -eq 1 ]; then
+    if [ "$name" == "${SKIP_BEFORE%.purs}" ]; then skipping=0; else continue; fi
+  fi
+  SELECTED+=("$test_file")
+  if [ -n "$UNTIL" ] && [ "$name" == "${UNTIL%.purs}" ]; then break; fi
+done
+TEST_FILES=("${SELECTED[@]+"${SELECTED[@]}"}")
+
+if [ "$LIST_ONLY" -eq 1 ]; then
+  for test_file in "${TEST_FILES[@]}"; do
+    basename "$test_file" .purs
+  done
+  echo "${#TEST_FILES[@]} tests selected from $PASSING_DIR"
+  exit 0
+fi
+
+echo "Running ${#TEST_FILES[@]} tests from $PASSING_DIR..."
+echo ""
+
+passed=0
+failed=0
+FAILED_TESTS=()
+
+for test_file in "${TEST_FILES[@]}"; do
+  test_name=$(basename "$test_file")
+  test_base=$(basename "$test_file" .purs)
+  log_file="logs-$test_base.txt"
+
+  echo "=> Testing $test_name"
+
+  rm -rf src/Main.purs src/Main.java output java_output classes
+  mkdir -p java_output classes
+
+  cp "$test_file" "src/Main.purs"
+  # Auxiliary modules live in a directory named after the test.
+  if [ -d "${test_file%.purs}" ]; then
+    cp -R "${test_file%.purs}"/. src/
+  fi
+  # Java FFI next to the test, when a port defines one.
+  if [ -f "${test_file%.purs}.java" ]; then
+    cp "${test_file%.purs}.java" "src/Main.java"
+  fi
+
+  if ! spago build -q > "$log_file" 2>&1; then
+    echo "   FAILED PureScript compilation"
+    tail -20 "$log_file"
+    FAILED_TESTS+=("$test_base: purescript")
+    failed=$((failed+1))
+    [ "$KEEP_GOING" -eq 0 ] && break
+    continue
+  fi
+
+  if ! ../../bin/javapurs --main Main >> "$log_file" 2>&1; then
+    echo "   FAILED javapurs code generation"
+    tail -20 "$log_file"
+    FAILED_TESTS+=("$test_base: generation")
+    failed=$((failed+1))
+    [ "$KEEP_GOING" -eq 0 ] && break
+    continue
+  fi
+
+  if [ ! -f java_output/MainRun.java ]; then
+    echo "   FAILED javapurs did not generate java_output/MainRun.java"
+    FAILED_TESTS+=("$test_base: generation")
+    failed=$((failed+1))
+    [ "$KEEP_GOING" -eq 0 ] && break
+    continue
+  fi
+
+  if ! "$JAVAC" -d classes -sourcepath java_output java_output/MainRun.java > "$log_file" 2>&1; then
+    echo "   FAILED javac"
+    tail -20 "$log_file"
+    FAILED_TESTS+=("$test_base: javac")
+    failed=$((failed+1))
+    [ "$KEEP_GOING" -eq 0 ] && break
+    continue
+  fi
+
+  if "$JAVA" -cp classes MainRun > "$log_file" 2>&1; then
+    rm -f "$log_file"
+    echo "   OK"
+    passed=$((passed+1))
+  else
+    echo "   FAILED Java execution"
+    tail -20 "$log_file"
+    FAILED_TESTS+=("$test_base: execution")
+    failed=$((failed+1))
+    [ "$KEEP_GOING" -eq 0 ] && break
+    continue
+  fi
+done
+
+echo ""
+if [ "$failed" -eq 0 ]; then
+  echo "Summary: $passed passed, 0 failed."
+else
+  echo "Failing tests:"
+  for failure in "${FAILED_TESTS[@]}"; do
+    echo "  $failure"
+  done
+  echo "Summary: $passed passed, $failed failed."
+  exit 1
+fi

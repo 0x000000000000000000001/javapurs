@@ -207,7 +207,23 @@ When no `.java` file is found, the backend emits missing-FFI stubs that throw wh
 
 ## Development and testing
 
-Use the same checkout layout as the source build instructions. The repository's regression suites are the scripts in [test/](test/); there is currently no `bin/setup`, `bin/test`, or npm test command.
+Use the same checkout layout as the source build instructions. There are two levels of testing:
+
+- **`./bin/test`** compiles and runs the PureScript passing tests (`purescript/tests/purs/passing`) through the Java backend, like the other backend checkouts do.
+- **`test/*.mjs`** are the backend's own regression suites, run after `./bin/build`.
+
+```bash
+# Passing tests, all of them:
+./bin/test --keep-going
+
+# Rebuild the backend first, resume inclusively at a test, or stop after one:
+./bin/test -c
+./bin/test skip_before=1881
+./bin/test until=1881
+./bin/test 1110 1185
+```
+
+Each selected test is copied to `tests/runner/src/Main.purs`, built with `spago`, lowered by `bin/javapurs`, compiled with `javac`, and executed; the runner expects a successful exit status. A directory named after the test contributes its auxiliary modules, and a sibling `.java` file (a Java port of the test's FFI) is copied too. Without `--keep-going`, the run stops at the first failure so it can be fixed and resumed with `skip_before=`; with it, every failure is reported in the summary. The runner lives in `tests/runner/` with its own workspace file, and its generated directories are ignored.
 
 Rebuild the backend, select a JDK, then run one focused regression or all scripts:
 
@@ -236,6 +252,9 @@ The Java integration scripts default to Homebrew's `/opt/homebrew/opt/openjdk/bi
 | `test/loop-invariants.mjs` | Lazy per-invocation caches, evaluation order, and rejected candidates. |
 | `test/direct-calls.mjs` | Static calls, partial application, arity limits, and initialization order. |
 | `test/int-functions.mjs` | Primitive integer functions, generic interoperability, and evaluation behavior. |
+| `test/operators.mjs` | Euclidean integer division, modulo and Number equality against the reference semantics. |
+| `test/constructor-reuse.mjs` | Constructor rebuilds shared with their source, with a runtime fixture. |
+| `test/ownership.mjs` | Consuming workers for tree families: emission, freshness guard, polymorphic and local groups. |
 
 Some scripts accept optional already-built benchmark projects, such as `--rbtree-project` for direct calls or `--church-project` for integer functions. Consult their source comments for the expected cache layout. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
 

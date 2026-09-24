@@ -1,0 +1,61 @@
+package:
+  name: runner
+  dependencies:
+    - assert
+    - prelude
+    - effect
+    - console
+    - arrays
+    - partial
+    - foldable-traversable
+    - st
+    - exceptions
+    - integers
+    - strings
+    - enums
+    - foreign-object
+    - numbers
+    - refs
+    - unsafe-coerce
+    - functions
+    - record
+workspace:
+  packageSet:
+    registry: 77.10.1
+  extraPackages:
+    assert:
+      path: "../../../javapurs-assert"
+    prelude:
+      path: "../../../javapurs-prelude"
+    effect:
+      path: "../../../javapurs-effect"
+    console:
+      path: "../../../javapurs-console"
+    arrays:
+      path: "../../../javapurs-arrays"
+    partial:
+      path: "../../../javapurs-partial"
+    foldable-traversable:
+      path: "../../../javapurs-foldable-traversable"
+    st:
+      path: "../../../javapurs-st"
+    exceptions:
+      path: "../../../javapurs-exceptions"
+    integers:
+      path: "../../../javapurs-integers"
+    strings:
+      path: "../../../javapurs-strings"
+    enums:
+      path: "../../../javapurs-enums"
+    foreign-object:
+      path: "../../../javapurs-foreign-object"
+    numbers:
+      path: "../../../javapurs-numbers"
+    refs:
+      path: "../../../javapurs-refs"
+    unsafe-coerce:
+      path: "../../../javapurs-unsafe-coerce"
+    functions:
+      path: "../../../javapurs-functions"
+    record:
+      path: "../../../javapurs-record"
