@@ -52,8 +52,8 @@ var rename = function (env) {
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaFunction(v1.value0), v1.value1);
             };
             if (v instanceof Javapurs_JavaAst.JavaLocal) {
-                var $138 = Data_String_CodePoints.take(8)(v.value0) === "__final_";
-                if ($138) {
+                var $141 = Data_String_CodePoints.take(8)(v.value0) === "__final_";
+                if ($141) {
                     var baseName = Data_String_CodePoints.drop(8)(v.value0);
                     var renamed = lookupName(baseName)(env);
                     return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaLocal("__final_" + renamed), s);
@@ -306,6 +306,12 @@ var rename = function (env) {
                 var v2 = rename(env)(v1.value1)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaArrayIndex(v1.value0, v2.value0), v2.value1);
             };
+            if (v instanceof Javapurs_JavaAst.JavaArraySet) {
+                var v1 = rename(env)(s)(v.value0);
+                var v2 = rename(env)(v1.value1)(v.value1);
+                var v3 = rename(env)(v2.value1)(v.value2);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaArraySet(v1.value0, v2.value0, v3.value0), v3.value1);
+            };
             if (v instanceof Javapurs_JavaAst.JavaCast) {
                 var v1 = rename(env)(s)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaCast(v.value0, v1.value0), v1.value1);
@@ -353,7 +359,7 @@ var rename = function (env) {
                 })(new Data_Tuple.Tuple([  ], v2.value1))(v.value2);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaIf(v1.value0, v2.value0, v3.value0), v3.value1);
             };
-            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 200, column 58): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 205, column 58): " + [ v.constructor.name ]);
         };
     };
 };

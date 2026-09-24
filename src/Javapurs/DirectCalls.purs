@@ -181,6 +181,7 @@ children visit expression = case expression of
   JavaBinaryOp operator left right -> JavaBinaryOp operator <$> visit left <*> visit right
   JavaUnaryOp operator value -> JavaUnaryOp operator <$> visit value
   JavaArrayIndex value index -> JavaArrayIndex <$> visit value <*> visit index
+  JavaArraySet array index value -> JavaArraySet <$> visit array <*> visit index <*> visit value
   JavaCast name value -> JavaCast name <$> visit value
   JavaBlock statements value -> JavaBlock <$> traverse visit statements <*> visit value
   JavaFieldSet target className fieldName fieldType value ->

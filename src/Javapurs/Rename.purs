@@ -164,6 +164,11 @@ rename env s = case _ of
     let Tuple array' s1 = rename env s array
         Tuple index' s2 = rename env s1 index
     in Tuple (JavaArrayIndex array' index') s2
+  JavaArraySet array index value ->
+    let Tuple array' s1 = rename env s array
+        Tuple index' s2 = rename env s1 index
+        Tuple value' s3 = rename env s2 value
+    in Tuple (JavaArraySet array' index' value') s3
   JavaCast c e ->
     let Tuple e' s1 = rename env s e
     in Tuple (JavaCast c e') s1

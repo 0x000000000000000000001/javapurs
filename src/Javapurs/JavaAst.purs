@@ -52,6 +52,7 @@ data JavaExpr
   | JavaBinaryOp String JavaExpr JavaExpr
   | JavaUnaryOp String JavaExpr
   | JavaArrayIndex JavaExpr JavaExpr
+  | JavaArraySet JavaExpr JavaExpr JavaExpr
   | JavaCast String JavaExpr
   | JavaBlock (Array JavaExpr) JavaExpr
   -- Mutation statements used by ownership workers. The field write casts the

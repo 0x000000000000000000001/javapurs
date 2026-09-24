@@ -153,6 +153,7 @@ mapExpr rewrite = go
     JavaBinaryOp op left right -> JavaBinaryOp op (go left) (go right)
     JavaUnaryOp op value -> JavaUnaryOp op (go value)
     JavaArrayIndex array index -> JavaArrayIndex (go array) (go index)
+    JavaArraySet array index value -> JavaArraySet (go array) (go index) (go value)
     JavaCast ty value -> JavaCast ty (go value)
     JavaBlock stmts value -> JavaBlock (map go stmts) (go value)
     JavaFieldSet target className fieldName fieldType value ->

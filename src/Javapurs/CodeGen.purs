@@ -8,7 +8,7 @@ import Data.Tuple (Tuple(..))
 import Data.Foldable (foldl, foldr, foldMap)
 import Data.Map (Map)
 import Data.Map as Map
-import PureScript.Backend.Optimizer.Syntax (BackendSyntax(..), Level(..), Pair(..), BackendOperator(..), BackendAccessor(..))
+import PureScript.Backend.Optimizer.Syntax (BackendSyntax(..), Level(..), Pair(..), BackendOperator(..), BackendAccessor(..), BackendEffect(..))
 import PureScript.Backend.Optimizer.FreeVars (localId)
 import Data.Array.NonEmpty as NEA
 import PureScript.Backend.Optimizer.Codegen.Tco (TcoExpr(..))
@@ -270,6 +270,24 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
         in pureExpr $ JavaLetRec bindsArray (wrapInBlock resBody)
   EffectPure val -> translateExpr env loopCtx isTail val
   EffectDefer val -> translateExprWith inEffectBlock env loopCtx true val
+  PrimEffect effect -> case effect of
+    -- A mutable reference is a one-element Object array, the same shape the
+    -- Ref and ST ports use.
+    EffectRefNew value ->
+      let res = wrapInBlock (translateExpr env loopCtx false value)
+      in pureExpr $ JavaArray [ res ]
+    EffectRefRead reference ->
+      let res = wrapInBlock (translateExpr env loopCtx false reference)
+      in pureExpr $ JavaArrayIndex res (JavaRaw "0")
+    EffectRefWrite reference value ->
+      let
+        resRef = translateExpr env loopCtx false reference
+        resValue = translateExpr env loopCtx false value
+      in
+        { stmts: resRef.stmts <> resValue.stmts
+            <> [ JavaArraySet (wrapInBlock resRef) (JavaRaw "0") (wrapInBlock resValue) ]
+        , expr: wrapInBlock resValue
+        }
   EffectBind mbI lvl expr rest ->
     let
       realExpr = stripEffectDefer expr

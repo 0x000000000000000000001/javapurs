@@ -173,6 +173,8 @@ printExpr = case _ of
     "(" <> printExpr e1 <> " " <> op <> " " <> printExpr e2 <> ")"
   JavaUnaryOp op expr -> "(" <> op <> "(" <> printExpr expr <> "))"
   JavaArrayIndex array index -> "((Object[]) (" <> printExpr array <> "))[" <> printExpr (JavaCast "int" index) <> "]"
+  JavaArraySet array index value ->
+    "((Object[]) (" <> printExpr array <> "))[" <> printExpr (JavaCast "int" index) <> "] = " <> printExpr value <> ";"
   JavaCast t e ->
     "((" <> t <> ") (" <> printExpr e <> "))"
   JavaLocalAssign name expr ->
@@ -367,6 +369,7 @@ hasAnyContinue = case _ of
     hasAnyContinue condition || Array.any hasAnyContinue thenStmts || Array.any hasAnyContinue elseStmts
   JavaNew _ args -> Array.any hasAnyContinue args
   JavaArray items -> Array.any hasAnyContinue items
+  JavaArraySet array index value -> hasAnyContinue array || hasAnyContinue index || hasAnyContinue value
   JavaRecord fields -> Array.any (hasAnyContinue <<< snd) fields
   JavaTypedRecord _ fields -> Array.any (hasAnyContinue <<< snd) fields
   JavaTypedRecordGet _ value _ -> hasAnyContinue value

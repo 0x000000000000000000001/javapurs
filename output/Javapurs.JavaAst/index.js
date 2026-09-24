@@ -518,6 +518,21 @@ var JavaArrayIndex = /* #__PURE__ */ (function () {
     };
     return JavaArrayIndex;
 })();
+var JavaArraySet = /* #__PURE__ */ (function () {
+    function JavaArraySet(value0, value1, value2) {
+        this.value0 = value0;
+        this.value1 = value1;
+        this.value2 = value2;
+    };
+    JavaArraySet.create = function (value0) {
+        return function (value1) {
+            return function (value2) {
+                return new JavaArraySet(value0, value1, value2);
+            };
+        };
+    };
+    return JavaArraySet;
+})();
 var JavaCast = /* #__PURE__ */ (function () {
     function JavaCast(value0, value1) {
         this.value0 = value0;
@@ -733,6 +748,7 @@ export {
     JavaBinaryOp,
     JavaUnaryOp,
     JavaArrayIndex,
+    JavaArraySet,
     JavaCast,
     JavaBlock,
     JavaFieldSet,
