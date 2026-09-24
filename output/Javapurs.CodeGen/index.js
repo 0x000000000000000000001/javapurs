@@ -173,10 +173,10 @@ var translateOperator2 = function (v) {
                     return new Javapurs_JavaAst.JavaBlock([ new Javapurs_JavaAst.JavaLocalAssign("__mod_l", e1), new Javapurs_JavaAst.JavaLocalAssign("__mod_r", e2) ], new Javapurs_JavaAst.JavaRaw("0.0"));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpNumberOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpEq) {
-                    return new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaRaw("java.util.Objects.equals"), [ e1, e2 ]);
+                    return new Javapurs_JavaAst.JavaBinaryOp("==", new Javapurs_JavaAst.JavaCast("double", e1), new Javapurs_JavaAst.JavaCast("double", e2));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpNumberOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpNotEq) {
-                    return new Javapurs_JavaAst.JavaUnaryOp("!", new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaRaw("java.util.Objects.equals"), [ e1, e2 ]));
+                    return new Javapurs_JavaAst.JavaBinaryOp("!=", new Javapurs_JavaAst.JavaCast("double", e1), new Javapurs_JavaAst.JavaCast("double", e2));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpNumberOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpGt) {
                     return new Javapurs_JavaAst.JavaBinaryOp(">", new Javapurs_JavaAst.JavaCast("Double", e1), new Javapurs_JavaAst.JavaCast("Double", e2));

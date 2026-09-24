@@ -638,8 +638,8 @@ translateOperator2 _ op e1 e2 = case op of
   OpNumberNum OpMod ->
     -- EuclideanRing Number always returns zero, after evaluating both operands.
     JavaBlock [ JavaLocalAssign "__mod_l" e1, JavaLocalAssign "__mod_r" e2 ] (JavaRaw "0.0")
-  OpNumberOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
-  OpNumberOrd OpNotEq -> JavaUnaryOp "!" (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2])
+  OpNumberOrd OpEq -> JavaBinaryOp "==" (JavaCast "double" e1) (JavaCast "double" e2)
+  OpNumberOrd OpNotEq -> JavaBinaryOp "!=" (JavaCast "double" e1) (JavaCast "double" e2)
   OpNumberOrd OpGt -> JavaBinaryOp ">" (JavaCast "Double" e1) (JavaCast "Double" e2)
   OpNumberOrd OpGte -> JavaBinaryOp ">=" (JavaCast "Double" e1) (JavaCast "Double" e2)
   OpNumberOrd OpLt -> JavaBinaryOp "<" (JavaCast "Double" e1) (JavaCast "Double" e2)
