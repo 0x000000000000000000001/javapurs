@@ -104,10 +104,57 @@ const reuseSource = generate(reuseModule);
 assert.equal(occurrences(reuseSource, "__owned_build("), definitions(reuseSource, "__owned_build"),
   "a borrowed tree argument must not reach the consuming worker");
 
+// A polymorphic type: append consumes its first list.
+const listName = "Ownership_Lists";
+const listType = new C.ADT(`${listName}.List`, [listName, "List"], [new C.TypeVar("a")]);
+const listFunctionType = new C.Func([listType, listType], listType);
+const listQualified = name => new C.Qualified(new Just(listName), name);
+const listCall = (name, args) => bApply(new S.Var(listQualified(name)), args);
+const listCtor = (name, fields) => new S.CtorSaturated(listQualified(name), C.ProductType.value, "List", name,
+  fields.map((value, index) => new Tuple(`value${index}`, value)));
+const listAccessor = (base, index) => new S.Accessor(base,
+  new S.GetCtorField(listQualified("Cons"), C.ProductType.value, "List", "Cons", `value${index}`, index));
+const listIsTag = (name, value) => new S.PrimOp(new S.Op1(new S.OpIsTag(listQualified(name)), value));
+const cons = (head, tail) => listCtor("Cons", [head, tail]);
+const nil = () => listCtor("Nil", []);
+const appendBody = typed(listFunctionType, abs([["xs", 0], ["ys", 1]],
+  branch(
+    [[listIsTag("Nil", local("xs", 0)), local("ys", 1)]],
+    branch(
+      [[listIsTag("Cons", local("xs", 0)),
+        cons(listAccessor(local("xs", 0), 0), listCall("append", [listAccessor(local("xs", 0), 1), local("ys", 1)]))]],
+      typed(listType, new S.Fail("Failed pattern match"))))));
+const listModule = {
+  name: listName,
+  dataDecls: [{
+    name: "List",
+    vars: ["a"],
+    constructors: [
+      { name: "Nil", fields: [] },
+      { name: "Cons", fields: [new C.TypeVar("a"), listType] },
+    ],
+  }],
+  foreign: PursMap.empty,
+  bindings: [
+    { recursive: false, bindings: [new Tuple("appended", typed(listType, listCall("append", [
+      cons(lit(1), cons(lit(2), nil())), cons(lit(3), nil())])))] },
+    { recursive: true, bindings: [new Tuple("append", appendBody)] },
+  ],
+};
+const listPrepared = prepare(listModule);
+assert.deepEqual(listPrepared.mutableClasses, [`${listName}.Cons`],
+  "a polymorphic node class must allow field updates");
+assert.ok(listPrepared.diagnostics.some(line => line.includes("append")),
+  "the polymorphic worker must be accepted");
+const listSource = printFile(listName)(translateWithIntFunctions(options)(listPrepared.module));
+assert.ok(definitions(listSource, "__owned_append") >= 1, "the polymorphic worker must be emitted");
+assert.doesNotMatch(listSource, /public final Object value0;/, "the polymorphic node must stay mutable");
+
 // The worker builds the same tree as the persistent functions.
 const directory = mkdtempSync(join(tmpdir(), "javapurs-ownership-"));
 try {
   writeFileSync(join(directory, `${moduleName}.java`), source);
+  writeFileSync(join(directory, `${listName}.java`), listSource);
   writeFileSync(join(directory, "TcoLoop.java"), `public class TcoLoop extends RuntimeException {
     public String loopId;
     public Object[] args;
@@ -122,6 +169,13 @@ try {
         keys.add(node.value1);
         collect(node.value2, keys);
     }
+    static void collectList(Object list, java.util.List<Object> items) {
+        while (list != ${listName}.__singleton$Nil.value) {
+            ${listName}.Cons node = (${listName}.Cons) list;
+            items.add(node.value0);
+            list = node.value1;
+        }
+    }
     @SuppressWarnings("unchecked")
     static Object persistent() {
         java.util.function.Function<Object, Object> build = (java.util.function.Function<Object, Object>) ${moduleName}.build;
@@ -131,15 +185,18 @@ try {
     public static void main(String[] args) {
         java.util.List<Integer> owned = new java.util.ArrayList<>();
         java.util.List<Integer> shared = new java.util.ArrayList<>();
+        java.util.List<Object> appended = new java.util.ArrayList<>();
         collect(${moduleName}.built, owned);
         collect(persistent(), shared);
-        System.out.println(owned.equals(shared) + " " + owned);
+        collectList(${listName}.appended, appended);
+        System.out.println(owned.equals(shared) + " " + owned + " " + appended);
     }
 }`);
-  execFileSync(javac, ["-d", directory, join(directory, `${moduleName}.java`), join(directory, "TcoLoop.java"), join(directory, "OwnershipRun.java")], { stdio: "pipe" });
+  execFileSync(javac, ["-d", directory, join(directory, `${moduleName}.java`), join(directory, `${listName}.java`), join(directory, "TcoLoop.java"), join(directory, "OwnershipRun.java")], { stdio: "pipe" });
   const output = execFileSync(java, ["-cp", directory, "OwnershipRun"], { encoding: "utf8" }).trim();
-  assert.equal(output, "true [1, 2, 3, 4, 5, 6, 7, 8]", "the consuming build must match the persistent tree");
-  console.log("Ownership: workers, rewrite guards and runtime tree passed");
+  assert.equal(output, "true [1, 2, 3, 4, 5, 6, 7, 8] [1, 2, 3]",
+    "the consuming builds must match the persistent tree and the polymorphic list");
+  console.log("Ownership: workers, rewrite guards, runtime tree and polymorphic list passed");
 } finally {
   rmSync(directory, { recursive: true, force: true });
 }

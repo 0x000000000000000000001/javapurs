@@ -208,6 +208,16 @@ ctorNames :: Array DataDecl -> Set.Set String
 ctorNames decls = Set.fromFoldable $ Array.concatMap
   (\decl -> map _.name decl.constructors) decls
 
+-- | The tree type is matched by its fully qualified name, so a polymorphic
+-- | declaration (`List a`, `Map k v`) covers every instantiation.
+adtName :: ExprType -> Maybe String
+adtName = case _ of
+  ADT name _ _ -> Just name
+  _ -> Nothing
+
+isTreeType :: String -> ExprType -> Boolean
+isTreeType name ty = adtName ty == Just name
+
 scalarType :: Map String DataDecl -> ExprType -> Maybe ScalarType
 scalarType decls = case _ of
   Int -> Just ScalarInt
@@ -216,10 +226,9 @@ scalarType decls = case _ of
   String -> Just ScalarObject
   Char -> Just ScalarObject
   ADT name _ _ -> do
-    decl <- Map.lookup name decls
-    guard (Array.null decl.vars)
-    guard (all (Array.null <<< _.fields) decl.constructors)
+    void (Map.lookup name decls)
     pure ScalarObject
+  TypeVar _ -> Just ScalarObject
   _ -> Nothing
 
 treeSpecs :: BackendModule -> Array TreeSpec
@@ -227,16 +236,15 @@ treeSpecs mod = Array.mapMaybe make mod.dataDecls
   where
   decls = declByName mod.name mod.dataDecls
   make decl = do
-    guard (Array.null decl.vars)
     let
       fullName = fullTypeName mod.name decl
-      ty = ADT fullName (String.split (Pattern ".") fullName) []
+      ty = ADT fullName (String.split (Pattern ".") fullName) (map TypeVar decl.vars)
       nodes = Array.filter (not <<< Array.null <<< _.fields) decl.constructors
       nullary = Array.filter (Array.null <<< _.fields) decl.constructors
     node <- case nodes of
       [ only ] | Array.length nullary <= 1 -> Just only
       _ -> Nothing
-    fields <- traverse (\field -> fieldType decls ty field) node.fields
+    fields <- traverse (\field -> fieldType decls fullName field) node.fields
     guard (Array.elem TreeField fields)
     pure
       { ty
@@ -246,16 +254,16 @@ treeSpecs mod = Array.mapMaybe make mod.dataDecls
       , fields
       }
 
-fieldType :: Map String DataDecl -> ExprType -> ExprType -> Maybe FieldType
-fieldType decls treeTy field
-  | field == treeTy = Just TreeField
+fieldType :: Map String DataDecl -> String -> ExprType -> Maybe FieldType
+fieldType decls treeName field
+  | isTreeType treeName field = Just TreeField
   | otherwise = case field of
       Int -> Just IntField
       _ -> ObjectField <$ scalarType decls field
 
 argType :: Map String DataDecl -> TreeSpec -> ExprType -> Maybe ArgType
 argType decls spec ty
-  | ty == spec.ty = Just ArgTree
+  | isTreeType (fromMaybe "" (adtName spec.ty)) ty = Just ArgTree
   | otherwise = case scalarType decls ty of
       Just ScalarInt -> Just ArgInt
       Just _ -> Just ArgObject
@@ -277,7 +285,7 @@ scalarJavaType = case _ of
 candidate :: BackendModule -> Array TreeSpec -> Tuple Ident NeutralExpr -> Maybe Candidate
 candidate mod specs (Tuple original@(Ident name) expr) = do
   signature <- arrow <$> annotation expr
-  spec <- Array.find (\s -> s.ty == signature.result) specs
+  spec <- Array.find (\s -> adtName s.ty == adtName signature.result) specs
   let lambda = abstractions expr
   guard (not (Array.null lambda.args) && Array.length lambda.args == Array.length signature.args)
   argTypes <- traverse (argType (declByName mod.name mod.dataDecls) spec) signature.args
@@ -469,7 +477,7 @@ knownCall context expr = do
       _ -> Nothing
     _ -> Nothing
   fn <- Map.lookup name context.candidates
-  guard (fn.spec.ty == context.candidate.spec.ty && Array.length call.args == Array.length fn.args)
+  guard (adtName fn.spec.ty == adtName context.candidate.spec.ty && Array.length call.args == Array.length fn.args)
   pure { fn, args: call.args }
 
 treeTerm :: Context -> Env -> NeutralExpr -> Maybe TreeTerm
