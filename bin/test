@@ -41,6 +41,24 @@ done
 
 mkdir -p "$RUNNER_DIR/src"
 
+# Tests that need compiler features the shared PureScript checkout rejects, or
+# JavaScript-only semantics. The other backend checkouts skip the same names.
+BLACKLIST=(
+  "DerivingClause.purs"
+  "DerivingContravariant.purs"
+  "DerivingFunctorFromBi.purs"
+  "DerivingFunctorFromPro.purs"
+  "DerivingProfunctor.purs"
+  "4179.purs"
+)
+
+is_blacklisted() {
+  for skipped in "${BLACKLIST[@]}"; do
+    if [ "$1" == "$skipped" ]; then return 0; fi
+  done
+  return 1
+}
+
 CLEAN_CACHE=0
 LIST_ONLY=0
 KEEP_GOING=0
@@ -120,6 +138,11 @@ for test_file in "${TEST_FILES[@]}"; do
   test_name=$(basename "$test_file")
   test_base=$(basename "$test_file" .purs)
   log_file="logs-$test_base.txt"
+
+  if is_blacklisted "$test_name"; then
+    echo "=> Skipping $test_name (blacklisted)"
+    continue
+  fi
 
   echo "=> Testing $test_name"
 

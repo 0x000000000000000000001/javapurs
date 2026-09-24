@@ -223,7 +223,7 @@ Use the same checkout layout as the source build instructions. There are two lev
 ./bin/test 1110 1185
 ```
 
-Each selected test is copied to `tests/runner/src/Main.purs`, built with `spago`, lowered by `bin/javapurs`, compiled with `javac`, and executed; the runner expects a successful exit status. A directory named after the test contributes its auxiliary modules, and a sibling `.java` file (a Java port of the test's FFI) is copied too. Without `--keep-going`, the run stops at the first failure so it can be fixed and resumed with `skip_before=`; with it, every failure is reported in the summary. The runner lives in `tests/runner/` with its own workspace file, and its generated directories are ignored.
+Each selected test is copied to `tests/runner/src/Main.purs`, built with `spago`, lowered by `bin/javapurs`, compiled with `javac`, and executed; the runner expects a successful exit status. A directory named after the test contributes its auxiliary modules, and a sibling `.java` file (a Java port of the test's FFI) is copied too. A small blacklist skips the tests that need compiler features the shared PureScript checkout rejects, the same names the other backend checkouts skip. Without `--keep-going`, the run stops at the first failure so it can be fixed and resumed with `skip_before=`; with it, every failure is reported in the summary. The runner lives in `tests/runner/` with its own workspace file, and its generated directories are ignored.
 
 Rebuild the backend, select a JDK, then run one focused regression or all scripts:
 
