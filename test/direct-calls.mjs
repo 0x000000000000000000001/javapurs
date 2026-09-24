@@ -49,7 +49,7 @@ const calls = expression => nodes(expression, A.JavaCall).filter(call =>
   call.value0 instanceof A.JavaGlobalVar && call.value0.value1.startsWith("__direct$"));
 function worker(file, name) {
   const field = declaration(file, name);
-  if (!(field instanceof A.JavaAssign)) return undefined;
+  if (!field) return undefined;
   let body = field.value1;
   while (body instanceof A.JavaAbs) body = body.value1;
   const target = body instanceof A.JavaCall && body.value0 instanceof A.JavaGlobalVar ? body.value0.value1 : null;
@@ -80,6 +80,13 @@ const original = { recordShapes: [layout], decls: [
   assign("scope", abs(["pair", "x"], apply(local("pair"), [local("x"), raw(2)]))),
   new A.JavaLazyAssign("lazy", abs(["a", "b"], apply(global("pair"), [local("a"), local("b")]))),
   new A.JavaLazyAssign("reentrant", abs(["ignored"], apply(global("pair"), [note("reentrant-a", raw(1)), note("reentrant-b", raw(2))]))),
+  // Recursive lazy bindings call themselves through their getter. The
+  // saturated self calls may use a worker directly.
+  new A.JavaLazyAssign("selfPair", abs(["n", "acc"], new A.JavaTernary(binary("==", local("n"), raw(0)), local("acc"),
+    apply(invoke(`${moduleName}.__lazy_get_selfPair`, []), [binary("-", local("n"), raw(1)), binary("+", local("acc"), raw(10))])))),
+  new A.JavaLazyAssign("selfUnary", abs(["n"], new A.JavaTernary(binary("==", local("n"), raw(0)), raw(0),
+    add(local("n"), apply(invoke(`${moduleName}.__lazy_get_selfUnary`, []), [binary("-", local("n"), raw(1))]))))),
+  new A.JavaLazyAssign("mutual", abs(["a", "b"], apply(invoke(`${moduleName}.__lazy_get_selfUnary`, []), [local("a")]))),
   assign("zero", abs([], raw(7))),
   assign("unary", abs(["a"], local("a"))),
   assign("arity32", wide(32)),
@@ -95,6 +102,8 @@ const original = { recordShapes: [layout], decls: [
   fixture("aliasCall", apply(global("alias"), [raw(4), raw(2)])),
   fixture("unqualified", apply(global("pair", null), [raw(4), raw(2)])),
   fixture("recordCall", apply(global("recordPlus"), [new A.JavaTypedRecord(layout, fields([["n", raw(3)]])), raw(4)])),
+  fixture("selfCall", apply(global("selfPair"), [raw(3), raw(0)])),
+  fixture("selfUnaryCall", apply(global("selfUnary"), [raw(3)])),
   assign("future", abs(["a", "b"], add(local("a"), local("b")))),
   fixture("selectedCalls", new A.JavaArray([
     apply(global("nested"), [raw(3), raw(4)]),
@@ -121,6 +130,14 @@ assert.equal(calls(declaration(optimized, "over")).length, 1);
 assert.ok(declaration(optimized, "over").value1.value1 instanceof A.JavaApply,
   "surplus argument applies to the guarded worker result, after the prefix body");
 assert.equal(calls(declaration(optimized, "lazy")).length, 1, "a lazy body may call an earlier nonrecursive worker");
+for (const name of ["selfPair", "selfUnary"]) {
+  assert.ok(worker(optimized, name), `${name}: extract a recursive lazy worker`);
+  assert.equal(calls(worker(optimized, name)).length, 1, `${name}: rewrite the saturated self call`);
+  assert.equal(calls(declaration(optimized, name)).length, 1, `${name}: public lazy field only forwards to the worker`);
+}
+assert.equal(worker(optimized, "mutual"), undefined, "a lazy getter call to another binding is not a self call");
+assert.equal(calls(declaration(optimized, "selfCall")).length, 1, "later declarations call the recursive lazy worker");
+assert.equal(calls(declaration(optimized, "selfUnaryCall")).length, 1);
 for (const name of ["early", "middleCall", "foreignCall", "unknownCall", "aliasCall"]) {
   assert.equal(calls(declaration(optimized, name)).length, 0, `${name}: retain ordinary application`);
 }
@@ -271,6 +288,8 @@ public final class DirectChecks {
     equal("unqualified global", apply(Direct_Fixtures.unqualified, 0), 42);
     equal("local callback shadows global", apply(Direct_Fixtures.scope, DirectRuntime.foreignPair, 4), 42);
     equal("lazy function uses earlier worker", apply(Direct_Fixtures.lazy, 4, 2), 42);
+    equal("recursive lazy worker", apply(Direct_Fixtures.selfCall, 3), 30);
+    equal("unary recursive lazy worker", apply(Direct_Fixtures.selfUnaryCall, 3), 6);
     equal("zero arity Supplier preserved", ((Supplier<?>)Direct_Fixtures.zero).get(), 7);
     equal("unary function preserved", apply(Direct_Fixtures.unary, 8), 8);
     Object[] many = new Object[33]; Arrays.fill(many, 7); many[31] = 31; many[32] = 32;
@@ -301,8 +320,12 @@ for (const enabled of [false, true]) {
   if (actualModule) {
     const actual = translateWithDirectCalls(options)(actualModule);
     assert.equal(Boolean(worker(actual, "balance")), enabled, "the real optimized balance is eligible");
-    assert.equal(calls(declaration(actual, "ins")).length, enabled ? 2 : 0, "the two real insertion branches call balance directly");
-    assert.equal(Boolean(worker(actual, "ins")), false, "recursive lazy ins is not a worker candidate");
+    assert.equal(Boolean(worker(actual, "ins")), enabled, "the real recursive lazy ins is a worker candidate");
+    assert.equal(Boolean(worker(actual, "depth")), enabled, "the real unary recursive depth is a worker candidate");
+    assert.equal(calls(declaration(actual, "ins")).length, enabled ? 1 : 0, "the public lazy ins field forwards to the worker");
+    assert.equal(enabled ? calls(worker(actual, "ins")).length : 0, enabled ? 6 : 0, "insertion branches call balance and ins directly");
+    assert.equal(enabled ? calls(worker(actual, "depth")).length : 0, enabled ? 2 : 0, "depth self calls use the worker");
+    assert.equal(calls(declaration(actual, "insert")).length, enabled ? 1 : 0, "insert calls the lazy ins worker");
     addFile("Test_RBTree", actual);
     files.set("TcoLoop.java", `public final class TcoLoop extends RuntimeException {
       public final String loopId; public final Object[] args;

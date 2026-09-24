@@ -99,6 +99,13 @@ function declaration(file, name) {
   assert.ok(result, `${name}: generated declaration must be present`);
   return result;
 }
+function workerOf(file, name) {
+  const declaration_ = declaration(file, name);
+  let body = declaration_.value1;
+  while (body instanceof A.JavaAbs) body = body.value1;
+  const target = body instanceof A.JavaCall && body.value0 instanceof A.JavaGlobalVar ? body.value0.value1 : null;
+  return target && file.decls.find(value => value instanceof A.JavaStaticMethod && value.value0 === target);
+}
 
 let church;
 const projectFlag = process.argv.indexOf("--church-project");
@@ -257,8 +264,17 @@ for (const enabled of [false, true]) {
     const decl = declaration(generated, name);
     assert.equal(nodes(decl, A.JavaIntApply).length, 0,
       `${name}: saturated calls to a known generic recursive function need no primitive adapter`);
-    assert.ok(nodes(decl, A.JavaApply).length > 0, `${name}: exercise a retained generic call`);
   }
+  // The recursive body moved into a worker; the public lazy field only
+  // forwards to it, and the self calls use that worker directly.
+  const genericFibWorker = workerOf(generated, "genericFib");
+  assert.ok(genericFibWorker, "genericFib: recursive lazy body becomes a worker");
+  assert.equal(nodes(genericFibWorker.value2, A.JavaIntApply).length, 0,
+    "genericFib: the worker keeps the generic callable representation");
+  assert.ok(nodes(genericFibWorker.value2, A.JavaGlobalVar).some(value => String(value.value1).startsWith("__direct$")),
+    "genericFib: recursion uses the worker directly");
+  assert.ok(nodes(declaration(generated, "callGenericFib").value1, A.JavaApply).length > 0,
+    "callGenericFib: the guarded field path retains the generic call");
   for (const name of ["genericIdentity", "polymorphicIdentity", "typeAppOnly", "applyUnknown", "resultIsNotCalleeEvidence"]) {
     const decl = declaration(generated, name);
     assert.equal(nodes(decl, A.JavaIntAbs).length, 0, `${name}: no unjustified primitive lambda`);

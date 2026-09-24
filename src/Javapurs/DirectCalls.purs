@@ -12,12 +12,16 @@ import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Javapurs.JavaAst (JavaExpr(..), JavaFile)
 
-type Candidate = { name :: String, worker :: String, index :: Int, arity :: Int }
+type Candidate = { name :: String, worker :: String, index :: Int, arity :: Int, lazy :: Boolean }
 type Lambdas = { groups :: Array (Array String), args :: Array String, body :: JavaExpr }
 
 -- A definition becomes callable directly only from later declarations. In
 -- particular, neither its own initializer nor an earlier initializer may bypass
 -- the public field read. Workers are emitted only for actual rewritten calls.
+-- Recursive (lazy) bindings call themselves through their getter inside their
+-- own value; those saturated self calls may use a worker directly, because the
+-- closure body only runs after the getter completed. Unary recursive functions
+-- (for example a depth traversal) qualify as well.
 directCalls :: String -> JavaFile -> JavaFile
 directCalls moduleName file =
   let
@@ -25,20 +29,32 @@ directCalls moduleName file =
     candidates = Array.mapMaybe identity $ Array.mapWithIndex
       (\index declaration -> case declaration of
         JavaAssign name value -> do
-          lambdas <- lambdaChain value
-          let worker = "__direct$" <> show index
-          if Array.length (Array.filter (_ == name) names) == 1 &&
-              not (Array.elem worker names) then
-            Just { name, worker, index, arity: Array.length lambdas.args }
-          else Nothing
+          lambdas <- lambdaChain 2 value
+          mkCandidate name index lambdas false
+        JavaLazyAssign name value -> do
+          lambdas <- lambdaChain 1 value
+          mkCandidate name index lambdas true
         _ -> Nothing) file.decls
+    mkCandidate name index lambdas lazy =
+      let worker = "__direct$" <> show index
+      in if Array.length (Array.filter (_ == name) names) == 1 &&
+          not (Array.elem worker names) then
+        Just { name, worker, index, arity: Array.length lambdas.args, lazy }
+      else Nothing
     Tuple rewritten used = runState
       (traverse identity (Array.mapWithIndex (rewrite moduleName candidates) file.decls)) Set.empty
     emit index declaration = case Array.find (\candidate -> candidate.index == index) candidates of
       Just candidate | Set.member index used -> case declaration of
-        JavaAssign name value -> case lambdaChain value of
+        JavaAssign name value -> case lambdaChain 2 value of
           Just lambdas ->
             [ JavaAssign name (foldr JavaAbs
+                (workerCall moduleName candidate.worker (map JavaLocal lambdas.args)) lambdas.groups)
+            , JavaStaticMethod candidate.worker lambdas.args lambdas.body
+            ]
+          Nothing -> [declaration]
+        JavaLazyAssign name value -> case lambdaChain 1 value of
+          Just lambdas ->
+            [ JavaLazyAssign name (foldr JavaAbs
                 (workerCall moduleName candidate.worker (map JavaLocal lambdas.args)) lambdas.groups)
             , JavaStaticMethod candidate.worker lambdas.args lambdas.body
             ]
@@ -57,8 +73,8 @@ declarationName = case _ of
 -- Only contiguous, nonempty lambdas are flattened. A block, call or any other
 -- computation is the worker body, even when that computation returns a closure.
 -- Keeping that boundary preserves the timing of subsequent overapplication.
-lambdaChain :: JavaExpr -> Maybe Lambdas
-lambdaChain = collect [] []
+lambdaChain :: Int -> JavaExpr -> Maybe Lambdas
+lambdaChain minimum = collect [] []
   where
   collect groups args expression = case expression of
     JavaAbs parameters body
@@ -66,12 +82,15 @@ lambdaChain = collect [] []
       | Array.length args + Array.length parameters > 32 -> Nothing
       | otherwise -> collect (Array.snoc groups parameters) (args <> parameters) body
     _
-      | Array.length args >= 2 && Array.length (Array.nub args) == Array.length args ->
+      | Array.length args >= minimum && Array.length (Array.nub args) == Array.length args ->
           Just { groups, args, body: expression }
       | otherwise -> Nothing
 
 workerCall :: String -> String -> Array JavaExpr -> JavaExpr
 workerCall moduleName worker = JavaCall (JavaGlobalVar (Just moduleName) worker)
+
+lazyGetter :: String -> String -> String
+lazyGetter moduleName name = moduleName <> ".__lazy_get_" <> name
 
 type Rewrite = State (Set Int)
 
@@ -95,6 +114,14 @@ rewrite moduleName candidates declarationIndex expression = do
                 (JavaBinaryOp "==" (JavaGlobalVar qualifier name) (JavaRaw "null"))
                 result (workerCall moduleName candidate.worker args))
             Nothing -> pure result
+    Just { head: JavaCall (JavaRaw getterName) [], args }
+      | Just candidate <- Array.find (\c -> c.lazy &&
+            c.index == declarationIndex && c.arity == Array.length args &&
+            getterName == lazyGetter moduleName c.name) candidates -> do
+          -- The function calls itself. Its own getter already completed before
+          -- any body can run, so the worker needs no initialization guard.
+          modify_ (Set.insert candidate.index)
+          pure (workerCall moduleName candidate.worker args)
     _ -> pure result
 
 application :: JavaExpr -> Maybe { head :: JavaExpr, args :: Array JavaExpr }

@@ -24,7 +24,6 @@ import Javapurs.IntFunctions (abstractFunction, applyFunction)
 import PureScript.Backend.Optimizer.CoreFn as CoreFn
 import Javapurs.Printer (hasDirectContinue)
 import PureScript.Backend.Optimizer.Convert (BackendModule)
-import Debug as Debug
 import PureScript.Backend.Optimizer.CoreFn (Ident(..), Prop(..), Qualified(..), ModuleName(..), Literal(..))
 import Data.String as String
 
@@ -184,12 +183,6 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
   Abs args body ->
     let resBody = translateExpr env (captureLoopCtx loopCtx) true body
     in pureExpr $ foldr (\(Tuple mbI lvl) acc -> JavaAbs [localId mbI lvl] acc) (wrapInBlock resBody) (Array.fromFoldable args)
-  UncurriedAbs args body ->
-    let
-      argsArray = map (\(Tuple mbI lvl) -> localId mbI lvl) args
-      resBody = translateExpr env (captureLoopCtx loopCtx) true body
-    in
-      pureExpr $ JavaAbs argsArray (wrapInBlock resBody)
   Let mbI lvl val body ->
     let
       resValExpr = wrapInBlock (translateExpr env loopCtx false val)
@@ -419,8 +412,7 @@ stripEffectAbs expr@(TcoExpr a syn) = case syn of
       case Array.head (Array.fromFoldable args) of
         Just (Tuple Nothing _) -> stripEffectAbs body
         Just (Tuple (Just (Ident name)) _) ->
-           let _ = Debug.trace ("STRIP_EFFECT_ABS SAW IDENT: " <> name) (\_ -> unit)
-           in if name == "$__unused" then stripEffectAbs body else expr
+           if name == "$__unused" then stripEffectAbs body else expr
         _ -> expr
     else expr
   EffectDefer body -> stripEffectAbs body

@@ -64,17 +64,11 @@ printExpr = case _ of
   JavaAbs args body ->
     if Array.length args == 0 then
       let
-        bodyStr = case body of
-          JavaBlock stmts expr -> "{ " <> String.joinWith " " (map printExpr stmts) <> " return " <> printExpr expr <> "; }"
-          _ -> "{ return " <> printExpr body <> "; }"
+        bodyStr = returnBody body
       in "(new java.util.function.Supplier<Object>() { public Object get() " <> bodyStr <> " })"
     else
       let
-        bodyStr = case body of
-          JavaBlock stmts expr -> "{ " <> String.joinWith " " (map printExpr stmts) <> " return " <> printExpr expr <> "; }"
-          JavaWhileTrue params intParams expr -> printLoopBody params intParams expr
-          JavaMemoizedLoop params intParams invariants expr -> printMemoizedLoopBody params intParams invariants expr
-          _ -> printExpr body
+        bodyStr = methodBody body
       in Array.foldr (\arg acc -> "(java.util.function.Function<Object, Object>) (" <> arg <> ") -> " <> acc) bodyStr args
   JavaIntAbs arg body ->
     let
@@ -182,11 +176,7 @@ printExpr = case _ of
       -- Keep Object parameters: argument evaluation precedes the casts in the
       -- original function body, including when an argument or cast throws.
       parameterList = String.joinWith ", " (map (\arg -> "Object " <> arg) args)
-      bodyStr = case body of
-        JavaBlock stmts expr -> "{ " <> String.joinWith " " (map printExpr stmts) <> " return " <> printExpr expr <> "; }"
-        JavaWhileTrue params intParams expr -> printLoopBody params intParams expr
-        JavaMemoizedLoop params intParams invariants expr -> printMemoizedLoopBody params intParams invariants expr
-        _ -> "{ return " <> printExpr body <> "; }"
+      bodyStr = methodBody body
     in "private static Object " <> name <> "(" <> parameterList <> ") " <> bodyStr
   JavaLazyAssign name expr ->
     let
@@ -311,6 +301,55 @@ hasDirectContinue = case _ of
   JavaLet _ _ body -> hasDirectContinue body
   JavaLetRec _ body -> hasDirectContinue body
   _ -> false
+
+-- A branch value that requires statements normally becomes a Supplier in
+-- expression form. Method, lambda and thunk bodies can print the branches as
+-- real blocks instead, which removes that Supplier.
+branchNeedsStatements :: JavaExpr -> Boolean
+branchNeedsStatements = case _ of
+  JavaBlock _ _ -> true
+  JavaLet _ _ _ -> true
+  JavaLetRec _ _ -> true
+  JavaTernary _ yes no -> branchNeedsStatements yes || branchNeedsStatements no
+  _ -> false
+
+bodyNeedsTail :: JavaExpr -> Boolean
+bodyNeedsTail = case _ of
+  JavaTernary _ yes no ->
+    branchNeedsStatements yes || branchNeedsStatements no || bodyNeedsTail yes || bodyNeedsTail no
+  JavaBlock _ body -> bodyNeedsTail body
+  JavaLet _ _ body -> bodyNeedsTail body
+  JavaLetRec _ body -> bodyNeedsTail body
+  _ -> false
+
+-- The body of a method with a return value: loops print themselves, a
+-- branch-heavy expression uses real statements so its blocks stay blocks.
+methodBody :: JavaExpr -> String
+methodBody body = case body of
+  JavaWhileTrue params intParams expr -> printLoopBody params intParams expr
+  JavaMemoizedLoop params intParams invariants expr -> printMemoizedLoopBody params intParams invariants expr
+  _ | bodyNeedsTail body -> "{ " <> printTailStatements body <> " }"
+  JavaBlock stmts expr -> "{ " <> String.joinWith " " (map printExpr stmts) <> " return " <> printExpr expr <> "; }"
+  _ -> "{ return " <> printExpr body <> "; }"
+
+-- The body of a zero-argument supplier; loops keep their expression form.
+returnBody :: JavaExpr -> String
+returnBody body = case body of
+  _ | bodyNeedsTail body -> "{ " <> printTailStatements body <> " }"
+  JavaBlock stmts expr -> "{ " <> String.joinWith " " (map printExpr stmts) <> " return " <> printExpr expr <> "; }"
+  _ -> "{ return " <> printExpr body <> "; }"
+
+printTailStatements :: JavaExpr -> String
+printTailStatements = case _ of
+  JavaTernary cond yes no ->
+    "if ((Boolean) (" <> printExpr cond <> ")) { " <> printTailStatements yes <> "} else { " <> printTailStatements no <> "} "
+  JavaBlock stmts body ->
+    "{ " <> String.joinWith " " (map printExpr stmts) <> " " <> printTailStatements body <> "} "
+  JavaLet name value body ->
+    "{ Object " <> name <> " = " <> printExpr value <> "; " <> printTailStatements body <> "} "
+  JavaLetRec binds body ->
+    "{ " <> printLetRecBindings binds <> printTailStatements body <> "} "
+  other -> "return " <> printExpr other <> "; "
 
 printLetRecBindings :: Array (Tuple String JavaExpr) -> String
 printLetRecBindings binds = case Array.head binds of
