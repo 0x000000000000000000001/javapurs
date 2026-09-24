@@ -3,10 +3,7 @@ import * as $foreign from "./foreign.js";
 import * as Control_Applicative from "../Control.Applicative/index.js";
 import * as Control_Bind from "../Control.Bind/index.js";
 import * as Control_Parallel from "../Control.Parallel/index.js";
-import * as Data_Argonaut_Decode_Error from "../Data.Argonaut.Decode.Error/index.js";
-import * as Data_Argonaut_Parser from "../Data.Argonaut.Parser/index.js";
 import * as Data_Array from "../Data.Array/index.js";
-import * as Data_Bifunctor from "../Data.Bifunctor/index.js";
 import * as Data_Boolean from "../Data.Boolean/index.js";
 import * as Data_Either from "../Data.Either/index.js";
 import * as Data_Eq from "../Data.Eq/index.js";
@@ -31,7 +28,7 @@ import * as Effect_Exception from "../Effect.Exception/index.js";
 import * as Node_Encoding from "../Node.Encoding/index.js";
 import * as Node_FS_Aff from "../Node.FS.Aff/index.js";
 import * as Node_FS_Stats from "../Node.FS.Stats/index.js";
-import * as PureScript_Backend_Optimizer_CoreFn_Json from "../PureScript.Backend.Optimizer.CoreFn.Json/index.js";
+import * as PureScript_Backend_Optimizer_CoreFn_Json_Text from "../PureScript.Backend.Optimizer.CoreFn.Json.Text/index.js";
 import * as PureScript_Backend_Optimizer_CoreFn_Sort from "../PureScript.Backend.Optimizer.CoreFn.Sort/index.js";
 import * as PureScript_Backend_Optimizer_Directives from "../PureScript.Backend.Optimizer.Directives/index.js";
 import * as PureScript_Backend_Optimizer_Directives_Defaults from "../PureScript.Backend.Optimizer.Directives.Defaults/index.js";
@@ -52,12 +49,7 @@ var readCoreFnModule = function (filePath) {
             var $6 = Node_FS_Stats.isFile(statRes.value0);
             if ($6) {
                 return Control_Bind.bind(Effect_Aff.bindAff)(Node_FS_Aff.readTextFile(Node_Encoding.UTF8.value)(filePath))(function (contents) {
-                    var v = Control_Bind.bind(Data_Either.bindEither)(Data_Argonaut_Parser.jsonParser(contents))((function () {
-                        var $28 = Data_Bifunctor.lmap(Data_Bifunctor.bifunctorEither)(Data_Argonaut_Decode_Error.printJsonDecodeError);
-                        return function ($29) {
-                            return $28(PureScript_Backend_Optimizer_CoreFn_Json.decodeModule($29));
-                        };
-                    })());
+                    var v = PureScript_Backend_Optimizer_CoreFn_Json_Text.parseModule(contents);
                     if (v instanceof Data_Either.Left) {
                         return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(Data_Function.apply(liftEffect)(Data_Function.apply(Effect_Console.error)("Failed to decode " + (filePath + (": " + v.value0)))))(function () {
                             return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
@@ -66,7 +58,7 @@ var readCoreFnModule = function (filePath) {
                     if (v instanceof Data_Either.Right) {
                         return Control_Applicative.pure(Effect_Aff.applicativeAff)(new Data_Maybe.Just(v.value0));
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 50, column 9 - line 54, column 39): " + [ v.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 47, column 9 - line 51, column 39): " + [ v.constructor.name ]);
                 });
             };
             return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
@@ -83,7 +75,7 @@ var readCoreFnModule = function (filePath) {
                 return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
             });
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 46, column 3 - line 62, column 19): " + [ statRes.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 43, column 3 - line 59, column 19): " + [ statRes.constructor.name ]);
     });
 };
 var parseCLIArgs = function (argsRaw) {
@@ -98,7 +90,7 @@ var parseCLIArgs = function (argsRaw) {
         if (v instanceof Data_Maybe.Nothing) {
             return Data_Maybe.Nothing.value;
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 106, column 18 - line 108, column 25): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 103, column 18 - line 105, column 25): " + [ v.constructor.name ]);
     };
     return {
         mbMainModule: getArg("--main"),
@@ -142,15 +134,15 @@ var coreFnModulesFromOutput = function (outputDir) {
                         });
                     });
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 78, column 5 - line 84, column 38): " + [ remaining.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 75, column 5 - line 81, column 38): " + [ remaining.constructor.name ]);
             };
             return Control_Bind.bind(Effect_Aff.bindAff)((function () {
                 var $20 = jobs === 1;
                 if ($20) {
                     return Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect_Aff.applicativeAff)(readDirectory)(files);
                 };
-                return Data_Functor.map(Effect_Aff.functorAff)(function ($30) {
-                    return Data_Array.concat(fromFoldable($30));
+                return Data_Functor.map(Effect_Aff.functorAff)(function ($28) {
+                    return Data_Array.concat(fromFoldable($28));
                 })(loadBatches(files));
             })())(function (mbModules) {
                 var modulesArray = Data_Array.catMaybes(mbModules);
@@ -173,7 +165,7 @@ var checkCache = function (version) {
                             if (cacheContentRes instanceof Data_Either.Left) {
                                 return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
                             };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 133, column 7 - line 135, column 31): " + [ cacheContentRes.constructor.name ]);
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 130, column 7 - line 132, column 31): " + [ cacheContentRes.constructor.name ]);
                         });
                     };
                     return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
