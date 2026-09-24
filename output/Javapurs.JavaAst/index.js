@@ -393,13 +393,16 @@ var JavaGlobalVar = /* #__PURE__ */ (function () {
     return JavaGlobalVar;
 })();
 var JavaClassDecl = /* #__PURE__ */ (function () {
-    function JavaClassDecl(value0, value1) {
+    function JavaClassDecl(value0, value1, value2) {
         this.value0 = value0;
         this.value1 = value1;
+        this.value2 = value2;
     };
     JavaClassDecl.create = function (value0) {
         return function (value1) {
-            return new JavaClassDecl(value0, value1);
+            return function (value2) {
+                return new JavaClassDecl(value0, value1, value2);
+            };
         };
     };
     return JavaClassDecl;
@@ -539,6 +542,54 @@ var JavaBlock = /* #__PURE__ */ (function () {
     };
     return JavaBlock;
 })();
+var JavaFieldSet = /* #__PURE__ */ (function () {
+    function JavaFieldSet(value0, value1, value2, value3, value4) {
+        this.value0 = value0;
+        this.value1 = value1;
+        this.value2 = value2;
+        this.value3 = value3;
+        this.value4 = value4;
+    };
+    JavaFieldSet.create = function (value0) {
+        return function (value1) {
+            return function (value2) {
+                return function (value3) {
+                    return function (value4) {
+                        return new JavaFieldSet(value0, value1, value2, value3, value4);
+                    };
+                };
+            };
+        };
+    };
+    return JavaFieldSet;
+})();
+var JavaLocalSet = /* #__PURE__ */ (function () {
+    function JavaLocalSet(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    JavaLocalSet.create = function (value0) {
+        return function (value1) {
+            return new JavaLocalSet(value0, value1);
+        };
+    };
+    return JavaLocalSet;
+})();
+var JavaIf = /* #__PURE__ */ (function () {
+    function JavaIf(value0, value1, value2) {
+        this.value0 = value0;
+        this.value1 = value1;
+        this.value2 = value2;
+    };
+    JavaIf.create = function (value0) {
+        return function (value1) {
+            return function (value2) {
+                return new JavaIf(value0, value1, value2);
+            };
+        };
+    };
+    return JavaIf;
+})();
 var eqJavaRecordFieldType = {
     eq: function (x) {
         return function (y) {
@@ -605,6 +656,41 @@ var ordJavaRecordShape = {
         return eqJavaRecordShape;
     }
 };
+var eqJavaParamType = {
+    eq: function (x) {
+        return function (y) {
+            if (x instanceof ParamObject && y instanceof ParamObject) {
+                return true;
+            };
+            if (x instanceof ParamInt && y instanceof ParamInt) {
+                return true;
+            };
+            return false;
+        };
+    }
+};
+var ordJavaParamType = {
+    compare: function (x) {
+        return function (y) {
+            if (x instanceof ParamObject && y instanceof ParamObject) {
+                return Data_Ordering.EQ.value;
+            };
+            if (x instanceof ParamObject) {
+                return Data_Ordering.LT.value;
+            };
+            if (y instanceof ParamObject) {
+                return Data_Ordering.GT.value;
+            };
+            if (x instanceof ParamInt && y instanceof ParamInt) {
+                return Data_Ordering.EQ.value;
+            };
+            throw new Error("Failed pattern match at Javapurs.JavaAst (line 0, column 0 - line 0, column 0): " + [ x.constructor.name, y.constructor.name ]);
+        };
+    },
+    Eq0: function () {
+        return eqJavaParamType;
+    }
+};
 export {
     ParamObject,
     ParamInt,
@@ -649,10 +735,15 @@ export {
     JavaArrayIndex,
     JavaCast,
     JavaBlock,
+    JavaFieldSet,
+    JavaLocalSet,
+    JavaIf,
     RecordInt,
     RecordObject,
     RecordNested,
     JavaRecordShape,
+    eqJavaParamType,
+    ordJavaParamType,
     eqJavaRecordFieldType,
     eqJavaRecordShape,
     ordJavaRecordFieldType,

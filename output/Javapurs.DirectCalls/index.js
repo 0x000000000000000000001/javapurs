@@ -240,6 +240,15 @@ var children = function (visit) {
         if (expression instanceof Javapurs_JavaAst.JavaBlock) {
             return Control_Apply.apply(applyStateT)(Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaBlock.create)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(visit)(expression.value0)))(visit(expression.value1));
         };
+        if (expression instanceof Javapurs_JavaAst.JavaFieldSet) {
+            return Control_Apply.apply(applyStateT)(Control_Apply.apply(applyStateT)(Control_Apply.apply(applyStateT)(Control_Apply.apply(applyStateT)(Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaFieldSet.create)(visit(expression.value0)))(Control_Applicative.pure(applicativeStateT)(expression.value1)))(Control_Applicative.pure(applicativeStateT)(expression.value2)))(Control_Applicative.pure(applicativeStateT)(expression.value3)))(visit(expression.value4));
+        };
+        if (expression instanceof Javapurs_JavaAst.JavaLocalSet) {
+            return Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaLocalSet.create(expression.value0))(visit(expression.value1));
+        };
+        if (expression instanceof Javapurs_JavaAst.JavaIf) {
+            return Control_Apply.apply(applyStateT)(Control_Apply.apply(applyStateT)(Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaIf.create)(visit(expression.value0)))(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(visit)(expression.value1)))(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(visit)(expression.value2));
+        };
         return Control_Applicative.pure(applicativeStateT)(expression);
     };
 };
@@ -306,12 +315,12 @@ var rewrite = function (moduleName) {
                         return Control_Applicative.pure(applicativeStateT)(result);
                     };
                     if (v instanceof Data_Maybe.Just && (v.value0.head instanceof Javapurs_JavaAst.JavaCall && (v.value0.head.value0 instanceof Javapurs_JavaAst.JavaRaw && v.value0.head.value1.length === 0))) {
-                        var $124 = Data_Array.find(function (c) {
+                        var $134 = Data_Array.find(function (c) {
                             return c.lazy && (c.index === declarationIndex && (c.arity === Data_Array.length(v.value0.args) && v.value0.head.value0.value0 === lazyGetter(moduleName)(c.name)));
                         })(candidates);
-                        if ($124 instanceof Data_Maybe.Just) {
-                            return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT)(Data_Set.insert(Data_Ord.ordInt)($124.value0.index)))(function () {
-                                return Control_Applicative.pure(applicativeStateT)(workerCall(moduleName)($124.value0)(v.value0.args));
+                        if ($134 instanceof Data_Maybe.Just) {
+                            return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT)(Data_Set.insert(Data_Ord.ordInt)($134.value0.index)))(function () {
+                                return Control_Applicative.pure(applicativeStateT)(workerCall(moduleName)($134.value0)(v.value0.args));
                             });
                         };
                         return v1(true);
@@ -330,10 +339,10 @@ var directCalls = function (moduleName) {
                 return function (lambdas) {
                     return function (lazy) {
                         var worker = "__direct$" + Data_Show.show(Data_Show.showInt)(index);
-                        var $132 = Data_Array.length(Data_Array.filter(function (v) {
+                        var $142 = Data_Array.length(Data_Array.filter(function (v) {
                             return v === name;
                         })(names)) === 1 && !Data_Array.elem(Data_Eq.eqString)(worker)(names);
-                        if ($132) {
+                        if ($142) {
                             return new Data_Maybe.Just({
                                 name: name,
                                 worker: worker,
@@ -373,8 +382,8 @@ var directCalls = function (moduleName) {
                     if (declaration instanceof Javapurs_JavaAst.JavaAssign) {
                         var v2 = lambdaChain(2)(declaration.value1);
                         if (v2 instanceof Data_Maybe.Just) {
-                            return [ new Javapurs_JavaAst.JavaAssign(declaration.value0, Data_Foldable.foldr(Data_Foldable.foldableArray)(Javapurs_JavaAst.JavaAbs.create)(workerCall(moduleName)(v1.value0)(Data_Functor.map(Data_Functor.functorArray)(function ($152) {
-                                return Javapurs_JavaAst.JavaLocal.create(Data_Tuple.fst($152));
+                            return [ new Javapurs_JavaAst.JavaAssign(declaration.value0, Data_Foldable.foldr(Data_Foldable.foldableArray)(Javapurs_JavaAst.JavaAbs.create)(workerCall(moduleName)(v1.value0)(Data_Functor.map(Data_Functor.functorArray)(function ($162) {
+                                return Javapurs_JavaAst.JavaLocal.create(Data_Tuple.fst($162));
                             })(v2.value0.args)))(Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst))(v2.value0.groups))), new Javapurs_JavaAst.JavaStaticMethod(v1.value0.worker, v2.value0.args, v2.value0.body) ];
                         };
                         if (v2 instanceof Data_Maybe.Nothing) {
@@ -385,8 +394,8 @@ var directCalls = function (moduleName) {
                     if (declaration instanceof Javapurs_JavaAst.JavaLazyAssign) {
                         var v2 = lambdaChain(1)(declaration.value1);
                         if (v2 instanceof Data_Maybe.Just) {
-                            return [ new Javapurs_JavaAst.JavaLazyAssign(declaration.value0, Data_Foldable.foldr(Data_Foldable.foldableArray)(Javapurs_JavaAst.JavaAbs.create)(workerCall(moduleName)(v1.value0)(Data_Functor.map(Data_Functor.functorArray)(function ($153) {
-                                return Javapurs_JavaAst.JavaLocal.create(Data_Tuple.fst($153));
+                            return [ new Javapurs_JavaAst.JavaLazyAssign(declaration.value0, Data_Foldable.foldr(Data_Foldable.foldableArray)(Javapurs_JavaAst.JavaAbs.create)(workerCall(moduleName)(v1.value0)(Data_Functor.map(Data_Functor.functorArray)(function ($163) {
+                                return Javapurs_JavaAst.JavaLocal.create(Data_Tuple.fst($163));
                             })(v2.value0.args)))(Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst))(v2.value0.groups))), new Javapurs_JavaAst.JavaStaticMethod(v1.value0.worker, v2.value0.args, v2.value0.body) ];
                         };
                         if (v2 instanceof Data_Maybe.Nothing) {

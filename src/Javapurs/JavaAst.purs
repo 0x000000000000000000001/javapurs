@@ -9,6 +9,9 @@ import Data.Tuple (Tuple)
 -- (static workers and ADT classes); call sites keep using plain Java values.
 data JavaParamType = ParamObject | ParamInt
 
+derive instance eqJavaParamType :: Eq JavaParamType
+derive instance ordJavaParamType :: Ord JavaParamType
+
 data JavaExpr
   = JavaString String
   | JavaCall JavaExpr (Array JavaExpr)
@@ -39,7 +42,7 @@ data JavaExpr
   | JavaLet String JavaExpr JavaExpr
   | JavaLetRec (Array (Tuple String JavaExpr)) JavaExpr
   | JavaGlobalVar (Maybe String) String
-  | JavaClassDecl String (Array (Tuple String JavaParamType))
+  | JavaClassDecl String (Array (Tuple String JavaParamType)) Boolean
   | JavaRaw String
   | JavaAssign String JavaExpr
   | JavaLazyAssign String JavaExpr
@@ -51,6 +54,12 @@ data JavaExpr
   | JavaArrayIndex JavaExpr JavaExpr
   | JavaCast String JavaExpr
   | JavaBlock (Array JavaExpr) JavaExpr
+  -- Mutation statements used by ownership workers. The field write casts the
+  -- value the same way a constructor parameter does, so a proven Int field can
+  -- accept both a primitive and a boxed value.
+  | JavaFieldSet JavaExpr String String JavaParamType JavaExpr
+  | JavaLocalSet String JavaExpr
+  | JavaIf JavaExpr (Array JavaExpr) (Array JavaExpr)
 
 data JavaRecordFieldType = RecordInt | RecordObject | RecordNested
 

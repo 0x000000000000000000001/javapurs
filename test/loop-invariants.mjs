@@ -1,3 +1,4 @@
+import * as PursMap from "../output/Data.Map/index.js";
 import assert from "node:assert/strict";
 import { runtimeSource } from "../output/Javapurs.IntFunctions/index.js";
 import { execFileSync } from "node:child_process";
@@ -14,7 +15,8 @@ import { printExpr } from "../output/Javapurs.Printer/index.js";
 import { renameExpr } from "../output/Javapurs.Rename/index.js";
 import { isPureIntInvariant } from "../output/Javapurs.PureInvariants/index.js";
 import { prepareLoop } from "../output/Javapurs.LoopInvariants/index.js";
-import { extractUncurriedAbs, translateOperator1, translateOperator2, translateWithOptions } from "../output/Javapurs.CodeGen/index.js";
+import { extractUncurriedAbs, translateWithOptions } from "../output/Javapurs.CodeGen/index.js";
+import { translateOperator1, translateOperator2 } from "../output/Javapurs.Operators/index.js";
 
 // Run after the project backend build: node test/loop-invariants.mjs
 const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
@@ -147,7 +149,7 @@ const indexExpression = bTyped(new C.Func([C.Int.value, C.Int.value], C.Int.valu
       new S.PrimOp(new S.Op2(S.OpArrayIndex.value,
         new S.Lit(new C.LitArray([bInt(10), bInt(20), bInt(30)])), bCall("increment", [bInt(0)]))))]))));
 const unaryModule = translateWithOptions({ typedRecords: true, loopInvariants: true })({
-  name: moduleName, dataDecls: [], bindings: [
+  name: moduleName, dataDecls: [], foreign: PursMap.empty, bindings: [
     { recursive: false, bindings: [new Tuple("increment", pureCallback)] },
     { recursive: true, bindings: [new Tuple("unaryLoop", unaryExpression)] },
     { recursive: true, bindings: [new Tuple("indexLoop", indexExpression)] },
@@ -185,7 +187,7 @@ if (projectFlag >= 0) {
   assert.equal(plan.invariants.length, 1, "the real benchmark has one closed forced-thunk invariant");
   assert.equal(isPureIntInvariant("Test.LazyEvaluation")(realBindings)(plan.invariants[0].value), true);
   const backendModule = {
-    name: "Test.LazyEvaluation", dataDecls: [],
+    name: "Test.LazyEvaluation", dataDecls: [], foreign: PursMap.empty,
     bindings: entries.map(({ name, expression }) => ({
       recursive: name === "buildThunks" || name === "runManyTimes", bindings: [new Tuple(name, expression)],
     })),

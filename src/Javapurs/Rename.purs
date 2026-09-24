@@ -145,7 +145,7 @@ rename env s = case _ of
         Tuple body' s3 = rename env' s2 body
     in Tuple (JavaLetRec binds' body') s3
   JavaGlobalVar m n -> Tuple (JavaGlobalVar m n) s
-  JavaClassDecl c args -> Tuple (JavaClassDecl c args) s
+  JavaClassDecl c args mutable -> Tuple (JavaClassDecl c args mutable) s
   JavaRaw r -> Tuple (JavaRaw r) s
   JavaAssign n e ->
     let Tuple e' s1 = rename env s e
@@ -180,3 +180,21 @@ rename env s = case _ of
                                 ) (Tuple [] s) stmts
         Tuple e' s2 = rename env s1 e
     in Tuple (JavaBlock stmts' e') s2
+  JavaFieldSet target className fieldName fieldType value ->
+    let Tuple target' s1 = rename env s target
+        Tuple value' s2 = rename env s1 value
+    in Tuple (JavaFieldSet target' className fieldName fieldType value') s2
+  JavaLocalSet n e ->
+    let Tuple e' s1 = rename env s e
+    in Tuple (JavaLocalSet (lookupName n env) e') s1
+  JavaIf condition thenStmts elseStmts ->
+    let Tuple condition' s1 = rename env s condition
+        Tuple thenStmts' s2 = foldl (\(Tuple acc s') stmt ->
+                                     let Tuple stmt' s'' = rename env s' stmt
+                                     in Tuple (Array.snoc acc stmt') s''
+                                  ) (Tuple [] s1) thenStmts
+        Tuple elseStmts' s3 = foldl (\(Tuple acc s') stmt ->
+                                     let Tuple stmt' s'' = rename env s' stmt
+                                     in Tuple (Array.snoc acc stmt') s''
+                                  ) (Tuple [] s2) elseStmts
+    in Tuple (JavaIf condition' thenStmts' elseStmts') s3

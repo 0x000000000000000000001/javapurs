@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import * as S from "../output/PureScript.Backend.Optimizer.Syntax/index.js";
-import { translateOperator2 } from "../output/Javapurs.CodeGen/index.js";
+import { translateOperator2 } from "../output/Javapurs.Operators/index.js";
 import { printExpr } from "../output/Javapurs.Printer/index.js";
 
 // Run after building the backend: node test/operators.mjs

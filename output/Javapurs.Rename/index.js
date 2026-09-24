@@ -52,8 +52,8 @@ var rename = function (env) {
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaFunction(v1.value0), v1.value1);
             };
             if (v instanceof Javapurs_JavaAst.JavaLocal) {
-                var $128 = Data_String_CodePoints.take(8)(v.value0) === "__final_";
-                if ($128) {
+                var $138 = Data_String_CodePoints.take(8)(v.value0) === "__final_";
+                if ($138) {
                     var baseName = Data_String_CodePoints.drop(8)(v.value0);
                     var renamed = lookupName(baseName)(env);
                     return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaLocal("__final_" + renamed), s);
@@ -279,7 +279,7 @@ var rename = function (env) {
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaGlobalVar(v.value0, v.value1), s);
             };
             if (v instanceof Javapurs_JavaAst.JavaClassDecl) {
-                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaClassDecl(v.value0, v.value1), s);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaClassDecl(v.value0, v.value1, v.value2), s);
             };
             if (v instanceof Javapurs_JavaAst.JavaRaw) {
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaRaw(v.value0), s);
@@ -328,7 +328,32 @@ var rename = function (env) {
                 var v2 = rename(env)(v1.value1)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaBlock(v1.value0, v2.value0), v2.value1);
             };
-            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 182, column 38): " + [ v.constructor.name ]);
+            if (v instanceof Javapurs_JavaAst.JavaFieldSet) {
+                var v1 = rename(env)(s)(v.value0);
+                var v2 = rename(env)(v1.value1)(v.value4);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaFieldSet(v1.value0, v.value1, v.value2, v.value3, v2.value0), v2.value1);
+            };
+            if (v instanceof Javapurs_JavaAst.JavaLocalSet) {
+                var v1 = rename(env)(s)(v.value1);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaLocalSet(lookupName(v.value0)(env), v1.value0), v1.value1);
+            };
+            if (v instanceof Javapurs_JavaAst.JavaIf) {
+                var v1 = rename(env)(s)(v.value0);
+                var v2 = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (v3) {
+                    return function (stmt) {
+                        var v4 = rename(env)(v3.value1)(stmt);
+                        return new Data_Tuple.Tuple(Data_Array.snoc(v3.value0)(v4.value0), v4.value1);
+                    };
+                })(new Data_Tuple.Tuple([  ], v1.value1))(v.value1);
+                var v3 = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (v4) {
+                    return function (stmt) {
+                        var v5 = rename(env)(v4.value1)(stmt);
+                        return new Data_Tuple.Tuple(Data_Array.snoc(v4.value0)(v5.value0), v5.value1);
+                    };
+                })(new Data_Tuple.Tuple([  ], v2.value1))(v.value2);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaIf(v1.value0, v2.value0, v3.value0), v3.value1);
+            };
+            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 200, column 58): " + [ v.constructor.name ]);
         };
     };
 };

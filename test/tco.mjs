@@ -176,12 +176,19 @@ assert.doesNotMatch(nonTailFunction, /new java\.util\.function\.Supplier/,
 assert.match(deferredExpression, /^\(new java\.util\.function\.Supplier<Object>/,
   "a zero-argument JavaAbs must remain a deferred Supplier");
 
-// A loop body without a terminal continuation must retain its expression form.
-const ordinaryExpression = choose(raw("true"),
-  new A.JavaLet("preservedValue", raw("1"), local("preservedValue")), raw("0"));
+// A loop body without a statement-carrying branch must retain its expression form.
+const ordinaryExpression = choose(raw("true"), local("preservedArg"), raw("0"));
 assert.ok(printExpr(new A.JavaWhileTrue(["preservedArg"], [], ordinaryExpression))
   .includes(`return ${printExpr(ordinaryExpression)};`),
 "ordinary expressions must not be expanded into terminal statements");
+// A branch that carries statements becomes a real block instead of a Supplier.
+const statementExpression = choose(raw("true"),
+  new A.JavaLet("preservedValue", raw("1"), local("preservedValue")), raw("0"));
+const printedStatement = printExpr(new A.JavaWhileTrue(["preservedArg"], [], statementExpression));
+assert.ok(printedStatement.includes("Object preservedValue = 1; return preservedValue;"),
+  "statement branches must keep their block form");
+assert.ok(!printedStatement.includes("Supplier<Object>() { public Object get() { Object preservedValue"),
+  "statement branches must not fall back to a Supplier");
 
 const source = `
 public class TcoPrinterRegression {

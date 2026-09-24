@@ -19,7 +19,8 @@ import Data.List as List
 import Data.Array as Array
 import Data.Newtype (unwrap)
 import Data.String as String
-import Javapurs.CodeGen (sanitizeName, translateWithIntFunctions)
+import Javapurs.CodeGen (translateWithIntFunctions)
+import Javapurs.Naming (sanitizeName)
 import Javapurs.IntFunctions (runtimeSource)
 import Javapurs.Metrics as Metrics
 import Javapurs.RecordShapes (recordClassName)
@@ -36,6 +37,7 @@ main = launchAff_ $ Metrics.measure "backend total" \_ -> do
   let loopInvariants = not (Array.elem "--loop-invariants=off" args)
   let directCalls = not (Array.elem "--direct-calls=off" args)
   let intFunctions = not (Array.elem "--int-functions=off" args)
+  let ownership = not (Array.elem "--ownership=off" args)
   let mainModule = case Array.findIndex (_ == "--main") args of
         Just i -> case Array.index args (i + 1) of
           Just m -> m
@@ -70,7 +72,7 @@ main = launchAff_ $ Metrics.measure "backend total" \_ -> do
           Nothing -> pure ""
           Just p -> FS.readTextFile UTF8 p
         
-        let javaAst = translateWithIntFunctions { typedRecords, loopInvariants, directCalls, intFunctions } backendMod
+        let javaAst = translateWithIntFunctions { typedRecords, loopInvariants, directCalls, intFunctions, ownership } backendMod
         let foreignIdents = Map.keys backendMod.foreign
         let ffiStubs =
               if String.length ffiContent > 0 then

@@ -1,3 +1,4 @@
+import * as PursMap from "../output/Data.Map/index.js";
 import assert from "node:assert/strict";
 import { runtimeSource } from "../output/Javapurs.IntFunctions/index.js";
 import { execFileSync } from "node:child_process";
@@ -65,7 +66,7 @@ assert.ok(encodedNames.every(name => /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name)));
 const sources = new Map();
 function moduleSource(name, bindings, enabled = typedRecords) {
   const result = translateWithRecords(enabled)({
-    name, dataDecls: [],
+    name, dataDecls: [], foreign: PursMap.empty,
     bindings: bindings.map(([binding, expression]) => ({ recursive: false, bindings: [new Tuple(binding, expression)] })),
   });
   for (const layout of result.recordShapes) sources.set(`${recordClassName(layout)}.java`, printRecordShape(layout));
@@ -198,7 +199,7 @@ if (projectFlag >= 0) {
   const bareReads = nodesOf(analyzed, S.Accessor).filter(node => node.value0.value1 instanceof S.Local);
   assert.ok(bareReads.length > 0, "the real optimized fixture must exercise unannotated parameter reads");
   const generated = translateWithRecords(typedRecords)({
-    name: "Test.Records", dataDecls: [],
+    name: "Test.Records", dataDecls: [], foreign: PursMap.empty,
     bindings: [
       { recursive: true, bindings: [new Tuple("updateRec", updateRec.value1)] },
       { recursive: false, bindings: [new Tuple("initial", initialExpression)] },

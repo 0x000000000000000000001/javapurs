@@ -183,6 +183,11 @@ children visit expression = case expression of
   JavaArrayIndex value index -> JavaArrayIndex <$> visit value <*> visit index
   JavaCast name value -> JavaCast name <$> visit value
   JavaBlock statements value -> JavaBlock <$> traverse visit statements <*> visit value
+  JavaFieldSet target className fieldName fieldType value ->
+    JavaFieldSet <$> visit target <*> pure className <*> pure fieldName <*> pure fieldType <*> visit value
+  JavaLocalSet name value -> JavaLocalSet name <$> visit value
+  JavaIf condition thenStmts elseStmts ->
+    JavaIf <$> visit condition <*> traverse visit thenStmts <*> traverse visit elseStmts
   _ -> pure expression
   where
   fieldsOf = traverse (\(Tuple name value) -> Tuple name <$> visit value)

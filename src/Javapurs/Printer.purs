@@ -135,9 +135,11 @@ printExpr = case _ of
       bindingsStr = String.joinWith " " (map (\(Tuple n v) -> "Object " <> n <> " = " <> printExpr v <> ";") flat.bindings)
     in
       "(new java.util.function.Supplier<Object>() { public Object get() { " <> bindingsStr <> " return " <> printExpr flat.body <> "; } }).get()"
-  JavaClassDecl className fields ->
+  JavaClassDecl className fields mutable ->
     let
-      fieldDecls = map (\(Tuple arg ty) -> "public final " <> paramType ty <> " " <> arg <> ";") fields
+      -- Ownership workers update the nodes of a tree in place, so those classes
+      -- cannot keep the final modifier on their fields.
+      fieldDecls = map (\(Tuple arg ty) -> "public " <> (if mutable then "" else "final ") <> paramType ty <> " " <> arg <> ";") fields
       plainArgs = map (\(Tuple arg _) -> "Object " <> arg) fields
       typedArgs = map (\(Tuple arg ty) -> paramType ty <> " " <> arg) fields
       assigns = map (\(Tuple arg ty) -> "this." <> arg <> " = " <> assignField ty arg <> ";") fields
@@ -182,6 +184,16 @@ printExpr = case _ of
       String.joinWith " " (map printExpr stmts) <>
       " return " <> printExpr expr <> "; " <>
     "} }).get()"
+  JavaFieldSet target className fieldName fieldType value ->
+    "((" <> className <> ") (Object)(" <> printExpr target <> "))." <> fieldName <> " = " <> assignField fieldType (printExpr value) <> ";"
+  JavaLocalSet name value ->
+    name <> " = " <> printExpr value <> ";"
+  JavaIf condition thenStmts elseStmts ->
+    "if ((Boolean) (" <> printExpr condition <> ")) { " <>
+      String.joinWith " " (map printExpr thenStmts) <>
+    "} else { " <>
+      String.joinWith " " (map printExpr elseStmts) <>
+    "} "
   JavaAssign name expr ->
     if name == "main" then
       "public static final java.util.function.Supplier<Void> main = () -> {\n            ((java.util.function.Supplier<Object>)(" <> printExpr expr <> ")).get();\n            return null;\n        };"
@@ -283,7 +295,7 @@ printCountedLoop args intParams loop =
 -- exception fallback; in particular, do not move a continue through a closure.
 printLoopTail :: Array String -> Array String -> JavaExpr -> String
 printLoopTail params intParams expr
-  | not (hasDirectContinue expr) = "return " <> printExpr expr <> "; "
+  | not (hasDirectContinue expr) && not (branchNeedsStatements expr) = "return " <> printExpr expr <> "; "
   | otherwise = case expr of
   JavaContinue _ values ->
     "{ " <>
@@ -349,6 +361,10 @@ hasAnyContinue = case _ of
   JavaCall fn args -> hasAnyContinue fn || Array.any hasAnyContinue args
   JavaApply fn arg -> hasAnyContinue fn || hasAnyContinue arg
   JavaIntApply fn arg -> hasAnyContinue fn || hasAnyContinue arg
+  JavaFieldSet target _ _ _ value -> hasAnyContinue target || hasAnyContinue value
+  JavaLocalSet _ value -> hasAnyContinue value
+  JavaIf condition thenStmts elseStmts ->
+    hasAnyContinue condition || Array.any hasAnyContinue thenStmts || Array.any hasAnyContinue elseStmts
   JavaNew _ args -> Array.any hasAnyContinue args
   JavaArray items -> Array.any hasAnyContinue items
   JavaRecord fields -> Array.any (hasAnyContinue <<< snd) fields
@@ -366,7 +382,7 @@ hasAnyContinue = case _ of
   JavaWhileTrue _ _ _ -> false
   JavaMemoizedLoop _ _ _ _ -> false
   JavaStaticMethod _ _ _ -> false
-  JavaClassDecl _ _ -> false
+  JavaClassDecl _ _ _ -> false
   _ -> false
 
 -- A branch value that requires statements normally becomes a Supplier in

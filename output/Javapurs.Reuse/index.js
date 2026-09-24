@@ -172,7 +172,7 @@ var mapExpr = function (rewrite) {
             return new Javapurs_JavaAst.JavaGlobalVar(v.value0, v.value1);
         };
         if (v instanceof Javapurs_JavaAst.JavaClassDecl) {
-            return new Javapurs_JavaAst.JavaClassDecl(v.value0, v.value1);
+            return new Javapurs_JavaAst.JavaClassDecl(v.value0, v.value1, v.value2);
         };
         if (v instanceof Javapurs_JavaAst.JavaRaw) {
             return new Javapurs_JavaAst.JavaRaw(v.value0);
@@ -207,7 +207,16 @@ var mapExpr = function (rewrite) {
         if (v instanceof Javapurs_JavaAst.JavaBlock) {
             return new Javapurs_JavaAst.JavaBlock(Data_Functor.map(Data_Functor.functorArray)(go)(v.value0), go(v.value1));
         };
-        throw new Error("Failed pattern match at Javapurs.Reuse (line 114, column 13 - line 157, column 65): " + [ v.constructor.name ]);
+        if (v instanceof Javapurs_JavaAst.JavaFieldSet) {
+            return new Javapurs_JavaAst.JavaFieldSet(go(v.value0), v.value1, v.value2, v.value3, go(v.value4));
+        };
+        if (v instanceof Javapurs_JavaAst.JavaLocalSet) {
+            return new Javapurs_JavaAst.JavaLocalSet(v.value0, go(v.value1));
+        };
+        if (v instanceof Javapurs_JavaAst.JavaIf) {
+            return new Javapurs_JavaAst.JavaIf(go(v.value0), Data_Functor.map(Data_Functor.functorArray)(go)(v.value1), Data_Functor.map(Data_Functor.functorArray)(go)(v.value2));
+        };
+        throw new Error("Failed pattern match at Javapurs.Reuse (line 114, column 13 - line 162, column 66): " + [ v.constructor.name ]);
     };
     var go = function (expression) {
         return rewrite(rebuild(expression));
@@ -232,10 +241,10 @@ var constantClass = function (ctors) {
             return Data_Maybe.Nothing.value;
         };
         if (v instanceof Javapurs_JavaAst.JavaGlobalVar && v.value0 instanceof Data_Maybe.Just) {
-            var $147 = Data_Array.find(function (c) {
+            var $159 = Data_Array.find(function (c) {
                 return c.name === v.value0.value0 + ("." + v.value1) && Data_Array["null"](c.kinds);
             })(ctors);
-            if ($147 instanceof Data_Maybe.Just) {
+            if ($159 instanceof Data_Maybe.Just) {
                 return new Data_Maybe.Just(v.value0.value0 + ("." + v.value1));
             };
             return v1(true);
@@ -275,8 +284,8 @@ var replacement = function (ctors) {
 var allProjections = function (className) {
     return function (args) {
         var scrutinees = Data_Array.mapMaybe(identity)(Data_Array.mapWithIndex(projectionAt(className))(args));
-        var $158 = Data_Array.length(scrutinees) !== Data_Array.length(args);
-        if ($158) {
+        var $170 = Data_Array.length(scrutinees) !== Data_Array.length(args);
+        if ($170) {
             return Data_Maybe.Nothing.value;
         };
         var v = Data_Array.nub(Data_Ord.ordString)(scrutinees);
@@ -292,18 +301,18 @@ var reuse = function (ctors) {
             return expression;
         };
         if (expression instanceof Javapurs_JavaAst.JavaNew) {
-            var $162 = Data_Array.find(function (c) {
+            var $174 = Data_Array.find(function (c) {
                 return c.name === expression.value0;
             })(ctors);
-            if ($162 instanceof Data_Maybe.Just) {
-                var $163 = Data_Array.length(expression.value1) === Data_Array.length($162.value0.kinds);
-                if ($163) {
+            if ($174 instanceof Data_Maybe.Just) {
+                var $175 = Data_Array.length(expression.value1) === Data_Array.length($174.value0.kinds);
+                if ($175) {
                     var v1 = allProjections(expression.value0)(expression.value1);
                     if (v1 instanceof Data_Maybe.Just) {
                         return new Javapurs_JavaAst.JavaLocal(v1.value0);
                     };
                     if (v1 instanceof Data_Maybe.Nothing) {
-                        var v2 = replacement(ctors)(expression.value0)($162.value0)(expression.value1);
+                        var v2 = replacement(ctors)(expression.value0)($174.value0)(expression.value1);
                         if (v2 instanceof Data_Maybe.Just) {
                             return new Javapurs_JavaAst.JavaTernary(new Javapurs_JavaAst.JavaBinaryOp("==", projection(expression.value0)(v2.value0.field)(v2.value0.scrutinee), v2.value0.constant), new Javapurs_JavaAst.JavaLocal(v2.value0.scrutinee), expression);
                         };

@@ -22,6 +22,7 @@ import * as Effect_Console from "../Effect.Console/index.js";
 import * as Javapurs_CodeGen from "../Javapurs.CodeGen/index.js";
 import * as Javapurs_IntFunctions from "../Javapurs.IntFunctions/index.js";
 import * as Javapurs_Metrics from "../Javapurs.Metrics/index.js";
+import * as Javapurs_Naming from "../Javapurs.Naming/index.js";
 import * as Javapurs_Printer from "../Javapurs.Printer/index.js";
 import * as Javapurs_RecordPrinter from "../Javapurs.RecordPrinter/index.js";
 import * as Javapurs_RecordShapes from "../Javapurs.RecordShapes/index.js";
@@ -40,6 +41,7 @@ var main = /* #__PURE__ */ Data_Function.apply(Effect_Aff.launchAff_)(/* #__PURE
         var loopInvariants = !Data_Array.elem(Data_Eq.eqString)("--loop-invariants=off")(args);
         var directCalls = !Data_Array.elem(Data_Eq.eqString)("--direct-calls=off")(args);
         var intFunctions = !Data_Array.elem(Data_Eq.eqString)("--int-functions=off")(args);
+        var ownership = !Data_Array.elem(Data_Eq.eqString)("--ownership=off")(args);
         var mainModule = (function () {
             var v1 = Data_Array.findIndex(function (v2) {
                 return v2 === "--main";
@@ -52,12 +54,12 @@ var main = /* #__PURE__ */ Data_Function.apply(Effect_Aff.launchAff_)(/* #__PURE
                 if (v2 instanceof Data_Maybe.Nothing) {
                     return "Main";
                 };
-                throw new Error("Failed pattern match at Main (line 40, column 19 - line 42, column 28): " + [ v2.constructor.name ]);
+                throw new Error("Failed pattern match at Main (line 42, column 19 - line 44, column 28): " + [ v2.constructor.name ]);
             };
             if (v1 instanceof Data_Maybe.Nothing) {
                 return "Main";
             };
-            throw new Error("Failed pattern match at Main (line 39, column 20 - line 43, column 26): " + [ v1.constructor.name ]);
+            throw new Error("Failed pattern match at Main (line 41, column 20 - line 45, column 26): " + [ v1.constructor.name ]);
         })();
         return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(Data_Function.apply(liftEffect)(Effect_Console.log("Loading corefn.json files...")))(function () {
             return Control_Bind.bind(Effect_Aff.bindAff)(Javapurs_Metrics.measure("load TAST + sort")(function (v1) {
@@ -108,13 +110,14 @@ var main = /* #__PURE__ */ Data_Function.apply(Effect_Aff.launchAff_)(/* #__PURE
                                                             if (ffiPathMb instanceof Data_Maybe.Just) {
                                                                 return Node_FS_Aff.readTextFile(Node_Encoding.UTF8.value)(ffiPathMb.value0);
                                                             };
-                                                            throw new Error("Failed pattern match at Main (line 69, column 23 - line 71, column 43): " + [ ffiPathMb.constructor.name ]);
+                                                            throw new Error("Failed pattern match at Main (line 71, column 23 - line 73, column 43): " + [ ffiPathMb.constructor.name ]);
                                                         })())(function (ffiContent) {
                                                             var javaAst = Javapurs_CodeGen.translateWithIntFunctions({
                                                                 typedRecords: typedRecords,
                                                                 loopInvariants: loopInvariants,
                                                                 directCalls: directCalls,
-                                                                intFunctions: intFunctions
+                                                                intFunctions: intFunctions,
+                                                                ownership: ownership
                                                             })(backendMod);
                                                             var foreignIdents = Data_Map.keys(backendMod.foreign);
                                                             var ffiStubs = (function () {
@@ -123,7 +126,7 @@ var main = /* #__PURE__ */ Data_Function.apply(Effect_Aff.launchAff_)(/* #__PURE
                                                                     return "    // FFI provided by " + (Data_Maybe.fromMaybe("")(ffiPathMb) + ("\x0a" + ffiContent));
                                                                 };
                                                                 return Data_String_Common.joinWith("\x0a")(Data_Functor.map(Data_Functor.functorArray)(function (v5) {
-                                                                    return "    public static Object " + (Javapurs_CodeGen.sanitizeName(v5) + (" = FFI_STUB;\x0a    public static Object " + (Javapurs_CodeGen.sanitizeName(v5) + ("(Object... args) { throw new UnsupportedOperationException(\"Missing Java FFI: " + (modNameStr + ("." + (v5 + "\"); }")))))));
+                                                                    return "    public static Object " + (Javapurs_Naming.sanitizeName(v5) + (" = FFI_STUB;\x0a    public static Object " + (Javapurs_Naming.sanitizeName(v5) + ("(Object... args) { throw new UnsupportedOperationException(\"Missing Java FFI: " + (modNameStr + ("." + (v5 + "\"); }")))))));
                                                                 })(Data_Array.fromFoldable(Data_Set.foldableSet)(foreignIdents)));
                                                             })();
                                                             var classContent = "public class " + (safeModName + (" {\x0a" + ("    public static final Object FFI_STUB = new java.util.function.Function<Object, Object>() {\x0a" + ("        public Object apply(Object arg) { throw new UnsupportedOperationException(\"Missing Java FFI in " + (modNameStr + ("\"); }\x0a" + ("    };\x0a" + (ffiStubs + ("\x0a\x0a" + (Data_String_Common.joinWith("\x0a")(Data_Functor.map(Data_Functor.functorArray)(Javapurs_Printer.printExpr)(javaAst.decls)) + "\x0a}\x0a"))))))))));

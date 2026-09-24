@@ -1,3 +1,4 @@
+import * as PursMap from "../output/Data.Map/index.js";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -130,7 +131,7 @@ if (projectFlag >= 0) {
   const recursiveNames = new Set(corefn.decls.filter(decl => decl.bindType === "Rec")
     .flatMap(decl => decl.binds.map(binding => binding.identifier)));
   const names = ["zeroC", "succC", "addC", "mulC", "fromInt", "toInt", "c10", "c100", "c10k", "c100k"];
-  church = { name: "Test.Church", dataDecls: corefn.dataDecls, bindings: names.map(name => {
+  church = { name: "Test.Church", dataDecls: corefn.dataDecls, foreign: PursMap.empty, bindings: names.map(name => {
     assert.ok(implementations.has(name), `real optimized ${name} must be available`);
     return group(name, implementations.get(name), recursiveNames.has(name));
   }) };

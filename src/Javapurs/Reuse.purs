@@ -23,7 +23,7 @@ type CtorInfo = { name :: String, kinds :: Array JavaParamType }
 
 ctorOf :: JavaExpr -> Maybe CtorInfo
 ctorOf = case _ of
-  JavaClassDecl name fields -> Just { name, kinds: map snd fields }
+  JavaClassDecl name fields _ -> Just { name, kinds: map snd fields }
   _ -> Nothing
 
 -- Constructor classes are declared with their bare name and referenced with
@@ -143,7 +143,7 @@ mapExpr rewrite = go
     JavaLet name value body -> JavaLet name (go value) (go body)
     JavaLetRec binds body -> JavaLetRec (map (\(Tuple name value) -> Tuple name (go value)) binds) (go body)
     JavaGlobalVar modName name -> JavaGlobalVar modName name
-    JavaClassDecl name fields -> JavaClassDecl name fields
+    JavaClassDecl name fields mutable -> JavaClassDecl name fields mutable
     JavaRaw code -> JavaRaw code
     JavaAssign name value -> JavaAssign name (go value)
     JavaLazyAssign name value -> JavaLazyAssign name (go value)
@@ -155,3 +155,8 @@ mapExpr rewrite = go
     JavaArrayIndex array index -> JavaArrayIndex (go array) (go index)
     JavaCast ty value -> JavaCast ty (go value)
     JavaBlock stmts value -> JavaBlock (map go stmts) (go value)
+    JavaFieldSet target className fieldName fieldType value ->
+      JavaFieldSet (go target) className fieldName fieldType (go value)
+    JavaLocalSet name value -> JavaLocalSet name (go value)
+    JavaIf condition thenStmts elseStmts ->
+      JavaIf (go condition) (map go thenStmts) (map go elseStmts)

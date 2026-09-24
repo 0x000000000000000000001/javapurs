@@ -1,3 +1,4 @@
+import * as PursMap from "../output/Data.Map/index.js";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -167,7 +168,7 @@ const recordUpdate = new S.Typed(new C.Func([recordType, C.Int.value], recordTyp
 const recordRun = bAbs(["n"], new S.App(bVar("update"), [
   new S.Typed(recordType, new S.Lit(new C.LitRecord([new C.Prop("n", bInt(0))]))), bLocal("n", 0),
 ]));
-const backendModule = { name: "Direct.Typed", dataDecls: [], bindings: [
+const backendModule = { name: "Direct.Typed", dataDecls: [], foreign: PursMap.empty, bindings: [
   { recursive: false, bindings: [new Tuple("update", recordUpdate)] },
   { recursive: false, bindings: [new Tuple("run", recordRun)] },
 ] };
@@ -193,7 +194,7 @@ if (projectFlag >= 0) {
   collect(cache.value0);
   const names = ["depth", "balance", "ins", "insert", "buildTree"];
   const corefn = JSON.parse(readFileSync(join(project, "run/bak/java/output/Test.RBTree/corefn.json"), "utf8"));
-  actualModule = { name: "Test.RBTree", dataDecls: corefn.dataDecls, bindings: names.map(name => {
+  actualModule = { name: "Test.RBTree", dataDecls: corefn.dataDecls, foreign: PursMap.empty, bindings: names.map(name => {
     assert.ok(expressions.has(name), `real optimized ${name} implementation is missing`);
     return { recursive: ["depth", "ins", "buildTree"].includes(name), bindings: [new Tuple(name, expressions.get(name))] };
   }) };

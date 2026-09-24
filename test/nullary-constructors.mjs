@@ -1,3 +1,4 @@
+import * as PursMap from "../output/Data.Map/index.js";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -31,6 +32,7 @@ function moduleSource(name, dataDecls, bindings, initializers = "") {
   const generated = translate({
     name,
     dataDecls,
+    foreign: PursMap.empty,
     bindings: bindings.map(([binding, expression]) => ({ recursive: false, bindings: [new Tuple(binding, expression)] })),
   });
   return `public class ${name.replaceAll(".", "_")} {\n${initializers}\n${generated.decls.map(printExpr).join("\n")}\n}\n`;

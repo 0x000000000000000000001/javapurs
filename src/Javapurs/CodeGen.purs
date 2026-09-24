@@ -6,7 +6,9 @@ import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Data.Foldable (foldl, foldr, foldMap)
-import PureScript.Backend.Optimizer.Syntax (BackendSyntax(..), Level(..), Pair(..), BackendOperator(..), BackendOperator1(..), BackendOperator2(..), BackendAccessor(..), BackendOperatorOrd(..), BackendOperatorNum(..))
+import Data.Map (Map)
+import Data.Map as Map
+import PureScript.Backend.Optimizer.Syntax (BackendSyntax(..), Level(..), Pair(..), BackendOperator(..), BackendAccessor(..))
 import PureScript.Backend.Optimizer.FreeVars (localId)
 import Data.Array.NonEmpty as NEA
 import PureScript.Backend.Optimizer.Codegen.Tco (TcoExpr(..))
@@ -22,6 +24,9 @@ import Javapurs.DirectCalls (directCalls)
 import Javapurs.Reuse (reuseConstructors)
 import Javapurs.FunctionTypes (annotateFunctionTypes)
 import Javapurs.IntFunctions (abstractFunction, applyFunction)
+import Javapurs.Naming (sanitizeName)
+import Javapurs.Operators (translateOperator1, translateOperator2)
+import Javapurs.Ownership (prepare)
 import PureScript.Backend.Optimizer.CoreFn as CoreFn
 import Javapurs.Printer (hasAnyContinue, hasDirectContinue)
 import PureScript.Backend.Optimizer.Convert (BackendModule)
@@ -43,6 +48,7 @@ type CodegenEnv =
   , typedRecords :: Boolean
   , loopInvariants :: Boolean
   , intFunctions :: Boolean
+  , ownedFunctions :: Map String { javaName :: String, params :: Array JavaParamType }
   , invariantLocals :: Array (Tuple (Tuple (Maybe Ident) Level) String)
   , invariantScope :: String
   }
@@ -56,6 +62,37 @@ wrapInBlock :: TransRes -> JavaExpr
 wrapInBlock res =
   if Array.length res.stmts == 0 then res.expr
   else JavaBlock res.stmts res.expr
+
+-- | A call to an ownership worker is a flat static call. Only freshly built
+-- | trees reach this path: the pass rewrites nothing else, so the worker may
+-- | consume what it receives.
+ownedCall :: CodegenEnv -> Array LoopCtx -> TcoExpr -> Maybe JavaExpr
+ownedCall env loopCtx expression =
+  let flat = flattenApp expression
+  in case unwrapTcoExpr flat.fn of
+    Var (Qualified qualifier (Ident name))
+      | qualifier == Nothing || qualifier == Just env.sourceModule ->
+          case Map.lookup name env.ownedFunctions of
+            Just fn
+              | Array.length flat.args == Array.length fn.params ->
+                  Just $ JavaCall (JavaLocal fn.javaName)
+                    (Array.zipWith
+                      (\param arg -> case param of
+                        ParamInt -> JavaCast "int" (wrapInBlock (translateExpr env loopCtx false arg))
+                        _ -> wrapInBlock (translateExpr env loopCtx false arg))
+                      fn.params flat.args)
+              | not (Array.null fn.params) && Array.length flat.args == Array.length fn.params - 1 ->
+                  -- The module call has no donor yet: a fresh tree cannot be
+                  -- shared, so the worker starts without a reusable cell.
+                  Just $ JavaCall (JavaLocal fn.javaName)
+                    (Array.zipWith
+                      (\param arg -> case param of
+                        ParamInt -> JavaCast "int" (wrapInBlock (translateExpr env loopCtx false arg))
+                        _ -> wrapInBlock (translateExpr env loopCtx false arg))
+                      (Array.take (Array.length flat.args) fn.params) flat.args
+                      <> [ JavaRaw "null" ])
+            _ -> Nothing
+    _ -> Nothing
 
 -- Recursive definitions still use the generic loop ABI. Do not adapt their
 -- saturated calls; closures returned after that prefix can still be primitive.
@@ -114,28 +151,31 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
       let resFieldsExprs = map (\(Prop k v) -> Tuple k (wrapInBlock (translateExpr env loopCtx false v))) fields
       in pureExpr $ JavaRecord resFieldsExprs
   App _ _ ->
-    let
-      flat = flattenApp tcoExpr
-      resFnExpr = wrapInBlock (translateExpr env loopCtx false flat.fn)
-      argsExprs = map (\a -> wrapInBlock (translateExpr env loopCtx false a)) flat.args
-      application = if env.intFunctions then applyFunction (boxedFunctionArity env flat.fn) flat.fn resFnExpr argsExprs else foldl JavaApply resFnExpr argsExprs
-    in
-      if isTail then
-        let targetCtx = case unwrapTcoExpr flat.fn of
-             Local (Just (Ident fnName)) (Level lvl) ->
-               Array.find (\c -> c.canContinue && c.ident == localId (Just (Ident fnName)) (Level lvl)) loopCtx
-             Var (Qualified _ (Ident fnName)) ->
-               Array.find (\c -> c.canContinue && c.ident == sanitizeName fnName) loopCtx
-             _ -> Nothing
-        in case targetCtx of
-          Just ctx ->
-            if Array.length flat.args == Array.length ctx.params then
-               pureExpr $ JavaContinue ctx.ident argsExprs
-            else
-               pureExpr application
-          Nothing -> pureExpr application
-      else
-        pureExpr application
+    case ownedCall env loopCtx tcoExpr of
+      Just direct -> pureExpr direct
+      Nothing ->
+        let
+          flat = flattenApp tcoExpr
+          resFnExpr = wrapInBlock (translateExpr env loopCtx false flat.fn)
+          argsExprs = map (\a -> wrapInBlock (translateExpr env loopCtx false a)) flat.args
+          application = if env.intFunctions then applyFunction (boxedFunctionArity env flat.fn) flat.fn resFnExpr argsExprs else foldl JavaApply resFnExpr argsExprs
+        in
+          if isTail then
+            let targetCtx = case unwrapTcoExpr flat.fn of
+                 Local (Just (Ident fnName)) (Level lvl) ->
+                   Array.find (\c -> c.canContinue && c.ident == localId (Just (Ident fnName)) (Level lvl)) loopCtx
+                 Var (Qualified _ (Ident fnName)) ->
+                   Array.find (\c -> c.canContinue && c.ident == sanitizeName fnName) loopCtx
+                 _ -> Nothing
+            in case targetCtx of
+              Just ctx ->
+                if Array.length flat.args == Array.length ctx.params then
+                   pureExpr $ JavaContinue ctx.ident argsExprs
+                else
+                   pureExpr application
+              Nothing -> pureExpr application
+          else
+            pureExpr application
   UncurriedApp _ _ ->
     let
       flat = flattenApp tcoExpr
@@ -480,11 +520,15 @@ translateWithOptions { typedRecords, loopInvariants } =
 
 translateWithDirectCalls :: { typedRecords :: Boolean, loopInvariants :: Boolean, directCalls :: Boolean } -> BackendModule -> JavaFile
 translateWithDirectCalls { typedRecords, loopInvariants, directCalls: enabled } =
-  translateWithIntFunctions { typedRecords, loopInvariants, directCalls: enabled, intFunctions: true }
+  translateWithIntFunctions { typedRecords, loopInvariants, directCalls: enabled, intFunctions: true, ownership: true }
 
-translateWithIntFunctions :: { typedRecords :: Boolean, loopInvariants :: Boolean, directCalls :: Boolean, intFunctions :: Boolean } -> BackendModule -> JavaFile
-translateWithIntFunctions options@{ typedRecords, loopInvariants, intFunctions } mod =
+translateWithIntFunctions :: { typedRecords :: Boolean, loopInvariants :: Boolean, directCalls :: Boolean, intFunctions :: Boolean, ownership :: Boolean } -> BackendModule -> JavaFile
+translateWithIntFunctions options@{ typedRecords, loopInvariants, intFunctions } mod0 =
   let
+    ownership =
+      if options.ownership then prepare mod0
+      else { module: mod0, declarations: [], functions: Map.empty, mutableClasses: [], diagnostics: [] }
+    mod = ownership.module
     modNameStr = case mod.name of
       ModuleName m -> String.replaceAll (String.Pattern ".") (String.Replacement "_") m
 
@@ -520,6 +564,7 @@ translateWithIntFunctions options@{ typedRecords, loopInvariants, intFunctions }
               , typedRecords
               , loopInvariants
               , intFunctions
+              , ownedFunctions: ownership.functions
               , invariantLocals: []
               , invariantScope: ""
               }
@@ -557,12 +602,13 @@ translateWithIntFunctions options@{ typedRecords, loopInvariants, intFunctions }
               fields = Array.mapWithIndex (\i fieldType -> Tuple ("value" <> show i) (case fieldType of
                 CoreFn.Int -> ParamInt
                 _ -> ParamObject)) ctor.fields
+              classFullName = modNameStr <> "." <> safeCtorName
             in
-              JavaClassDecl safeCtorName fields
+              JavaClassDecl safeCtorName fields (Array.elem classFullName ownership.mutableClasses)
         ) decl.constructors
       ) mod.dataDecls
 
-    decls = dataClasses <> mainDecls
+    decls = dataClasses <> mainDecls <> ownership.declarations
     file =
       { decls
       , recordShapes: if typedRecords then Array.nub $ foldMap (\group -> foldMap (\(Tuple _ expr) -> collectRecordShapes expr) group.bindings) analyzedBindings else []
@@ -570,90 +616,6 @@ translateWithIntFunctions options@{ typedRecords, loopInvariants, intFunctions }
     rewritten = if options.directCalls then directCalls modNameStr file else file
   in reuseConstructors modNameStr rewritten
 
-translateOperator1 :: String -> BackendOperator1 -> JavaExpr -> JavaExpr
-translateOperator1 modName op e = case op of
-  OpBooleanNot -> JavaUnaryOp "!" (JavaCast "Boolean" e)
-  OpIntBitNot -> JavaUnaryOp "~" (JavaCast "int" e)
-  OpIntNegate -> JavaUnaryOp "-" (JavaCast "int" e)
-  OpNumberNegate -> JavaUnaryOp "-" (JavaCast "Double" e)
-  OpArrayLength -> JavaPropertyAccess e "Object[]" "length"
-  OpIsTag (Qualified mbMod (Ident tag)) ->
-    let
-      safeTag = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") tag
-      modPart = case mbMod of
-        Just (ModuleName mn) -> String.replaceAll (String.Pattern ".") (String.Replacement "_") mn
-        Nothing -> modName
-      javaClass = modPart <> "." <> safeTag
-    in
-      JavaInstanceOf e javaClass
-
-translateOperator2 :: String -> BackendOperator2 -> JavaExpr -> JavaExpr -> JavaExpr
-translateOperator2 _ op e1 e2 = case op of
-  OpBooleanAnd -> JavaBinaryOp "&&" (JavaCast "Boolean" e1) (JavaCast "Boolean" e2)
-  OpBooleanOr -> JavaBinaryOp "||" (JavaCast "Boolean" e1) (JavaCast "Boolean" e2)
-  OpBooleanOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
-  OpBooleanOrd OpNotEq -> JavaUnaryOp "!" (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2])
-  OpBooleanOrd OpGt -> JavaBinaryOp "&&" (JavaCast "Boolean" e1) (JavaUnaryOp "!" (JavaCast "Boolean" e2))
-  OpBooleanOrd OpGte -> JavaBinaryOp "||" (JavaCast "Boolean" e1) (JavaUnaryOp "!" (JavaCast "Boolean" e2))
-  OpBooleanOrd OpLt -> JavaBinaryOp "&&" (JavaUnaryOp "!" (JavaCast "Boolean" e1)) (JavaCast "Boolean" e2)
-  OpBooleanOrd OpLte -> JavaBinaryOp "||" (JavaUnaryOp "!" (JavaCast "Boolean" e1)) (JavaCast "Boolean" e2)
-  OpCharOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
-  OpCharOrd OpNotEq -> JavaUnaryOp "!" (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2])
-  OpCharOrd OpGt -> JavaBinaryOp ">" (JavaCast "Character" e1) (JavaCast "Character" e2)
-  OpCharOrd OpGte -> JavaBinaryOp ">=" (JavaCast "Character" e1) (JavaCast "Character" e2)
-  OpCharOrd OpLt -> JavaBinaryOp "<" (JavaCast "Character" e1) (JavaCast "Character" e2)
-  OpCharOrd OpLte -> JavaBinaryOp "<=" (JavaCast "Character" e1) (JavaCast "Character" e2)
-  OpIntBitAnd -> JavaBinaryOp "&" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpIntBitOr -> JavaBinaryOp "|" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpIntBitShiftLeft -> JavaBinaryOp "<<" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpIntBitShiftRight -> JavaBinaryOp ">>" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpIntBitXor -> JavaBinaryOp "^" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpIntBitZeroFillShiftRight -> JavaBinaryOp ">>>" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpIntNum OpAdd -> JavaBinaryOp "+" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpIntNum OpSubtract -> JavaBinaryOp "-" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpIntNum OpMultiply -> JavaBinaryOp "*" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpIntNum OpDivide ->
-    -- EuclideanRing intDiv: floor towards negative infinity for a positive
-    -- divisor, mirrored for a negative one, and a zero divisor returns zero
-    -- instead of throwing. The negation stays in double precision so that
-    -- Int.MIN_VALUE remains a usable divisor.
-    JavaBlock
-      [ JavaLocalAssign "__div_l" e1, JavaLocalAssign "__div_r" e2 ]
-      (JavaRaw "(((Integer) __div_r) == 0 ? 0 : (((Integer) __div_r) > 0 ? (int) Math.floor((double) ((Integer) __div_l) / ((Integer) __div_r)) : -(int) Math.floor((double) ((Integer) __div_l) / -((double) ((Integer) __div_r)))))")
-  OpIntNum OpMod ->
-    JavaBlock
-      [ JavaLocalAssign "__mod_l" e1, JavaLocalAssign "__mod_r" e2 ]
-      -- Widen before abs so that MIN_VALUE remains a positive divisor.
-      (JavaRaw "(((Integer) __mod_r) == 0 ? 0 : (int) Math.floorMod((long) ((Integer) __mod_l), Math.abs((long) ((Integer) __mod_r))))")
-  OpIntOrd OpEq -> JavaBinaryOp "==" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpIntOrd OpNotEq -> JavaBinaryOp "!=" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpIntOrd OpGt -> JavaBinaryOp ">" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpIntOrd OpGte -> JavaBinaryOp ">=" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpIntOrd OpLt -> JavaBinaryOp "<" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpIntOrd OpLte -> JavaBinaryOp "<=" (JavaCast "int" e1) (JavaCast "int" e2)
-  OpNumberNum OpAdd -> JavaBinaryOp "+" (JavaCast "Double" e1) (JavaCast "Double" e2)
-  OpNumberNum OpSubtract -> JavaBinaryOp "-" (JavaCast "Double" e1) (JavaCast "Double" e2)
-  OpNumberNum OpMultiply -> JavaBinaryOp "*" (JavaCast "Double" e1) (JavaCast "Double" e2)
-  OpNumberNum OpDivide -> JavaBinaryOp "/" (JavaCast "Double" e1) (JavaCast "Double" e2)
-  OpNumberNum OpMod ->
-    -- EuclideanRing Number always returns zero, after evaluating both operands.
-    JavaBlock [ JavaLocalAssign "__mod_l" e1, JavaLocalAssign "__mod_r" e2 ] (JavaRaw "0.0")
-  OpNumberOrd OpEq -> JavaBinaryOp "==" (JavaCast "double" e1) (JavaCast "double" e2)
-  OpNumberOrd OpNotEq -> JavaBinaryOp "!=" (JavaCast "double" e1) (JavaCast "double" e2)
-  OpNumberOrd OpGt -> JavaBinaryOp ">" (JavaCast "Double" e1) (JavaCast "Double" e2)
-  OpNumberOrd OpGte -> JavaBinaryOp ">=" (JavaCast "Double" e1) (JavaCast "Double" e2)
-  OpNumberOrd OpLt -> JavaBinaryOp "<" (JavaCast "Double" e1) (JavaCast "Double" e2)
-  OpNumberOrd OpLte -> JavaBinaryOp "<=" (JavaCast "Double" e1) (JavaCast "Double" e2)
-  OpStringAppend -> JavaBinaryOp "+" (JavaCast "String" e1) (JavaCast "String" e2)
-  OpStringOrd OpEq -> JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2]
-  OpStringOrd OpNotEq -> JavaUnaryOp "!" (JavaCall (JavaRaw "java.util.Objects.equals") [e1, e2])
-  OpStringOrd OpGt -> JavaBinaryOp ">" (JavaCall (JavaPropertyAccess e1 "String" "compareTo") [JavaCast "String" e2]) (JavaRaw "0")
-  OpStringOrd OpGte -> JavaBinaryOp ">=" (JavaCall (JavaPropertyAccess e1 "String" "compareTo") [JavaCast "String" e2]) (JavaRaw "0")
-  OpStringOrd OpLt -> JavaBinaryOp "<" (JavaCall (JavaPropertyAccess e1 "String" "compareTo") [JavaCast "String" e2]) (JavaRaw "0")
-  OpStringOrd OpLte -> JavaBinaryOp "<=" (JavaCall (JavaPropertyAccess e1 "String" "compareTo") [JavaCast "String" e2]) (JavaRaw "0")
-  OpArrayIndex -> JavaArrayIndex e1 e2
-
--- Parameter kinds for a typed top-level lambda. Extraction can flatten several
 -- Abs levels, so the type only contributes when it covers the same arity.
 paramKinds :: TcoExpr -> Array String -> Array JavaParamType
 paramKinds (TcoExpr _ syntax) args = case syntax of
@@ -664,11 +626,3 @@ paramKinds (TcoExpr _ syntax) args = case syntax of
         _ -> ParamObject) paramTypes
     _ -> Array.replicate (Array.length args) ParamObject
   _ -> Array.replicate (Array.length args) ParamObject
-
-sanitizeName :: String -> String
-sanitizeName n =
-  let
-    n' = String.replaceAll (String.Pattern "$") (String.Replacement "") (String.replaceAll (String.Pattern "'") (String.Replacement "$prime") n)
-    isKeyword x = x == "void" || x == "class" || x == "return" || x == "const" || x == "new" || x == "throw" || x == "catch" || x == "try" || x == "finally" || x == "if" || x == "else" || x == "while" || x == "for" || x == "do" || x == "switch" || x == "case" || x == "default" || x == "break" || x == "continue" || x == "boolean" || x == "byte" || x == "char" || x == "short" || x == "int" || x == "long" || x == "float" || x == "double" || x == "true" || x == "false" || x == "null" || x == "this" || x == "super" || x == "instanceof" || x == "public" || x == "protected" || x == "private" || x == "static" || x == "final" || x == "abstract" || x == "interface" || x == "implements" || x == "extends" || x == "package" || x == "import" || x == "throws" || x == "enum" || x == "assert" || x == "strictfp" || x == "native" || x == "synchronized" || x == "transient" || x == "volatile"
-  in
-    if isKeyword n' then "$" <> n' else n'
