@@ -22,7 +22,7 @@ import Javapurs.DirectCalls (directCalls)
 import Javapurs.FunctionTypes (annotateFunctionTypes)
 import Javapurs.IntFunctions (abstractFunction, applyFunction)
 import PureScript.Backend.Optimizer.CoreFn as CoreFn
-import Javapurs.Printer (hasDirectContinue)
+import Javapurs.Printer (hasAnyContinue, hasDirectContinue)
 import PureScript.Backend.Optimizer.Convert (BackendModule)
 import PureScript.Backend.Optimizer.CoreFn (Ident(..), Prop(..), Qualified(..), ModuleName(..), Literal(..))
 import Data.String as String
@@ -81,7 +81,12 @@ translateLoop env parentCtx name args body =
     expression = wrapInBlock (translateExpr loopEnv (Array.cons ctx (captureLoopCtx parentCtx)) true plan.body)
     intParams = if hasDirectContinue expression then intLoopParams args body else []
     values = map (\item -> Tuple item.name (wrapInBlock (translateExpr env (captureLoopCtx parentCtx) false item.value))) plan.invariants
-  in if Array.null values then JavaWhileTrue args intParams expression
+    -- A recursive definition with no back edge runs at most once. Emitting its
+    -- body directly keeps the original parameter names and primitive types
+    -- instead of boxing every argument into loop storage.
+    directExpr = wrapInBlock (translateExpr loopEnv (captureLoopCtx parentCtx) false plan.body)
+  in if Array.null values && not (hasAnyContinue expression) then directExpr
+     else if Array.null values then JavaWhileTrue args intParams expression
      else JavaMemoizedLoop args intParams values expression
 
 translateExpr :: CodegenEnv -> Array LoopCtx -> Boolean -> TcoExpr -> TransRes

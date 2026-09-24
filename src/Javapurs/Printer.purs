@@ -5,7 +5,7 @@ import Data.String as String
 import Data.String.CodeUnits as StringCodeUnits
 import Data.Maybe (Maybe(..))
 import Data.Array as Array
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), snd)
 import Data.Char as Char
 import Data.Int as Int
 import Javapurs.CountedLoops (CountedLoop, countedLoop)
@@ -326,6 +326,47 @@ hasDirectContinue = case _ of
   JavaBlock _ body -> hasDirectContinue body
   JavaLet _ _ body -> hasDirectContinue body
   JavaLetRec _ body -> hasDirectContinue body
+  _ -> false
+
+-- A continue that lands in a statement or operand position is printed as a
+-- `TcoLoop` throw and must keep a catch entry for its target. This searches
+-- those positions too, so a recursive definition without any continue can be
+-- emitted without a loop at all. Lambda and loop boundaries are skipped: their
+-- bodies are separate methods and hold only their own continues.
+hasAnyContinue :: JavaExpr -> Boolean
+hasAnyContinue = case _ of
+  JavaContinue _ _ -> true
+  JavaTernary _ yes no -> hasAnyContinue yes || hasAnyContinue no
+  JavaBlock stmts body -> Array.any hasAnyContinue stmts || hasAnyContinue body
+  JavaLet _ value body -> hasAnyContinue value || hasAnyContinue body
+  JavaLetRec binds body -> Array.any (hasAnyContinue <<< snd) binds || hasAnyContinue body
+  JavaAssign _ value -> hasAnyContinue value
+  JavaLocalAssign _ value -> hasAnyContinue value
+  JavaIntLocalAssign _ value -> hasAnyContinue value
+  JavaBinaryOp _ left right -> hasAnyContinue left || hasAnyContinue right
+  JavaUnaryOp _ expr -> hasAnyContinue expr
+  JavaCast _ expr -> hasAnyContinue expr
+  JavaCall fn args -> hasAnyContinue fn || Array.any hasAnyContinue args
+  JavaApply fn arg -> hasAnyContinue fn || hasAnyContinue arg
+  JavaIntApply fn arg -> hasAnyContinue fn || hasAnyContinue arg
+  JavaNew _ args -> Array.any hasAnyContinue args
+  JavaArray items -> Array.any hasAnyContinue items
+  JavaRecord fields -> Array.any (hasAnyContinue <<< snd) fields
+  JavaTypedRecord _ fields -> Array.any (hasAnyContinue <<< snd) fields
+  JavaTypedRecordGet _ value _ -> hasAnyContinue value
+  JavaTypedRecordUpdate _ value updates ->
+    hasAnyContinue value || Array.any (hasAnyContinue <<< snd) updates
+  JavaMapGet expr _ -> hasAnyContinue expr
+  JavaMapUpdate expr updates -> hasAnyContinue expr || Array.any (hasAnyContinue <<< snd) updates
+  JavaInstanceOf expr _ -> hasAnyContinue expr
+  JavaPropertyAccess expr _ _ -> hasAnyContinue expr
+  JavaAbs _ _ -> false
+  JavaIntAbs _ _ -> false
+  JavaTypedAbs _ _ -> false
+  JavaWhileTrue _ _ _ -> false
+  JavaMemoizedLoop _ _ _ _ -> false
+  JavaStaticMethod _ _ _ -> false
+  JavaClassDecl _ _ -> false
   _ -> false
 
 -- A branch value that requires statements normally becomes a Supplier in
