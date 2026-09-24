@@ -12,6 +12,7 @@ import * as PursMap from "../output/Data.Map/index.js";
 import { prepare } from "../output/Javapurs.Ownership/index.js";
 import { translateWithIntFunctions } from "../output/Javapurs.CodeGen/index.js";
 import { printFile } from "../output/Javapurs.Printer/index.js";
+import { moduleClass, moduleText } from "./support/module-classes.mjs";
 
 // Run after building the backend: node test/ownership.mjs
 const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
@@ -78,7 +79,7 @@ const treeModule = (extras = [], built = true) => ({
   ],
 });
 const options = { typedRecords: false, loopInvariants: true, directCalls: true, intFunctions: true, ownership: true };
-const generate = mod => printFile(moduleName)(translateWithIntFunctions(options)(mod));
+const generate = mod => printFile(moduleClass(moduleName))(translateWithIntFunctions(options)(mod));
 const occurrences = (text, needle) => text.split(needle).length - 1;
 const definitions = (text, name) => text.split(`private static Object ${name}(`).length - 1;
 
@@ -86,7 +87,7 @@ const prepared = prepare(treeModule());
 assert.ok(prepared.diagnostics.some(line => line.includes("build, ins, insert")),
   "the diagnostics must name the accepted workers");
 assert.equal(PursMap.size(prepared.functions), 3, "build, insert and ins must become consuming workers");
-assert.deepEqual(prepared.mutableClasses, [`${moduleName}.T`], "the node class must allow field updates");
+assert.deepEqual(prepared.mutableClasses, [`${moduleClass(moduleName)}.T`], "the node class must allow field updates");
 
 const source = generate(treeModule());
 for (const worker of ["__owned_build", "__owned_insert", "__owned_ins"]) {
@@ -188,36 +189,36 @@ const localModule = {
 const localPrepared = prepare(localModule);
 assert.ok(localPrepared.diagnostics.some(line => line.includes("duplicate, go")),
   "a function with a local recursive group must be accepted");
-assert.deepEqual(localPrepared.mutableClasses, [`${localName}.Cons`],
+assert.deepEqual(localPrepared.mutableClasses, [`${moduleClass(localName)}.Cons`],
   "the local list node class must allow field updates");
-const localSource = printFile(localName)(translateWithIntFunctions(options)(localModule));
+const localSource = printFile(moduleClass(localName))(translateWithIntFunctions(options)(localModule));
 assert.ok(definitions(localSource, "__owned_duplicate") >= 1, "the enclosing function must become a worker");
 assert.ok(definitions(localSource, "__owned_go") >= 1, "the local recursive group must become a worker");
 assert.match(localSource, /__owned_go\(owned0, /,
   "the worker call must pass the captured scalar");
 
 const listPrepared = prepare(listModule);
-assert.deepEqual(listPrepared.mutableClasses, [`${listName}.Cons`],
+assert.deepEqual(listPrepared.mutableClasses, [`${moduleClass(listName)}.Cons`],
   "a polymorphic node class must allow field updates");
 assert.ok(listPrepared.diagnostics.some(line => line.includes("append")),
   "the polymorphic worker must be accepted");
-const listSource = printFile(listName)(translateWithIntFunctions(options)(listModule));
+const listSource = printFile(moduleClass(listName))(translateWithIntFunctions(options)(listModule));
 assert.ok(definitions(listSource, "__owned_append") >= 1, "the polymorphic worker must be emitted");
 assert.doesNotMatch(listSource, /public final Object value0;/, "the polymorphic node must stay mutable");
 
 // The worker builds the same tree as the persistent functions.
 const directory = mkdtempSync(join(tmpdir(), "javapurs-ownership-"));
 try {
-  writeFileSync(join(directory, `${moduleName}.java`), source);
-  writeFileSync(join(directory, `${listName}.java`), listSource);
-  writeFileSync(join(directory, `${localName}.java`), localSource);
+  writeFileSync(join(directory, `${moduleClass(moduleName)}.java`), source);
+  writeFileSync(join(directory, `${moduleClass(listName)}.java`), listSource);
+  writeFileSync(join(directory, `${moduleClass(localName)}.java`), localSource);
   writeFileSync(join(directory, "TcoLoop.java"), `public class TcoLoop extends RuntimeException {
     public String loopId;
     public Object[] args;
     public TcoLoop(String loopId, Object[] args) { this.loopId = loopId; this.args = args; }
     @Override public synchronized Throwable fillInStackTrace() { return this; }
 }`);
-  writeFileSync(join(directory, "OwnershipRun.java"), `public class OwnershipRun {
+  writeFileSync(join(directory, "OwnershipRun.java"), moduleText(`public class OwnershipRun {
     static void collect(Object tree, java.util.List<Integer> keys) {
         if (tree == ${moduleName}.__singleton$E.value) return;
         ${moduleName}.T node = (${moduleName}.T) tree;
@@ -256,8 +257,8 @@ try {
         collectLocal(${localName}.duplicated, duplicated);
         System.out.println(owned.equals(shared) + " " + owned + " " + appended + " " + duplicated);
     }
-}`);
-  execFileSync(javac, ["-d", directory, join(directory, `${moduleName}.java`), join(directory, `${listName}.java`), join(directory, `${localName}.java`), join(directory, "TcoLoop.java"), join(directory, "OwnershipRun.java")], { stdio: "pipe" });
+}`, [moduleName, listName, localName]));
+  execFileSync(javac, ["-d", directory, join(directory, `${moduleClass(moduleName)}.java`), join(directory, `${moduleClass(listName)}.java`), join(directory, `${moduleClass(localName)}.java`), join(directory, "TcoLoop.java"), join(directory, "OwnershipRun.java")], { stdio: "pipe" });
   const output = execFileSync(java, ["-cp", directory, "OwnershipRun"], { encoding: "utf8" }).trim();
   assert.equal(output, "true [1, 2, 3, 4, 5, 6, 7, 8] [1, 2, 3] [1, 7, 2, 7]",
     "the consuming builds must match the persistent tree, list and local group");

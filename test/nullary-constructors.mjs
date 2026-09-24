@@ -12,6 +12,7 @@ import { Tuple } from "../output/Data.Tuple/index.js";
 import { translate } from "../output/Javapurs.CodeGen/index.js";
 import { printExpr } from "../output/Javapurs.Printer/index.js";
 import { renameWith, renameExpr } from "../output/Javapurs.Rename/index.js";
+import { moduleClass, moduleText } from "./support/module-classes.mjs";
 
 // Run after rebuilding the backend: node test/nullary-constructors.mjs
 const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
@@ -35,15 +36,17 @@ function moduleSource(name, dataDecls, bindings, initializers = "") {
     foreign: PursMap.empty,
     bindings: bindings.map(([binding, expression]) => ({ recursive: false, bindings: [new Tuple(binding, expression)] })),
   });
-  return `public class ${name.replaceAll(".", "_")} {\n${initializers}\n${generated.decls.map(printExpr).join("\n")}\n}\n`;
+  return `public class ${moduleClass(name.replaceAll(".", "_"))} {\n${initializers}\n${generated.decls.map(printExpr).join("\n")}\n}\n`;
 }
 
 const maybeType = parameter => new C.ADT("Test.Tags.MaybeA", ["Test", "Tags", "MaybeA"], [parameter]);
 const instantiateNone = expression => new S.Typed(maybeType(C.Int.value),
   new S.TypeApp(new S.Typed(new C.ForAll(["a"], maybeType(new C.TypeVar("a"))), expression), C.Int.value));
 
+const fixtureModules = ["Test_Tags", "Test_Consumer", "Test_Cold", "Test_CycleA", "Test_CycleB"];
+
 const sources = new Map();
-sources.set("Test_Tags.java", moduleSource("Test.Tags", [
+sources.set(`${moduleClass("Test_Tags")}.java`, moduleSource("Test.Tags", [
   dataDeclaration("Token", [constructor("R"), constructor("B"), constructor("Quote'")]),
   dataDeclaration("MaybeA", [constructor("None"), constructor("Box", [new C.TypeVar("a"), C.Int.value])], ["a"]),
   // No corresponding CtorDef binding: the holder must still come from dataDecls.
@@ -58,7 +61,7 @@ sources.set("Test_Tags.java", moduleSource("Test.Tags", [
   ["localR", saturated(null, "R")],
   ["wrappedDefinition", instantiateNone(definition("None", [], "MaybeA"))],
 ]));
-sources.set("Test_Consumer.java", moduleSource("Test.Consumer", [], [
+sources.set(`${moduleClass("Test_Consumer")}.java`, moduleSource("Test.Consumer", [], [
   ["importR", saturated("Test.Tags", "R")],
   ["importB", saturated("Test.Tags", "B")],
   ["importQuote", saturated("Test.Tags", "Quote'")],
@@ -67,31 +70,33 @@ sources.set("Test_Consumer.java", moduleSource("Test.Consumer", [], [
   ["boxOne", saturated("Test.Tags", "Box", [saturated("Test.Tags", "R"), literal(128)], "MaybeA")],
   ["boxTwo", saturated("Test.Tags", "Box", [saturated("Test.Tags", "R"), literal(128)], "MaybeA")],
 ]));
-sources.set("Test_Cold.java", moduleSource("Test.Cold", [
+sources.set(`${moduleClass("Test_Cold")}.java`, moduleSource("Test.Cold", [
   dataDeclaration("ColdToken", [constructor("Cold")]),
 ], [["Cold", definition("Cold", [], "ColdToken", C.ProductType.value)]],
 "static { InitProbe.outerInitializations++; }"));
-sources.set("Test_CycleA.java", moduleSource("Test.CycleA", [
+sources.set(`${moduleClass("Test_CycleA")}.java`, moduleSource("Test.CycleA", [
   dataDeclaration("CycleToken", [constructor("A")]),
 ], [
   ["fromB", reference("Test.CycleB", "fromA")],
   ["A", definition("A", [], "CycleToken", C.ProductType.value)],
 ]));
-sources.set("Test_CycleB.java", moduleSource("Test.CycleB", [], [
+sources.set(`${moduleClass("Test_CycleB")}.java`, moduleSource("Test.CycleB", [], [
   ["fromA", saturated("Test.CycleA", "A", [], "CycleToken", C.ProductType.value)],
 ]));
 
-const tags = sources.get("Test_Tags.java");
+const tags = sources.get(`${moduleClass("Test_Tags")}.java`);
 for (const name of ["R", "B", "Quote_prime_", "None", "Hidden"]) {
   assert.ok(tags.includes(`class __singleton$${name}`), `${name} needs a holder from its data declaration`);
   assert.equal(tags.split(`new ${name}()`).length - 1, 1, `${name} must be constructed only by its holder`);
 }
 assert.doesNotMatch(tags, /class __singleton\$Box\b/, "constructors with fields must not receive a singleton holder");
 assert.doesNotMatch(tags, /public static final Object Hidden\s*=/, "the data-only constructor intentionally has no value binding");
-assert.ok(tags.includes("Test_Tags.__singleton$R.value"), "local constructors must use their declaring module");
-assert.ok(sources.get("Test_Consumer.java").includes("Test_Tags.__singleton$Quote_prime_.value"),
+const tagsClass = moduleClass("Test_Tags");
+const consumerClass = moduleClass("Test_Consumer");
+assert.ok(tags.includes(`${tagsClass}.__singleton$R.value`), "local constructors must use their declaring module");
+assert.ok(sources.get(`${consumerClass}.java`).includes(`${tagsClass}.__singleton$Quote_prime_.value`),
   "qualified constructor names must preserve the class-name escaping");
-assert.ok(sources.get("Test_Consumer.java").includes("new Test_Tags.Box("), "saturated constructors with fields must still allocate");
+assert.ok(sources.get(`${consumerClass}.java`).includes(`new ${tagsClass}.Box(`), "saturated constructors with fields must still allocate");
 
 const singleton = new A.JavaCtorSingleton("Test_Tags", "Quote_prime_");
 const renamed = renameWith([new Tuple("Test_Tags", "WrongModule"), new Tuple("Quote_prime_", "WrongConstructor")])(singleton);
@@ -103,7 +108,7 @@ const inLambda = renameExpr(new A.JavaAbs(["Test_Tags", "Quote_prime_"], singlet
 assert.ok(printExpr(inLambda).includes("Test_Tags.__singleton$Quote_prime_.value"), "local renaming must preserve singleton qualification");
 
 sources.set("InitProbe.java", "public final class InitProbe { public static int outerInitializations; }\n");
-sources.set("NullaryChecks.java", `
+sources.set("NullaryChecks.java", moduleText(`
 public final class NullaryChecks {
     private static void same(String name, Object actual, Object expected) {
         if (actual == null || actual != expected) throw new AssertionError(name + ": different or null instances");
@@ -160,7 +165,7 @@ public final class NullaryChecks {
         System.out.println("Nullary constructors: initialization, identity, imports, wrappers and fresh fields passed");
     }
 }
-`);
+`, fixtureModules));
 
 const directory = mkdtempSync(join(tmpdir(), "javapurs-nullary-test-"));
 try {

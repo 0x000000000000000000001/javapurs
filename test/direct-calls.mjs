@@ -15,6 +15,7 @@ import { printExpr } from "../output/Javapurs.Printer/index.js";
 import { printRecordShape } from "../output/Javapurs.RecordPrinter/index.js";
 import { recordClassName } from "../output/Javapurs.RecordShapes/index.js";
 import { renameExpr } from "../output/Javapurs.Rename/index.js";
+import { moduleClass, moduleText } from "./support/module-classes.mjs";
 
 // Build the backend first. Optional real optimized input:
 // node test/direct-calls.mjs --rbtree-project ../../altbak.pub-javapurs
@@ -27,7 +28,7 @@ const integer = value => new A.JavaCast("int", value);
 const binary = (op, a, b) => new A.JavaBinaryOp(op, integer(a), integer(b));
 const add = (a, b) => binary("+", a, b);
 const abs = (args, body) => new A.JavaAbs(args, body);
-const global = (name, module = moduleName) => new A.JavaGlobalVar(module === null ? Nothing.value : new Just(module), name);
+const global = (name, module = moduleClass(moduleName)) => new A.JavaGlobalVar(module === null ? Nothing.value : new Just(module), name);
 const apply = (fn, args) => args.reduce((result, arg) => new A.JavaApply(result, arg), fn);
 const invoke = (name, args) => new A.JavaCall(raw(name), args);
 const note = (label, value) => invoke("DirectRuntime.note", [new A.JavaString(label), value]);
@@ -84,10 +85,10 @@ const original = { recordShapes: [layout], decls: [
   // Recursive lazy bindings call themselves through their getter. The
   // saturated self calls may use a worker directly.
   new A.JavaLazyAssign("selfPair", abs(["n", "acc"], new A.JavaTernary(binary("==", local("n"), raw(0)), local("acc"),
-    apply(invoke(`${moduleName}.__lazy_get_selfPair`, []), [binary("-", local("n"), raw(1)), binary("+", local("acc"), raw(10))])))),
+    apply(invoke(`${moduleClass(moduleName)}.__lazy_get_selfPair`, []), [binary("-", local("n"), raw(1)), binary("+", local("acc"), raw(10))])))),
   new A.JavaLazyAssign("selfUnary", abs(["n"], new A.JavaTernary(binary("==", local("n"), raw(0)), raw(0),
-    add(local("n"), apply(invoke(`${moduleName}.__lazy_get_selfUnary`, []), [binary("-", local("n"), raw(1))]))))),
-  new A.JavaLazyAssign("mutual", abs(["a", "b"], apply(invoke(`${moduleName}.__lazy_get_selfUnary`, []), [local("a")]))),
+    add(local("n"), apply(invoke(`${moduleClass(moduleName)}.__lazy_get_selfUnary`, []), [binary("-", local("n"), raw(1))]))))),
+  new A.JavaLazyAssign("mutual", abs(["a", "b"], apply(invoke(`${moduleClass(moduleName)}.__lazy_get_selfUnary`, []), [local("a")]))),
   assign("zero", abs([], raw(7))),
   assign("unary", abs(["a"], local("a"))),
   assign("arity32", wide(32)),
@@ -117,7 +118,7 @@ const original = { recordShapes: [layout], decls: [
   ])),
 ] };
 
-const optimized = directCalls(moduleName)(original);
+const optimized = directCalls(moduleClass(moduleName))(original);
 for (const name of ["pair", "nested", "constant", "returner", "scoped", "castPair", "throwPair", "recordPlus", "scope", "arity32", "future"]) {
   assert.ok(worker(optimized, name), `${name}: extract the contiguous multi-argument lambda prefix`);
   assert.ok(declaration(optimized, name).value1 instanceof A.JavaAbs, `${name}: keep the public curried field`);
@@ -148,7 +149,7 @@ assert.equal(nodes(worker(optimized, "recordPlus"), A.JavaTypedRecordUpdate).len
 assert.deepEqual(optimized.recordShapes, original.recordShapes);
 assert.equal(nodes(original, A.JavaStaticMethod).length, 0, "the pass must not mutate its input");
 
-const ambiguous = directCalls(moduleName)({ recordShapes: [], decls: [
+const ambiguous = directCalls(moduleClass(moduleName))({ recordShapes: [], decls: [
   assign("duplicate", abs(["a", "b"], local("a"))),
   assign("duplicate", abs(["a", "b"], local("b"))),
   fixture("use", apply(global("duplicate"), [raw(1), raw(2)])),
@@ -313,7 +314,8 @@ for (const enabled of [false, true]) {
   assert.equal(nodes(typedFile, A.JavaTypedRecordUpdate).length, 1, "direct lowering retains typed record operations");
   const files = new Map();
   function addFile(name, file) {
-    files.set(`${name}.java`, `public final class ${name} {\n${file.decls.map(decl => printExpr(renameExpr(decl))).join("\n")}\n}`);
+    const className = moduleClass(name);
+    files.set(`${className}.java`, `public final class ${className} {\n${file.decls.map(decl => printExpr(renameExpr(decl))).join("\n")}\n}`);
     for (const shape of file.recordShapes) files.set(`${recordClassName(shape)}.java`, printRecordShape(shape));
   }
   addFile(moduleName, enabled ? optimized : original);
@@ -334,8 +336,9 @@ for (const enabled of [false, true]) {
       @Override public synchronized Throwable fillInStackTrace() { return this; }
     }`);
   }
-  files.set("DirectRuntime.java", runtimeSource);
-  files.set("DirectChecks.java", checksSource);
+  const fixtureModules = [moduleName, "Direct_Typed", "Test_RBTree"];
+  files.set("DirectRuntime.java", moduleText(runtimeSource, fixtureModules));
+  files.set("DirectChecks.java", moduleText(checksSource, fixtureModules));
   const directory = mkdtempSync(join(tmpdir(), `javapurs-direct-${enabled ? "on" : "off"}-`));
   let success = false;
   try {

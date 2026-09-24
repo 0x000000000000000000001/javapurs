@@ -101,7 +101,7 @@ var main = /* #__PURE__ */ Data_Function.apply(Effect_Aff.launchAff_)(/* #__PURE
                                         return function (backendMod) {
                                             return function (v4) {
                                                 var modNameStr = Data_Newtype.unwrap()(v3.name);
-                                                var safeModName = Data_String_Common.replaceAll(".")("_")(modNameStr);
+                                                var safeModName = Javapurs_Naming.modulePrefix(v3.name);
                                                 return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(Data_Function.apply(liftEffect)(Data_Function.apply(Effect_Console.log)("Building module " + modNameStr)))(function () {
                                                     return Control_Bind.bind(Effect_Aff.bindAff)(Data_Function.apply(liftEffect1)(PureScript_Backend_Optimizer_FfiSupport.findFfiFile(".java")([  ])(Data_Maybe.Nothing.value)(modNameStr)(new Data_Maybe.Just(v3.path))))(function (ffiPathMb) {
                                                         return Control_Bind.bind(Effect_Aff.bindAff)((function () {

@@ -382,36 +382,36 @@ var rename = function (expression) {
         return Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaCast.create(expression.value0))(rename(expression.value1));
     };
     if (expression instanceof Javapurs_JavaAst.JavaLocalAssign) {
-        return Control_Bind.bind(bindStateT)(rename(expression.value1))(function (value$prime) {
-            return Control_Bind.bind(bindStateT)(localName(expression.value0))(function (renamed) {
-                return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT2)(function (state) {
-                    var $185 = {};
-                    for (var $186 in state) {
-                        if ({}.hasOwnProperty.call(state, $186)) {
-                            $185[$186] = state[$186];
-                        };
+        return Control_Bind.bind(bindStateT)(localName(expression.value0))(function (renamed) {
+            return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT2)(function (state) {
+                var $185 = {};
+                for (var $186 in state) {
+                    if ({}.hasOwnProperty.call(state, $186)) {
+                        $185[$186] = state[$186];
                     };
-                    $185.env = Data_Array.cons(new Data_Tuple.Tuple(expression.value0, renamed))(state.env);
-                    return $185;
-                }))(function () {
+                };
+                $185.env = Data_Array.cons(new Data_Tuple.Tuple(expression.value0, renamed))(state.env);
+                return $185;
+            }))(function () {
+                return Control_Bind.bind(bindStateT)(rename(expression.value1))(function (value$prime) {
                     return Control_Applicative.pure(applicativeStateT)(new Javapurs_JavaAst.JavaLocalAssign(renamed, value$prime));
                 });
             });
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaIntLocalAssign) {
-        return Control_Bind.bind(bindStateT)(rename(expression.value1))(function (value$prime) {
-            return Control_Bind.bind(bindStateT)(localName(expression.value0))(function (renamed) {
-                return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT2)(function (state) {
-                    var $190 = {};
-                    for (var $191 in state) {
-                        if ({}.hasOwnProperty.call(state, $191)) {
-                            $190[$191] = state[$191];
-                        };
+        return Control_Bind.bind(bindStateT)(localName(expression.value0))(function (renamed) {
+            return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT2)(function (state) {
+                var $190 = {};
+                for (var $191 in state) {
+                    if ({}.hasOwnProperty.call(state, $191)) {
+                        $190[$191] = state[$191];
                     };
-                    $190.env = Data_Array.cons(new Data_Tuple.Tuple(expression.value0, renamed))(state.env);
-                    return $190;
-                }))(function () {
+                };
+                $190.env = Data_Array.cons(new Data_Tuple.Tuple(expression.value0, renamed))(state.env);
+                return $190;
+            }))(function () {
+                return Control_Bind.bind(bindStateT)(rename(expression.value1))(function (value$prime) {
                     return Control_Applicative.pure(applicativeStateT)(new Javapurs_JavaAst.JavaIntLocalAssign(renamed, value$prime));
                 });
             });

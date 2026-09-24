@@ -62,7 +62,7 @@ operatorEscapes =
   ]
 
 modulePrefix :: ModuleName -> String
-modulePrefix (ModuleName name) = String.replaceAll (String.Pattern ".") (String.Replacement "_") name
+modulePrefix (ModuleName name) = "__M$" <> String.replaceAll (String.Pattern ".") (String.Replacement "_") name
 
 safeCtorName :: String -> String
 safeCtorName = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_")

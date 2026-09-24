@@ -3,6 +3,7 @@ module Javapurs.Operators (translateOperator1, translateOperator2) where
 import Prelude
 
 import Data.Maybe (Maybe(..))
+import Javapurs.Naming (modulePrefix)
 import Data.String as String
 import Javapurs.JavaAst (JavaExpr(..))
 import PureScript.Backend.Optimizer.CoreFn (Ident(..), ModuleName(..), Qualified(..))
@@ -19,7 +20,7 @@ translateOperator1 modName op e = case op of
     let
       safeTag = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") tag
       modPart = case mbMod of
-        Just (ModuleName mn) -> String.replaceAll (String.Pattern ".") (String.Replacement "_") mn
+        Just mn -> modulePrefix mn
         Nothing -> modName
       javaClass = modPart <> "." <> safeTag
     in

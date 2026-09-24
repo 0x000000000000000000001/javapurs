@@ -20,7 +20,7 @@ import Data.Array as Array
 import Data.Newtype (unwrap)
 import Data.String as String
 import Javapurs.CodeGen (translateWithIntFunctions)
-import Javapurs.Naming (sanitizeName)
+import Javapurs.Naming (modulePrefix, sanitizeName)
 import Javapurs.IntFunctions (runtimeSource)
 import Javapurs.Metrics as Metrics
 import Javapurs.RecordShapes (recordClassName)
@@ -65,7 +65,7 @@ main = launchAff_ $ Metrics.measure "backend total" \_ -> do
     , onSkipModule: \_ _ -> pure Nothing
     , onCodegenModule: \_ (Module coreFnMod) backendMod _ -> do
         let modNameStr = unwrap coreFnMod.name
-        let safeModName = String.replaceAll (String.Pattern ".") (String.Replacement "_") modNameStr
+        let safeModName = modulePrefix coreFnMod.name
         liftEffect $ log $ "Building module " <> modNameStr
         
         ffiPathMb <- liftEffect $ findFfiFile ".java" [] Nothing modNameStr (Just coreFnMod.path)

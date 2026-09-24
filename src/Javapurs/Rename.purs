@@ -128,14 +128,14 @@ rename expression = case expression of
   JavaArraySet array index value -> JavaArraySet <$> rename array <*> rename index <*> rename value
   JavaCast ty value -> JavaCast ty <$> rename value
   JavaLocalAssign name value -> do
-    value' <- rename value
     renamed <- localName name
     modify_ \state -> state { env = Array.cons (Tuple name renamed) state.env }
+    value' <- rename value
     pure (JavaLocalAssign renamed value')
   JavaIntLocalAssign name value -> do
-    value' <- rename value
     renamed <- localName name
     modify_ \state -> state { env = Array.cons (Tuple name renamed) state.env }
+    value' <- rename value
     pure (JavaIntLocalAssign renamed value')
   JavaBlock stmts body -> do
     outerEnv <- gets _.env

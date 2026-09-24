@@ -3,7 +3,7 @@ module Javapurs.Printer where
 import Prelude
 import Data.String as String
 import Data.String.CodeUnits as StringCodeUnits
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Array as Array
 import Data.Tuple (Tuple(..), snd)
 import Data.Char as Char
@@ -50,15 +50,20 @@ printExpr = case _ of
   JavaFunction expr ->
     "(java.util.function.Supplier<Object>) () -> " <> printExpr expr
   JavaGlobalVar mbMod name ->
-    case mbMod of
-      Just "Effect_Console" -> if name == "log" then "(java.util.function.Function<Object, Object>) (arg) -> (java.util.function.Supplier<Object>) () -> { System.out.println(arg); return null; }" else "Effect_Console." <> name
-      Just "Test_Assert" -> if name == "assertImpl" then "(java.util.function.Function<Object, Object>) (msg) -> (java.util.function.Function<Object, Object>) (b) -> (java.util.function.Supplier<Object>) () -> { if (!((Boolean) b)) { throw new RuntimeException((String) msg); } return null; }" else "Test_Assert." <> name
+    -- Module classes carry a generated prefix; the built-in translations match
+    -- the source module name.
+    let
+      plainMod = map (\m -> String.replaceAll (String.Pattern "__M$") (String.Replacement "") m) mbMod
+      qualified = (fromMaybe "" mbMod) <> "." <> name
+    in case plainMod of
+      Just "Effect_Console" -> if name == "log" then "(java.util.function.Function<Object, Object>) (arg) -> (java.util.function.Supplier<Object>) () -> { System.out.println(arg); return null; }" else qualified
+      Just "Test_Assert" -> if name == "assertImpl" then "(java.util.function.Function<Object, Object>) (msg) -> (java.util.function.Function<Object, Object>) (b) -> (java.util.function.Supplier<Object>) () -> { if (!((Boolean) b)) { throw new RuntimeException((String) msg); } return null; }" else qualified
       Just "Effect" -> case name of
         "bindE" -> "(java.util.function.Function<Object, Object>) (a) -> (java.util.function.Function<Object, Object>) (f) -> (java.util.function.Supplier<Object>) () -> { return ((java.util.function.Supplier<Object>) ((java.util.function.Function<Object, Object>) f).apply(((java.util.function.Supplier<Object>) a).get())).get(); }"
         "pureE" -> "(java.util.function.Function<Object, Object>) (a) -> (java.util.function.Supplier<Object>) () -> a"
-        _ -> "Effect." <> name
-      Just "Data_Semigroup" -> if name == "concatString" then "(java.util.function.Function<Object, Object>) (a) -> (java.util.function.Function<Object, Object>) (b) -> a.toString() + b.toString()" else "Data_Semigroup." <> name
-      Just m -> m <> "." <> name
+        _ -> qualified
+      Just "Data_Semigroup" -> if name == "concatString" then "(java.util.function.Function<Object, Object>) (a) -> (java.util.function.Function<Object, Object>) (b) -> a.toString() + b.toString()" else qualified
+      Just _ -> qualified
       Nothing -> name
   JavaLocal name -> name
   JavaAbs args body ->
@@ -140,22 +145,30 @@ printExpr = case _ of
       -- Ownership workers update the nodes of a tree in place, so those classes
       -- cannot keep the final modifier on their fields.
       fieldDecls = map (\(Tuple arg ty) -> "public " <> (if mutable then "" else "final ") <> paramType ty <> " " <> arg <> ";") fields
-      plainArgs = map (\(Tuple arg _) -> "Object " <> arg) fields
       typedArgs = map (\(Tuple arg ty) -> paramType ty <> " " <> arg) fields
+      plainArgs = map (\(Tuple arg _) -> "Object " <> arg) fields
       assigns = map (\(Tuple arg ty) -> "this." <> arg <> " = " <> assignField ty arg <> ";") fields
       constructor argsList =
-        "public " <> className <> "(" <> String.joinWith ", " argsList <> ") {\n" <>
+        "public " <> className <> "(" <> String.joinWith ", " argsList <> "){\n" <>
         "                " <> String.joinWith "\n                " assigns <> "\n" <>
         "            }"
-      plainCtor = constructor plainArgs
-      typedCtor = constructor typedArgs
-      -- The Object constructor keeps every existing call site working across
-      -- modules; the typed overload is selected when an argument is already a
-      -- primitive, so proven Int fields are stored without boxing.
+      -- The variable-arity form reads its arguments from an array, where a
+      -- proven Int is an Integer.
       hasInt = Array.any (\(Tuple _ ty) -> case ty of
         ParamInt -> true
         _ -> false) fields
-      ctors = if hasInt then plainCtor <> "\n            " <> typedCtor else plainCtor
+      varargsCtor =
+        "public " <> className <> "(Object... values) {\n" <>
+        "                " <> String.joinWith "\n                " (Array.mapWithIndex (\i (Tuple arg ty) ->
+            "this." <> arg <> " = " <> varargsAssign ty ("values[" <> show i <> "]") <> ";") fields) <> "\n" <>
+        "            }"
+      varargsAssign ty value = case ty of
+        ParamInt -> "((Integer) (" <> value <> ")).intValue()"
+        _ -> value
+      -- A typed overload is chosen by exact argument types; the Object form is
+      -- variable arity so Java only considers it after the typed one, which
+      -- keeps calls whose arguments are primitive literals unambiguous.
+      ctors = if hasInt then constructor typedArgs <> "\n            " <> varargsCtor else constructor plainArgs
     in
       "public static final class " <> className <> " {\n" <>
       "            " <> String.joinWith "\n            " fieldDecls <> "\n" <>

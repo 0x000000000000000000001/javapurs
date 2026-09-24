@@ -2,6 +2,7 @@
 import * as Data_Maybe from "../Data.Maybe/index.js";
 import * as Data_String_Common from "../Data.String.Common/index.js";
 import * as Javapurs_JavaAst from "../Javapurs.JavaAst/index.js";
+import * as Javapurs_Naming from "../Javapurs.Naming/index.js";
 import * as PureScript_Backend_Optimizer_Syntax from "../PureScript.Backend.Optimizer.Syntax/index.js";
 var translateOperator2 = function (v) {
     return function (op) {
@@ -157,7 +158,7 @@ var translateOperator2 = function (v) {
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpArrayIndex) {
                     return new Javapurs_JavaAst.JavaArrayIndex(e1, e2);
                 };
-                throw new Error("Failed pattern match at Javapurs.Operators (line 29, column 33 - line 92, column 39): " + [ op.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.Operators (line 30, column 33 - line 93, column 39): " + [ op.constructor.name ]);
             };
         };
     };
@@ -184,17 +185,17 @@ var translateOperator1 = function (modName) {
                 var safeTag = Data_String_Common.replaceAll("'")("_prime_")(op.value0.value1);
                 var modPart = (function () {
                     if (op.value0.value0 instanceof Data_Maybe.Just) {
-                        return Data_String_Common.replaceAll(".")("_")(op.value0.value0.value0);
+                        return Javapurs_Naming.modulePrefix(op.value0.value0.value0);
                     };
                     if (op.value0.value0 instanceof Data_Maybe.Nothing) {
                         return modName;
                     };
-                    throw new Error("Failed pattern match at Javapurs.Operators (line 21, column 17 - line 23, column 27): " + [ op.value0.value0.constructor.name ]);
+                    throw new Error("Failed pattern match at Javapurs.Operators (line 22, column 17 - line 24, column 27): " + [ op.value0.value0.constructor.name ]);
                 })();
                 var javaClass = modPart + ("." + safeTag);
                 return new Javapurs_JavaAst.JavaInstanceOf(e, javaClass);
             };
-            throw new Error("Failed pattern match at Javapurs.Operators (line 12, column 35 - line 26, column 33): " + [ op.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Operators (line 13, column 35 - line 27, column 33): " + [ op.constructor.name ]);
         };
     };
 };

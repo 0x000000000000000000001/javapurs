@@ -5,7 +5,7 @@ import Prelude
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
-import Data.Foldable (foldl, foldr, foldMap)
+import Data.Foldable (any, foldl, foldr, foldMap)
 import Data.Map (Map)
 import Data.Map as Map
 import PureScript.Backend.Optimizer.Syntax (BackendSyntax(..), Level(..), Pair(..), BackendOperator(..), BackendAccessor(..), BackendEffect(..))
@@ -15,7 +15,7 @@ import PureScript.Backend.Optimizer.Codegen.Tco (TcoExpr(..))
 import Data.String.CodeUnits as CodeUnits
 import Data.Newtype (unwrap)
 import PureScript.Backend.Optimizer.Codegen.Tco as Tco
-import Javapurs.JavaAst (JavaExpr(..), JavaParamType(..), JavaFile)
+import Javapurs.JavaAst (JavaExpr(..), children, JavaParamType(..), JavaFile)
 import Javapurs.IntLoops (intLoopParams)
 import Javapurs.RecordShapes (recordShape, recordShapeOf, collectRecordShapes)
 import Javapurs.RecordTypes (annotateRecordTypes)
@@ -24,7 +24,7 @@ import Javapurs.DirectCalls (directCalls)
 import Javapurs.Reuse (reuseConstructors)
 import Javapurs.FunctionTypes (annotateFunctionTypes)
 import Javapurs.IntFunctions (abstractFunction, applyFunction)
-import Javapurs.Naming (sanitizeName)
+import Javapurs.Naming (modulePrefix, sanitizeName)
 import Javapurs.Operators (translateOperator1, translateOperator2)
 import Javapurs.Ownership (prepare)
 import PureScript.Backend.Optimizer.CoreFn as CoreFn
@@ -96,6 +96,13 @@ ownedCall env loopCtx expression =
 
 -- Recursive definitions still use the generic loop ABI. Do not adapt their
 -- saturated calls; closures returned after that prefix can still be primitive.
+-- | Whether a translated expression still names a local, which Java rejects
+-- | when the local is the initializer of its own declaration.
+mentionsJavaLocal :: String -> JavaExpr -> Boolean
+mentionsJavaLocal name expr = case expr of
+  JavaLocal local -> local == name
+  _ -> any (mentionsJavaLocal name) (children expr)
+
 boxedFunctionArity :: CodegenEnv -> TcoExpr -> Int
 boxedFunctionArity env expression = case unwrapTcoExpr expression of
   Var (Qualified qualifier (Ident name))
@@ -254,9 +261,15 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
               Just abs ->
                 let
                   funcBody = translateLoop env loopCtx javaName abs.args abs.body
+                  loopValue = JavaAbs abs.args funcBody
+                  resBody = translateExprWith inEffectBlock env loopCtx isTail body
                 in
-                  let resBody = translateExprWith inEffectBlock env loopCtx isTail body
-                  in { stmts: [JavaLocalAssign javaName (JavaAbs abs.args funcBody)] <> resBody.stmts, expr: resBody.expr }
+                  if mentionsJavaLocal javaName loopValue then
+                    -- The loop body still names the binding (a non-uniform use),
+                    -- so it needs the scope cell that JavaLetRec gives it.
+                    pureExpr $ JavaLetRec [ Tuple javaName loopValue ] (wrapInBlock resBody)
+                  else
+                    { stmts: [JavaLocalAssign javaName loopValue] <> resBody.stmts, expr: resBody.expr }
               Nothing ->
                 let
                   bindsArray = map (\(Tuple (Ident n) v) -> Tuple (localId (Just (Ident n)) lvl) (wrapInBlock (translateExpr env loopCtx false v))) (Array.fromFoldable binds)
@@ -324,7 +337,7 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
     let
       safeCtorName = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") ctorName
       modPart = case mbMod of
-        Just (ModuleName mn) -> String.replaceAll (String.Pattern ".") (String.Replacement "_") mn
+        Just mn -> modulePrefix mn
         Nothing -> env.moduleName
       javaClass = modPart <> "." <> safeCtorName
       resArgsExprs = map (\(Tuple _ val) -> wrapInBlock (translateExpr env loopCtx false val)) (Array.fromFoldable args)
@@ -353,7 +366,7 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
       let
         safeCtorName = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") ctorName
         modPart = case mbMod of
-          Just (ModuleName mn) -> String.replaceAll (String.Pattern ".") (String.Replacement "_") mn
+          Just mn -> modulePrefix mn
           Nothing -> env.moduleName
         javaClass = modPart <> "." <> safeCtorName
         resExprExpr = wrapInBlock (translateExpr env loopCtx false expr)
@@ -370,7 +383,7 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
     Qualified mbMod (Ident name) ->
       let
         qModName = case mbMod of
-          Just (ModuleName m) -> Just (String.replaceAll (String.Pattern ".") (String.Replacement "_") m)
+          Just m -> Just (modulePrefix m)
           Nothing -> Nothing
         javaName = sanitizeName name
         isCurrentModule = qModName == Nothing || qModName == Just env.moduleName
@@ -550,8 +563,7 @@ translateWithIntFunctions options@{ typedRecords, loopInvariants, intFunctions }
       if options.ownership then prepare mod0
       else { module: mod0, declarations: [], functions: Map.empty, mutableClasses: [], diagnostics: [] }
     mod = ownership.module
-    modNameStr = case mod.name of
-      ModuleName m -> String.replaceAll (String.Pattern ".") (String.Replacement "_") m
+    modNameStr = modulePrefix mod.name
 
     Tuple _ rawBindings = foldl
       (\(Tuple env acc) group ->

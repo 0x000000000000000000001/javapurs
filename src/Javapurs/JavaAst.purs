@@ -1,8 +1,9 @@
 module Javapurs.JavaAst where
 
-import Prelude (class Eq, class Ord)
+import Prelude (class Eq, class Ord, append, map)
+import Data.Array (cons, snoc)
 import Data.Maybe (Maybe)
-import Data.Tuple (Tuple)
+import Data.Tuple (Tuple, snd)
 
 -- A proven Int parameter or field stays primitive; every other value keeps the
 -- generic Object ABI. The marker is only used where a declaration is emitted
@@ -61,6 +62,57 @@ data JavaExpr
   | JavaFieldSet JavaExpr String String JavaParamType JavaExpr
   | JavaLocalSet String JavaExpr
   | JavaIf JavaExpr (Array JavaExpr) (Array JavaExpr)
+
+-- | The direct sub-expressions of a node, used by traversals that only read.
+children :: JavaExpr -> Array JavaExpr
+children = case _ of
+  JavaString _ -> []
+  JavaCall fn args -> cons fn args
+  JavaFunction value -> [ value ]
+  JavaLocal _ -> []
+  JavaAbs _ body -> [ body ]
+  JavaTypedAbs _ body -> [ body ]
+  JavaIntAbs _ body -> [ body ]
+  JavaNew _ args -> args
+  JavaCtorSingleton _ _ -> []
+  JavaTernary condition yes no -> [ condition, yes, no ]
+  JavaThrow _ -> []
+  JavaRecord fields -> fieldValues fields
+  JavaTypedRecord _ fields -> fieldValues fields
+  JavaTypedRecordGet _ value _ -> [ value ]
+  JavaTypedRecordUpdate _ value updates -> cons value (fieldValues updates)
+  JavaArray items -> items
+  JavaWhileTrue _ _ body -> [ body ]
+  JavaMemoizedLoop _ _ invariants body -> snoc (map snd invariants) body
+  JavaLoopInvariant _ -> []
+  JavaContinue _ args -> args
+  JavaMapGet value _ -> [ value ]
+  JavaMapUpdate value updates -> cons value (fieldValues updates)
+  JavaInstanceOf value _ -> [ value ]
+  JavaPropertyAccess value _ _ -> [ value ]
+  JavaApply fn arg -> [ fn, arg ]
+  JavaIntApply fn arg -> [ fn, arg ]
+  JavaLet _ value body -> [ value, body ]
+  JavaLetRec binds body -> snoc (map snd binds) body
+  JavaGlobalVar _ _ -> []
+  JavaClassDecl _ _ _ -> []
+  JavaRaw _ -> []
+  JavaAssign _ value -> [ value ]
+  JavaLazyAssign _ value -> [ value ]
+  JavaStaticMethod _ _ body -> [ body ]
+  JavaLocalAssign _ value -> [ value ]
+  JavaIntLocalAssign _ value -> [ value ]
+  JavaBinaryOp _ left right -> [ left, right ]
+  JavaUnaryOp _ value -> [ value ]
+  JavaArrayIndex array index -> [ array, index ]
+  JavaArraySet array index value -> [ array, index, value ]
+  JavaCast _ value -> [ value ]
+  JavaBlock stmts body -> snoc stmts body
+  JavaFieldSet target _ _ _ value -> [ target, value ]
+  JavaLocalSet _ value -> [ value ]
+  JavaIf condition thenStmts elseStmts -> cons condition (append thenStmts elseStmts)
+  where
+  fieldValues = map snd
 
 data JavaRecordFieldType = RecordInt | RecordObject | RecordNested
 

@@ -12,6 +12,7 @@ import * as T from "../output/PureScript.Backend.Optimizer.Codegen.Tco/index.js"
 import { Just, Nothing } from "../output/Data.Maybe/index.js";
 import { Tuple } from "../output/Data.Tuple/index.js";
 import { translateWithRecords } from "../output/Javapurs.CodeGen/index.js";
+import { moduleClass, moduleText } from "./support/module-classes.mjs";
 import { printExpr } from "../output/Javapurs.Printer/index.js";
 import { printRecordShape } from "../output/Javapurs.RecordPrinter/index.js";
 import { recordShape, recordShapeOf, recordClassName } from "../output/Javapurs.RecordShapes/index.js";
@@ -70,8 +71,9 @@ function moduleSource(name, bindings, enabled = typedRecords) {
     bindings: bindings.map(([binding, expression]) => ({ recursive: false, bindings: [new Tuple(binding, expression)] })),
   });
   for (const layout of result.recordShapes) sources.set(`${recordClassName(layout)}.java`, printRecordShape(layout));
-  const source = `public class ${name.replaceAll(".", "_")} {\n${result.decls.map(printExpr).join("\n")}\n}\n`;
-  sources.set(`${name.replaceAll(".", "_")}.java`, source);
+  const className = moduleClass(name.replaceAll(".", "_"));
+  const source = `public class ${className} {\n${result.decls.map(printExpr).join("\n")}\n}\n`;
+  sources.set(`${className}.java`, source);
   return { source, result };
 }
 
@@ -214,7 +216,8 @@ if (projectFlag >= 0) {
       "no deep update may silently remain on the Map path");
   }
   for (const layout of generated.recordShapes) sources.set(`${recordClassName(layout)}.java`, printRecordShape(layout));
-  sources.set("Test_Records.java", `public class Test_Records {\n${generated.decls.map(printExpr).join("\n")}\n}`);
+  const recordsClass = moduleClass("Test_Records");
+  sources.set(`${recordsClass}.java`, `public class ${recordsClass} {\n${generated.decls.map(printExpr).join("\n")}\n}`);
   sources.set("TcoLoop.java", `public final class TcoLoop extends RuntimeException {
     public final String loopId; public final Object[] args;
     public TcoLoop(String loopId, Object[] args) { this.loopId = loopId; this.args = args; }
@@ -284,7 +287,7 @@ const incompatibleUpdate = printExpr(rawUpdate(orderedLayout, raw("old"), [["a",
 const extraUpdate = printExpr(rawUpdate(orderedLayout, raw("old"), [["extra", raw("99")]]));
 const mutationUpdate = printExpr(rawUpdate(orderedLayout, raw("mapBase"), [["a", raw("mutateExtra(mapBase)")]]));
 const nullExpression = printExpr(rawRecord(nullableLayout, [["obj", raw("null")], ["nested", raw("null")]]));
-sources.set("TypedRecordChecks.java", `
+sources.set("TypedRecordChecks.java", moduleText(`
 import java.util.*;
 import java.util.function.Function;
 public final class TypedRecordChecks {
@@ -399,7 +402,7 @@ public final class TypedRecordChecks {
     System.out.println("Typed records (${typedRecords ? "typed" : "maps"}): " + checks + " runtime checks passed");
   }
 }
-`);
+`, ["Test_Records", "Records_Producer", "Records_Consumer", "Records_Parameters"]));
 
 const directory = mkdtempSync(join(tmpdir(), "javapurs-typed-records-test-"));
 sources.set("__IntFn.java", runtimeSource);

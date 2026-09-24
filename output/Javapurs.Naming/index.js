@@ -62,7 +62,7 @@ var sanitizeName = function (n) {
     return withLeading;
 };
 var modulePrefix = function (v) {
-    return Data_String_Common.replaceAll(".")("_")(v);
+    return "__M$" + Data_String_Common.replaceAll(".")("_")(v);
 };
 var constructorClassName = function (modPart) {
     return function (ctorName) {

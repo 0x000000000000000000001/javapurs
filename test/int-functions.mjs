@@ -10,6 +10,7 @@ import * as S from "../output/PureScript.Backend.Optimizer.Syntax/index.js";
 import { Just, Nothing } from "../output/Data.Maybe/index.js";
 import { Tuple } from "../output/Data.Tuple/index.js";
 import { translateWithIntFunctions } from "../output/Javapurs.CodeGen/index.js";
+import { moduleClass, moduleText } from "./support/module-classes.mjs";
 import { runtimeSource } from "../output/Javapurs.IntFunctions/index.js";
 import { printExpr } from "../output/Javapurs.Printer/index.js";
 import { printRecordShape } from "../output/Javapurs.RecordPrinter/index.js";
@@ -242,7 +243,9 @@ const outputs = [];
 for (const enabled of [false, true]) {
   const options = { typedRecords: true, loopInvariants: true, directCalls: true, intFunctions: enabled };
   const files = new Map([
-    ["__IntFn.java", runtimeSource], ["IntClosureRuntime.java", runtime], ["IntFunctionChecks.java", checks],
+    ["__IntFn.java", runtimeSource],
+    [`${moduleClass("IntClosureRuntime")}.java`, moduleText(runtime, ["IntClosureRuntime", "Int_Functions", "Test_Church"])],
+    ["IntFunctionChecks.java", moduleText(checks, ["IntClosureRuntime", "Int_Functions", "Test_Church"])],
     ["TcoLoop.java", `public final class TcoLoop extends RuntimeException {
       public final String loopId; public final Object[] args;
       public TcoLoop(String id, Object[] values) { loopId = id; args = values; }
@@ -251,9 +254,9 @@ for (const enabled of [false, true]) {
   ]);
   function addModule(module) {
     const result = translateWithIntFunctions(options)(module);
-    const name = module.name.replaceAll(".", "_");
+    const className = moduleClass(module.name.replaceAll(".", "_"));
     for (const shape of result.recordShapes) files.set(`${recordClassName(shape)}.java`, printRecordShape(shape));
-    files.set(`${name}.java`, `public final class ${name} {\n${result.decls.map(printExpr).join("\n")}\n}\n`);
+    files.set(`${className}.java`, `public final class ${className} {\n${result.decls.map(printExpr).join("\n")}\n}\n`);
     return result;
   }
   const generated = addModule(fixtures);
