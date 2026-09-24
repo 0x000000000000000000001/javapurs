@@ -5,6 +5,7 @@ import * as Control_Monad_ST_Internal from "../Control.Monad.ST.Internal/index.j
 import * as Data_Argonaut_Core from "../Data.Argonaut.Core/index.js";
 import * as Data_Argonaut_Decode_Error from "../Data.Argonaut.Decode.Error/index.js";
 import * as Data_Array from "../Data.Array/index.js";
+import * as Data_Array_ST from "../Data.Array.ST/index.js";
 import * as Data_Either from "../Data.Either/index.js";
 import * as Data_Function from "../Data.Function/index.js";
 import * as Data_Functor from "../Data.Functor/index.js";
@@ -15,22 +16,117 @@ import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
 import * as Foreign_Object from "../Foreign.Object/index.js";
+import * as Partial_Unsafe from "../Partial.Unsafe/index.js";
 import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
-var sequence = /* #__PURE__ */ Data_Traversable.sequence(Data_Traversable.traversableArray);
-var sequence1 = /* #__PURE__ */ sequence(Data_Maybe.applicativeMaybe);
 var pure = /* #__PURE__ */ Control_Applicative.pure(Control_Monad_ST_Internal.applicativeST);
 var pure1 = /* #__PURE__ */ Control_Applicative.pure(Control_Monad_ST_Internal.applicativeST);
-var sequence2 = /* #__PURE__ */ sequence(Data_Maybe.applicativeMaybe);
+var sequence = /* #__PURE__ */ Data_Traversable.sequence(Data_Traversable.traversableArray);
+var sequence1 = /* #__PURE__ */ sequence(Data_Maybe.applicativeMaybe);
 var pure2 = /* #__PURE__ */ Control_Applicative.pure(Control_Monad_ST_Internal.applicativeST);
-var sequence3 = /* #__PURE__ */ sequence(Data_Maybe.applicativeMaybe);
+var sequence2 = /* #__PURE__ */ sequence(Data_Maybe.applicativeMaybe);
 var pure3 = /* #__PURE__ */ Control_Applicative.pure(Control_Monad_ST_Internal.applicativeST);
-var unsafeUpdateAt = function (i) {
-    return function (x) {
-        return function (arr) {
-            return Data_Maybe.fromMaybe(arr)(Data_Array.updateAt(i)(x)(arr));
+var StaticRef = /* #__PURE__ */ (function () {
+    function StaticRef(value0) {
+        this.value0 = value0;
+    };
+    StaticRef.create = function (value0) {
+        return new StaticRef(value0);
+    };
+    return StaticRef;
+})();
+var AdtRef = /* #__PURE__ */ (function () {
+    function AdtRef(value0, value1, value2) {
+        this.value0 = value0;
+        this.value1 = value1;
+        this.value2 = value2;
+    };
+    AdtRef.create = function (value0) {
+        return function (value1) {
+            return function (value2) {
+                return new AdtRef(value0, value1, value2);
+            };
         };
     };
-};
+    return AdtRef;
+})();
+var TypeAppRef = /* #__PURE__ */ (function () {
+    function TypeAppRef(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    TypeAppRef.create = function (value0) {
+        return function (value1) {
+            return new TypeAppRef(value0, value1);
+        };
+    };
+    return TypeAppRef;
+})();
+var FuncRef = /* #__PURE__ */ (function () {
+    function FuncRef(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    FuncRef.create = function (value0) {
+        return function (value1) {
+            return new FuncRef(value0, value1);
+        };
+    };
+    return FuncRef;
+})();
+var ArrayRef = /* #__PURE__ */ (function () {
+    function ArrayRef(value0) {
+        this.value0 = value0;
+    };
+    ArrayRef.create = function (value0) {
+        return new ArrayRef(value0);
+    };
+    return ArrayRef;
+})();
+var RecordRef = /* #__PURE__ */ (function () {
+    function RecordRef(value0) {
+        this.value0 = value0;
+    };
+    RecordRef.create = function (value0) {
+        return new RecordRef(value0);
+    };
+    return RecordRef;
+})();
+var RowRef = /* #__PURE__ */ (function () {
+    function RowRef(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    RowRef.create = function (value0) {
+        return function (value1) {
+            return new RowRef(value0, value1);
+        };
+    };
+    return RowRef;
+})();
+var ForAllRef = /* #__PURE__ */ (function () {
+    function ForAllRef(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    ForAllRef.create = function (value0) {
+        return function (value1) {
+            return new ForAllRef(value0, value1);
+        };
+    };
+    return ForAllRef;
+})();
+var ConstrainedRef = /* #__PURE__ */ (function () {
+    function ConstrainedRef(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    ConstrainedRef.create = function (value0) {
+        return function (value1) {
+            return new ConstrainedRef(value0, value1);
+        };
+    };
+    return ConstrainedRef;
+})();
 var getFieldOptional$prime = function (decode) {
     return function (obj) {
         return function (prop) {
@@ -39,13 +135,13 @@ var getFieldOptional$prime = function (decode) {
                 return new Data_Either.Right(Data_Maybe.Nothing.value);
             };
             if (v instanceof Data_Maybe.Just) {
-                var $42 = Data_Argonaut_Core.isNull(v.value0);
-                if ($42) {
+                var $26 = Data_Argonaut_Core.isNull(v.value0);
+                if ($26) {
                     return new Data_Either.Right(Data_Maybe.Nothing.value);
                 };
                 return Data_Functor.map(Data_Either.functorEither)(Data_Maybe.Just.create)(decode(v.value0));
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 51, column 3 - line 53, column 77): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 52, column 3 - line 54, column 77): " + [ v.constructor.name ]);
         };
     };
 };
@@ -64,9 +160,9 @@ var getField = function (decode) {
                 if (v1 instanceof Data_Either.Left) {
                     return new Data_Either.Left(new Data_Argonaut_Decode_Error.AtKey(prop, v1.value0));
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 45, column 18 - line 47, column 36): " + [ v1.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 46, column 18 - line 48, column 36): " + [ v1.constructor.name ]);
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 43, column 3 - line 47, column 36): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 44, column 3 - line 48, column 36): " + [ v.constructor.name ]);
         };
     };
 };
@@ -111,7 +207,7 @@ var decodeArray = function (decoder) {
         if (v instanceof Data_Either.Right) {
             return Data_Traversable.traverse(Data_Traversable.traversableArray)(Data_Either.applicativeEither)(decoder)(v.value0);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 56, column 28 - line 58, column 36): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 57, column 28 - line 59, column 36): " + [ v.constructor.name ]);
     };
 };
 var decodeConstraintRef = function (j) {
@@ -126,16 +222,139 @@ var decodeConstraintRef = function (j) {
         });
     });
 };
+var decodeTypeRef = function (j) {
+    var v = decodeString(j);
+    if (v instanceof Data_Either.Right && v.value0 === "Int") {
+        return new Data_Either.Right(new StaticRef(PureScript_Backend_Optimizer_CoreFn.Int.value));
+    };
+    if (v instanceof Data_Either.Right && v.value0 === "Number") {
+        return new Data_Either.Right(new StaticRef(PureScript_Backend_Optimizer_CoreFn["Number"].value));
+    };
+    if (v instanceof Data_Either.Right && v.value0 === "String") {
+        return new Data_Either.Right(new StaticRef(PureScript_Backend_Optimizer_CoreFn["String"].value));
+    };
+    if (v instanceof Data_Either.Right && v.value0 === "Char") {
+        return new Data_Either.Right(new StaticRef(PureScript_Backend_Optimizer_CoreFn.Char.value));
+    };
+    if (v instanceof Data_Either.Right && v.value0 === "Boolean") {
+        return new Data_Either.Right(new StaticRef(PureScript_Backend_Optimizer_CoreFn["Boolean"].value));
+    };
+    if (v instanceof Data_Either.Right && v.value0 === "Unit") {
+        return new Data_Either.Right(new StaticRef(PureScript_Backend_Optimizer_CoreFn.Unit.value));
+    };
+    if (v instanceof Data_Either.Right && v.value0 === "Any") {
+        return new Data_Either.Right(new StaticRef(PureScript_Backend_Optimizer_CoreFn.Any.value));
+    };
+    if (v instanceof Data_Either.Right) {
+        return new Data_Either.Left(new Data_Argonaut_Decode_Error.TypeMismatch("ExprType"));
+    };
+    if (v instanceof Data_Either.Left) {
+        var v1 = decodeJObject(j);
+        if (v1 instanceof Data_Either.Left) {
+            return new Data_Either.Left(new Data_Argonaut_Decode_Error.TypeMismatch("ExprType"));
+        };
+        if (v1 instanceof Data_Either.Right) {
+            var v2 = getField(decodeString)(v1.value0)("type");
+            if (v2 instanceof Data_Either.Left) {
+                var v3 = Foreign_Object.lookup("TypeVar")(v1.value0);
+                if (v3 instanceof Data_Maybe.Just) {
+                    return Data_Functor.map(Data_Either.functorEither)(function ($179) {
+                        return StaticRef.create(PureScript_Backend_Optimizer_CoreFn.TypeVar.create($179));
+                    })(decodeString(v3.value0));
+                };
+                if (v3 instanceof Data_Maybe.Nothing) {
+                    return new Data_Either.Left(v2.value0);
+                };
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 106, column 19 - line 108, column 28): " + [ v3.constructor.name ]);
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "Adt") {
+                return Control_Bind.bind(Data_Either.bindEither)(getField(decodeArray(decodeString))(v1.value0)("fqn"))(function (fqn) {
+                    return Control_Bind.bind(Data_Either.bindEither)(getField(decodeArray(decodeInt))(v1.value0)("args"))(function (args) {
+                        return Control_Applicative.pure(Data_Either.applicativeEither)(new AdtRef(Data_Array.intercalate(Data_Monoid.monoidString)(".")(fqn), fqn, args));
+                    });
+                });
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "TypeApp") {
+                return Control_Bind.bind(Data_Either.bindEither)(getField(decodeInt)(v1.value0)("constructor"))(function (constructor) {
+                    return Control_Applicative.pure(Data_Either.applicativeEither)(new TypeAppRef(constructor, getField(decodeArray(decodeInt))(v1.value0)("args")));
+                });
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "Func") {
+                return Control_Bind.bind(Data_Either.bindEither)(getField(decodeArray(decodeInt))(v1.value0)("args"))(function (args) {
+                    return Control_Bind.bind(Data_Either.bindEither)(getField(decodeInt)(v1.value0)("ret"))(function (ret) {
+                        return Control_Applicative.pure(Data_Either.applicativeEither)(new FuncRef(args, ret));
+                    });
+                });
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "Array") {
+                return Data_Functor.map(Data_Either.functorEither)(ArrayRef.create)(getField(decodeInt)(v1.value0)("element"));
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "TypeVar") {
+                return Data_Functor.map(Data_Either.functorEither)(function ($180) {
+                    return StaticRef.create(PureScript_Backend_Optimizer_CoreFn.TypeVar.create($180));
+                })(getField(decodeString)(v1.value0)("name"));
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "Record") {
+                return Data_Functor.map(Data_Either.functorEither)(RecordRef.create)(getField(decodeInt)(v1.value0)("row"));
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "Row") {
+                return Control_Bind.bind(Data_Either.bindEither)(getField(decodeArray(decodeFieldRef))(v1.value0)("fields"))(function (fields) {
+                    return Control_Applicative.pure(Data_Either.applicativeEither)(new RowRef(fields, getFieldOptional$prime(decodeInt)(v1.value0)("tail")));
+                });
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "ForAll") {
+                return Control_Bind.bind(Data_Either.bindEither)(getField(decodeArray(decodeString))(v1.value0)("vars"))(function (vars) {
+                    return Control_Bind.bind(Data_Either.bindEither)(getField(decodeInt)(v1.value0)("body"))(function (body) {
+                        return Control_Applicative.pure(Data_Either.applicativeEither)(new ForAllRef(vars, body));
+                    });
+                });
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "ConstrainedType") {
+                return Control_Bind.bind(Data_Either.bindEither)(getField(decodeArray(decodeConstraintRef))(v1.value0)("constraints"))(function (constraints) {
+                    return Control_Applicative.pure(Data_Either.applicativeEither)(new ConstrainedRef(constraints, getField(decodeInt)(v1.value0)("body")));
+                });
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "TypeLevelString") {
+                return Data_Functor.map(Data_Either.functorEither)(function ($181) {
+                    return StaticRef.create(PureScript_Backend_Optimizer_CoreFn.TypeLevelString.create($181));
+                })(getField(decodeString)(v1.value0)("value"));
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "Int") {
+                return new Data_Either.Right(new StaticRef(PureScript_Backend_Optimizer_CoreFn.Int.value));
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "Number") {
+                return new Data_Either.Right(new StaticRef(PureScript_Backend_Optimizer_CoreFn["Number"].value));
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "String") {
+                return new Data_Either.Right(new StaticRef(PureScript_Backend_Optimizer_CoreFn["String"].value));
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "Char") {
+                return new Data_Either.Right(new StaticRef(PureScript_Backend_Optimizer_CoreFn.Char.value));
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "Boolean") {
+                return new Data_Either.Right(new StaticRef(PureScript_Backend_Optimizer_CoreFn["Boolean"].value));
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "Unit") {
+                return new Data_Either.Right(new StaticRef(PureScript_Backend_Optimizer_CoreFn.Unit.value));
+            };
+            if (v2 instanceof Data_Either.Right && v2.value0 === "Any") {
+                return new Data_Either.Right(new StaticRef(PureScript_Backend_Optimizer_CoreFn.Any.value));
+            };
+            return new Data_Either.Left(new Data_Argonaut_Decode_Error.TypeMismatch("ExprType"));
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 103, column 13 - line 141, column 42): " + [ v1.constructor.name ]);
+    };
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 94, column 19 - line 141, column 42): " + [ v.constructor.name ]);
+};
 var decodeTypeTableST = function (typeTableJson) {
     return function __do() {
-        var resArray = Control_Monad_ST_Internal["new"](Data_Array.replicate(Data_Array.length(typeTableJson))(Data_Maybe.Nothing.value))();
+        var resArray = Data_Array_ST.thaw(Data_Array.replicate(Data_Array.length(typeTableJson))(Data_Maybe.Nothing.value))();
         var resolveId = function (force) {
             return function (id) {
                 return function __do() {
-                    var resE = Control_Monad_ST_Internal.read(resArray)();
-                    var v = Data_Array.index(resE)(id);
-                    if (v instanceof Data_Maybe.Just && v.value0 instanceof Data_Maybe.Just) {
-                        return new Data_Maybe.Just(v.value0.value0);
+                    var resolved = Data_Array_ST.peek(id)(resArray)();
+                    if (resolved instanceof Data_Maybe.Just && resolved.value0 instanceof Data_Maybe.Just) {
+                        return new Data_Maybe.Just(resolved.value0.value0);
                     };
                     if (force) {
                         return new Data_Maybe.Just(new Data_Either.Right(PureScript_Backend_Optimizer_CoreFn.Any.value));
@@ -147,469 +366,295 @@ var decodeTypeTableST = function (typeTableJson) {
         var resolveArgs = function (force) {
             return function (args) {
                 return function __do() {
-                    var mbVals = Data_Functor.map(Control_Monad_ST_Internal.functorST)(sequence1)(Data_Traversable.traverse(Data_Traversable.traversableArray)(Control_Monad_ST_Internal.applicativeST)(resolveId(force))(args))();
-                    if (mbVals instanceof Data_Maybe.Nothing) {
+                    var values = Data_Array_ST["new"]();
+                    var waiting = Control_Monad_ST_Internal["new"](false)();
+                    var firstError = Control_Monad_ST_Internal["new"](Data_Maybe.Nothing.value)();
+                    Data_Function.apply(Partial_Unsafe.unsafePartial)(function () {
+                        return Control_Monad_ST_Internal["for"](0)(Data_Array.length(args))(function (ix) {
+                            return function __do() {
+                                var resolved = resolveId(force)(args[ix])();
+                                if (resolved instanceof Data_Maybe.Nothing) {
+                                    Control_Monad_ST_Internal.write(true)(waiting)();
+                                    return Data_Unit.unit;
+                                };
+                                if (resolved instanceof Data_Maybe.Just && resolved.value0 instanceof Data_Either.Left) {
+                                    var previous = Control_Monad_ST_Internal.read(firstError)();
+                                    if (previous instanceof Data_Maybe.Nothing) {
+                                        Control_Monad_ST_Internal.write(new Data_Maybe.Just(resolved.value0.value0))(firstError)();
+                                        return Data_Unit.unit;
+                                    };
+                                    if (previous instanceof Data_Maybe.Just) {
+                                        return Data_Unit.unit;
+                                    };
+                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 175, column 13 - line 179, column 34): " + [ previous.constructor.name ]);
+                                };
+                                if (resolved instanceof Data_Maybe.Just && resolved.value0 instanceof Data_Either.Right) {
+                                    Data_Array_ST.push(resolved.value0.value0)(values)();
+                                    return Data_Unit.unit;
+                                };
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 169, column 9 - line 182, column 22): " + [ resolved.constructor.name ]);
+                            };
+                        });
+                    })();
+                    var pendingArgs = Control_Monad_ST_Internal.read(waiting)();
+                    if (pendingArgs) {
                         return Data_Maybe.Nothing.value;
                     };
-                    if (mbVals instanceof Data_Maybe.Just) {
-                        return Data_Function.apply(pure)(new Data_Maybe.Just(Data_Traversable.sequence(Data_Traversable.traversableArray)(Data_Either.applicativeEither)(mbVals.value0)))();
+                    var error = Control_Monad_ST_Internal.read(firstError)();
+                    if (error instanceof Data_Maybe.Just) {
+                        return Data_Function.apply(pure)(new Data_Maybe.Just(new Data_Either.Left(error.value0)))();
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 94, column 7 - line 96, column 49): " + [ mbVals.constructor.name ]);
+                    if (error instanceof Data_Maybe.Nothing) {
+                        var result = Data_Array_ST.unsafeFreeze(values)();
+                        return Data_Function.apply(pure)(new Data_Maybe.Just(new Data_Either.Right(result)))();
+                    };
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 189, column 9 - line 193, column 39): " + [ error.constructor.name ]);
                 };
             };
         };
-        var decodeObj$prime = function (force) {
-            return function (j) {
-                var decStr = decodeString(j);
-                if (decStr instanceof Data_Either.Right && decStr.value0 === "Int") {
-                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(PureScript_Backend_Optimizer_CoreFn.Int.value)));
+        var resolveType = function (force) {
+            return function (ref) {
+                if (ref instanceof Data_Either.Left) {
+                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(ref.value0)));
                 };
-                if (decStr instanceof Data_Either.Right && decStr.value0 === "Number") {
-                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(PureScript_Backend_Optimizer_CoreFn["Number"].value)));
+                if (ref instanceof Data_Either.Right && ref.value0 instanceof StaticRef) {
+                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(ref.value0.value0)));
                 };
-                if (decStr instanceof Data_Either.Right && decStr.value0 === "String") {
-                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(PureScript_Backend_Optimizer_CoreFn["String"].value)));
-                };
-                if (decStr instanceof Data_Either.Right && decStr.value0 === "Char") {
-                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(PureScript_Backend_Optimizer_CoreFn.Char.value)));
-                };
-                if (decStr instanceof Data_Either.Right && decStr.value0 === "Boolean") {
-                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(PureScript_Backend_Optimizer_CoreFn["Boolean"].value)));
-                };
-                if (decStr instanceof Data_Either.Right && decStr.value0 === "Unit") {
-                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(PureScript_Backend_Optimizer_CoreFn.Unit.value)));
-                };
-                if (decStr instanceof Data_Either.Right && decStr.value0 === "Any") {
-                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(PureScript_Backend_Optimizer_CoreFn.Any.value)));
-                };
-                if (decStr instanceof Data_Either.Right) {
-                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(new Data_Argonaut_Decode_Error.TypeMismatch("ExprType"))));
-                };
-                if (decStr instanceof Data_Either.Left) {
-                    var v = decodeJObject(j);
-                    if (v instanceof Data_Either.Left) {
-                        return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(new Data_Argonaut_Decode_Error.TypeMismatch("ExprType"))));
+                if (ref instanceof Data_Either.Right && ref.value0 instanceof AdtRef) {
+                    return function __do() {
+                        var mbArgs = resolveArgs(force)(ref.value0.value2)();
+                        return Data_Function.apply(pure1)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Functor.map(Data_Either.functorEither)(PureScript_Backend_Optimizer_CoreFn.ADT.create(ref.value0.value0)(ref.value0.value1)))(mbArgs))();
                     };
-                    if (v instanceof Data_Either.Right) {
-                        var typRes = getField(decodeString)(v.value0)("type");
-                        if (typRes instanceof Data_Either.Left) {
-                            var v1 = Foreign_Object.lookup("TypeVar")(v.value0);
-                            if (v1 instanceof Data_Maybe.Just) {
-                                var v2 = decodeString(v1.value0);
-                                if (v2 instanceof Data_Either.Left) {
-                                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v2.value0)));
-                                };
-                                if (v2 instanceof Data_Either.Right) {
-                                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(new PureScript_Backend_Optimizer_CoreFn.TypeVar(v2.value0))));
-                                };
-                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 117, column 33 - line 119, column 79): " + [ v2.constructor.name ]);
-                            };
-                            if (v1 instanceof Data_Maybe.Nothing) {
-                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(typRes.value0)));
-                            };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 115, column 29 - line 120, column 64): " + [ v1.constructor.name ]);
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "Adt") {
-                            var v1 = getField(decodeArray(decodeString))(v.value0)("fqn");
-                            if (v1 instanceof Data_Either.Left) {
-                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v1.value0)));
-                            };
-                            if (v1 instanceof Data_Either.Right) {
-                                var v2 = getField(decodeArray(decodeInt))(v.value0)("args");
-                                if (v2 instanceof Data_Either.Left) {
-                                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v2.value0)));
-                                };
-                                if (v2 instanceof Data_Either.Right) {
-                                    return function __do() {
-                                        var mbArgs = resolveArgs(force)(v2.value0)();
-                                        return Data_Function.apply(pure1)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Functor.map(Data_Either.functorEither)(function (a) {
-                                            return new PureScript_Backend_Optimizer_CoreFn.ADT(Data_Array.intercalate(Data_Monoid.monoidString)(".")(v1.value0), v1.value0, a);
-                                        }))(mbArgs))();
-                                    };
-                                };
-                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 125, column 23 - line 129, column 96): " + [ v2.constructor.name ]);
-                            };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 122, column 19 - line 129, column 96): " + [ v1.constructor.name ]);
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "TypeApp") {
-                            var v1 = getField(decodeInt)(v.value0)("constructor");
-                            if (v1 instanceof Data_Either.Left) {
-                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v1.value0)));
-                            };
-                            if (v1 instanceof Data_Either.Right) {
-                                return function __do() {
-                                    var mbC = resolveId(force)(v1.value0)();
-                                    if (mbC instanceof Data_Maybe.Nothing) {
-                                        return Data_Maybe.Nothing.value;
-                                    };
-                                    if (mbC instanceof Data_Maybe.Just && mbC.value0 instanceof Data_Either.Left) {
-                                        return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(mbC.value0.value0)))();
-                                    };
-                                    if (mbC instanceof Data_Maybe.Just && mbC.value0 instanceof Data_Either.Right) {
-                                        var v2 = getField(decodeArray(decodeInt))(v.value0)("args");
-                                        if (v2 instanceof Data_Either.Left) {
-                                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v2.value0)))();
-                                        };
-                                        if (v2 instanceof Data_Either.Right) {
-                                            var mbArgs = resolveArgs(force)(v2.value0)();
-                                            return Data_Function.apply(pure1)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Functor.map(Data_Either.functorEither)(function (a) {
-                                                return new PureScript_Backend_Optimizer_CoreFn.TypeApp(mbC.value0.value0, a);
-                                            }))(mbArgs))();
-                                        };
-                                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 139, column 27 - line 143, column 74): " + [ v2.constructor.name ]);
-                                    };
-                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 135, column 23 - line 143, column 74): " + [ mbC.constructor.name ]);
-                                };
-                            };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 131, column 19 - line 143, column 74): " + [ v1.constructor.name ]);
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "Func") {
-                            var v1 = getField(decodeArray(decodeInt))(v.value0)("args");
-                            if (v1 instanceof Data_Either.Left) {
-                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v1.value0)));
-                            };
-                            if (v1 instanceof Data_Either.Right) {
-                                var v2 = getField(decodeInt)(v.value0)("ret");
-                                if (v2 instanceof Data_Either.Left) {
-                                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v2.value0)));
-                                };
-                                if (v2 instanceof Data_Either.Right) {
-                                    return function __do() {
-                                        var mbArgs = resolveArgs(force)(v1.value0)();
-                                        var mbRet = resolveId(force)(v2.value0)();
-                                        if (mbArgs instanceof Data_Maybe.Just && mbArgs.value0 instanceof Data_Either.Left) {
-                                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(mbArgs.value0.value0)))();
-                                        };
-                                        if (mbRet instanceof Data_Maybe.Just && mbRet.value0 instanceof Data_Either.Left) {
-                                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(mbRet.value0.value0)))();
-                                        };
-                                        if (mbArgs instanceof Data_Maybe.Just && (mbArgs.value0 instanceof Data_Either.Right && (mbRet instanceof Data_Maybe.Just && mbRet.value0 instanceof Data_Either.Right))) {
-                                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(new PureScript_Backend_Optimizer_CoreFn.Func(mbArgs.value0.value0, mbRet.value0.value0))))();
-                                        };
-                                        return Data_Maybe.Nothing.value;
-                                    };
-                                };
-                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 148, column 23 - line 157, column 49): " + [ v2.constructor.name ]);
-                            };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 145, column 19 - line 157, column 49): " + [ v1.constructor.name ]);
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "Array") {
-                            var v1 = getField(decodeInt)(v.value0)("element");
-                            if (v1 instanceof Data_Either.Left) {
-                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v1.value0)));
-                            };
-                            if (v1 instanceof Data_Either.Right) {
-                                return function __do() {
-                                    var mbEl = resolveId(force)(v1.value0)();
-                                    return Data_Function.apply(pure1)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Functor.map(Data_Either.functorEither)(PureScript_Backend_Optimizer_CoreFn["Array"].create))(mbEl))();
-                                };
-                            };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 159, column 19 - line 163, column 50): " + [ v1.constructor.name ]);
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "TypeVar") {
-                            var v1 = getField(decodeString)(v.value0)("name");
-                            if (v1 instanceof Data_Either.Left) {
-                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v1.value0)));
-                            };
-                            if (v1 instanceof Data_Either.Right) {
-                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(new PureScript_Backend_Optimizer_CoreFn.TypeVar(v1.value0))));
-                            };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 165, column 19 - line 167, column 69): " + [ v1.constructor.name ]);
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "Record") {
-                            var v1 = getField(decodeInt)(v.value0)("row");
-                            if (v1 instanceof Data_Either.Left) {
-                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v1.value0)));
-                            };
-                            if (v1 instanceof Data_Either.Right) {
-                                return function __do() {
-                                    var mbRow = resolveId(force)(v1.value0)();
-                                    return Data_Function.apply(pure1)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Functor.map(Data_Either.functorEither)(PureScript_Backend_Optimizer_CoreFn.Record.create))(mbRow))();
-                                };
-                            };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 169, column 19 - line 173, column 52): " + [ v1.constructor.name ]);
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "Row") {
-                            var v1 = getField(decodeArray(decodeFieldRef))(v.value0)("fields");
-                            if (v1 instanceof Data_Either.Left) {
-                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v1.value0)));
-                            };
-                            if (v1 instanceof Data_Either.Right) {
-                                var mbFields = Data_Functor.map(Control_Monad_ST_Internal.functorST)(sequence2)(Data_Traversable.traverse(Data_Traversable.traversableArray)(Control_Monad_ST_Internal.applicativeST)(function (v2) {
-                                    return function __do() {
-                                        var mbT = resolveId(force)(v2.typeId)();
-                                        if (mbT instanceof Data_Maybe.Nothing) {
-                                            return Data_Maybe.Nothing.value;
-                                        };
-                                        if (mbT instanceof Data_Maybe.Just && mbT.value0 instanceof Data_Either.Left) {
-                                            return Data_Function.apply(pure2)(new Data_Maybe.Just(new Data_Either.Left(mbT.value0.value0)))();
-                                        };
-                                        if (mbT instanceof Data_Maybe.Just && mbT.value0 instanceof Data_Either.Right) {
-                                            return Data_Function.apply(pure2)(new Data_Maybe.Just(new Data_Either.Right(new Data_Tuple.Tuple(v2.label, mbT.value0.value0))))();
-                                        };
-                                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 181, column 27 - line 184, column 82): " + [ mbT.constructor.name ]);
-                                    };
-                                })(v1.value0));
-                                return function __do() {
-                                    var mbFieldsSt = mbFields();
-                                    if (mbFieldsSt instanceof Data_Maybe.Nothing) {
-                                        return Data_Maybe.Nothing.value;
-                                    };
-                                    if (mbFieldsSt instanceof Data_Maybe.Just) {
-                                        var v2 = Data_Traversable.sequence(Data_Traversable.traversableArray)(Data_Either.applicativeEither)(mbFieldsSt.value0);
-                                        if (v2 instanceof Data_Either.Left) {
-                                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v2.value0)))();
-                                        };
-                                        if (v2 instanceof Data_Either.Right) {
-                                            var v3 = getFieldOptional$prime(decodeInt)(v.value0)("tail");
-                                            if (v3 instanceof Data_Either.Left) {
-                                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v3.value0)))();
-                                            };
-                                            if (v3 instanceof Data_Either.Right && v3.value0 instanceof Data_Maybe.Nothing) {
-                                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(new PureScript_Backend_Optimizer_CoreFn.Row(v2.value0, Data_Maybe.Nothing.value))))();
-                                            };
-                                            if (v3 instanceof Data_Either.Right && v3.value0 instanceof Data_Maybe.Just) {
-                                                var mbTail = resolveId(force)(v3.value0.value0)();
-                                                if (mbTail instanceof Data_Maybe.Nothing) {
-                                                    return Data_Maybe.Nothing.value;
-                                                };
-                                                if (mbTail instanceof Data_Maybe.Just && mbTail.value0 instanceof Data_Either.Left) {
-                                                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(mbTail.value0.value0)))();
-                                                };
-                                                if (mbTail instanceof Data_Maybe.Just && mbTail.value0 instanceof Data_Either.Right) {
-                                                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(new PureScript_Backend_Optimizer_CoreFn.Row(v2.value0, new Data_Maybe.Just(mbTail.value0.value0)))))();
-                                                };
-                                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 197, column 33 - line 200, column 102): " + [ mbTail.constructor.name ]);
-                                            };
-                                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 192, column 29 - line 200, column 102): " + [ v3.constructor.name ]);
-                                        };
-                                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 189, column 38 - line 200, column 102): " + [ v2.constructor.name ]);
-                                    };
-                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 187, column 23 - line 200, column 102): " + [ mbFieldsSt.constructor.name ]);
-                                };
-                            };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 175, column 19 - line 200, column 102): " + [ v1.constructor.name ]);
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "ForAll") {
-                            var v1 = getField(decodeArray(decodeString))(v.value0)("vars");
-                            if (v1 instanceof Data_Either.Left) {
-                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v1.value0)));
-                            };
-                            if (v1 instanceof Data_Either.Right) {
-                                var v2 = getField(decodeInt)(v.value0)("body");
-                                if (v2 instanceof Data_Either.Left) {
-                                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v2.value0)));
-                                };
-                                if (v2 instanceof Data_Either.Right) {
-                                    return function __do() {
-                                        var mbBody = resolveId(force)(v2.value0)();
-                                        return Data_Function.apply(pure1)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Functor.map(Data_Either.functorEither)(PureScript_Backend_Optimizer_CoreFn.ForAll.create(v1.value0)))(mbBody))();
-                                    };
-                                };
-                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 205, column 23 - line 209, column 64): " + [ v2.constructor.name ]);
-                            };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 202, column 19 - line 209, column 64): " + [ v1.constructor.name ]);
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "ConstrainedType") {
-                            var v1 = getField(decodeArray(decodeConstraintRef))(v.value0)("constraints");
-                            if (v1 instanceof Data_Either.Left) {
-                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v1.value0)));
-                            };
-                            if (v1 instanceof Data_Either.Right) {
-                                var mbConsts = Data_Functor.map(Control_Monad_ST_Internal.functorST)(sequence3)(Data_Traversable.traverse(Data_Traversable.traversableArray)(Control_Monad_ST_Internal.applicativeST)(function (v2) {
-                                    return function __do() {
-                                        var mbArgs = resolveArgs(force)(v2.args)();
-                                        if (mbArgs instanceof Data_Maybe.Nothing) {
-                                            return Data_Maybe.Nothing.value;
-                                        };
-                                        if (mbArgs instanceof Data_Maybe.Just && mbArgs.value0 instanceof Data_Either.Left) {
-                                            return Data_Function.apply(pure3)(new Data_Maybe.Just(new Data_Either.Left(mbArgs.value0.value0)))();
-                                        };
-                                        if (mbArgs instanceof Data_Maybe.Just && mbArgs.value0 instanceof Data_Either.Right) {
-                                            return Data_Function.apply(pure3)(new Data_Maybe.Just(new Data_Either.Right(new Data_Tuple.Tuple(v2.fqn, mbArgs.value0.value0))))();
-                                        };
-                                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 217, column 27 - line 220, column 80): " + [ mbArgs.constructor.name ]);
-                                    };
-                                })(v1.value0));
-                                return function __do() {
-                                    var mbConstsSt = mbConsts();
-                                    if (mbConstsSt instanceof Data_Maybe.Nothing) {
-                                        return Data_Maybe.Nothing.value;
-                                    };
-                                    if (mbConstsSt instanceof Data_Maybe.Just) {
-                                        var v2 = Data_Traversable.sequence(Data_Traversable.traversableArray)(Data_Either.applicativeEither)(mbConstsSt.value0);
-                                        if (v2 instanceof Data_Either.Left) {
-                                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v2.value0)))();
-                                        };
-                                        if (v2 instanceof Data_Either.Right) {
-                                            var v3 = getField(decodeInt)(v.value0)("body");
-                                            if (v3 instanceof Data_Either.Left) {
-                                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v3.value0)))();
-                                            };
-                                            if (v3 instanceof Data_Either.Right) {
-                                                var mbBody = resolveId(force)(v3.value0)();
-                                                return Data_Function.apply(pure1)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Functor.map(Data_Either.functorEither)(PureScript_Backend_Optimizer_CoreFn.ConstrainedType.create(v2.value0)))(mbBody))();
-                                            };
-                                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 228, column 29 - line 232, column 81): " + [ v3.constructor.name ]);
-                                        };
-                                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 225, column 38 - line 232, column 81): " + [ v2.constructor.name ]);
-                                    };
-                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 223, column 23 - line 232, column 81): " + [ mbConstsSt.constructor.name ]);
-                                };
-                            };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 211, column 19 - line 232, column 81): " + [ v1.constructor.name ]);
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "TypeLevelString") {
-                            var v1 = getField(decodeString)(v.value0)("value");
-                            if (v1 instanceof Data_Either.Left) {
-                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v1.value0)));
-                            };
-                            if (v1 instanceof Data_Either.Right) {
-                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(new PureScript_Backend_Optimizer_CoreFn.TypeLevelString(v1.value0))));
-                            };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 234, column 19 - line 236, column 71): " + [ v1.constructor.name ]);
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "Int") {
-                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(PureScript_Backend_Optimizer_CoreFn.Int.value)));
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "Number") {
-                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(PureScript_Backend_Optimizer_CoreFn["Number"].value)));
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "String") {
-                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(PureScript_Backend_Optimizer_CoreFn["String"].value)));
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "Char") {
-                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(PureScript_Backend_Optimizer_CoreFn.Char.value)));
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "Boolean") {
-                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(PureScript_Backend_Optimizer_CoreFn["Boolean"].value)));
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "Unit") {
-                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(PureScript_Backend_Optimizer_CoreFn.Unit.value)));
-                        };
-                        if (typRes instanceof Data_Either.Right && typRes.value0 === "Any") {
-                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(PureScript_Backend_Optimizer_CoreFn.Any.value)));
-                        };
-                        return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(new Data_Argonaut_Decode_Error.TypeMismatch("ExprType"))));
-                    };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 110, column 11 - line 244, column 66): " + [ v.constructor.name ]);
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 100, column 7 - line 244, column 66): " + [ decStr.constructor.name ]);
+                if (ref instanceof Data_Either.Right && ref.value0 instanceof TypeAppRef) {
+                    return function __do() {
+                        var mbC = resolveId(force)(ref.value0.value0)();
+                        if (mbC instanceof Data_Maybe.Nothing) {
+                            return Data_Maybe.Nothing.value;
+                        };
+                        if (mbC instanceof Data_Maybe.Just && mbC.value0 instanceof Data_Either.Left) {
+                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(mbC.value0.value0)))();
+                        };
+                        if (mbC instanceof Data_Maybe.Just && mbC.value0 instanceof Data_Either.Right) {
+                            if (ref.value0.value1 instanceof Data_Either.Left) {
+                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(ref.value0.value1.value0)))();
+                            };
+                            if (ref.value0.value1 instanceof Data_Either.Right) {
+                                var mbArgs = resolveArgs(force)(ref.value0.value1.value0)();
+                                return Data_Function.apply(pure1)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Functor.map(Data_Either.functorEither)(PureScript_Backend_Optimizer_CoreFn.TypeApp.create(mbC.value0.value0)))(mbArgs))();
+                            };
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 206, column 29 - line 210, column 50): " + [ ref.value0.value1.constructor.name ]);
+                        };
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 203, column 9 - line 210, column 50): " + [ mbC.constructor.name ]);
+                    };
+                };
+                if (ref instanceof Data_Either.Right && ref.value0 instanceof FuncRef) {
+                    return function __do() {
+                        var mbArgs = resolveArgs(force)(ref.value0.value0)();
+                        var mbRet = resolveId(force)(ref.value0.value1)();
+                        if (mbArgs instanceof Data_Maybe.Just && mbArgs.value0 instanceof Data_Either.Left) {
+                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(mbArgs.value0.value0)))();
+                        };
+                        if (mbRet instanceof Data_Maybe.Just && mbRet.value0 instanceof Data_Either.Left) {
+                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(mbRet.value0.value0)))();
+                        };
+                        if (mbArgs instanceof Data_Maybe.Just && (mbArgs.value0 instanceof Data_Either.Right && (mbRet instanceof Data_Maybe.Just && mbRet.value0 instanceof Data_Either.Right))) {
+                            return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(new PureScript_Backend_Optimizer_CoreFn.Func(mbArgs.value0.value0, mbRet.value0.value0))))();
+                        };
+                        return Data_Maybe.Nothing.value;
+                    };
+                };
+                if (ref instanceof Data_Either.Right && ref.value0 instanceof ArrayRef) {
+                    return function __do() {
+                        var mbEl = resolveId(force)(ref.value0.value0)();
+                        return Data_Function.apply(pure1)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Functor.map(Data_Either.functorEither)(PureScript_Backend_Optimizer_CoreFn["Array"].create))(mbEl))();
+                    };
+                };
+                if (ref instanceof Data_Either.Right && ref.value0 instanceof RecordRef) {
+                    return function __do() {
+                        var mbRow = resolveId(force)(ref.value0.value0)();
+                        return Data_Function.apply(pure1)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Functor.map(Data_Either.functorEither)(PureScript_Backend_Optimizer_CoreFn.Record.create))(mbRow))();
+                    };
+                };
+                if (ref instanceof Data_Either.Right && ref.value0 instanceof RowRef) {
+                    return function __do() {
+                        var mbFields = Data_Functor.map(Control_Monad_ST_Internal.functorST)(sequence1)(Data_Traversable.traverse(Data_Traversable.traversableArray)(Control_Monad_ST_Internal.applicativeST)(function (v) {
+                            return function __do() {
+                                var mbT = resolveId(force)(v.typeId)();
+                                if (mbT instanceof Data_Maybe.Nothing) {
+                                    return Data_Maybe.Nothing.value;
+                                };
+                                if (mbT instanceof Data_Maybe.Just && mbT.value0 instanceof Data_Either.Left) {
+                                    return Data_Function.apply(pure2)(new Data_Maybe.Just(new Data_Either.Left(mbT.value0.value0)))();
+                                };
+                                if (mbT instanceof Data_Maybe.Just && mbT.value0 instanceof Data_Either.Right) {
+                                    return Data_Function.apply(pure2)(new Data_Maybe.Just(new Data_Either.Right(new Data_Tuple.Tuple(v.label, mbT.value0.value0))))();
+                                };
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 228, column 11 - line 231, column 66): " + [ mbT.constructor.name ]);
+                            };
+                        })(ref.value0.value0))();
+                        if (mbFields instanceof Data_Maybe.Nothing) {
+                            return Data_Maybe.Nothing.value;
+                        };
+                        if (mbFields instanceof Data_Maybe.Just) {
+                            var v = Data_Traversable.sequence(Data_Traversable.traversableArray)(Data_Either.applicativeEither)(mbFields.value0);
+                            if (v instanceof Data_Either.Left) {
+                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v.value0)))();
+                            };
+                            if (v instanceof Data_Either.Right) {
+                                if (ref.value0.value1 instanceof Data_Either.Left) {
+                                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(ref.value0.value1.value0)))();
+                                };
+                                if (ref.value0.value1 instanceof Data_Either.Right && ref.value0.value1.value0 instanceof Data_Maybe.Nothing) {
+                                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(new PureScript_Backend_Optimizer_CoreFn.Row(v.value0, Data_Maybe.Nothing.value))))();
+                                };
+                                if (ref.value0.value1 instanceof Data_Either.Right && ref.value0.value1.value0 instanceof Data_Maybe.Just) {
+                                    var mbTail = resolveId(force)(ref.value0.value1.value0.value0)();
+                                    if (mbTail instanceof Data_Maybe.Nothing) {
+                                        return Data_Maybe.Nothing.value;
+                                    };
+                                    if (mbTail instanceof Data_Maybe.Just && mbTail.value0 instanceof Data_Either.Left) {
+                                        return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(mbTail.value0.value0)))();
+                                    };
+                                    if (mbTail instanceof Data_Maybe.Just && mbTail.value0 instanceof Data_Either.Right) {
+                                        return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Right(new PureScript_Backend_Optimizer_CoreFn.Row(v.value0, new Data_Maybe.Just(mbTail.value0.value0)))))();
+                                    };
+                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 242, column 17 - line 245, column 86): " + [ mbTail.constructor.name ]);
+                                };
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 237, column 29 - line 245, column 86): " + [ ref.value0.value1.constructor.name ]);
+                            };
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 235, column 24 - line 245, column 86): " + [ v.constructor.name ]);
+                        };
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 233, column 9 - line 245, column 86): " + [ mbFields.constructor.name ]);
+                    };
+                };
+                if (ref instanceof Data_Either.Right && ref.value0 instanceof ForAllRef) {
+                    return function __do() {
+                        var mbBody = resolveId(force)(ref.value0.value1)();
+                        return Data_Function.apply(pure1)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Functor.map(Data_Either.functorEither)(PureScript_Backend_Optimizer_CoreFn.ForAll.create(ref.value0.value0)))(mbBody))();
+                    };
+                };
+                if (ref instanceof Data_Either.Right && ref.value0 instanceof ConstrainedRef) {
+                    return function __do() {
+                        var mbConsts = Data_Functor.map(Control_Monad_ST_Internal.functorST)(sequence2)(Data_Traversable.traverse(Data_Traversable.traversableArray)(Control_Monad_ST_Internal.applicativeST)(function (v) {
+                            return function __do() {
+                                var mbArgs = resolveArgs(force)(v.args)();
+                                if (mbArgs instanceof Data_Maybe.Nothing) {
+                                    return Data_Maybe.Nothing.value;
+                                };
+                                if (mbArgs instanceof Data_Maybe.Just && mbArgs.value0 instanceof Data_Either.Left) {
+                                    return Data_Function.apply(pure3)(new Data_Maybe.Just(new Data_Either.Left(mbArgs.value0.value0)))();
+                                };
+                                if (mbArgs instanceof Data_Maybe.Just && mbArgs.value0 instanceof Data_Either.Right) {
+                                    return Data_Function.apply(pure3)(new Data_Maybe.Just(new Data_Either.Right(new Data_Tuple.Tuple(v.fqn, mbArgs.value0.value0))))();
+                                };
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 252, column 11 - line 255, column 64): " + [ mbArgs.constructor.name ]);
+                            };
+                        })(ref.value0.value0))();
+                        if (mbConsts instanceof Data_Maybe.Nothing) {
+                            return Data_Maybe.Nothing.value;
+                        };
+                        if (mbConsts instanceof Data_Maybe.Just) {
+                            var v = Data_Traversable.sequence(Data_Traversable.traversableArray)(Data_Either.applicativeEither)(mbConsts.value0);
+                            if (v instanceof Data_Either.Left) {
+                                return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(v.value0)))();
+                            };
+                            if (v instanceof Data_Either.Right) {
+                                if (ref.value0.value1 instanceof Data_Either.Left) {
+                                    return Data_Function.apply(pure1)(new Data_Maybe.Just(new Data_Either.Left(ref.value0.value1.value0)))();
+                                };
+                                if (ref.value0.value1 instanceof Data_Either.Right) {
+                                    var mbBody = resolveId(force)(ref.value0.value1.value0)();
+                                    return Data_Function.apply(pure1)(Data_Functor.map(Data_Maybe.functorMaybe)(Data_Functor.map(Data_Either.functorEither)(PureScript_Backend_Optimizer_CoreFn.ConstrainedType.create(v.value0)))(mbBody))();
+                                };
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 261, column 29 - line 265, column 65): " + [ ref.value0.value1.constructor.name ]);
+                            };
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 259, column 24 - line 265, column 65): " + [ v.constructor.name ]);
+                        };
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 257, column 9 - line 265, column 65): " + [ mbConsts.constructor.name ]);
+                    };
+                };
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 195, column 29 - line 265, column 65): " + [ ref.constructor.name ]);
             };
         };
-        var changed = Control_Monad_ST_Internal["new"](true)();
-        (function () {
+        var typeRefs = Data_Functor.map(Data_Functor.functorArray)(decodeTypeRef)(typeTableJson);
+        var pending = Control_Monad_ST_Internal["new"](Data_Array.mapWithIndex(function (ix) {
+            return function (v) {
+                return ix;
+            };
+        })(typeTableJson))();
+        var settle = function __do() {
+            var changed = Control_Monad_ST_Internal["new"](true)();
             while (Control_Monad_ST_Internal.read(changed)()) {
                 (function __do() {
-                    Control_Monad_ST_Internal.write(false)(changed)();
-                    return Control_Monad_ST_Internal["for"](0)(Data_Array.length(typeTableJson))(function (ix) {
+                    var indices = Control_Monad_ST_Internal.read(pending)();
+                    var next = Data_Array_ST["new"]();
+                    Control_Monad_ST_Internal["for"](0)(Data_Array.length(indices))(function (pos) {
                         return function __do() {
-                            var resE = Control_Monad_ST_Internal.read(resArray)();
-                            var v = Data_Array.index(resE)(ix);
-                            if (v instanceof Data_Maybe.Just && v.value0 instanceof Data_Maybe.Nothing) {
-                                var mbVal = decodeObj$prime(false)(typeTableJson[ix])();
-                                if (mbVal instanceof Data_Maybe.Just) {
-                                    Control_Monad_ST_Internal.modify(unsafeUpdateAt(ix)(new Data_Maybe.Just(mbVal.value0)))(resArray)();
-                                    Control_Monad_ST_Internal.write(true)(changed)();
-                                    return Data_Unit.unit;
-                                };
-                                if (mbVal instanceof Data_Maybe.Nothing) {
-                                    return Data_Unit.unit;
-                                };
-                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 255, column 11 - line 260, column 33): " + [ mbVal.constructor.name ]);
-                            };
-                            return Data_Unit.unit;
-                        };
-                    })();
-                })();
-            };
-            return {};
-        })();
-        var hasCycles = Control_Monad_ST_Internal["new"](true)();
-        (function () {
-            while (Control_Monad_ST_Internal.read(hasCycles)()) {
-                (function __do() {
-                    Control_Monad_ST_Internal.write(false)(hasCycles)();
-                    var firstUnresolved = Control_Monad_ST_Internal["new"](Data_Maybe.Nothing.value)();
-                    Control_Monad_ST_Internal["for"](0)(Data_Array.length(typeTableJson))(function (ix) {
-                        return function __do() {
-                            var resE = Control_Monad_ST_Internal.read(resArray)();
-                            var v = Data_Array.index(resE)(ix);
-                            if (v instanceof Data_Maybe.Just && v.value0 instanceof Data_Maybe.Nothing) {
-                                var mbFirst = Control_Monad_ST_Internal.read(firstUnresolved)();
-                                if (mbFirst instanceof Data_Maybe.Nothing) {
-                                    Control_Monad_ST_Internal.write(new Data_Maybe.Just(ix))(firstUnresolved)();
-                                    return Data_Unit.unit;
-                                };
+                            var mbVal = resolveType(false)(typeRefs[indices[pos]])();
+                            if (mbVal instanceof Data_Maybe.Just) {
+                                Data_Array_ST.poke(indices[pos])(new Data_Maybe.Just(mbVal.value0))(resArray)();
                                 return Data_Unit.unit;
                             };
-                            return Data_Unit.unit;
+                            if (mbVal instanceof Data_Maybe.Nothing) {
+                                Data_Array_ST.push(indices[pos])(next)();
+                                return Data_Unit.unit;
+                            };
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 283, column 11 - line 289, column 24): " + [ mbVal.constructor.name ]);
                         };
                     })();
-                    var mbFirst = Control_Monad_ST_Internal.read(firstUnresolved)();
-                    if (mbFirst instanceof Data_Maybe.Nothing) {
+                    var remaining = Data_Array_ST.unsafeFreeze(next)();
+                    Control_Monad_ST_Internal.write(remaining)(pending)();
+                    Control_Monad_ST_Internal.write(Data_Array.length(remaining) < Data_Array.length(indices))(changed)();
+                    return Data_Unit.unit;
+                })();
+            };
+            return {};
+        };
+        settle();
+        (function () {
+            while (Data_Functor.map(Control_Monad_ST_Internal.functorST)(function ($182) {
+                return !Data_Array["null"]($182);
+            })(Control_Monad_ST_Internal.read(pending))()) {
+                (function __do() {
+                    var indices = Control_Monad_ST_Internal.read(pending)();
+                    var v = Data_Array.uncons(indices);
+                    if (v instanceof Data_Maybe.Nothing) {
                         return Data_Unit.unit;
                     };
-                    if (mbFirst instanceof Data_Maybe.Just) {
-                        var val = decodeObj$prime(true)(typeTableJson[mbFirst.value0])();
-                        Control_Monad_ST_Internal.modify(unsafeUpdateAt(mbFirst.value0)(new Data_Maybe.Just(Data_Maybe.fromMaybe(new Data_Either.Left(new Data_Argonaut_Decode_Error.TypeMismatch("Cycle")))(val))))(resArray)();
-                        Control_Monad_ST_Internal.write(true)(hasCycles)();
-                        Control_Monad_ST_Internal.write(true)(changed)();
-                        (function () {
-                            while (Control_Monad_ST_Internal.read(changed)()) {
-                                (function __do() {
-                                    Control_Monad_ST_Internal.write(false)(changed)();
-                                    return Control_Monad_ST_Internal["for"](0)(Data_Array.length(typeTableJson))(function (i) {
-                                        return function __do() {
-                                            var resE = Control_Monad_ST_Internal.read(resArray)();
-                                            var v = Data_Array.index(resE)(i);
-                                            if (v instanceof Data_Maybe.Just && v.value0 instanceof Data_Maybe.Nothing) {
-                                                var mbVal = decodeObj$prime(false)(typeTableJson[i])();
-                                                if (mbVal instanceof Data_Maybe.Just) {
-                                                    Control_Monad_ST_Internal.modify(unsafeUpdateAt(i)(new Data_Maybe.Just(mbVal.value0)))(resArray)();
-                                                    Control_Monad_ST_Internal.write(true)(changed)();
-                                                    return Data_Unit.unit;
-                                                };
-                                                if (mbVal instanceof Data_Maybe.Nothing) {
-                                                    return Data_Unit.unit;
-                                                };
-                                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 296, column 17 - line 301, column 39): " + [ mbVal.constructor.name ]);
-                                            };
-                                            return Data_Unit.unit;
-                                        };
-                                    })();
-                                })();
-                            };
-                            return {};
-                        })();
-                        return Data_Unit.unit;
+                    if (v instanceof Data_Maybe.Just) {
+                        var val = resolveType(true)(typeRefs[v.value0.head])();
+                        Data_Array_ST.poke(v.value0.head)(new Data_Maybe.Just(Data_Maybe.fromMaybe(new Data_Either.Left(new Data_Argonaut_Decode_Error.TypeMismatch("Cycle")))(val)))(resArray)();
+                        Control_Monad_ST_Internal.write(v.value0.tail)(pending)();
+                        return settle();
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 280, column 5 - line 303, column 18): " + [ mbFirst.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 298, column 5 - line 306, column 15): " + [ v.constructor.name ]);
                 })();
             };
             return {};
         })();
-        var finalRes = Control_Monad_ST_Internal.read(resArray)();
-        var extract = function (ix) {
-            var v = Data_Array.index(finalRes)(ix);
-            if (v instanceof Data_Maybe.Just && (v.value0 instanceof Data_Maybe.Just && v.value0.value0 instanceof Data_Either.Right)) {
-                return new Data_Either.Right(v.value0.value0.value0);
+        var finalRes = Data_Array_ST.freeze(resArray)();
+        var extract = function (v) {
+            if (v instanceof Data_Maybe.Just) {
+                return v.value0;
             };
-            if (v instanceof Data_Maybe.Just && (v.value0 instanceof Data_Maybe.Just && v.value0.value0 instanceof Data_Either.Left)) {
-                return new Data_Either.Left(v.value0.value0.value0);
+            if (v instanceof Data_Maybe.Nothing) {
+                return new Data_Either.Left(new Data_Argonaut_Decode_Error.TypeMismatch("Unresolved Type (Cycle Deadlock)"));
             };
-            return new Data_Either.Left(new Data_Argonaut_Decode_Error.TypeMismatch("Unresolved Type (Cycle Deadlock)"));
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 310, column 15 - line 312, column 72): " + [ v.constructor.name ]);
         };
-        var l = Data_Array.length(typeTableJson);
-        var arr = (function () {
-            var $211 = l === 0;
-            if ($211) {
-                return [  ];
-            };
-            return Data_Functor.map(Data_Functor.functorArray)(extract)(Data_Array.range(0)(l - 1 | 0));
-        })();
-        return Data_Traversable.sequence(Data_Traversable.traversableArray)(Data_Either.applicativeEither)(arr);
+        return Data_Traversable.traverse(Data_Traversable.traversableArray)(Data_Either.applicativeEither)(extract)(finalRes);
     };
+};
+var decodeTypeTablePS = function (typeTableJson) {
+    var v = decodeTypeTableST(typeTableJson)();
+    if (v instanceof Data_Either.Left) {
+        return new Data_Either.Left(v.value0);
+    };
+    if (v instanceof Data_Either.Right) {
+        return new Data_Either.Right(v.value0);
+    };
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn.TypeTable (line 148, column 3 - line 150, column 27): " + [ v.constructor.name ]);
 };
 export {
     fail,
@@ -623,7 +668,17 @@ export {
     decodeArray,
     decodeFieldRef,
     decodeConstraintRef,
-    unsafeUpdateAt,
+    StaticRef,
+    AdtRef,
+    TypeAppRef,
+    FuncRef,
+    ArrayRef,
+    RecordRef,
+    RowRef,
+    ForAllRef,
+    ConstrainedRef,
+    decodeTypeRef,
+    decodeTypeTablePS,
     decodeTypeTableST
 };
 //# sourceMappingURL=index.js.map

@@ -2,7 +2,7 @@ module Javapurs.Rename where
 
 import Prelude
 import Javapurs.JavaAst (JavaExpr(..))
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), fst)
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.Foldable (foldl)
@@ -49,15 +49,23 @@ rename env s = case _ of
         s1 = s + Array.length args
         Tuple body' s2 = rename env' s1 body
     in Tuple (JavaAbs args' body') s2
+  JavaTypedAbs params body ->
+    let names = map fst params
+        names' = map (\n -> n <> "_i" <> show s) names
+        env' = foldl (\acc (Tuple n newN) -> Array.cons (Tuple n newN) acc) env (Array.zip names names')
+        s1 = s + Array.length names
+        Tuple body' s2 = rename env' s1 body
+    in Tuple (JavaTypedAbs (Array.zipWith (\(Tuple _ ty) newN -> Tuple newN ty) params names') body') s2
   JavaIntAbs arg body ->
     let arg' = arg <> "_i" <> show s
         Tuple body' next = rename (Array.cons (Tuple arg arg') env) (s + 1) body
     in Tuple (JavaIntAbs arg' body') next
   JavaStaticMethod name args body ->
-    let args' = map (\n -> n <> "_i" <> show s) args
-        env' = Array.zip args args'
-        Tuple body' s1 = rename env' (s + Array.length args) body
-    in Tuple (JavaStaticMethod name args' body') s1
+    let names = map fst args
+        names' = map (\n -> n <> "_i" <> show s) names
+        env' = Array.zip names names'
+        Tuple body' s1 = rename env' (s + Array.length names) body
+    in Tuple (JavaStaticMethod name (Array.zipWith (\(Tuple _ ty) newN -> Tuple newN ty) args names') body') s1
   JavaNew c args ->
     let Tuple args' s2 = foldl (\(Tuple acc s') arg -> let Tuple arg' s'' = rename env s' arg in Tuple (Array.snoc acc arg') s'') (Tuple [] s) args
     in Tuple (JavaNew c args') s2
@@ -162,6 +170,9 @@ rename env s = case _ of
   JavaLocalAssign n e ->
     let Tuple e' s1 = rename env s e
     in Tuple (JavaLocalAssign (lookupName n env) e') s1
+  JavaIntLocalAssign n e ->
+    let Tuple e' s1 = rename env s e
+    in Tuple (JavaIntLocalAssign (lookupName n env) e') s1
   JavaBlock stmts e ->
     let Tuple stmts' s1 = foldl (\(Tuple acc s') stmt ->
                                    let Tuple stmt' s'' = rename env s' stmt

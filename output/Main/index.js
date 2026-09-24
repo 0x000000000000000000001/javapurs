@@ -73,7 +73,7 @@ var main = /* #__PURE__ */ Data_Function.apply(Effect_Aff.launchAff_)(/* #__PURE
                         });
                     }))(function (directives) {
                         return Javapurs_Metrics.measure("optimize + emit")(function (v1) {
-                            return PureScript_Backend_Optimizer_Builder.buildModules(Effect_Aff.monadAff)({
+                            return PureScript_Backend_Optimizer_Builder.buildModules(Effect_Aff.monadEffectAff)({
                                 directives: directives,
                                 rewriteLimit: 10000,
                                 analyzeCustom: function (v2) {

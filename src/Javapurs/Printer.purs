@@ -10,7 +10,7 @@ import Data.Char as Char
 import Data.Int as Int
 import Javapurs.CountedLoops (CountedLoop, countedLoop)
 import Javapurs.RecordPrinter as RecordPrinter
-import Javapurs.JavaAst (JavaExpr(..), JavaFile)
+import Javapurs.JavaAst (JavaExpr(..), JavaParamType(..), JavaFile)
 
 
 escapeJavaString :: String -> String
@@ -70,6 +70,10 @@ printExpr = case _ of
       let
         bodyStr = methodBody body
       in Array.foldr (\arg acc -> "(java.util.function.Function<Object, Object>) (" <> arg <> ") -> " <> acc) bodyStr args
+  JavaTypedAbs params body ->
+    let
+      bodyStr = methodBody body
+    in Array.foldr (\(Tuple arg _) acc -> "(java.util.function.Function<Object, Object>) (" <> arg <> ") -> " <> acc) bodyStr params
   JavaIntAbs arg body ->
     let
       bodyStr = case body of
@@ -131,21 +135,31 @@ printExpr = case _ of
       bindingsStr = String.joinWith " " (map (\(Tuple n v) -> "Object " <> n <> " = " <> printExpr v <> ";") flat.bindings)
     in
       "(new java.util.function.Supplier<Object>() { public Object get() { " <> bindingsStr <> " return " <> printExpr flat.body <> "; } }).get()"
-  JavaClassDecl className args ->
+  JavaClassDecl className fields ->
     let
-      fields = map (\arg -> "public final Object " <> arg <> ";") args
-      assigns = map (\arg -> "this." <> arg <> " = " <> arg <> ";") args
-      constructorArgs = map (\arg -> "Object " <> arg) args
-      constructor =
-        "public " <> className <> "(" <> String.joinWith ", " constructorArgs <> ") {\n" <>
+      fieldDecls = map (\(Tuple arg ty) -> "public final " <> paramType ty <> " " <> arg <> ";") fields
+      plainArgs = map (\(Tuple arg _) -> "Object " <> arg) fields
+      typedArgs = map (\(Tuple arg ty) -> paramType ty <> " " <> arg) fields
+      assigns = map (\(Tuple arg ty) -> "this." <> arg <> " = " <> assignField ty arg <> ";") fields
+      constructor argsList =
+        "public " <> className <> "(" <> String.joinWith ", " argsList <> ") {\n" <>
         "                " <> String.joinWith "\n                " assigns <> "\n" <>
         "            }"
+      plainCtor = constructor plainArgs
+      typedCtor = constructor typedArgs
+      -- The Object constructor keeps every existing call site working across
+      -- modules; the typed overload is selected when an argument is already a
+      -- primitive, so proven Int fields are stored without boxing.
+      hasInt = Array.any (\(Tuple _ ty) -> case ty of
+        ParamInt -> true
+        _ -> false) fields
+      ctors = if hasInt then plainCtor <> "\n            " <> typedCtor else plainCtor
     in
       "public static final class " <> className <> " {\n" <>
-      "            " <> String.joinWith "\n            " fields <> "\n" <>
-      "            " <> constructor <> "\n" <>
+      "            " <> String.joinWith "\n            " fieldDecls <> "\n" <>
+      "            " <> ctors <> "\n" <>
       "        }" <>
-      if Array.null args then
+      if Array.null fields then
         -- Constructor fields come from dataDecls. A separate holder avoids
         -- reading an uninitialized module binding during cyclic initialization.
         "\npublic static final class " <> singletonHolderName className <> " {\n" <>
@@ -161,6 +175,8 @@ printExpr = case _ of
     "((" <> t <> ") (" <> printExpr e <> "))"
   JavaLocalAssign name expr ->
     "Object " <> name <> " = " <> printExpr expr <> ";"
+  JavaIntLocalAssign name expr ->
+    "int " <> name <> " = ((int) (" <> printExpr expr <> "));"
   JavaBlock stmts expr ->
     "(new java.util.function.Supplier<Object>() { public Object get() { " <>
       String.joinWith " " (map printExpr stmts) <>
@@ -173,9 +189,9 @@ printExpr = case _ of
       "public static final Object " <> name <> " = " <> printExpr expr <> ";"
   JavaStaticMethod name args body ->
     let
-      -- Keep Object parameters: argument evaluation precedes the casts in the
-      -- original function body, including when an argument or cast throws.
-      parameterList = String.joinWith ", " (map (\arg -> "Object " <> arg) args)
+      -- Object parameters keep the JVM signature stable; proven Int parameters
+      -- are primitives so direct worker calls do not box their arguments.
+      parameterList = String.joinWith ", " (map (\(Tuple arg ty) -> paramType ty <> " " <> arg) args)
       bodyStr = methodBody body
     in "private static Object " <> name <> "(" <> parameterList <> ") " <> bodyStr
   JavaLazyAssign name expr ->
@@ -200,6 +216,16 @@ printExpr = case _ of
 -- This prefix cannot be produced by source-binding or constructor sanitization.
 singletonHolderName :: String -> String
 singletonHolderName ctorName = "__singleton$" <> ctorName
+
+paramType :: JavaParamType -> String
+paramType = case _ of
+  ParamInt -> "int"
+  _ -> "Object"
+
+assignField :: JavaParamType -> String -> String
+assignField ty arg = case ty of
+  ParamInt -> "((int) (" <> arg <> "))"
+  _ -> arg
 
 -- A loop directly inside a function can use the lambda's block body. Keep the
 -- Supplier wrapper when the loop is needed as an expression elsewhere.

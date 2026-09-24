@@ -9,11 +9,11 @@ import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Traversable (traverse)
-import Data.Tuple (Tuple(..))
-import Javapurs.JavaAst (JavaExpr(..), JavaFile)
+import Data.Tuple (Tuple(..), fst, snd)
+import Javapurs.JavaAst (JavaExpr(..), JavaParamType(..), JavaFile)
 
-type Candidate = { name :: String, worker :: String, index :: Int, arity :: Int, lazy :: Boolean }
-type Lambdas = { groups :: Array (Array String), args :: Array String, body :: JavaExpr }
+type Candidate = { name :: String, worker :: String, index :: Int, arity :: Int, params :: Array JavaParamType, lazy :: Boolean }
+type Lambdas = { groups :: Array (Array (Tuple String JavaParamType)), args :: Array (Tuple String JavaParamType), body :: JavaExpr }
 
 -- A definition becomes callable directly only from later declarations. In
 -- particular, neither its own initializer nor an earlier initializer may bypass
@@ -39,7 +39,7 @@ directCalls moduleName file =
       let worker = "__direct$" <> show index
       in if Array.length (Array.filter (_ == name) names) == 1 &&
           not (Array.elem worker names) then
-        Just { name, worker, index, arity: Array.length lambdas.args, lazy }
+        Just { name, worker, index, arity: Array.length lambdas.args, params: map snd lambdas.args, lazy }
       else Nothing
     Tuple rewritten used = runState
       (traverse identity (Array.mapWithIndex (rewrite moduleName candidates) file.decls)) Set.empty
@@ -48,14 +48,14 @@ directCalls moduleName file =
         JavaAssign name value -> case lambdaChain 2 value of
           Just lambdas ->
             [ JavaAssign name (foldr JavaAbs
-                (workerCall moduleName candidate.worker (map JavaLocal lambdas.args)) lambdas.groups)
+                (workerCall moduleName candidate (map (JavaLocal <<< fst) lambdas.args)) (map (map fst) lambdas.groups))
             , JavaStaticMethod candidate.worker lambdas.args lambdas.body
             ]
           Nothing -> [declaration]
         JavaLazyAssign name value -> case lambdaChain 1 value of
           Just lambdas ->
             [ JavaLazyAssign name (foldr JavaAbs
-                (workerCall moduleName candidate.worker (map JavaLocal lambdas.args)) lambdas.groups)
+                (workerCall moduleName candidate (map (JavaLocal <<< fst) lambdas.args)) (map (map fst) lambdas.groups))
             , JavaStaticMethod candidate.worker lambdas.args lambdas.body
             ]
           Nothing -> [declaration]
@@ -73,6 +73,7 @@ declarationName = case _ of
 -- Only contiguous, nonempty lambdas are flattened. A block, call or any other
 -- computation is the worker body, even when that computation returns a closure.
 -- Keeping that boundary preserves the timing of subsequent overapplication.
+-- Typed lambdas carry proven primitive parameters; plain lambdas stay Object.
 lambdaChain :: Int -> JavaExpr -> Maybe Lambdas
 lambdaChain minimum = collect [] []
   where
@@ -80,14 +81,24 @@ lambdaChain minimum = collect [] []
     JavaAbs parameters body
       | Array.null parameters -> Nothing
       | Array.length args + Array.length parameters > 32 -> Nothing
+      | otherwise -> collect (Array.snoc groups (map (\name -> Tuple name ParamObject) parameters)) (args <> map (\name -> Tuple name ParamObject) parameters) body
+    JavaTypedAbs parameters body
+      | Array.null parameters -> Nothing
+      | Array.length args + Array.length parameters > 32 -> Nothing
       | otherwise -> collect (Array.snoc groups parameters) (args <> parameters) body
     _
-      | Array.length args >= minimum && Array.length (Array.nub args) == Array.length args ->
+      | Array.length args >= minimum && Array.length (Array.nub (map fst args)) == Array.length args ->
           Just { groups, args, body: expression }
       | otherwise -> Nothing
 
-workerCall :: String -> String -> Array JavaExpr -> JavaExpr
-workerCall moduleName worker = JavaCall (JavaGlobalVar (Just moduleName) worker)
+-- Primitive worker parameters need an unboxing cast at every call site; the
+-- public curried chains and the guarded fallbacks keep Object arguments.
+workerCall :: String -> Candidate -> Array JavaExpr -> JavaExpr
+workerCall moduleName candidate args =
+  JavaCall (JavaGlobalVar (Just moduleName) candidate.worker)
+    (Array.zipWith (\paramType arg -> case paramType of
+        ParamInt -> JavaCast "int" arg
+        _ -> arg) candidate.params args)
 
 lazyGetter :: String -> String -> String
 lazyGetter moduleName name = moduleName <> ".__lazy_get_" <> name
@@ -112,7 +123,7 @@ rewrite moduleName candidates declarationIndex expression = do
               -- point at which a null call stops evaluating later arguments.
               pure (JavaTernary
                 (JavaBinaryOp "==" (JavaGlobalVar qualifier name) (JavaRaw "null"))
-                result (workerCall moduleName candidate.worker args))
+                result (workerCall moduleName candidate args))
             Nothing -> pure result
     Just { head: JavaCall (JavaRaw getterName) [], args }
       | Just candidate <- Array.find (\c -> c.lazy &&
@@ -121,7 +132,7 @@ rewrite moduleName candidates declarationIndex expression = do
           -- The function calls itself. Its own getter already completed before
           -- any body can run, so the worker needs no initialization guard.
           modify_ (Set.insert candidate.index)
-          pure (workerCall moduleName candidate.worker args)
+          pure (workerCall moduleName candidate args)
     _ -> pure result
 
 application :: JavaExpr -> Maybe { head :: JavaExpr, args :: Array JavaExpr }
@@ -142,6 +153,7 @@ children visit expression = case expression of
   JavaCall fn args -> JavaCall <$> visit fn <*> traverse visit args
   JavaFunction value -> JavaFunction <$> visit value
   JavaAbs args body -> JavaAbs args <$> visit body
+  JavaTypedAbs args body -> JavaTypedAbs args <$> visit body
   JavaIntAbs arg body -> JavaIntAbs arg <$> visit body
   JavaNew name args -> JavaNew name <$> traverse visit args
   JavaTernary condition yes no -> JavaTernary <$> visit condition <*> visit yes <*> visit no
@@ -165,6 +177,7 @@ children visit expression = case expression of
   JavaLazyAssign name value -> JavaLazyAssign name <$> visit value
   JavaStaticMethod name args body -> JavaStaticMethod name args <$> visit body
   JavaLocalAssign name value -> JavaLocalAssign name <$> visit value
+  JavaIntLocalAssign name value -> JavaIntLocalAssign name <$> visit value
   JavaBinaryOp operator left right -> JavaBinaryOp operator <$> visit left <*> visit right
   JavaUnaryOp operator value -> JavaUnaryOp operator <$> visit value
   JavaArrayIndex value index -> JavaArrayIndex <$> visit value <*> visit index

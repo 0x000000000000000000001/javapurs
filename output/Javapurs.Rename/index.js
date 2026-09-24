@@ -52,8 +52,8 @@ var rename = function (env) {
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaFunction(v1.value0), v1.value1);
             };
             if (v instanceof Javapurs_JavaAst.JavaLocal) {
-                var $123 = Data_String_CodePoints.take(8)(v.value0) === "__final_";
-                if ($123) {
+                var $128 = Data_String_CodePoints.take(8)(v.value0) === "__final_";
+                if ($128) {
                     var baseName = Data_String_CodePoints.drop(8)(v.value0);
                     var renamed = lookupName(baseName)(env);
                     return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaLocal("__final_" + renamed), s);
@@ -73,18 +73,41 @@ var rename = function (env) {
                 var v1 = rename(env$prime)(s1)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaAbs(args$prime, v1.value0), v1.value1);
             };
+            if (v instanceof Javapurs_JavaAst.JavaTypedAbs) {
+                var names = Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst)(v.value0);
+                var names$prime = Data_Functor.map(Data_Functor.functorArray)(function (n) {
+                    return n + ("_i" + Data_Show.show(Data_Show.showInt)(s));
+                })(names);
+                var s1 = s + Data_Array.length(names) | 0;
+                var env$prime = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (acc) {
+                    return function (v1) {
+                        return Data_Array.cons(new Data_Tuple.Tuple(v1.value0, v1.value1))(acc);
+                    };
+                })(env)(Data_Array.zip(names)(names$prime));
+                var v1 = rename(env$prime)(s1)(v.value1);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaTypedAbs(Data_Array.zipWith(function (v2) {
+                    return function (newN) {
+                        return new Data_Tuple.Tuple(newN, v2.value1);
+                    };
+                })(v.value0)(names$prime), v1.value0), v1.value1);
+            };
             if (v instanceof Javapurs_JavaAst.JavaIntAbs) {
                 var arg$prime = v.value0 + ("_i" + Data_Show.show(Data_Show.showInt)(s));
                 var v1 = rename(Data_Array.cons(new Data_Tuple.Tuple(v.value0, arg$prime))(env))(s + 1 | 0)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaIntAbs(arg$prime, v1.value0), v1.value1);
             };
             if (v instanceof Javapurs_JavaAst.JavaStaticMethod) {
-                var args$prime = Data_Functor.map(Data_Functor.functorArray)(function (n) {
+                var names = Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst)(v.value1);
+                var names$prime = Data_Functor.map(Data_Functor.functorArray)(function (n) {
                     return n + ("_i" + Data_Show.show(Data_Show.showInt)(s));
-                })(v.value1);
-                var env$prime = Data_Array.zip(v.value1)(args$prime);
-                var v1 = rename(env$prime)(s + Data_Array.length(v.value1) | 0)(v.value2);
-                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaStaticMethod(v.value0, args$prime, v1.value0), v1.value1);
+                })(names);
+                var env$prime = Data_Array.zip(names)(names$prime);
+                var v1 = rename(env$prime)(s + Data_Array.length(names) | 0)(v.value2);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaStaticMethod(v.value0, Data_Array.zipWith(function (v2) {
+                    return function (newN) {
+                        return new Data_Tuple.Tuple(newN, v2.value1);
+                    };
+                })(v.value1)(names$prime), v1.value0), v1.value1);
             };
             if (v instanceof Javapurs_JavaAst.JavaNew) {
                 var v1 = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (v2) {
@@ -291,6 +314,10 @@ var rename = function (env) {
                 var v1 = rename(env)(s)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaLocalAssign(lookupName(v.value0)(env), v1.value0), v1.value1);
             };
+            if (v instanceof Javapurs_JavaAst.JavaIntLocalAssign) {
+                var v1 = rename(env)(s)(v.value1);
+                return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaIntLocalAssign(lookupName(v.value0)(env), v1.value0), v1.value1);
+            };
             if (v instanceof Javapurs_JavaAst.JavaBlock) {
                 var v1 = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (v2) {
                     return function (stmt) {
@@ -301,7 +328,7 @@ var rename = function (env) {
                 var v2 = rename(env)(v1.value1)(v.value1);
                 return new Data_Tuple.Tuple(new Javapurs_JavaAst.JavaBlock(v1.value0, v2.value0), v2.value1);
             };
-            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 171, column 38): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Rename (line 22, column 16 - line 182, column 38): " + [ v.constructor.name ]);
         };
     };
 };

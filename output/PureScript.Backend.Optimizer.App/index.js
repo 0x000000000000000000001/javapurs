@@ -2,14 +2,17 @@
 import * as $foreign from "./foreign.js";
 import * as Control_Applicative from "../Control.Applicative/index.js";
 import * as Control_Bind from "../Control.Bind/index.js";
+import * as Control_Parallel from "../Control.Parallel/index.js";
 import * as Data_Argonaut_Decode_Error from "../Data.Argonaut.Decode.Error/index.js";
 import * as Data_Argonaut_Parser from "../Data.Argonaut.Parser/index.js";
 import * as Data_Array from "../Data.Array/index.js";
 import * as Data_Bifunctor from "../Data.Bifunctor/index.js";
+import * as Data_Boolean from "../Data.Boolean/index.js";
 import * as Data_Either from "../Data.Either/index.js";
 import * as Data_Eq from "../Data.Eq/index.js";
 import * as Data_Foldable from "../Data.Foldable/index.js";
 import * as Data_Function from "../Data.Function/index.js";
+import * as Data_Functor from "../Data.Functor/index.js";
 import * as Data_Int from "../Data.Int/index.js";
 import * as Data_List from "../Data.List/index.js";
 import * as Data_List_Types from "../Data.List.Types/index.js";
@@ -33,6 +36,7 @@ import * as PureScript_Backend_Optimizer_CoreFn_Sort from "../PureScript.Backend
 import * as PureScript_Backend_Optimizer_Directives from "../PureScript.Backend.Optimizer.Directives/index.js";
 import * as PureScript_Backend_Optimizer_Directives_Defaults from "../PureScript.Backend.Optimizer.Directives.Defaults/index.js";
 var liftEffect = /* #__PURE__ */ Effect_Class.liftEffect(Effect_Aff.monadEffectAff);
+var fromFoldable = /* #__PURE__ */ Data_Array.fromFoldable(Data_List_Types.foldableList);
 var writeCache = function (version) {
     return function (cachePath) {
         return function (backendMod) {
@@ -45,13 +49,13 @@ var writeCache = function (version) {
 var readCoreFnModule = function (filePath) {
     return Control_Bind.bind(Effect_Aff.bindAff)(Effect_Aff.attempt(Node_FS_Aff.stat(filePath)))(function (statRes) {
         if (statRes instanceof Data_Either.Right) {
-            var $4 = Node_FS_Stats.isFile(statRes.value0);
-            if ($4) {
+            var $6 = Node_FS_Stats.isFile(statRes.value0);
+            if ($6) {
                 return Control_Bind.bind(Effect_Aff.bindAff)(Node_FS_Aff.readTextFile(Node_Encoding.UTF8.value)(filePath))(function (contents) {
                     var v = Control_Bind.bind(Data_Either.bindEither)(Data_Argonaut_Parser.jsonParser(contents))((function () {
-                        var $20 = Data_Bifunctor.lmap(Data_Bifunctor.bifunctorEither)(Data_Argonaut_Decode_Error.printJsonDecodeError);
-                        return function ($21) {
-                            return $20(PureScript_Backend_Optimizer_CoreFn_Json.decodeModule($21));
+                        var $28 = Data_Bifunctor.lmap(Data_Bifunctor.bifunctorEither)(Data_Argonaut_Decode_Error.printJsonDecodeError);
+                        return function ($29) {
+                            return $28(PureScript_Backend_Optimizer_CoreFn_Json.decodeModule($29));
                         };
                     })());
                     if (v instanceof Data_Either.Left) {
@@ -62,7 +66,7 @@ var readCoreFnModule = function (filePath) {
                     if (v instanceof Data_Either.Right) {
                         return Control_Applicative.pure(Effect_Aff.applicativeAff)(new Data_Maybe.Just(v.value0));
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 48, column 9 - line 52, column 39): " + [ v.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 50, column 9 - line 54, column 39): " + [ v.constructor.name ]);
                 });
             };
             return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
@@ -70,8 +74,8 @@ var readCoreFnModule = function (filePath) {
         if (statRes instanceof Data_Either.Left) {
             var errStr = Data_Show.show(Effect_Exception.showError)(statRes.value0);
             return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)((function () {
-                var $9 = Data_String_CodeUnits.contains("ENOENT")(errStr);
-                if ($9) {
+                var $11 = Data_String_CodeUnits.contains("ENOENT")(errStr);
+                if ($11) {
                     return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Unit.unit);
                 };
                 return Data_Function.apply(liftEffect)(Data_Function.apply(Effect_Console.error)("Failed to stat " + (filePath + (": " + errStr))));
@@ -79,7 +83,7 @@ var readCoreFnModule = function (filePath) {
                 return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
             });
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 44, column 3 - line 60, column 19): " + [ statRes.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 46, column 3 - line 62, column 19): " + [ statRes.constructor.name ]);
     });
 };
 var parseCLIArgs = function (argsRaw) {
@@ -94,7 +98,7 @@ var parseCLIArgs = function (argsRaw) {
         if (v instanceof Data_Maybe.Nothing) {
             return Data_Maybe.Nothing.value;
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 91, column 18 - line 93, column 25): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 106, column 18 - line 108, column 25): " + [ v.constructor.name ]);
     };
     return {
         mbMainModule: getArg("--main"),
@@ -115,15 +119,40 @@ var loadDirectives = /* #__PURE__ */ (function () {
     });
 })();
 var coreFnModulesFromOutput = function (outputDir) {
-    return Control_Bind.bind(Effect_Aff.bindAff)(Node_FS_Aff.readdir(outputDir))(function (files) {
-        return Control_Bind.bind(Effect_Aff.bindAff)(Data_Array.filterA(Effect_Aff.applicativeAff)(function (f) {
-            return Control_Bind.bind(Effect_Aff.bindAff)(Node_FS_Aff.stat(outputDir + ("/" + f)))(function (stat) {
-                return Control_Applicative.pure(Effect_Aff.applicativeAff)(Node_FS_Stats.isDirectory(stat));
-            });
-        })(files))(function (validDirs) {
-            return Control_Bind.bind(Effect_Aff.bindAff)(Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect_Aff.applicativeAff)(function (dir) {
-                return readCoreFnModule(outputDir + ("/" + (dir + "/corefn.json")));
-            })(validDirs))(function (mbModules) {
+    return Control_Bind.bind(Effect_Aff.bindAff)(Effect_Class.liftEffect(Effect_Aff.monadEffectAff)($foreign.moduleReadConcurrency))(function (jobs) {
+        return Control_Bind.bind(Effect_Aff.bindAff)(Node_FS_Aff.readdir(outputDir))(function (files) {
+            var readDirectory = function (dir) {
+                return Control_Bind.bind(Effect_Aff.bindAff)(Node_FS_Aff.stat(outputDir + ("/" + dir)))(function (stat) {
+                    var $15 = Node_FS_Stats.isDirectory(stat);
+                    if ($15) {
+                        return readCoreFnModule(outputDir + ("/" + (dir + "/corefn.json")));
+                    };
+                    return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
+                });
+            };
+            var loadBatches = function (remaining) {
+                if (Data_Array["null"](remaining)) {
+                    return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_List_Types.Nil.value);
+                };
+                if (Data_Boolean.otherwise) {
+                    var v = Data_Array.splitAt(jobs)(remaining);
+                    return Control_Bind.bind(Effect_Aff.bindAff)(Control_Parallel.parTraverse(Effect_Aff.parallelAff)(Effect_Aff.applicativeParAff)(Data_Traversable.traversableArray)(readDirectory)(v.before))(function (batch) {
+                        return Control_Bind.bind(Effect_Aff.bindAff)(loadBatches(v.after))(function (rest) {
+                            return Control_Applicative.pure(Effect_Aff.applicativeAff)(new Data_List_Types.Cons(batch, rest));
+                        });
+                    });
+                };
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 78, column 5 - line 84, column 38): " + [ remaining.constructor.name ]);
+            };
+            return Control_Bind.bind(Effect_Aff.bindAff)((function () {
+                var $20 = jobs === 1;
+                if ($20) {
+                    return Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect_Aff.applicativeAff)(readDirectory)(files);
+                };
+                return Data_Functor.map(Effect_Aff.functorAff)(function ($30) {
+                    return Data_Array.concat(fromFoldable($30));
+                })(loadBatches(files));
+            })())(function (mbModules) {
                 var modulesArray = Data_Array.catMaybes(mbModules);
                 var modulesList = Data_List.fromFoldable(Data_Foldable.foldableArray)(modulesArray);
                 return Control_Applicative.pure(Effect_Aff.applicativeAff)(PureScript_Backend_Optimizer_CoreFn_Sort.sortModules(Data_List_Types.foldableList)(modulesList));
@@ -144,7 +173,7 @@ var checkCache = function (version) {
                             if (cacheContentRes instanceof Data_Either.Left) {
                                 return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
                             };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 118, column 7 - line 120, column 31): " + [ cacheContentRes.constructor.name ]);
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.App (line 133, column 7 - line 135, column 31): " + [ cacheContentRes.constructor.name ]);
                         });
                     };
                     return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);

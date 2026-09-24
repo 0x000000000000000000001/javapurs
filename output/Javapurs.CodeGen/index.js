@@ -213,7 +213,7 @@ var translateOperator2 = function (v) {
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpArrayIndex) {
                     return new Javapurs_JavaAst.JavaArrayIndex(e1, e2);
                 };
-                throw new Error("Failed pattern match at Javapurs.CodeGen (line 576, column 33 - line 632, column 39): " + [ op.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.CodeGen (line 584, column 33 - line 640, column 39): " + [ op.constructor.name ]);
             };
         };
     };
@@ -245,12 +245,12 @@ var translateOperator1 = function (modName) {
                     if (op.value0.value0 instanceof Data_Maybe.Nothing) {
                         return modName;
                     };
-                    throw new Error("Failed pattern match at Javapurs.CodeGen (line 568, column 17 - line 570, column 27): " + [ op.value0.value0.constructor.name ]);
+                    throw new Error("Failed pattern match at Javapurs.CodeGen (line 576, column 17 - line 578, column 27): " + [ op.value0.value0.constructor.name ]);
                 })();
                 var javaClass = modPart + ("." + safeTag);
                 return new Javapurs_JavaAst.JavaInstanceOf(e, javaClass);
             };
-            throw new Error("Failed pattern match at Javapurs.CodeGen (line 559, column 35 - line 573, column 33): " + [ op.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.CodeGen (line 567, column 35 - line 581, column 33): " + [ op.constructor.name ]);
         };
     };
 };
@@ -330,7 +330,7 @@ var syntaxTag = function (v) {
     if (v instanceof PureScript_Backend_Optimizer_Syntax.TypeApp) {
         return "TypeApp";
     };
-    throw new Error("Failed pattern match at Javapurs.CodeGen (line 357, column 13 - line 382, column 27): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.CodeGen (line 361, column 13 - line 386, column 27): " + [ v.constructor.name ]);
 };
 var stripEffectDefer = function (v) {
     if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Typed) {
@@ -412,6 +412,22 @@ var pureExpr = function (e) {
         expr: e
     };
 };
+var paramKinds = function (v) {
+    return function (args) {
+        if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Typed) {
+            if (v.value1.value0 instanceof PureScript_Backend_Optimizer_CoreFn.Func && Data_Array.length(v.value1.value0.value0) === Data_Array.length(args)) {
+                return Data_Functor.map(Data_Functor.functorArray)(function (paramType) {
+                    if (paramType instanceof PureScript_Backend_Optimizer_CoreFn.Int) {
+                        return Javapurs_JavaAst.ParamInt.value;
+                    };
+                    return Javapurs_JavaAst.ParamObject.value;
+                })(v.value1.value0.value0);
+            };
+            return Data_Array.replicate(Data_Array.length(args))(Javapurs_JavaAst.ParamObject.value);
+        };
+        return Data_Array.replicate(Data_Array.length(args))(Javapurs_JavaAst.ParamObject.value);
+    };
+};
 var isEffectNode = function ($copy_expr) {
     var $tco_done = false;
     var $tco_result;
@@ -466,8 +482,8 @@ var flattenApp = function (v) {
     };
     if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Typed) {
         var flat = flattenApp(v.value1.value1);
-        var $251 = Data_Array["null"](flat.args);
-        if ($251) {
+        var $262 = Data_Array["null"](flat.args);
+        if ($262) {
             return {
                 fn: v,
                 args: [  ]
@@ -477,8 +493,8 @@ var flattenApp = function (v) {
     };
     if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.TypeApp) {
         var flat = flattenApp(v.value1.value0);
-        var $254 = Data_Array["null"](flat.args);
-        if ($254) {
+        var $265 = Data_Array["null"](flat.args);
+        if ($265) {
             return {
                 fn: v,
                 args: [  ]
@@ -509,7 +525,7 @@ var extractUncurriedAbs = function (v) {
                 body: v.value1.value1
             });
         };
-        throw new Error("Failed pattern match at Javapurs.CodeGen (line 428, column 8 - line 430, column 47): " + [ v1.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.CodeGen (line 432, column 8 - line 434, column 47): " + [ v1.constructor.name ]);
     };
     if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.UncurriedAbs) {
         return new Data_Maybe.Just({
@@ -599,14 +615,14 @@ var translateLoop = function (env) {
                     };
                     var expression = wrapInBlock(translateExpr(loopEnv)(Data_Array.cons(ctx)(captureLoopCtx(parentCtx)))(true)(plan.body));
                     var intParams = (function () {
-                        var $296 = Javapurs_Printer.hasDirectContinue(expression);
-                        if ($296) {
+                        var $307 = Javapurs_Printer.hasDirectContinue(expression);
+                        if ($307) {
                             return Javapurs_IntLoops.intLoopParams(args)(body);
                         };
                         return [  ];
                     })();
-                    var $297 = Data_Array["null"](values);
-                    if ($297) {
+                    var $308 = Data_Array["null"](values);
+                    if ($308) {
                         return new Javapurs_JavaAst.JavaWhileTrue(args, intParams, expression);
                     };
                     return new Javapurs_JavaAst.JavaMemoizedLoop(args, intParams, values, expression);
@@ -643,8 +659,8 @@ var translateExprWith = function (inEffectBlock) {
                         };
                     };
                     var isEff = isEffectNode(v);
-                    var $317 = isEff && !inEffectBlock;
-                    if ($317) {
+                    var $328 = isEff && !inEffectBlock;
+                    if ($328) {
                         var res = translateExprWith(true)(env)(loopCtx)(false)(v);
                         return Data_Function.apply(pureExpr)(new Javapurs_JavaAst.JavaAbs([  ], wrapInBlock(res)));
                     };
@@ -711,8 +727,8 @@ var translateExprWith = function (inEffectBlock) {
                                 return Data_Maybe.Nothing.value;
                             })();
                             if (targetCtx instanceof Data_Maybe.Just) {
-                                var $342 = Data_Array.length(flat.args) === Data_Array.length(targetCtx.value0.params);
-                                if ($342) {
+                                var $353 = Data_Array.length(flat.args) === Data_Array.length(targetCtx.value0.params);
+                                if ($353) {
                                     return Data_Function.apply(pureExpr)(new Javapurs_JavaAst.JavaContinue(targetCtx.value0.ident, argsExprs));
                                 };
                                 return pureExpr(application);
@@ -752,8 +768,8 @@ var translateExprWith = function (inEffectBlock) {
                                 return Data_Maybe.Nothing.value;
                             })();
                             if (targetCtx instanceof Data_Maybe.Just) {
-                                var $356 = Data_Array.length(flat.args) === Data_Array.length(targetCtx.value0.params);
-                                if ($356) {
+                                var $367 = Data_Array.length(flat.args) === Data_Array.length(targetCtx.value0.params);
+                                if ($367) {
                                     return Data_Function.apply(pureExpr)(new Javapurs_JavaAst.JavaContinue(targetCtx.value0.ident, argsExprs));
                                 };
                                 return pureExpr(application);
@@ -777,8 +793,8 @@ var translateExprWith = function (inEffectBlock) {
                         var argsArray = Data_Functor.map(Data_Functor.functorArray)(function (v1) {
                             return PureScript_Backend_Optimizer_FreeVars.localId(v1.value0)(v1.value1);
                         })(v.value1.value0);
-                        var $365 = inEffectBlock && Data_Array.length(v.value1.value0) === 0;
-                        if ($365) {
+                        var $376 = inEffectBlock && Data_Array.length(v.value1.value0) === 0;
+                        if ($376) {
                             return resBody;
                         };
                         return Data_Function.apply(pureExpr)(new Javapurs_JavaAst.JavaAbs(argsArray, wrapInBlock(resBody)));
@@ -788,8 +804,8 @@ var translateExprWith = function (inEffectBlock) {
                         var argsArray = Data_Functor.map(Data_Functor.functorArray)(function (v1) {
                             return PureScript_Backend_Optimizer_FreeVars.localId(v1.value0)(v1.value1);
                         })(Data_Array.fromFoldable(Data_Foldable.foldableArray)(v.value1.value0));
-                        var $371 = inEffectBlock && Data_Array.length(v.value1.value0) === 0;
-                        if ($371) {
+                        var $382 = inEffectBlock && Data_Array.length(v.value1.value0) === 0;
+                        if ($382) {
                             return resBody;
                         };
                         return Data_Function.apply(pureExpr)(new Javapurs_JavaAst.JavaAbs(argsArray, wrapInBlock(resBody)));
@@ -827,7 +843,12 @@ var translateExprWith = function (inEffectBlock) {
                         var varName = PureScript_Backend_Optimizer_FreeVars.localId(v.value1.value0)(v.value1.value1);
                         var resValExpr = wrapInBlock(translateExpr(env)(loopCtx)(false)(v.value1.value2));
                         var resBody = translateExprWith(inEffectBlock)(env)(loopCtx)(isTail)(v.value1.value3);
-                        var assignStmt = new Javapurs_JavaAst.JavaLocalAssign(varName, resValExpr);
+                        var assignStmt = (function () {
+                            if (v.value1.value2.value1 instanceof PureScript_Backend_Optimizer_Syntax.Typed && v.value1.value2.value1.value0 instanceof PureScript_Backend_Optimizer_CoreFn.Int) {
+                                return new Javapurs_JavaAst.JavaIntLocalAssign(varName, resValExpr);
+                            };
+                            return new Javapurs_JavaAst.JavaLocalAssign(varName, resValExpr);
+                        })();
                         return {
                             stmts: Data_Semigroup.append(Data_Semigroup.semigroupArray)([ assignStmt ])(resBody.stmts),
                             expr: resBody.expr
@@ -835,8 +856,8 @@ var translateExprWith = function (inEffectBlock) {
                     };
                     if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.LetRec) {
                         var tcoInfo = Data_Newtype.unwrap()(v.value0);
-                        var $393 = tcoInfo.role.isLoop && Data_Array.length(Data_Array.fromFoldable(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(v.value1.value1)) === 1;
-                        if ($393) {
+                        var $409 = tcoInfo.role.isLoop && Data_Array.length(Data_Array.fromFoldable(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(v.value1.value1)) === 1;
+                        if ($409) {
                             var v1 = Data_Array.head(Data_Array.fromFoldable(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(v.value1.value1));
                             if (v1 instanceof Data_Maybe.Just) {
                                 var javaName = PureScript_Backend_Optimizer_FreeVars.localId(new Data_Maybe.Just(v1.value0.value0))(v.value1.value0);
@@ -859,12 +880,12 @@ var translateExprWith = function (inEffectBlock) {
                                         expr: new Javapurs_JavaAst.JavaRaw("null")
                                     };
                                 };
-                                throw new Error("Failed pattern match at Javapurs.CodeGen (line 203, column 16 - line 214, column 98): " + [ v2.constructor.name ]);
+                                throw new Error("Failed pattern match at Javapurs.CodeGen (line 207, column 16 - line 218, column 98): " + [ v2.constructor.name ]);
                             };
                             if (v1 instanceof Data_Maybe.Nothing) {
                                 return Data_Function.apply(pureExpr)(new Javapurs_JavaAst.JavaRaw("null"));
                             };
-                            throw new Error("Failed pattern match at Javapurs.CodeGen (line 199, column 9 - line 215, column 47): " + [ v1.constructor.name ]);
+                            throw new Error("Failed pattern match at Javapurs.CodeGen (line 203, column 9 - line 219, column 47): " + [ v1.constructor.name ]);
                         };
                         var resBody = translateExprWith(inEffectBlock)(env)(loopCtx)(isTail)(v.value1.value2);
                         var bindsArray = Data_Functor.map(Data_Functor.functorArray)(function (v1) {
@@ -885,15 +906,15 @@ var translateExprWith = function (inEffectBlock) {
                         var realExpr = stripEffectDefer(v.value1.value2);
                         var resExprExpr = wrapInBlock(translateExprWith(true)(env)(loopCtx)(false)(realExpr));
                         var executedRestExpr = (function () {
-                            var $411 = isEffectNode(realRest);
-                            if ($411) {
+                            var $427 = isEffectNode(realRest);
+                            if ($427) {
                                 return resRest.expr;
                             };
                             return new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaPropertyAccess(resRest.expr, "java.util.function.Supplier", "get"), [  ]);
                         })();
                         var executedExpr = (function () {
-                            var $412 = isEffectNode(realExpr);
-                            if ($412) {
+                            var $428 = isEffectNode(realExpr);
+                            if ($428) {
                                 return resExprExpr;
                             };
                             return new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaPropertyAccess(resExprExpr, "java.util.function.Supplier", "get"), [  ]);
@@ -944,9 +965,9 @@ var translateExprWith = function (inEffectBlock) {
                             if (v2 instanceof Data_Maybe.Nothing) {
                                 return translateExprWith(inEffectBlock)(env)(loopCtx)(isTail)(v.value1.value1);
                             };
-                            throw new Error("Failed pattern match at Javapurs.CodeGen (line 242, column 18 - line 253, column 75): " + [ v2.constructor.name ]);
+                            throw new Error("Failed pattern match at Javapurs.CodeGen (line 246, column 18 - line 257, column 75): " + [ v2.constructor.name ]);
                         };
-                        throw new Error("Failed pattern match at Javapurs.CodeGen (line 240, column 5 - line 253, column 75): " + [ v1.constructor.name ]);
+                        throw new Error("Failed pattern match at Javapurs.CodeGen (line 244, column 5 - line 257, column 75): " + [ v1.constructor.name ]);
                     };
                     if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.TypeApp) {
                         return translateExprWith(inEffectBlock)(env)(loopCtx)(isTail)(v.value1.value0);
@@ -963,12 +984,12 @@ var translateExprWith = function (inEffectBlock) {
                             if (v.value1.value0.value0 instanceof Data_Maybe.Nothing) {
                                 return env.moduleName;
                             };
-                            throw new Error("Failed pattern match at Javapurs.CodeGen (line 258, column 17 - line 260, column 34): " + [ v.value1.value0.value0.constructor.name ]);
+                            throw new Error("Failed pattern match at Javapurs.CodeGen (line 262, column 17 - line 264, column 34): " + [ v.value1.value0.value0.constructor.name ]);
                         })();
                         var javaClass = modPart + ("." + safeCtorName);
                         return Data_Function.apply(pureExpr)((function () {
-                            var $444 = Data_Array["null"](resArgsExprs);
-                            if ($444) {
+                            var $460 = Data_Array["null"](resArgsExprs);
+                            if ($460) {
                                 return new Javapurs_JavaAst.JavaCtorSingleton(modPart, safeCtorName);
                             };
                             return new Javapurs_JavaAst.JavaNew(javaClass, resArgsExprs);
@@ -984,8 +1005,8 @@ var translateExprWith = function (inEffectBlock) {
                         })(v.value1.value3);
                         var javaClass = env.moduleName + ("." + safeCtorName);
                         var body = new Javapurs_JavaAst.JavaNew(javaClass, Data_Functor.map(Data_Functor.functorArray)(Javapurs_JavaAst.JavaLocal.create)(mappedFields));
-                        var $452 = numFields === 0;
-                        if ($452) {
+                        var $468 = numFields === 0;
+                        if ($468) {
                             return Data_Function.apply(pureExpr)(new Javapurs_JavaAst.JavaCtorSingleton(env.moduleName, safeCtorName));
                         };
                         return Data_Function.apply(pureExpr)(new Javapurs_JavaAst.JavaAbs(mappedFields, body));
@@ -1006,7 +1027,7 @@ var translateExprWith = function (inEffectBlock) {
                                 if (v1 instanceof Data_Maybe.Nothing) {
                                     return new Javapurs_JavaAst.JavaMapGet(resExprExpr, v.value1.value1.value0);
                                 };
-                                throw new Error("Failed pattern match at Javapurs.CodeGen (line 281, column 21 - line 283, column 47): " + [ v1.constructor.name ]);
+                                throw new Error("Failed pattern match at Javapurs.CodeGen (line 285, column 21 - line 287, column 47): " + [ v1.constructor.name ]);
                             })());
                         };
                         if (v.value1.value1 instanceof PureScript_Backend_Optimizer_Syntax.GetCtorField) {
@@ -1019,7 +1040,7 @@ var translateExprWith = function (inEffectBlock) {
                                 if (v.value1.value1.value0.value0 instanceof Data_Maybe.Nothing) {
                                     return env.moduleName;
                                 };
-                                throw new Error("Failed pattern match at Javapurs.CodeGen (line 287, column 19 - line 289, column 36): " + [ v.value1.value1.value0.value0.constructor.name ]);
+                                throw new Error("Failed pattern match at Javapurs.CodeGen (line 291, column 19 - line 293, column 36): " + [ v.value1.value1.value0.value0.constructor.name ]);
                             })();
                             var javaClass = modPart + ("." + safeCtorName);
                             return Data_Function.apply(pureExpr)(new Javapurs_JavaAst.JavaPropertyAccess(resExprExpr, javaClass, "value" + Data_Show.show(Data_Show.showInt)(v.value1.value1.value5)));
@@ -1041,13 +1062,13 @@ var translateExprWith = function (inEffectBlock) {
                             if (v.value1.value0.value0 instanceof Data_Maybe.Nothing) {
                                 return Data_Maybe.Nothing.value;
                             };
-                            throw new Error("Failed pattern match at Javapurs.CodeGen (line 301, column 20 - line 303, column 29): " + [ v.value1.value0.value0.constructor.name ]);
+                            throw new Error("Failed pattern match at Javapurs.CodeGen (line 305, column 20 - line 307, column 29): " + [ v.value1.value0.value0.constructor.name ]);
                         })();
                         var javaName = sanitizeName(v.value1.value0.value1);
                         var isCurrentModule = Data_Eq.eq(eqMaybe2)(qModName)(Data_Maybe.Nothing.value) || Data_Eq.eq(eqMaybe2)(qModName)(new Data_Maybe.Just(env.moduleName));
                         return Data_Function.apply(pureExpr)((function () {
-                            var $482 = isCurrentModule && Data_Array.elem(Data_Eq.eqString)(javaName)(env.lazyBindings);
-                            if ($482) {
+                            var $498 = isCurrentModule && Data_Array.elem(Data_Eq.eqString)(javaName)(env.lazyBindings);
+                            if ($498) {
                                 return new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaRaw(env.moduleName + (".__lazy_get_" + javaName)), [  ]);
                             };
                             return new Javapurs_JavaAst.JavaGlobalVar(qModName, javaName);
@@ -1073,8 +1094,8 @@ var translateExprWith = function (inEffectBlock) {
                                 var v3 = Data_Array.uncons(v1);
                                 if (v3 instanceof Data_Maybe.Just) {
                                     var restTernary = buildTernary(v3.value0.tail)(v2);
-                                    var $492 = Data_Array.length(v3.value0.head.cStmts) > 0 || Data_Array.length(v3.value0.head.vStmts) > 0;
-                                    if ($492) {
+                                    var $508 = Data_Array.length(v3.value0.head.cStmts) > 0 || Data_Array.length(v3.value0.head.vStmts) > 0;
+                                    if ($508) {
                                         return new Javapurs_JavaAst.JavaBlock(v3.value0.head.cStmts, new Javapurs_JavaAst.JavaTernary(v3.value0.head.cExpr, wrapInBlock({
                                             stmts: v3.value0.head.vStmts,
                                             expr: v3.value0.head.vExpr
@@ -1085,7 +1106,7 @@ var translateExprWith = function (inEffectBlock) {
                                 if (v3 instanceof Data_Maybe.Nothing) {
                                     return wrapInBlock(v2);
                                 };
-                                throw new Error("Failed pattern match at Javapurs.CodeGen (line 323, column 9 - line 330, column 40): " + [ v3.constructor.name ]);
+                                throw new Error("Failed pattern match at Javapurs.CodeGen (line 327, column 9 - line 334, column 40): " + [ v3.constructor.name ]);
                             };
                         };
                         return {
@@ -1103,7 +1124,7 @@ var translateExprWith = function (inEffectBlock) {
                             var res1Expr = wrapInBlock(translateExpr(env)(loopCtx)(false)(v.value1.value0.value1));
                             return Data_Function.apply(pureExpr)(translateOperator2(env.moduleName)(v.value1.value0.value0)(res1Expr)(res2Expr));
                         };
-                        throw new Error("Failed pattern match at Javapurs.CodeGen (line 333, column 16 - line 340, column 76): " + [ v.value1.value0.constructor.name ]);
+                        throw new Error("Failed pattern match at Javapurs.CodeGen (line 337, column 16 - line 344, column 76): " + [ v.value1.value0.constructor.name ]);
                     };
                     if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.PrimUndefined) {
                         return Data_Function.apply(pureExpr)(new Javapurs_JavaAst.JavaRaw("null /* TODO: PrimUndefined */"));
@@ -1140,12 +1161,17 @@ var translateWithIntFunctions = function (v) {
         var dataClasses = Data_Array.concatMap(function (decl) {
             return Data_Functor.map(Data_Functor.functorArray)(function (ctor) {
                 var safeCtorName = Data_String_Common.replaceAll("'")("_prime_")(ctor.name);
-                var args = Data_Array.mapWithIndex(function (i) {
-                    return function (v2) {
-                        return "value" + Data_Show.show(Data_Show.showInt)(i);
+                var fields = Data_Array.mapWithIndex(function (i) {
+                    return function (fieldType) {
+                        return new Data_Tuple.Tuple("value" + Data_Show.show(Data_Show.showInt)(i), (function () {
+                            if (fieldType instanceof PureScript_Backend_Optimizer_CoreFn.Int) {
+                                return Javapurs_JavaAst.ParamInt.value;
+                            };
+                            return Javapurs_JavaAst.ParamObject.value;
+                        })());
                     };
                 })(ctor.fields);
-                return new Javapurs_JavaAst.JavaClassDecl(safeCtorName, args);
+                return new Javapurs_JavaAst.JavaClassDecl(safeCtorName, fields);
             })(decl.constructors);
         })(mod.dataDecls);
         var analyzedBindings = (function () {
@@ -1201,13 +1227,13 @@ var translateWithIntFunctions = function (v) {
                     if (v3 instanceof Data_Maybe.Just) {
                         var javaName = sanitizeName(v2.value0);
                         var funcBody = translateLoop(env)([  ])(javaName)(v3.value0.args)(v3.value0.body);
-                        return new Javapurs_JavaAst.JavaLazyAssign(javaName, new Javapurs_JavaAst.JavaAbs(v3.value0.args, funcBody));
+                        return new Javapurs_JavaAst.JavaLazyAssign(javaName, new Javapurs_JavaAst.JavaTypedAbs(Data_Array.zip(v3.value0.args)(paramKinds(v2.value1)(v3.value0.args)), funcBody));
                     };
                     if (v3 instanceof Data_Maybe.Nothing) {
                         var res = translateExpr(env)([  ])(false)(v2.value1);
                         return new Javapurs_JavaAst.JavaLazyAssign(sanitizeName(v2.value0), wrapInBlock(res));
                     };
-                    throw new Error("Failed pattern match at Javapurs.CodeGen (line 519, column 19 - line 528, column 75): " + [ v3.constructor.name ]);
+                    throw new Error("Failed pattern match at Javapurs.CodeGen (line 523, column 19 - line 532, column 75): " + [ v3.constructor.name ]);
                 })(group.bindings);
             };
             return Data_Functor.map(Data_Functor.functorArray)(function (v2) {
@@ -1279,6 +1305,7 @@ export {
     translateWithIntFunctions,
     translateOperator1,
     translateOperator2,
+    paramKinds,
     sanitizeName
 };
 //# sourceMappingURL=index.js.map

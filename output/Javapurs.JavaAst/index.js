@@ -27,6 +27,20 @@ var RecordNested = /* #__PURE__ */ (function () {
 var JavaRecordShape = function (x) {
     return x;
 };
+var ParamObject = /* #__PURE__ */ (function () {
+    function ParamObject() {
+
+    };
+    ParamObject.value = new ParamObject();
+    return ParamObject;
+})();
+var ParamInt = /* #__PURE__ */ (function () {
+    function ParamInt() {
+
+    };
+    ParamInt.value = new ParamInt();
+    return ParamInt;
+})();
 var JavaString = /* #__PURE__ */ (function () {
     function JavaString(value0) {
         this.value0 = value0;
@@ -77,6 +91,18 @@ var JavaAbs = /* #__PURE__ */ (function () {
         };
     };
     return JavaAbs;
+})();
+var JavaTypedAbs = /* #__PURE__ */ (function () {
+    function JavaTypedAbs(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    JavaTypedAbs.create = function (value0) {
+        return function (value1) {
+            return new JavaTypedAbs(value0, value1);
+        };
+    };
+    return JavaTypedAbs;
 })();
 var JavaIntAbs = /* #__PURE__ */ (function () {
     function JavaIntAbs(value0, value1) {
@@ -438,6 +464,18 @@ var JavaLocalAssign = /* #__PURE__ */ (function () {
     };
     return JavaLocalAssign;
 })();
+var JavaIntLocalAssign = /* #__PURE__ */ (function () {
+    function JavaIntLocalAssign(value0, value1) {
+        this.value0 = value0;
+        this.value1 = value1;
+    };
+    JavaIntLocalAssign.create = function (value0) {
+        return function (value1) {
+            return new JavaIntLocalAssign(value0, value1);
+        };
+    };
+    return JavaIntLocalAssign;
+})();
 var JavaBinaryOp = /* #__PURE__ */ (function () {
     function JavaBinaryOp(value0, value1, value2) {
         this.value0 = value0;
@@ -568,11 +606,14 @@ var ordJavaRecordShape = {
     }
 };
 export {
+    ParamObject,
+    ParamInt,
     JavaString,
     JavaCall,
     JavaFunction,
     JavaLocal,
     JavaAbs,
+    JavaTypedAbs,
     JavaIntAbs,
     JavaNew,
     JavaCtorSingleton,
@@ -602,6 +643,7 @@ export {
     JavaLazyAssign,
     JavaStaticMethod,
     JavaLocalAssign,
+    JavaIntLocalAssign,
     JavaBinaryOp,
     JavaUnaryOp,
     JavaArrayIndex,

@@ -24,6 +24,16 @@ var $runtime_lazy = function (name, moduleName, init) {
         return val;
     };
 };
+var moduleNameIsSymbol = {
+    reflectSymbol: function () {
+        return "moduleName";
+    }
+};
+var bindingIdIsSymbol = {
+    reflectSymbol: function () {
+        return "bindingId";
+    }
+};
 var eqArray = /* #__PURE__ */ Data_Eq.eqArray(Data_Eq.eqString);
 var eqTuple = /* #__PURE__ */ Data_Tuple.eqTuple(Data_Eq.eqString);
 var eqTuple1 = /* #__PURE__ */ Data_Tuple.eqTuple(/* #__PURE__ */ Data_Eq.eqArray(Data_Eq.eqString));
@@ -69,6 +79,9 @@ var Qualified = /* #__PURE__ */ (function () {
     };
     return Qualified;
 })();
+var SourceBindingId = function (x) {
+    return x;
+};
 var LitInt = /* #__PURE__ */ (function () {
     function LitInt(value0) {
         this.value0 = value0;
@@ -765,6 +778,7 @@ var propKey = function (v) {
 var ordProperName = Data_Ord.ordString;
 var ordModuleName = Data_Ord.ordString;
 var ordMaybe = /* #__PURE__ */ Data_Maybe.ordMaybe(ordModuleName);
+var ordSourceBindingId = /* #__PURE__ */ Data_Ord.ordRecord()(/* #__PURE__ */ Data_Ord.ordRecordCons(/* #__PURE__ */ Data_Ord.ordRecordCons(Data_Ord.ordRecordNil)()(moduleNameIsSymbol)(ordModuleName))()(bindingIdIsSymbol)(Data_Ord.ordInt));
 var ordIdent = Data_Ord.ordString;
 var ordArray1 = /* #__PURE__ */ Data_Ord.ordArray(ordIdent);
 var moduleName = function (v) {
@@ -842,7 +856,7 @@ var $lazy_functorBinder = /* #__PURE__ */ $runtime_lazy("functorBinder", "PureSc
         }
     };
 });
-var functorBinder = /* #__PURE__ */ $lazy_functorBinder(512);
+var functorBinder = /* #__PURE__ */ $lazy_functorBinder(543);
 var $lazy_functorBind = /* #__PURE__ */ $runtime_lazy("functorBind", "PureScript.Backend.Optimizer.CoreFn", function () {
     return {
         map: function (f) {
@@ -939,12 +953,12 @@ var $lazy_functorGuard = /* #__PURE__ */ $runtime_lazy("functorGuard", "PureScri
         }
     };
 });
-var functorBind = /* #__PURE__ */ $lazy_functorBind(370);
-var functorBinding = /* #__PURE__ */ $lazy_functorBinding(376);
-var functorCaseAlternative = /* #__PURE__ */ $lazy_functorCaseAlternative(398);
-var functorCaseGuard = /* #__PURE__ */ $lazy_functorCaseGuard(413);
-var functorExpr = /* #__PURE__ */ $lazy_functorExpr(390);
-var functorGuard = /* #__PURE__ */ $lazy_functorGuard(420);
+var functorBind = /* #__PURE__ */ $lazy_functorBind(401);
+var functorBinding = /* #__PURE__ */ $lazy_functorBinding(407);
+var functorCaseAlternative = /* #__PURE__ */ $lazy_functorCaseAlternative(429);
+var functorCaseGuard = /* #__PURE__ */ $lazy_functorCaseGuard(444);
+var functorExpr = /* #__PURE__ */ $lazy_functorExpr(421);
+var functorGuard = /* #__PURE__ */ $lazy_functorGuard(451);
 var foldableProp = {
     foldl: function (k) {
         return function (a) {
@@ -1014,7 +1028,7 @@ var $lazy_foldableLiteral = /* #__PURE__ */ $runtime_lazy("foldableLiteral", "Pu
         }
     };
 });
-var foldableLiteral = /* #__PURE__ */ $lazy_foldableLiteral(457);
+var foldableLiteral = /* #__PURE__ */ $lazy_foldableLiteral(488);
 var $lazy_traversableLiteral = /* #__PURE__ */ $runtime_lazy("traversableLiteral", "PureScript.Backend.Optimizer.CoreFn", function () {
     return {
         traverse: function (dictApplicative) {
@@ -1042,7 +1056,7 @@ var $lazy_traversableLiteral = /* #__PURE__ */ $runtime_lazy("traversableLiteral
                     if (v instanceof LitBoolean) {
                         return Control_Applicative.pure(dictApplicative)(new LitBoolean(v.value0));
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 466, column 16 - line 473, column 40): " + [ v.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 497, column 16 - line 504, column 40): " + [ v.constructor.name ]);
                 };
             };
         },
@@ -1059,11 +1073,11 @@ var $lazy_traversableLiteral = /* #__PURE__ */ $runtime_lazy("traversableLiteral
         }
     };
 });
-var traversableLiteral = /* #__PURE__ */ $lazy_traversableLiteral(465);
+var traversableLiteral = /* #__PURE__ */ $lazy_traversableLiteral(496);
 var findProp = function (prop) {
     return Data_Array.findMap(function (v) {
-        var $449 = prop === v.value0;
-        if ($449) {
+        var $473 = prop === v.value0;
+        if ($473) {
             return new Data_Maybe.Just(v.value1);
         };
         return Data_Maybe.Nothing.value;
@@ -1100,7 +1114,7 @@ var exprAnn = function (v) {
     if (v instanceof ExprTypeApp) {
         return v.value0;
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 518, column 11 - line 528, column 25): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 549, column 11 - line 559, column 25): " + [ v.constructor.name ]);
 };
 var eqProperName = Data_Eq.eqString;
 var eqModuleName = Data_Eq.eqString;
@@ -1134,6 +1148,7 @@ var ordQualified = function (dictOrd) {
         }
     };
 };
+var eqSourceBindingId = /* #__PURE__ */ Data_Eq.eqRec()(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(Data_Eq.eqRowNil)()(moduleNameIsSymbol)(eqModuleName))()(bindingIdIsSymbol)(Data_Eq.eqInt));
 var eqIdent = Data_Eq.eqString;
 var eqArray1 = /* #__PURE__ */ Data_Eq.eqArray(eqIdent);
 var eqReExport = {
@@ -1220,7 +1235,7 @@ var $lazy_eqExprType = /* #__PURE__ */ $runtime_lazy("eqExprType", "PureScript.B
         }
     };
 });
-var eqExprType = /* #__PURE__ */ $lazy_eqExprType(190);
+var eqExprType = /* #__PURE__ */ $lazy_eqExprType(221);
 var $lazy_ordExprType = /* #__PURE__ */ $runtime_lazy("ordExprType", "PureScript.Backend.Optimizer.CoreFn", function () {
     return {
         compare: function (x) {
@@ -1429,7 +1444,7 @@ var $lazy_ordExprType = /* #__PURE__ */ $runtime_lazy("ordExprType", "PureScript
         }
     };
 });
-var ordExprType = /* #__PURE__ */ $lazy_ordExprType(191);
+var ordExprType = /* #__PURE__ */ $lazy_ordExprType(222);
 var eqConstructorType = {
     eq: function (x) {
         return function (y) {
@@ -1576,10 +1591,11 @@ var binderAnn = function (v) {
     if (v instanceof BinderConstructor) {
         return v.value0;
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 534, column 13 - line 539, column 33): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 565, column 13 - line 570, column 33): " + [ v.constructor.name ]);
 };
 export {
     Ann,
+    SourceBindingId,
     NonRec,
     Rec,
     BinderNull,
@@ -1666,6 +1682,8 @@ export {
     eqQualified,
     ordQualified,
     functorQualified,
+    eqSourceBindingId,
+    ordSourceBindingId,
     eqExprType,
     ordExprType,
     eqMeta,

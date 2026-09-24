@@ -12,4 +12,4 @@ pursVersion :: String
 pursVersion = "0.15.16"
 
 spagoVersion :: String
-spagoVersion = "1.0.3"
+spagoVersion = "1.0.4"

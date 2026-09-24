@@ -13,7 +13,7 @@ import PureScript.Backend.Optimizer.Codegen.Tco (TcoExpr(..))
 import Data.String.CodeUnits as CodeUnits
 import Data.Newtype (unwrap)
 import PureScript.Backend.Optimizer.Codegen.Tco as Tco
-import Javapurs.JavaAst (JavaExpr(..), JavaFile)
+import Javapurs.JavaAst (JavaExpr(..), JavaParamType(..), JavaFile)
 import Javapurs.IntLoops (intLoopParams)
 import Javapurs.RecordShapes (recordShape, recordShapeOf, collectRecordShapes)
 import Javapurs.RecordTypes (annotateRecordTypes)
@@ -187,7 +187,11 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
     let
       resValExpr = wrapInBlock (translateExpr env loopCtx false val)
       varName = localId mbI lvl
-      assignStmt = JavaLocalAssign varName resValExpr
+      -- A proven Int binding keeps a primitive local; reads in Object contexts
+      -- still box, while the hot int uses stay unboxed.
+      assignStmt = case val of
+        TcoExpr _ (Typed CoreFn.Int _) -> JavaIntLocalAssign varName resValExpr
+        _ -> JavaLocalAssign varName resValExpr
       resBody = translateExprWith inEffectBlock env loopCtx isTail body
     in { stmts: [assignStmt] <> resBody.stmts, expr: resBody.expr }
   LetRec lvl binds body ->
@@ -522,7 +526,7 @@ translateWithIntFunctions options@{ typedRecords, loopInvariants, intFunctions }
                         javaName = sanitizeName n
                         funcBody = translateLoop env [] javaName abs.args abs.body
                       in
-                        JavaLazyAssign javaName (JavaAbs abs.args funcBody)
+                        JavaLazyAssign javaName (JavaTypedAbs (Array.zip abs.args (paramKinds expr abs.args)) funcBody)
                     Nothing ->
                       let res = translateExpr env [] false expr
                       in JavaLazyAssign (sanitizeName n) (wrapInBlock res)
@@ -542,9 +546,13 @@ translateWithIntFunctions options@{ typedRecords, loopInvariants, intFunctions }
         map (\ctor ->
             let
               safeCtorName = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") ctor.name
-              args = Array.mapWithIndex (\i _ -> "value" <> show i) ctor.fields
+              -- A proven Int field stays primitive; the Object constructor keeps
+              -- cross-module call sites working by unboxing on assignment.
+              fields = Array.mapWithIndex (\i fieldType -> Tuple ("value" <> show i) (case fieldType of
+                CoreFn.Int -> ParamInt
+                _ -> ParamObject)) ctor.fields
             in
-              JavaClassDecl safeCtorName args
+              JavaClassDecl safeCtorName fields
         ) decl.constructors
       ) mod.dataDecls
 
@@ -630,6 +638,18 @@ translateOperator2 _ op e1 e2 = case op of
   OpStringOrd OpLt -> JavaBinaryOp "<" (JavaCall (JavaPropertyAccess e1 "String" "compareTo") [JavaCast "String" e2]) (JavaRaw "0")
   OpStringOrd OpLte -> JavaBinaryOp "<=" (JavaCall (JavaPropertyAccess e1 "String" "compareTo") [JavaCast "String" e2]) (JavaRaw "0")
   OpArrayIndex -> JavaArrayIndex e1 e2
+
+-- Parameter kinds for a typed top-level lambda. Extraction can flatten several
+-- Abs levels, so the type only contributes when it covers the same arity.
+paramKinds :: TcoExpr -> Array String -> Array JavaParamType
+paramKinds (TcoExpr _ syntax) args = case syntax of
+  Typed ty _ -> case ty of
+    CoreFn.Func paramTypes _ | Array.length paramTypes == Array.length args ->
+      map (\paramType -> case paramType of
+        CoreFn.Int -> ParamInt
+        _ -> ParamObject) paramTypes
+    _ -> Array.replicate (Array.length args) ParamObject
+  _ -> Array.replicate (Array.length args) ParamObject
 
 sanitizeName :: String -> String
 sanitizeName n =

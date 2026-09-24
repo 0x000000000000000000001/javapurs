@@ -2,6 +2,7 @@
 import * as Data_Array from "../Data.Array/index.js";
 import * as Data_Foldable from "../Data.Foldable/index.js";
 import * as Data_Maybe from "../Data.Maybe/index.js";
+import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Javapurs_FunctionTypes from "../Javapurs.FunctionTypes/index.js";
 import * as Javapurs_JavaAst from "../Javapurs.JavaAst/index.js";
 import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
@@ -12,8 +13,8 @@ var resultType = function (v) {
         var v1 = Data_Array.uncons(v.value0.value0);
         if (v1 instanceof Data_Maybe.Just) {
             return new Data_Maybe.Just((function () {
-                var $6 = Data_Array["null"](v1.value0.tail);
-                if ($6) {
+                var $8 = Data_Array["null"](v1.value0.tail);
+                if ($8) {
                     return v.value0.value1;
                 };
                 return new PureScript_Backend_Optimizer_CoreFn.Func(v1.value0.tail, v.value0.value1);
@@ -22,7 +23,7 @@ var resultType = function (v) {
         if (v1 instanceof Data_Maybe.Nothing) {
             return Data_Maybe.Nothing.value;
         };
-        throw new Error("Failed pattern match at Javapurs.IntFunctions (line 35, column 32 - line 37, column 23): " + [ v1.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.IntFunctions (line 36, column 32 - line 38, column 23): " + [ v1.constructor.name ]);
     };
     return Data_Maybe.Nothing.value;
 };
@@ -68,12 +69,22 @@ var abstractFunction = function (ty) {
                 if (ty instanceof Data_Maybe.Just && Javapurs_FunctionTypes.intFunction(ty.value0)) {
                     return new Javapurs_JavaAst.JavaIntAbs(v.value0.head, rest);
                 };
-                return new Javapurs_JavaAst.JavaAbs([ v.value0.head ], rest);
+                var v1 = function (v2) {
+                    return new Javapurs_JavaAst.JavaAbs([ v.value0.head ], rest);
+                };
+                if (ty instanceof Data_Maybe.Just && ty.value0 instanceof PureScript_Backend_Optimizer_CoreFn.Func) {
+                    var $26 = Data_Array.head(ty.value0.value0);
+                    if ($26 instanceof Data_Maybe.Just && $26.value0 instanceof PureScript_Backend_Optimizer_CoreFn.Int) {
+                        return new Javapurs_JavaAst.JavaTypedAbs([ new Data_Tuple.Tuple(v.value0.head, Javapurs_JavaAst.ParamInt.value) ], rest);
+                    };
+                    return v1(true);
+                };
+                return v1(true);
             };
             if (v instanceof Data_Maybe.Nothing) {
                 return body;
             };
-            throw new Error("Failed pattern match at Javapurs.IntFunctions (line 41, column 33 - line 47, column 18): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.IntFunctions (line 42, column 33 - line 51, column 18): " + [ v.constructor.name ]);
         };
     };
 };

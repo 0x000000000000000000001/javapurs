@@ -30,8 +30,17 @@ var monadStateStateT = /* #__PURE__ */ Control_Monad_State_Trans.monadStateState
 var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var identity1 = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var workerCall = function (moduleName) {
-    return function (worker) {
-        return Javapurs_JavaAst.JavaCall.create(new Javapurs_JavaAst.JavaGlobalVar(new Data_Maybe.Just(moduleName), worker));
+    return function (candidate) {
+        return function (args) {
+            return new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaGlobalVar(new Data_Maybe.Just(moduleName), candidate.worker), Data_Array.zipWith(function (paramType) {
+                return function (arg) {
+                    if (paramType instanceof Javapurs_JavaAst.ParamInt) {
+                        return new Javapurs_JavaAst.JavaCast("int", arg);
+                    };
+                    return arg;
+                };
+            })(candidate.params)(args));
+        };
     };
 };
 var lazyGetter = function (moduleName) {
@@ -58,13 +67,33 @@ var lambdaChain = function (minimum) {
                             return Data_Maybe.Nothing.value;
                         };
                         if (Data_Boolean.otherwise) {
+                            $tco_var_groups = Data_Array.snoc(groups)(Data_Functor.map(Data_Functor.functorArray)(function (name) {
+                                return new Data_Tuple.Tuple(name, Javapurs_JavaAst.ParamObject.value);
+                            })(expression.value0));
+                            $tco_var_args = Data_Semigroup.append(Data_Semigroup.semigroupArray)(args)(Data_Functor.map(Data_Functor.functorArray)(function (name) {
+                                return new Data_Tuple.Tuple(name, Javapurs_JavaAst.ParamObject.value);
+                            })(expression.value0));
+                            $copy_expression = expression.value1;
+                            return;
+                        };
+                    };
+                    if (expression instanceof Javapurs_JavaAst.JavaTypedAbs) {
+                        if (Data_Array["null"](expression.value0)) {
+                            $tco_done = true;
+                            return Data_Maybe.Nothing.value;
+                        };
+                        if ((Data_Array.length(args) + Data_Array.length(expression.value0) | 0) > 32) {
+                            $tco_done = true;
+                            return Data_Maybe.Nothing.value;
+                        };
+                        if (Data_Boolean.otherwise) {
                             $tco_var_groups = Data_Array.snoc(groups)(expression.value0);
                             $tco_var_args = Data_Semigroup.append(Data_Semigroup.semigroupArray)(args)(expression.value0);
                             $copy_expression = expression.value1;
                             return;
                         };
                     };
-                    if (Data_Array.length(args) >= minimum && Data_Array.length(Data_Array.nub(Data_Ord.ordString)(args)) === Data_Array.length(args)) {
+                    if (Data_Array.length(args) >= minimum && Data_Array.length(Data_Array.nub(Data_Ord.ordString)(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst)(args))) === Data_Array.length(args)) {
                         $tco_done = true;
                         return new Data_Maybe.Just({
                             groups: groups,
@@ -76,7 +105,7 @@ var lambdaChain = function (minimum) {
                         $tco_done = true;
                         return Data_Maybe.Nothing.value;
                     };
-                    throw new Error("Failed pattern match at Javapurs.DirectCalls (line 79, column 36 - line 87, column 29): " + [ expression.constructor.name ]);
+                    throw new Error("Failed pattern match at Javapurs.DirectCalls (line 80, column 36 - line 92, column 29): " + [ expression.constructor.name ]);
                 };
                 while (!$tco_done) {
                     $tco_result = $tco_loop($tco_var_groups, $tco_var_args, $copy_expression);
@@ -112,6 +141,9 @@ var children = function (visit) {
         };
         if (expression instanceof Javapurs_JavaAst.JavaAbs) {
             return Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaAbs.create(expression.value0))(visit(expression.value1));
+        };
+        if (expression instanceof Javapurs_JavaAst.JavaTypedAbs) {
+            return Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaTypedAbs.create(expression.value0))(visit(expression.value1));
         };
         if (expression instanceof Javapurs_JavaAst.JavaIntAbs) {
             return Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaIntAbs.create(expression.value0))(visit(expression.value1));
@@ -190,6 +222,9 @@ var children = function (visit) {
         if (expression instanceof Javapurs_JavaAst.JavaLocalAssign) {
             return Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaLocalAssign.create(expression.value0))(visit(expression.value1));
         };
+        if (expression instanceof Javapurs_JavaAst.JavaIntLocalAssign) {
+            return Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaIntLocalAssign.create(expression.value0))(visit(expression.value1));
+        };
         if (expression instanceof Javapurs_JavaAst.JavaBinaryOp) {
             return Control_Apply.apply(applyStateT)(Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaBinaryOp.create(expression.value0))(visit(expression.value1)))(visit(expression.value2));
         };
@@ -237,7 +272,7 @@ var application = /* #__PURE__ */ (function () {
                     $tco_done = true;
                     return Data_Maybe.Nothing.value;
                 };
-                throw new Error("Failed pattern match at Javapurs.DirectCalls (line 130, column 18 - line 136, column 29): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.DirectCalls (line 141, column 18 - line 147, column 29): " + [ v.constructor.name ]);
             };
             while (!$tco_done) {
                 $tco_result = $tco_loop($tco_var_args, $copy_v);
@@ -259,24 +294,24 @@ var rewrite = function (moduleName) {
                         })(candidates);
                         if (v1 instanceof Data_Maybe.Just) {
                             return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT)(Data_Set.insert(Data_Ord.ordInt)(v1.value0.index)))(function () {
-                                return Control_Applicative.pure(applicativeStateT)(new Javapurs_JavaAst.JavaTernary(new Javapurs_JavaAst.JavaBinaryOp("==", new Javapurs_JavaAst.JavaGlobalVar(v.value0.head.value0, v.value0.head.value1), new Javapurs_JavaAst.JavaRaw("null")), result, workerCall(moduleName)(v1.value0.worker)(v.value0.args)));
+                                return Control_Applicative.pure(applicativeStateT)(new Javapurs_JavaAst.JavaTernary(new Javapurs_JavaAst.JavaBinaryOp("==", new Javapurs_JavaAst.JavaGlobalVar(v.value0.head.value0, v.value0.head.value1), new Javapurs_JavaAst.JavaRaw("null")), result, workerCall(moduleName)(v1.value0)(v.value0.args)));
                             });
                         };
                         if (v1 instanceof Data_Maybe.Nothing) {
                             return Control_Applicative.pure(applicativeStateT)(result);
                         };
-                        throw new Error("Failed pattern match at Javapurs.DirectCalls (line 105, column 11 - line 116, column 35): " + [ v1.constructor.name ]);
+                        throw new Error("Failed pattern match at Javapurs.DirectCalls (line 116, column 11 - line 127, column 35): " + [ v1.constructor.name ]);
                     };
                     var v1 = function (v2) {
                         return Control_Applicative.pure(applicativeStateT)(result);
                     };
                     if (v instanceof Data_Maybe.Just && (v.value0.head instanceof Javapurs_JavaAst.JavaCall && (v.value0.head.value0 instanceof Javapurs_JavaAst.JavaRaw && v.value0.head.value1.length === 0))) {
-                        var $117 = Data_Array.find(function (c) {
+                        var $124 = Data_Array.find(function (c) {
                             return c.lazy && (c.index === declarationIndex && (c.arity === Data_Array.length(v.value0.args) && v.value0.head.value0.value0 === lazyGetter(moduleName)(c.name)));
                         })(candidates);
-                        if ($117 instanceof Data_Maybe.Just) {
-                            return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT)(Data_Set.insert(Data_Ord.ordInt)($117.value0.index)))(function () {
-                                return Control_Applicative.pure(applicativeStateT)(workerCall(moduleName)($117.value0.worker)(v.value0.args));
+                        if ($124 instanceof Data_Maybe.Just) {
+                            return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT)(Data_Set.insert(Data_Ord.ordInt)($124.value0.index)))(function () {
+                                return Control_Applicative.pure(applicativeStateT)(workerCall(moduleName)($124.value0)(v.value0.args));
                             });
                         };
                         return v1(true);
@@ -295,15 +330,16 @@ var directCalls = function (moduleName) {
                 return function (lambdas) {
                     return function (lazy) {
                         var worker = "__direct$" + Data_Show.show(Data_Show.showInt)(index);
-                        var $125 = Data_Array.length(Data_Array.filter(function (v) {
+                        var $132 = Data_Array.length(Data_Array.filter(function (v) {
                             return v === name;
                         })(names)) === 1 && !Data_Array.elem(Data_Eq.eqString)(worker)(names);
-                        if ($125) {
+                        if ($132) {
                             return new Data_Maybe.Just({
                                 name: name,
                                 worker: worker,
                                 index: index,
                                 arity: Data_Array.length(lambdas.args),
+                                params: Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(lambdas.args),
                                 lazy: lazy
                             });
                         };
@@ -337,7 +373,9 @@ var directCalls = function (moduleName) {
                     if (declaration instanceof Javapurs_JavaAst.JavaAssign) {
                         var v2 = lambdaChain(2)(declaration.value1);
                         if (v2 instanceof Data_Maybe.Just) {
-                            return [ new Javapurs_JavaAst.JavaAssign(declaration.value0, Data_Foldable.foldr(Data_Foldable.foldableArray)(Javapurs_JavaAst.JavaAbs.create)(workerCall(moduleName)(v1.value0.worker)(Data_Functor.map(Data_Functor.functorArray)(Javapurs_JavaAst.JavaLocal.create)(v2.value0.args)))(v2.value0.groups)), new Javapurs_JavaAst.JavaStaticMethod(v1.value0.worker, v2.value0.args, v2.value0.body) ];
+                            return [ new Javapurs_JavaAst.JavaAssign(declaration.value0, Data_Foldable.foldr(Data_Foldable.foldableArray)(Javapurs_JavaAst.JavaAbs.create)(workerCall(moduleName)(v1.value0)(Data_Functor.map(Data_Functor.functorArray)(function ($152) {
+                                return Javapurs_JavaAst.JavaLocal.create(Data_Tuple.fst($152));
+                            })(v2.value0.args)))(Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst))(v2.value0.groups))), new Javapurs_JavaAst.JavaStaticMethod(v1.value0.worker, v2.value0.args, v2.value0.body) ];
                         };
                         if (v2 instanceof Data_Maybe.Nothing) {
                             return [ declaration ];
@@ -347,7 +385,9 @@ var directCalls = function (moduleName) {
                     if (declaration instanceof Javapurs_JavaAst.JavaLazyAssign) {
                         var v2 = lambdaChain(1)(declaration.value1);
                         if (v2 instanceof Data_Maybe.Just) {
-                            return [ new Javapurs_JavaAst.JavaLazyAssign(declaration.value0, Data_Foldable.foldr(Data_Foldable.foldableArray)(Javapurs_JavaAst.JavaAbs.create)(workerCall(moduleName)(v1.value0.worker)(Data_Functor.map(Data_Functor.functorArray)(Javapurs_JavaAst.JavaLocal.create)(v2.value0.args)))(v2.value0.groups)), new Javapurs_JavaAst.JavaStaticMethod(v1.value0.worker, v2.value0.args, v2.value0.body) ];
+                            return [ new Javapurs_JavaAst.JavaLazyAssign(declaration.value0, Data_Foldable.foldr(Data_Foldable.foldableArray)(Javapurs_JavaAst.JavaAbs.create)(workerCall(moduleName)(v1.value0)(Data_Functor.map(Data_Functor.functorArray)(function ($153) {
+                                return Javapurs_JavaAst.JavaLocal.create(Data_Tuple.fst($153));
+                            })(v2.value0.args)))(Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst))(v2.value0.groups))), new Javapurs_JavaAst.JavaStaticMethod(v1.value0.worker, v2.value0.args, v2.value0.body) ];
                         };
                         if (v2 instanceof Data_Maybe.Nothing) {
                             return [ declaration ];

@@ -4,12 +4,18 @@ import Prelude (class Eq, class Ord)
 import Data.Maybe (Maybe)
 import Data.Tuple (Tuple)
 
+-- A proven Int parameter or field stays primitive; every other value keeps the
+-- generic Object ABI. The marker is only used where a declaration is emitted
+-- (static workers and ADT classes); call sites keep using plain Java values.
+data JavaParamType = ParamObject | ParamInt
+
 data JavaExpr
   = JavaString String
   | JavaCall JavaExpr (Array JavaExpr)
   | JavaFunction JavaExpr
   | JavaLocal String
   | JavaAbs (Array String) JavaExpr
+  | JavaTypedAbs (Array (Tuple String JavaParamType)) JavaExpr
   | JavaIntAbs String JavaExpr
   | JavaNew String (Array JavaExpr)
   | JavaCtorSingleton String String
@@ -33,12 +39,13 @@ data JavaExpr
   | JavaLet String JavaExpr JavaExpr
   | JavaLetRec (Array (Tuple String JavaExpr)) JavaExpr
   | JavaGlobalVar (Maybe String) String
-  | JavaClassDecl String (Array String)
+  | JavaClassDecl String (Array (Tuple String JavaParamType))
   | JavaRaw String
   | JavaAssign String JavaExpr
   | JavaLazyAssign String JavaExpr
-  | JavaStaticMethod String (Array String) JavaExpr
+  | JavaStaticMethod String (Array (Tuple String JavaParamType)) JavaExpr
   | JavaLocalAssign String JavaExpr
+  | JavaIntLocalAssign String JavaExpr
   | JavaBinaryOp String JavaExpr JavaExpr
   | JavaUnaryOp String JavaExpr
   | JavaArrayIndex JavaExpr JavaExpr

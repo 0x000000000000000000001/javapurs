@@ -5,8 +5,9 @@ import Prelude
 import Data.Array as Array
 import Data.Foldable (foldl)
 import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..))
 import Javapurs.FunctionTypes (intFunction)
-import Javapurs.JavaAst (JavaExpr(..))
+import Javapurs.JavaAst (JavaExpr(..), JavaParamType(..))
 import PureScript.Backend.Optimizer.Codegen.Tco (TcoExpr(..))
 import PureScript.Backend.Optimizer.CoreFn as C
 import PureScript.Backend.Optimizer.Syntax (BackendSyntax(..))
@@ -43,6 +44,9 @@ abstractFunction ty args body = case Array.uncons args of
     let rest = abstractFunction (resultType ty) tail body
     in case ty of
       Just functionType | intFunction functionType -> JavaIntAbs head rest
+      -- A proven Int parameter stays primitive inside direct workers; the
+      -- public curried lambda still declares Object and unboxes at use sites.
+      Just (C.Func paramTypes _) | Just C.Int <- Array.head paramTypes -> JavaTypedAbs [ Tuple head ParamInt ] rest
       _ -> JavaAbs [head] rest
   Nothing -> body
 

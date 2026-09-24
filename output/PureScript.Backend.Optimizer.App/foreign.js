@@ -3,6 +3,14 @@
  * FFI JavaScript pour le CLI de l'optimiseur. Il gère l'interface avec le système d'exploitation (lecture asynchrone des fichiers du système, etc.) pour alimenter App.purs.
  */
 
+export const moduleReadConcurrency = () => {
+  const configured = process.env.GOPURS_JOBS ?? "";
+  const jobs = Number(configured);
+  return /^\d+$/.test(configured) && jobs >= 1 && jobs <= 64
+    ? jobs
+    : 1;
+};
+
 // Ours
 export const stringify = function(version) {
   return function(obj) {

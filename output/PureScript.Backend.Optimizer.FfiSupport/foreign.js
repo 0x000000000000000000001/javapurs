@@ -66,35 +66,6 @@ function getScanDirs(mbFfiDir, extraSpagoDirs) {
     return scanDirs;
 }
 
-const ffiFileIndexes = {};
-
-function buildFfiFileIndex(scanDirs, extension) {
-    if (ffiFileIndexes[extension]) return;
-    const index = new Set();
-    
-    function walk(dir) {
-        let entries;
-        try {
-            entries = fs.readdirSync(dir, { withFileTypes: true });
-        } catch (e) {
-            return;
-        }
-        for (const entry of entries) {
-            const res = path.join(dir, entry.name);
-            if (entry.isDirectory()) {
-                walk(res);
-            } else if (entry.name.endsWith(extension)) {
-                index.add(res);
-            }
-        }
-    }
-    
-    for (const d of scanDirs) {
-        walk(d);
-    }
-    ffiFileIndexes[extension] = index;
-}
-
 export const findFfiFileImpl = function(extension) {
     return function(extraSpagoDirs) {
         return function(mbFfiDir) {
@@ -110,9 +81,6 @@ export const findFfiFileImpl = function(extension) {
                         }
                         
                         const scanDirs = getScanDirs(mbFfiDir, extraSpagoDirs);
-                        buildFfiFileIndex(scanDirs, extension);
-                        
-                        const index = ffiFileIndexes[extension];
                         
                         for (const dir of scanDirs) {
                             const searchPaths = [
@@ -121,7 +89,7 @@ export const findFfiFileImpl = function(extension) {
                                 path.join(dir, modNameStr + extension)
                             ];
                             for (const p of searchPaths) {
-                                if (index.has(p)) {
+                                if (fs.existsSync(p)) {
 
                                     return p;
                                 }
