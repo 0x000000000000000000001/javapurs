@@ -9,13 +9,14 @@ export class UsageError extends Error {}
 const PORT_PREFIX = "javapurs-";
 
 export function parseOptions(args) {
-  const options = { targets: [], clean: false, list: false, all: false, resume: null, help: false };
+  const options = { targets: [], clean: false, list: false, all: false, keep: false, resume: null, help: false };
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === "--") { options.targets.push(...args.slice(i + 1)); break; }
     if (arg === "-c" || arg === "--clean") options.clean = true;
     else if (arg === "--list") options.list = true;
     else if (arg === "--all") options.all = true;
+    else if (arg === "--keep-going") options.keep = true;
     else if (arg === "--help" || arg === "-h") options.help = true;
     else if (arg === "--skip-before") {
       const value = args[++i];

@@ -3,6 +3,8 @@ module Javapurs.CodeGen where
 import Prelude
 
 import Data.Array as Array
+import Data.Char as Char
+import Data.Int as Int
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Data.Foldable (any, foldl, foldr, foldMap)
@@ -150,6 +152,20 @@ hasTargetContinue target expression = case expression of
   JavaContinue loopId _ -> loopId == target
   expr -> any (hasTargetContinue target) (children expr)
 
+-- JavaScript `show` renders the special Number values with names that are not
+-- Java expressions; emit the Java constants instead. -0.0 keeps its sign.
+numberLiteral :: Number -> String
+numberLiteral n =
+  let
+    positiveInfinity = 1.0 / 0.0
+    negativeInfinity = -1.0 / 0.0
+  in
+    if n /= n then "Double.NaN"
+    else if n == positiveInfinity then "Double.POSITIVE_INFINITY"
+    else if n == negativeInfinity then "Double.NEGATIVE_INFINITY"
+    else if n == 0.0 then if 1.0 / n == negativeInfinity then "-0.0" else "0.0"
+    else show n
+
 translateExpr :: CodegenEnv -> Array LoopCtx -> Boolean -> TcoExpr -> TransRes
 translateExpr env loopCtx isTail tcoExpr =
   translateExprWith false env loopCtx isTail tcoExpr
@@ -163,9 +179,11 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
   else case syntax of
   Lit lit -> case lit of
     LitInt n -> pureExpr $ JavaRaw (show n)
-    LitNumber n -> pureExpr $ JavaRaw (show n)
+    LitNumber n -> pureExpr $ JavaRaw (numberLiteral n)
     LitString s -> pureExpr $ JavaString s
-    LitChar c -> pureExpr $ JavaRaw ("'" <> CodeUnits.singleton c <> "'")
+    -- JavaScript has no character type: a Char is a one-character string, and
+    -- every Java FFI port follows that representation.
+    LitChar c -> pureExpr $ JavaString (CodeUnits.singleton c)
     LitBoolean b -> pureExpr $ JavaRaw (if b then "true" else "false")
     LitArray elements ->
       let resElemsExprs = map (\e -> wrapInBlock (translateExpr env loopCtx false e)) elements

@@ -113,8 +113,14 @@ main = launchAff_ $ Metrics.measure "backend total" \_ -> do
           let
             mainRunCode =
               "public class MainRun {\n" <>
+              "    @SuppressWarnings(\"unchecked\")\n" <>
               "    public static void main(String[] args) {\n" <>
-              "        ((java.util.function.Supplier<Void>) " <> safeModName <> ".main).get();\n" <>
+              "        Object main = " <> safeModName <> ".main;\n" <>
+              "        if (main instanceof java.util.function.Supplier<?>) {\n" <>
+              "            ((java.util.function.Supplier<Object>) main).get();\n" <>
+              "        } else if (main instanceof java.util.function.Function<?, ?>) {\n" <>
+              "            ((java.util.function.Function<Object, Object>) main).apply(null);\n" <>
+              "        }\n" <>
               "    }\n" <>
               "}\n"
           in

@@ -120,7 +120,10 @@ printExpr = case _ of
     in
       "(new java.util.function.Supplier<Object>() { public Object get() { java.util.Map<String, Object> __map = new java.util.LinkedHashMap<>((java.util.Map<String, Object>) " <> printExpr expr <> "); " <> String.joinWith "" upds <> " return __map; } }).get()"
   JavaInstanceOf expr className ->
-    "(" <> printExpr expr <> " instanceof " <> className <> ")"
+    -- The operand's static type can be a sibling constructor class, and
+    -- `knownValue instanceof Sibling` is invalid when both are final; the
+    -- upcast keeps the test legal without changing its meaning.
+    "(((Object) (" <> printExpr expr <> ")) instanceof " <> className <> ")"
   JavaPropertyAccess expr className prop ->
     "((" <> className <> ") (Object)(" <> printExpr expr <> "))." <> prop
   JavaLetRec binds body ->
@@ -210,10 +213,9 @@ printExpr = case _ of
       String.joinWith " " (map printExpr elseStmts) <>
     "} "
   JavaAssign name expr ->
-    if name == "main" then
-      "public static final java.util.function.Supplier<Void> main = () -> {\n            ((java.util.function.Supplier<Object>)(" <> printExpr expr <> ")).get();\n            return null;\n        };"
-    else
-      "public static final Object " <> name <> " = " <> printExpr expr <> ";"
+    -- A plain field: MainRun unwraps an Effect (Supplier) or an AlmostEff
+    -- (Function) main, so the field must not force a Supplier type here.
+    "public static final Object " <> name <> " = " <> printExpr expr <> ";"
   JavaStaticMethod name args body ->
     let
       -- Object parameters keep the JVM signature stable; proven Int parameters

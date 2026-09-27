@@ -79,8 +79,8 @@ var hasAnyContinue = function (v) {
         return hasAnyContinue(v.value1) || hasAnyContinue(v.value2);
     };
     if (v instanceof Javapurs_JavaAst.JavaLetRec) {
-        return Data_Array.any(function ($385) {
-            return hasAnyContinue(Data_Tuple.snd($385));
+        return Data_Array.any(function ($384) {
+            return hasAnyContinue(Data_Tuple.snd($384));
         })(v.value0) || hasAnyContinue(v.value1);
     };
     if (v instanceof Javapurs_JavaAst.JavaAssign) {
@@ -129,29 +129,29 @@ var hasAnyContinue = function (v) {
         return hasAnyContinue(v.value0) || (hasAnyContinue(v.value1) || hasAnyContinue(v.value2));
     };
     if (v instanceof Javapurs_JavaAst.JavaRecord) {
-        return Data_Array.any(function ($386) {
-            return hasAnyContinue(Data_Tuple.snd($386));
+        return Data_Array.any(function ($385) {
+            return hasAnyContinue(Data_Tuple.snd($385));
         })(v.value0);
     };
     if (v instanceof Javapurs_JavaAst.JavaTypedRecord) {
-        return Data_Array.any(function ($387) {
-            return hasAnyContinue(Data_Tuple.snd($387));
+        return Data_Array.any(function ($386) {
+            return hasAnyContinue(Data_Tuple.snd($386));
         })(v.value1);
     };
     if (v instanceof Javapurs_JavaAst.JavaTypedRecordGet) {
         return hasAnyContinue(v.value1);
     };
     if (v instanceof Javapurs_JavaAst.JavaTypedRecordUpdate) {
-        return hasAnyContinue(v.value1) || Data_Array.any(function ($388) {
-            return hasAnyContinue(Data_Tuple.snd($388));
+        return hasAnyContinue(v.value1) || Data_Array.any(function ($387) {
+            return hasAnyContinue(Data_Tuple.snd($387));
         })(v.value2);
     };
     if (v instanceof Javapurs_JavaAst.JavaMapGet) {
         return hasAnyContinue(v.value0);
     };
     if (v instanceof Javapurs_JavaAst.JavaMapUpdate) {
-        return hasAnyContinue(v.value0) || Data_Array.any(function ($389) {
-            return hasAnyContinue(Data_Tuple.snd($389));
+        return hasAnyContinue(v.value0) || Data_Array.any(function ($388) {
+            return hasAnyContinue(Data_Tuple.snd($388));
         })(v.value1);
     };
     if (v instanceof Javapurs_JavaAst.JavaInstanceOf) {
@@ -362,7 +362,7 @@ var printLoopTail = function (loopId) {
                     };
                     return "return " + (printExpr(expr) + "; ");
                 };
-                throw new Error("Failed pattern match at Javapurs.Printer (line 323, column 1 - line 323, column 78): " + [ loopId.constructor.name, params.constructor.name, intParams.constructor.name, expr.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.Printer (line 325, column 1 - line 325, column 78): " + [ loopId.constructor.name, params.constructor.name, intParams.constructor.name, expr.constructor.name ]);
             };
         };
     };
@@ -390,7 +390,7 @@ var printLetRecBindings = function (binds) {
             return "Object " + (v1.value0 + (" = " + (scopeVar + ("." + (v1.value0 + "; ")))));
         })(binds))))))))))))))));
     };
-    throw new Error("Failed pattern match at Javapurs.Printer (line 473, column 29 - line 489, column 118): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Printer (line 475, column 29 - line 491, column 118): " + [ v.constructor.name ]);
 };
 var printInvariant = function (v) {
     return "final java.util.function.IntSupplier " + (v.value0 + (" = new java.util.function.IntSupplier() { " + ("private boolean ready; private int value; " + ("public int getAsInt() { if (!ready) { value = ((int) (" + (printExpr(v.value1) + (")); ready = true; } return value; } " + "}; "))))));
@@ -541,7 +541,7 @@ var printExpr = function (v) {
         return "(new java.util.function.Supplier<Object>() { public Object get() { java.util.Map<String, Object> __map = new java.util.LinkedHashMap<>((java.util.Map<String, Object>) " + (printExpr(v.value0) + ("); " + (Data_String_Common.joinWith("")(upds) + " return __map; } }).get()")));
     };
     if (v instanceof Javapurs_JavaAst.JavaInstanceOf) {
-        return "(" + (printExpr(v.value0) + (" instanceof " + (v.value1 + ")")));
+        return "(((Object) (" + (printExpr(v.value0) + (")) instanceof " + (v.value1 + ")")));
     };
     if (v instanceof Javapurs_JavaAst.JavaPropertyAccess) {
         return "((" + (v.value1 + (") (Object)(" + (printExpr(v.value0) + ("))." + v.value2))));
@@ -673,10 +673,6 @@ var printExpr = function (v) {
         return "if ((Boolean) (" + (printExpr(v.value0) + (")) { " + (Data_String_Common.joinWith(" ")(Data_Functor.map(Data_Functor.functorArray)(printExpr)(v.value1)) + ("} else { " + (Data_String_Common.joinWith(" ")(Data_Functor.map(Data_Functor.functorArray)(printExpr)(v.value2)) + "} ")))));
     };
     if (v instanceof Javapurs_JavaAst.JavaAssign) {
-        var $362 = v.value0 === "main";
-        if ($362) {
-            return "public static final java.util.function.Supplier<Void> main = () -> {\x0a            ((java.util.function.Supplier<Object>)(" + (printExpr(v.value1) + ")).get();\x0a            return null;\x0a        };");
-        };
         return "public static final Object " + (v.value0 + (" = " + (printExpr(v.value1) + ";")));
     };
     if (v instanceof Javapurs_JavaAst.JavaStaticMethod) {
@@ -692,7 +688,7 @@ var printExpr = function (v) {
         var getterName = "__lazy_get_" + v.value0;
         return "private static Object " + (valueName + (";\x0a" + ("private static int " + (stateName + (";\x0a" + ("private static Object " + (getterName + ("() { " + ("if (" + (stateName + (" == 2) return " + (valueName + ("; " + ("if (" + (stateName + (" == 1) throw new IllegalStateException(\"Recursive initialization of " + (escapeJavaString(v.value0) + ("\"); " + (stateName + (" = 1; " + (valueName + (" = " + (printExpr(v.value1) + ("; " + (stateName + (" = 2; " + ("return " + (valueName + ("; " + ("}\x0a" + printExpr(new Javapurs_JavaAst.JavaAssign(v.value0, new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaRaw(getterName), [  ])))))))))))))))))))))))))))))))));
     };
-    throw new Error("Failed pattern match at Javapurs.Printer (line 38, column 13 - line 241, column 69): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Printer (line 38, column 13 - line 243, column 69): " + [ v.constructor.name ]);
 };
 var printCountedLoop = function (loopId) {
     return function (args) {
