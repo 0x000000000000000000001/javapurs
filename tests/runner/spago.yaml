@@ -59,3 +59,5 @@ workspace:
       path: "../../../javapurs-functions"
     record:
       path: "../../../javapurs-record"
+    unfoldable:
+      path: "../../../javapurs-unfoldable"
