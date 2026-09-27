@@ -82,11 +82,13 @@ rename expression = case expression of
   JavaTypedRecordGet shape value prop -> (\value' -> JavaTypedRecordGet shape value' prop) <$> rename value
   JavaTypedRecordUpdate shape value updates -> JavaTypedRecordUpdate shape <$> rename value <*> renameFields updates
   JavaArray items -> JavaArray <$> traverse rename items
-  JavaWhileTrue args intParams body -> do
+  JavaWhileTrue loopId args intParams body -> do
+    loopId' <- lookupCurrent loopId
     args' <- traverse lookupCurrent args
     intParams' <- traverse lookupCurrent intParams
-    JavaWhileTrue args' intParams' <$> rename body
-  JavaMemoizedLoop args intParams invariants body -> do
+    JavaWhileTrue loopId' args' intParams' <$> rename body
+  JavaMemoizedLoop loopId args intParams invariants body -> do
+    loopId' <- lookupCurrent loopId
     args' <- traverse lookupCurrent args
     intParams' <- traverse lookupCurrent intParams
     outerEnv <- gets _.env
@@ -95,7 +97,7 @@ rename expression = case expression of
     values <- traverse (\(Tuple (Tuple _ value) name) -> Tuple name <$> rename value) (Array.zip invariants renamedNames)
     body' <- rename body
     modify_ \state -> state { env = outerEnv }
-    pure (JavaMemoizedLoop args' intParams' values body')
+    pure (JavaMemoizedLoop loopId' args' intParams' values body')
   JavaLoopInvariant name -> JavaLoopInvariant <$> lookupCurrent name
   JavaContinue ctx args -> JavaContinue <$> lookupCurrent ctx <*> traverse rename args
   JavaMapGet value prop -> (\value' -> JavaMapGet value' prop) <$> rename value

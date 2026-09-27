@@ -1909,7 +1909,7 @@ var workerDeclarations = function (context) {
             })();
             var allParams = Data_Semigroup.append(Data_Semigroup.semigroupArray)(captureParams)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(params)([ new Data_Tuple.Tuple("donor", Javapurs_JavaAst.ParamObject.value) ]));
             if (loops) {
-                return Control_Applicative.pure(Data_Maybe.applicativeMaybe)([ new Javapurs_JavaAst.JavaStaticMethod(fn.javaName, allParams, new Javapurs_JavaAst.JavaWhileTrue(loopArgs, intParams, new Javapurs_JavaAst.JavaBlock(initialize, termExpr(term)))) ]);
+                return Control_Applicative.pure(Data_Maybe.applicativeMaybe)([ new Javapurs_JavaAst.JavaStaticMethod(fn.javaName, allParams, new Javapurs_JavaAst.JavaWhileTrue(fn.javaName, loopArgs, intParams, new Javapurs_JavaAst.JavaBlock(initialize, termExpr(term)))) ]);
             };
             return Control_Applicative.pure(Data_Maybe.applicativeMaybe)(compileTerm(fn.javaName)(allParams)(term));
         });

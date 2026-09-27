@@ -30,8 +30,11 @@ data JavaExpr
   | JavaTypedRecordGet JavaRecordShape JavaExpr String
   | JavaTypedRecordUpdate JavaRecordShape JavaExpr (Array (Tuple String JavaExpr))
   | JavaArray (Array JavaExpr)
-  | JavaWhileTrue (Array String) (Array String) JavaExpr
-  | JavaMemoizedLoop (Array String) (Array String) (Array (Tuple String JavaExpr)) JavaExpr
+  -- The loop identity is the name a `JavaContinue` targets. Nested loops may
+  -- jump to an enclosing loop, so each loop must be able to recognize the
+  -- continues that belong to it.
+  | JavaWhileTrue String (Array String) (Array String) JavaExpr
+  | JavaMemoizedLoop String (Array String) (Array String) (Array (Tuple String JavaExpr)) JavaExpr
   | JavaLoopInvariant String
   | JavaContinue String (Array JavaExpr)
   | JavaMapGet JavaExpr String
@@ -82,8 +85,8 @@ children = case _ of
   JavaTypedRecordGet _ value _ -> [ value ]
   JavaTypedRecordUpdate _ value updates -> cons value (fieldValues updates)
   JavaArray items -> items
-  JavaWhileTrue _ _ body -> [ body ]
-  JavaMemoizedLoop _ _ invariants body -> snoc (map snd invariants) body
+  JavaWhileTrue _ _ _ body -> [ body ]
+  JavaMemoizedLoop _ _ _ invariants body -> snoc (map snd invariants) body
   JavaLoopInvariant _ -> []
   JavaContinue _ args -> args
   JavaMapGet value _ -> [ value ]

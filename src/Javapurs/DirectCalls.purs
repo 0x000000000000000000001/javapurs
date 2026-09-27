@@ -162,8 +162,8 @@ children visit expression = case expression of
   JavaTypedRecordGet shape value label -> (\value' -> JavaTypedRecordGet shape value' label) <$> visit value
   JavaTypedRecordUpdate shape value fields -> JavaTypedRecordUpdate shape <$> visit value <*> fieldsOf fields
   JavaArray values -> JavaArray <$> traverse visit values
-  JavaWhileTrue args intParams body -> JavaWhileTrue args intParams <$> visit body
-  JavaMemoizedLoop args intParams invariants body -> JavaMemoizedLoop args intParams <$> fieldsOf invariants <*> visit body
+  JavaWhileTrue loopId args intParams body -> JavaWhileTrue loopId args intParams <$> visit body
+  JavaMemoizedLoop loopId args intParams invariants body -> JavaMemoizedLoop loopId args intParams <$> fieldsOf invariants <*> visit body
   JavaContinue name args -> JavaContinue name <$> traverse visit args
   JavaMapGet value label -> (\value' -> JavaMapGet value' label) <$> visit value
   JavaMapUpdate value fields -> JavaMapUpdate <$> visit value <*> fieldsOf fields

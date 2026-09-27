@@ -62,8 +62,8 @@ var renameRaw = function (env) {
                 return isIdentifierChar(left) && isIdentifierChar(right);
             };
         };
-        return Data_String_Common.joinWith("")(Data_Functor.map(Data_Functor.functorArray)(function ($219) {
-            return renamePart(Data_Array_NonEmpty.toArray($219));
+        return Data_String_Common.joinWith("")(Data_Functor.map(Data_Functor.functorArray)(function ($221) {
+            return renamePart(Data_Array_NonEmpty.toArray($221));
         })(Data_Array.groupBy(sameKind)(Data_String_CodeUnits.toCharArray(code))));
     };
 };
@@ -217,50 +217,54 @@ var rename = function (expression) {
         return Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaArray.create)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(rename)(expression.value0));
     };
     if (expression instanceof Javapurs_JavaAst.JavaWhileTrue) {
-        return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(lookupCurrent)(expression.value0))(function (args$prime) {
-            return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(lookupCurrent)(expression.value1))(function (intParams$prime) {
-                return Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaWhileTrue.create(args$prime)(intParams$prime))(rename(expression.value2));
+        return Control_Bind.bind(bindStateT)(lookupCurrent(expression.value0))(function (loopId$prime) {
+            return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(lookupCurrent)(expression.value1))(function (args$prime) {
+                return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(lookupCurrent)(expression.value2))(function (intParams$prime) {
+                    return Data_Functor.map(functorStateT)(Javapurs_JavaAst.JavaWhileTrue.create(loopId$prime)(args$prime)(intParams$prime))(rename(expression.value3));
+                });
             });
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaMemoizedLoop) {
-        return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(lookupCurrent)(expression.value0))(function (args$prime) {
-            return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(lookupCurrent)(expression.value1))(function (intParams$prime) {
-                return Control_Bind.bind(bindStateT)(Control_Monad_State_Class.gets(monadStateStateT2)(function (v) {
-                    return v.env;
-                }))(function (outerEnv) {
-                    return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(function (v) {
-                        return localName(v.value0);
-                    })(expression.value2))(function (renamedNames) {
-                        return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT2)(function (state) {
-                            var $112 = {};
-                            for (var $113 in state) {
-                                if ({}.hasOwnProperty.call(state, $113)) {
-                                    $112[$113] = state[$113];
+        return Control_Bind.bind(bindStateT)(lookupCurrent(expression.value0))(function (loopId$prime) {
+            return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(lookupCurrent)(expression.value1))(function (args$prime) {
+                return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(lookupCurrent)(expression.value2))(function (intParams$prime) {
+                    return Control_Bind.bind(bindStateT)(Control_Monad_State_Class.gets(monadStateStateT2)(function (v) {
+                        return v.env;
+                    }))(function (outerEnv) {
+                        return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(function (v) {
+                            return localName(v.value0);
+                        })(expression.value3))(function (renamedNames) {
+                            return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT2)(function (state) {
+                                var $113 = {};
+                                for (var $114 in state) {
+                                    if ({}.hasOwnProperty.call(state, $114)) {
+                                        $113[$114] = state[$114];
+                                    };
                                 };
-                            };
-                            $112.env = Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Array.zipWith(function (entry) {
-                                return function (name) {
-                                    return new Data_Tuple.Tuple(Data_Tuple.fst(entry), name);
-                                };
-                            })(expression.value2)(renamedNames))(outerEnv);
-                            return $112;
-                        }))(function () {
-                            return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(function (v) {
-                                return Data_Functor.map(functorStateT)(Data_Tuple.Tuple.create(v.value1))(rename(v.value0.value1));
-                            })(Data_Array.zip(expression.value2)(renamedNames)))(function (values) {
-                                return Control_Bind.bind(bindStateT)(rename(expression.value3))(function (body$prime) {
-                                    return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT2)(function (state) {
-                                        var $120 = {};
-                                        for (var $121 in state) {
-                                            if ({}.hasOwnProperty.call(state, $121)) {
-                                                $120[$121] = state[$121];
+                                $113.env = Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Array.zipWith(function (entry) {
+                                    return function (name) {
+                                        return new Data_Tuple.Tuple(Data_Tuple.fst(entry), name);
+                                    };
+                                })(expression.value3)(renamedNames))(outerEnv);
+                                return $113;
+                            }))(function () {
+                                return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(function (v) {
+                                    return Data_Functor.map(functorStateT)(Data_Tuple.Tuple.create(v.value1))(rename(v.value0.value1));
+                                })(Data_Array.zip(expression.value3)(renamedNames)))(function (values) {
+                                    return Control_Bind.bind(bindStateT)(rename(expression.value4))(function (body$prime) {
+                                        return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT2)(function (state) {
+                                            var $121 = {};
+                                            for (var $122 in state) {
+                                                if ({}.hasOwnProperty.call(state, $122)) {
+                                                    $121[$122] = state[$122];
+                                                };
                                             };
-                                        };
-                                        $120.env = outerEnv;
-                                        return $120;
-                                    }))(function () {
-                                        return Control_Applicative.pure(applicativeStateT)(new Javapurs_JavaAst.JavaMemoizedLoop(args$prime, intParams$prime, values, body$prime));
+                                            $121.env = outerEnv;
+                                            return $121;
+                                        }))(function () {
+                                            return Control_Applicative.pure(applicativeStateT)(new Javapurs_JavaAst.JavaMemoizedLoop(loopId$prime, args$prime, intParams$prime, values, body$prime));
+                                        });
                                     });
                                 });
                             });
@@ -312,32 +316,32 @@ var rename = function (expression) {
                 return localName(v.value0);
             })(expression.value0))(function (renamedNames) {
                 return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT2)(function (state) {
-                    var $150 = {};
-                    for (var $151 in state) {
-                        if ({}.hasOwnProperty.call(state, $151)) {
-                            $150[$151] = state[$151];
+                    var $152 = {};
+                    for (var $153 in state) {
+                        if ({}.hasOwnProperty.call(state, $153)) {
+                            $152[$153] = state[$153];
                         };
                     };
-                    $150.env = Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Array.zipWith(function (v1) {
+                    $152.env = Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Array.zipWith(function (v1) {
                         return function (newName) {
                             return new Data_Tuple.Tuple(v1.value0, newName);
                         };
                     })(expression.value0)(renamedNames))(outerEnv);
-                    return $150;
+                    return $152;
                 }))(function () {
                     return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(function (v) {
                         return Data_Functor.map(functorStateT)(Data_Tuple.Tuple.create(v.value1))(rename(v.value0.value1));
                     })(Data_Array.zip(expression.value0)(renamedNames)))(function (renamedBinds) {
                         return Control_Bind.bind(bindStateT)(rename(expression.value1))(function (body$prime) {
                             return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT2)(function (state) {
-                                var $158 = {};
-                                for (var $159 in state) {
-                                    if ({}.hasOwnProperty.call(state, $159)) {
-                                        $158[$159] = state[$159];
+                                var $160 = {};
+                                for (var $161 in state) {
+                                    if ({}.hasOwnProperty.call(state, $161)) {
+                                        $160[$161] = state[$161];
                                     };
                                 };
-                                $158.env = outerEnv;
-                                return $158;
+                                $160.env = outerEnv;
+                                return $160;
                             }))(function () {
                                 return Control_Applicative.pure(applicativeStateT)(new Javapurs_JavaAst.JavaLetRec(renamedBinds, body$prime));
                             });
@@ -384,14 +388,14 @@ var rename = function (expression) {
     if (expression instanceof Javapurs_JavaAst.JavaLocalAssign) {
         return Control_Bind.bind(bindStateT)(localName(expression.value0))(function (renamed) {
             return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT2)(function (state) {
-                var $185 = {};
-                for (var $186 in state) {
-                    if ({}.hasOwnProperty.call(state, $186)) {
-                        $185[$186] = state[$186];
+                var $187 = {};
+                for (var $188 in state) {
+                    if ({}.hasOwnProperty.call(state, $188)) {
+                        $187[$188] = state[$188];
                     };
                 };
-                $185.env = Data_Array.cons(new Data_Tuple.Tuple(expression.value0, renamed))(state.env);
-                return $185;
+                $187.env = Data_Array.cons(new Data_Tuple.Tuple(expression.value0, renamed))(state.env);
+                return $187;
             }))(function () {
                 return Control_Bind.bind(bindStateT)(rename(expression.value1))(function (value$prime) {
                     return Control_Applicative.pure(applicativeStateT)(new Javapurs_JavaAst.JavaLocalAssign(renamed, value$prime));
@@ -402,14 +406,14 @@ var rename = function (expression) {
     if (expression instanceof Javapurs_JavaAst.JavaIntLocalAssign) {
         return Control_Bind.bind(bindStateT)(localName(expression.value0))(function (renamed) {
             return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT2)(function (state) {
-                var $190 = {};
-                for (var $191 in state) {
-                    if ({}.hasOwnProperty.call(state, $191)) {
-                        $190[$191] = state[$191];
+                var $192 = {};
+                for (var $193 in state) {
+                    if ({}.hasOwnProperty.call(state, $193)) {
+                        $192[$193] = state[$193];
                     };
                 };
-                $190.env = Data_Array.cons(new Data_Tuple.Tuple(expression.value0, renamed))(state.env);
-                return $190;
+                $192.env = Data_Array.cons(new Data_Tuple.Tuple(expression.value0, renamed))(state.env);
+                return $192;
             }))(function () {
                 return Control_Bind.bind(bindStateT)(rename(expression.value1))(function (value$prime) {
                     return Control_Applicative.pure(applicativeStateT)(new Javapurs_JavaAst.JavaIntLocalAssign(renamed, value$prime));
@@ -424,14 +428,14 @@ var rename = function (expression) {
             return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(rename)(expression.value0))(function (stmts$prime) {
                 return Control_Bind.bind(bindStateT)(rename(expression.value1))(function (body$prime) {
                     return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT3)(function (state) {
-                        var $195 = {};
-                        for (var $196 in state) {
-                            if ({}.hasOwnProperty.call(state, $196)) {
-                                $195[$196] = state[$196];
+                        var $197 = {};
+                        for (var $198 in state) {
+                            if ({}.hasOwnProperty.call(state, $198)) {
+                                $197[$198] = state[$198];
                             };
                         };
-                        $195.env = outerEnv;
-                        return $195;
+                        $197.env = outerEnv;
+                        return $197;
                     }))(function () {
                         return Control_Applicative.pure(applicativeStateT)(new Javapurs_JavaAst.JavaBlock(stmts$prime, body$prime));
                     });
@@ -454,25 +458,25 @@ var rename = function (expression) {
             }))(function (outerEnv) {
                 return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(rename)(expression.value1))(function (thenStmts$prime) {
                     return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT3)(function (state) {
-                        var $207 = {};
-                        for (var $208 in state) {
-                            if ({}.hasOwnProperty.call(state, $208)) {
-                                $207[$208] = state[$208];
+                        var $209 = {};
+                        for (var $210 in state) {
+                            if ({}.hasOwnProperty.call(state, $210)) {
+                                $209[$210] = state[$210];
                             };
                         };
-                        $207.env = outerEnv;
-                        return $207;
+                        $209.env = outerEnv;
+                        return $209;
                     }))(function () {
                         return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(rename)(expression.value2))(function (elseStmts$prime) {
                             return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT3)(function (state) {
-                                var $210 = {};
-                                for (var $211 in state) {
-                                    if ({}.hasOwnProperty.call(state, $211)) {
-                                        $210[$211] = state[$211];
+                                var $212 = {};
+                                for (var $213 in state) {
+                                    if ({}.hasOwnProperty.call(state, $213)) {
+                                        $212[$213] = state[$213];
                                     };
                                 };
-                                $210.env = outerEnv;
-                                return $210;
+                                $212.env = outerEnv;
+                                return $212;
                             }))(function () {
                                 return Control_Applicative.pure(applicativeStateT)(new Javapurs_JavaAst.JavaIf(condition$prime, thenStmts$prime, elseStmts$prime));
                             });
@@ -482,7 +486,7 @@ var rename = function (expression) {
             });
         });
     };
-    throw new Error("Failed pattern match at Javapurs.Rename (line 57, column 21 - line 158, column 51): " + [ expression.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Rename (line 57, column 21 - line 160, column 51): " + [ expression.constructor.name ]);
 };
 var renameWith = function (env) {
     return function (expression) {

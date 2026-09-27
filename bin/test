@@ -154,9 +154,17 @@ for test_file in "${TEST_FILES[@]}"; do
   if [ -d "${test_file%.purs}" ]; then
     cp -R "${test_file%.purs}"/. src/
   fi
-  # Java FFI next to the test, when a port defines one.
+  # Java FFI: a sibling file wins, then the backend-local port.
   if [ -f "${test_file%.purs}.java" ]; then
     cp "${test_file%.purs}.java" "src/Main.java"
+  elif [ -f "$ROOT_DIR/tests/ffi/$test_base.java" ]; then
+    cp "$ROOT_DIR/tests/ffi/$test_base.java" "src/Main.java"
+  fi
+  # PureScript requires the JavaScript implementation of every foreign import;
+  # the Java file above is what the backend compiles. The JavaScript file is
+  # only present to satisfy the compiler.
+  if [ -f "${test_file%.purs}.js" ]; then
+    cp "${test_file%.purs}.js" "src/Main.js"
   fi
 
   if ! spago build -q > "$log_file" 2>&1; then

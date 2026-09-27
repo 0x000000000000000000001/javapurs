@@ -129,9 +129,9 @@ mapExpr rewrite = go
     JavaTypedRecordUpdate shape value updates ->
       JavaTypedRecordUpdate shape (go value) (map (\(Tuple key item) -> Tuple key (go item)) updates)
     JavaArray items -> JavaArray (map go items)
-    JavaWhileTrue args intParams body -> JavaWhileTrue args intParams (go body)
-    JavaMemoizedLoop args intParams invariants body ->
-      JavaMemoizedLoop args intParams (map (\(Tuple name value) -> Tuple name (go value)) invariants) (go body)
+    JavaWhileTrue loopId args intParams body -> JavaWhileTrue loopId args intParams (go body)
+    JavaMemoizedLoop loopId args intParams invariants body ->
+      JavaMemoizedLoop loopId args intParams (map (\(Tuple name value) -> Tuple name (go value)) invariants) (go body)
     JavaLoopInvariant name -> JavaLoopInvariant name
     JavaContinue name args -> JavaContinue name (map go args)
     JavaMapGet value prop -> JavaMapGet (go value) prop

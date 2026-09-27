@@ -879,7 +879,7 @@ workerDeclarations context fn = do
     allParams = captureParams <> params <> [ Tuple donorArg ParamObject ]
     initialize = if loops then [ JavaLocalAssign donorName (JavaLocal ("__final_" <> donorArg)) ] else []
   if loops then
-    pure [ JavaStaticMethod fn.javaName allParams (JavaWhileTrue loopArgs intParams (JavaBlock initialize (termExpr term))) ]
+    pure [ JavaStaticMethod fn.javaName allParams (JavaWhileTrue fn.javaName loopArgs intParams (JavaBlock initialize (termExpr term))) ]
   else
     pure (compileTerm fn.javaName allParams term)
 

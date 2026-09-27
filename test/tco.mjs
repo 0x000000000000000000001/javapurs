@@ -20,11 +20,11 @@ const call = (name, args) => new A.JavaCall(raw(name), args);
 const next = (name, args) => new A.JavaContinue(name, args);
 const choose = (condition, yes, no) => new A.JavaTernary(condition, yes, no);
 
-const swap = new A.JavaWhileTrue(["swapN", "swapLeft", "swapRight"], [],
+const swap = new A.JavaWhileTrue("swap", ["swapN", "swapLeft", "swapRight"], [],
   choose(isZero("swapN"), raw(`${integer("swapLeft")} * 10 + ${integer("swapRight")}`),
     next("swap", [decrement("swapN"), local(snapshot("swapRight")), local(snapshot("swapLeft"))])));
 
-const ordered = new A.JavaWhileTrue(["orderN", "orderLeft", "orderRight"], [],
+const ordered = new A.JavaWhileTrue("ordered", ["orderN", "orderLeft", "orderRight"], [],
   choose(isZero("orderN"), raw(`${integer("orderLeft")} * 10 + ${integer("orderRight")}`),
     next("ordered", [
       call("note", [raw('"count"'), decrement("orderN")]),
@@ -32,21 +32,21 @@ const ordered = new A.JavaWhileTrue(["orderN", "orderLeft", "orderRight"], [],
       call("note", [raw('"right"'), local(snapshot("orderLeft"))]),
     ])));
 
-const captures = new A.JavaWhileTrue(["captureN", "captureThunk"], [],
+const captures = new A.JavaWhileTrue("captures", ["captureN", "captureThunk"], [],
   choose(isZero("captureN"), local(snapshot("captureThunk")),
     next("captures", [decrement("captureN"), new A.JavaAbs([], raw(
       `((Integer) ((java.util.function.Supplier<Object>) ${snapshot("captureThunk")}).get()) + ${integer("captureN")}`,
     ))])));
 
-const inner = new A.JavaAbs(["innerN"], new A.JavaWhileTrue(["innerN"], [],
+const inner = new A.JavaAbs(["innerN"], new A.JavaWhileTrue("inner", ["innerN"], [],
   choose(isZero("innerN"), raw(`${integer("outerAcc")} + 1`),
     next("inner", [decrement("innerN")]))));
-const nested = new A.JavaWhileTrue(["outerN", "outerAcc"], [],
+const nested = new A.JavaWhileTrue("outer", ["outerN", "outerAcc"], [],
   choose(isZero("outerN"), local(snapshot("outerAcc")), new A.JavaBlock([
     new A.JavaLocalAssign("innerFunction", inner),
   ], next("outer", [decrement("outerN"), new A.JavaApply(local("innerFunction"), raw("2"))]))));
 
-const branches = new A.JavaWhileTrue(["branchN", "branchAcc"], [],
+const branches = new A.JavaWhileTrue("branches", ["branchN", "branchAcc"], [],
   choose(isZero("branchN"), local(snapshot("branchAcc")),
     new A.JavaLet("branchEven", raw(`${integer("branchN")} % 2 == 0`),
       choose(local("branchEven"),
@@ -55,13 +55,13 @@ const branches = new A.JavaWhileTrue(["branchN", "branchAcc"], [],
         new A.JavaLet("oddIncrement", raw("3"),
           next("branches", [decrement("branchN"), raw(`${integer("branchAcc")} + ((Integer) oddIncrement)`)]))))));
 
-const letRec = new A.JavaWhileTrue(["recN", "recAcc"], [],
+const letRec = new A.JavaWhileTrue("letRec", ["recN", "recAcc"], [],
   choose(isZero("recN"), local(snapshot("recAcc")),
     new A.JavaLetRec([
       new Tuple("recIncrement", new A.JavaAbs(["recValue"], raw("((Integer) recValue) + 1"))),
     ], next("letRec", [decrement("recN"), new A.JavaApply(local("recIncrement"), local(snapshot("recAcc")))]))));
 
-const nestedLetRec = new A.JavaWhileTrue(["nestedRecN", "nestedRecAcc"], [],
+const nestedLetRec = new A.JavaWhileTrue("nestedLetRec", ["nestedRecN", "nestedRecAcc"], [],
   choose(isZero("nestedRecN"), local(snapshot("nestedRecAcc")),
     new A.JavaLetRec([
       new Tuple("nestedRecF", new A.JavaAbs(["nestedRecX"], raw("((Integer) nestedRecX) + 1"))),
@@ -73,7 +73,7 @@ const nestedLetRec = new A.JavaWhileTrue(["nestedRecN", "nestedRecAcc"], [],
       decrement("nestedRecN"), new A.JavaApply(local("nestedRecG"), local(snapshot("nestedRecAcc"))),
     ]))))));
 
-const argumentFailure = new A.JavaWhileTrue(["failureN", "failureLeft", "failureRight"], [],
+const argumentFailure = new A.JavaWhileTrue("argumentFailure", ["failureN", "failureLeft", "failureRight"], [],
   next("argumentFailure", [
     call("note", [raw('"first"'), decrement("failureN")]),
     call("failArgument", []),
@@ -82,7 +82,7 @@ const argumentFailure = new A.JavaWhileTrue(["failureN", "failureLeft", "failure
 
 // EffectBind can put a continuation inside an expression-level Supplier.get().
 // It must still reach the enclosing loop's exception fallback.
-const fallback = new A.JavaWhileTrue(["fallbackN", "fallbackAcc"], [],
+const fallback = new A.JavaWhileTrue("fallback", ["fallbackN", "fallbackAcc"], [],
   choose(isZero("fallbackN"), local(snapshot("fallbackAcc")),
     new A.JavaCall(new A.JavaPropertyAccess(
       next("fallback", [decrement("fallbackN"), raw(`${integer("fallbackAcc")} + 1`)]),
@@ -91,27 +91,27 @@ const fallback = new A.JavaWhileTrue(["fallbackN", "fallbackAcc"], [],
 
 const primitive = name => `((int) (${snapshot(name)}))`;
 const intSwapArgs = ["intSwapN", "intSwapLeft", "intSwapRight"];
-const intSwap = new A.JavaWhileTrue(intSwapArgs, intSwapArgs,
+const intSwap = new A.JavaWhileTrue("intSwap", intSwapArgs, intSwapArgs,
   choose(raw(`${primitive("intSwapN")} == 0`),
     new A.JavaArray([local(snapshot("intSwapLeft")), local(snapshot("intSwapRight"))]),
     next("intSwap", [raw(`${primitive("intSwapN")} - 1`),
       local(snapshot("intSwapRight")), local(snapshot("intSwapLeft"))])));
 
 const mixedCaptureArgs = ["mixedN", "mixedThunk"];
-const mixedCapture = new A.JavaWhileTrue(mixedCaptureArgs, ["mixedN"],
+const mixedCapture = new A.JavaWhileTrue("mixedCapture", mixedCaptureArgs, ["mixedN"],
   choose(raw(`${primitive("mixedN")} == 0`), local(snapshot("mixedThunk")),
     next("mixedCapture", [raw(`${primitive("mixedN")} - 1`), new A.JavaAbs([], raw(
       `((int) (((java.util.function.Supplier<Object>) ${snapshot("mixedThunk")}).get())) + ${primitive("mixedN")}`,
     ))])));
 
 const intOverflowArgs = ["overflowN", "overflowAcc", "overflowDelta"];
-const intOverflow = new A.JavaWhileTrue(intOverflowArgs, intOverflowArgs,
+const intOverflow = new A.JavaWhileTrue("intOverflow", intOverflowArgs, intOverflowArgs,
   choose(raw(`${primitive("overflowN")} == 0`), local(snapshot("overflowAcc")),
     next("intOverflow", [raw(`${primitive("overflowN")} - 1`),
       raw(`${primitive("overflowAcc")} + ${primitive("overflowDelta")}`), local(snapshot("overflowDelta"))])));
 
 const intFallbackArgs = ["intFallbackN", "intFallbackAcc"];
-const intFallback = new A.JavaWhileTrue(intFallbackArgs, intFallbackArgs,
+const intFallback = new A.JavaWhileTrue("intFallback", intFallbackArgs, intFallbackArgs,
   choose(raw(`${primitive("intFallbackN")} == 0`), local(snapshot("intFallbackAcc")),
     new A.JavaCall(new A.JavaPropertyAccess(
       next("intFallback", [raw(`${primitive("intFallbackN")} - 1`), raw(`${primitive("intFallbackAcc")} + 1`)]),
@@ -119,7 +119,7 @@ const intFallback = new A.JavaWhileTrue(intFallbackArgs, intFallbackArgs,
     ), [])));
 
 const nonTailArgs = ["nonTailBase", "nonTailN"];
-const nonTail = new A.JavaWhileTrue(nonTailArgs, [],
+const nonTail = new A.JavaWhileTrue("nonTail", nonTailArgs, [],
   choose(isZero("nonTailN"), local(snapshot("nonTailBase")), new A.JavaBinaryOp("+",
     new A.JavaCast("int", new A.JavaApply(
       new A.JavaApply(raw("TcoPrinterRegression.nonTailFunction"), local(snapshot("nonTailBase"))),
@@ -127,11 +127,30 @@ const nonTail = new A.JavaWhileTrue(nonTailArgs, [],
     )), raw("1"))));
 const nonTailFunction = printExpr(new A.JavaAbs(nonTailArgs, nonTail));
 
-const deferredLoop = new A.JavaAbs([], new A.JavaWhileTrue(["deferredN"], ["deferredN"],
+const deferredLoop = new A.JavaAbs([], new A.JavaWhileTrue("deferredLoop", ["deferredN"], ["deferredN"],
   choose(raw(`${primitive("deferredN")} == 0`), raw("42"), new A.JavaBlock([
     new A.JavaLocalAssign("deferredTick", call("tickDeferred", [])),
   ], next("deferredLoop", [raw(`${primitive("deferredN")} - 1`)])))));
 const deferredExpression = printExpr(deferredLoop);
+
+// A self-recursive local loop that also tail-calls its enclosing loop. The
+// outer jump must travel through the exception fallback, and only the target
+// loop may consume it.
+const outerJoin = new A.JavaWhileTrue("outerJoin", ["joinOuterN", "joinOuterAcc"], [],
+  choose(isZero("joinOuterN"), local(snapshot("joinOuterAcc")),
+    new A.JavaLetRec([
+      new Tuple("joinInner", new A.JavaAbs(["joinInnerN"], new A.JavaWhileTrue("joinInner", ["joinInnerN"], [],
+        choose(isZero("joinInnerN"),
+          next("outerJoin", [decrement("joinOuterN"), raw(`${integer("joinOuterAcc")} + 1`)]),
+          next("joinInner", [decrement("joinInnerN")]))))),
+    ], new A.JavaApply(local("joinInner"), raw("3")))));
+const outerJoinExpression = printExpr(outerJoin);
+assert.match(outerJoinExpression, /catch \(TcoLoop __tco_ex\) \{ if \(!"outerJoin"\.equals\(__tco_ex\.loopId\)\) throw __tco_ex;/,
+  "the enclosing loop must claim only its own ids");
+assert.match(outerJoinExpression, /catch \(TcoLoop __tco_ex\) \{ if \(!"joinInner"\.equals\(__tco_ex\.loopId\)\) throw __tco_ex;/,
+  "the nested loop must rethrow jumps aimed at its enclosing loop");
+assert.match(outerJoinExpression, /throw new TcoLoop\("outerJoin",/,
+  "a jump to an enclosing loop uses the exception fallback");
 
 const expressions = {
   swap, ordered, captures, nested, branches, letRec, nestedLetRec, argumentFailure, fallback,
@@ -178,13 +197,13 @@ assert.match(deferredExpression, /^\(new java\.util\.function\.Supplier<Object>/
 
 // A loop body without a statement-carrying branch must retain its expression form.
 const ordinaryExpression = choose(raw("true"), local("preservedArg"), raw("0"));
-assert.ok(printExpr(new A.JavaWhileTrue(["preservedArg"], [], ordinaryExpression))
+assert.ok(printExpr(new A.JavaWhileTrue("preservedLoop", ["preservedArg"], [], ordinaryExpression))
   .includes(`return ${printExpr(ordinaryExpression)};`),
 "ordinary expressions must not be expanded into terminal statements");
 // A branch that carries statements becomes a real block instead of a Supplier.
 const statementExpression = choose(raw("true"),
   new A.JavaLet("preservedValue", raw("1"), local("preservedValue")), raw("0"));
-const printedStatement = printExpr(new A.JavaWhileTrue(["preservedArg"], [], statementExpression));
+const printedStatement = printExpr(new A.JavaWhileTrue("statementLoop", ["preservedArg"], [], statementExpression));
 assert.ok(printedStatement.includes("Object preservedValue = 1; return preservedValue;"),
   "statement branches must keep their block form");
 assert.ok(!printedStatement.includes("Supplier<Object>() { public Object get() { Object preservedValue"),
@@ -236,6 +255,11 @@ public class TcoPrinterRegression {
     private static Object deferredLoop() {
         Object deferredN = 3;
         return ${deferredExpression};
+    }
+
+    private static Object outerJoin() {
+        Object joinOuterN = 100000, joinOuterAcc = 0;
+        return ${outerJoinExpression};
     }
 
     private static Object swap() {
@@ -345,7 +369,8 @@ public class TcoPrinterRegression {
         expect("deferred loop first effects", deferredTicks, 3);
         expect("deferred loop second result", ((java.util.function.Supplier<Object>) deferred).get(), 42);
         expect("deferred loop executes on each force", deferredTicks, 6);
-        System.out.println("TCO printer: 15 behavioral cases passed");
+        expect("nested loop join", outerJoin(), 100000);
+        System.out.println("TCO printer: 16 behavioral cases passed");
     }
 }
 

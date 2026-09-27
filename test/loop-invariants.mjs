@@ -33,7 +33,7 @@ const call = (name, args = []) => new A.JavaCall(raw(name), args);
 const choose = (condition, yes, no) => new A.JavaTernary(condition, yes, no);
 const next = (name, values) => new A.JavaContinue(name, values);
 const invariant = name => new A.JavaLoopInvariant(name);
-const memo = (params, values, body) => new A.JavaMemoizedLoop(params, params,
+const memo = (id, params, values, body) => new A.JavaMemoizedLoop(id, params, params,
   values.map(({ name, value }) => new Tuple(name, value)), body);
 const functionOf = (params, expression) => printExpr(renameExpr(new A.JavaAbs(params, expression)));
 const note = (label, value) => call("note", [new A.JavaString(label), value]);
@@ -206,14 +206,14 @@ if (projectFlag >= 0) {
   console.log("Optimized LazyEvaluation: one pure closed Int invariant, tail loop and disabled baseline preserved");
 }
 
-definitions.basic = functionOf(["n", "acc"], memo(["n", "acc"], [
+definitions.basic = functionOf(["n", "acc"], memo("basic", ["n", "acc"], [
   { name: "constant", value: note("value", raw("7")) },
 ], choose(zero("n"), snapshot("acc"), next("basic", [
   decrement("n"), binary("+", snapshot("acc"), invariant("constant")),
 ]))));
 
 definitions.ordered = functionOf(["orderN", "orderAcc", "orderScratch"],
-  memo(["orderN", "orderAcc", "orderScratch"], [
+  memo("ordered", ["orderN", "orderAcc", "orderScratch"], [
     { name: "orderedValue", value: note("value", raw("7")) },
   ], choose(zero("orderN"), snapshot("orderAcc"), next("ordered", [
     note("counter", decrement("orderN")),
@@ -221,7 +221,7 @@ definitions.ordered = functionOf(["orderN", "orderAcc", "orderScratch"],
     note("after", raw("0")),
   ]))));
 
-definitions.guarded = functionOf(["guardN", "guardAcc"], memo(["guardN", "guardAcc"], [
+definitions.guarded = functionOf(["guardN", "guardAcc"], memo("guarded", ["guardN", "guardAcc"], [
   { name: "guardedValue", value: note("guarded-value", raw("7")) },
 ], choose(zero("guardN"), snapshot("guardAcc"), next("guarded", [
   decrement("guardN"), binary("+", snapshot("guardAcc"), choose(
@@ -229,20 +229,20 @@ definitions.guarded = functionOf(["guardN", "guardAcc"], memo(["guardN", "guardA
   )),
 ]))));
 
-definitions.twoValues = functionOf(["twoN", "twoAcc"], memo(["twoN", "twoAcc"], [
+definitions.twoValues = functionOf(["twoN", "twoAcc"], memo("twoValues", ["twoN", "twoAcc"], [
   { name: "leftValue", value: note("left", raw("5")) },
   { name: "rightValue", value: note("right", raw("7")) },
 ], choose(zero("twoN"), snapshot("twoAcc"), next("twoValues", [
   decrement("twoN"), binary("+", snapshot("twoAcc"), binary("+", invariant("rightValue"), invariant("leftValue"))),
 ]))));
 
-definitions.negative = functionOf(["negativeN", "negativeAcc"], memo(["negativeN", "negativeAcc"], [
+definitions.negative = functionOf(["negativeN", "negativeAcc"], memo("negative", ["negativeN", "negativeAcc"], [
   { name: "negativeValue", value: note("negative", raw("3")) },
 ], choose(zero("negativeN"), snapshot("negativeAcc"), next("negative", [
   binary("+", snapshot("negativeN"), raw("1")), binary("+", snapshot("negativeAcc"), invariant("negativeValue")),
 ]))));
 
-definitions.counterOverflow = functionOf(["overflowN", "overflowAcc"], memo(["overflowN", "overflowAcc"], [
+definitions.counterOverflow = functionOf(["overflowN", "overflowAcc"], memo("counterOverflow", ["overflowN", "overflowAcc"], [
   { name: "overflowValue", value: note("overflow", raw("7")) },
 ], choose(binary("==", snapshot("overflowN"), raw("Integer.MIN_VALUE")), snapshot("overflowAcc"), next("counterOverflow", [
   binary("+", snapshot("overflowN"), raw("1")), binary("+", snapshot("overflowAcc"), invariant("overflowValue")),
@@ -251,14 +251,14 @@ definitions.counterOverflow = functionOf(["overflowN", "overflowAcc"], memo(["ov
 // The observed calls are deliberately Java helpers here. These printer tests
 // exercise cache behavior independently of the classifier, which must reject
 // unknown FFI calls as optimization candidates.
-definitions.retry = functionOf(["retryN", "retryAcc"], memo(["retryN", "retryAcc"], [
+definitions.retry = functionOf(["retryN", "retryAcc"], memo("retry", ["retryN", "retryAcc"], [
   { name: "retryValue", value: call("failOnce") },
 ], choose(zero("retryN"), snapshot("retryAcc"), next("retry", [
   decrement("retryN"), binary("+", snapshot("retryAcc"),
     call("recover", [new A.JavaAbs([], invariant("retryValue"))])),
 ]))));
 
-definitions.failure = functionOf(["failureN", "failureAcc"], memo(["failureN", "failureAcc"], [
+definitions.failure = functionOf(["failureN", "failureAcc"], memo("failure", ["failureN", "failureAcc"], [
   { name: "failureValue", value: call("alwaysFail") },
 ], choose(zero("failureN"), snapshot("failureAcc"), next("failure", [
   note("before-failure", decrement("failureN")),
@@ -266,18 +266,18 @@ definitions.failure = functionOf(["failureN", "failureAcc"], memo(["failureN", "
 ]))));
 
 definitions.captured = functionOf(["seed", "captureN", "captureAcc"],
-  memo(["captureN", "captureAcc"], [
+  memo("captured", ["captureN", "captureAcc"], [
     { name: "capturedValue", value: note("captured", local("seed")) },
   ], choose(zero("captureN"), snapshot("captureAcc"), next("captured", [
     decrement("captureN"), binary("+", snapshot("captureAcc"), invariant("capturedValue")),
   ]))));
 
-const inner = new A.JavaAbs(["innerN", "innerAcc"], memo(["innerN", "innerAcc"], [
+const inner = new A.JavaAbs(["innerN", "innerAcc"], memo("inner", ["innerN", "innerAcc"], [
   { name: "constant", value: note("inner", raw("2")) },
 ], choose(zero("innerN"), snapshot("innerAcc"), next("inner", [
   decrement("innerN"), binary("+", snapshot("innerAcc"), invariant("constant")),
 ]))));
-definitions.nested = functionOf(["outerN", "outerAcc"], memo(["outerN", "outerAcc"], [
+definitions.nested = functionOf(["outerN", "outerAcc"], memo("nested", ["outerN", "outerAcc"], [
   { name: "constant", value: note("outer", raw("1")) },
 ], choose(zero("outerN"), snapshot("outerAcc"), new A.JavaBlock([
   new A.JavaLocalAssign("innerFunction", inner),

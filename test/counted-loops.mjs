@@ -91,7 +91,7 @@ const bits = loopBody([decrement("n"), binary("|",
 const reversed = loopBody(linearUpdates, snapshot("acc"), binary("==", raw(0), cast(snapshot("n"))));
 const effects = loopBody([decrement("n"), cast(new A.JavaCall(raw("tick"), [snapshot("acc")]))]);
 const negativeTerminating = loopBody(linearUpdates, snapshot("acc"), binary("==", cast(snapshot("n")), raw(-2)));
-const functionFor = (body, names = params) => printExpr(new A.JavaAbs(names, new A.JavaWhileTrue(names, names, body)));
+const functionFor = (body, names = params) => printExpr(new A.JavaAbs(names, new A.JavaWhileTrue("testLoop", names, names, body)));
 const functions = {
   linear: functionFor(linear), sum: functionFor(sum), swap: functionFor(swap, swapParams),
   overflow: functionFor(overflow, overflowParams), bits: functionFor(bits), reversed: functionFor(reversed),

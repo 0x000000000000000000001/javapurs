@@ -228,32 +228,38 @@ var JavaArray = /* #__PURE__ */ (function () {
     return JavaArray;
 })();
 var JavaWhileTrue = /* #__PURE__ */ (function () {
-    function JavaWhileTrue(value0, value1, value2) {
+    function JavaWhileTrue(value0, value1, value2, value3) {
         this.value0 = value0;
         this.value1 = value1;
         this.value2 = value2;
+        this.value3 = value3;
     };
     JavaWhileTrue.create = function (value0) {
         return function (value1) {
             return function (value2) {
-                return new JavaWhileTrue(value0, value1, value2);
+                return function (value3) {
+                    return new JavaWhileTrue(value0, value1, value2, value3);
+                };
             };
         };
     };
     return JavaWhileTrue;
 })();
 var JavaMemoizedLoop = /* #__PURE__ */ (function () {
-    function JavaMemoizedLoop(value0, value1, value2, value3) {
+    function JavaMemoizedLoop(value0, value1, value2, value3, value4) {
         this.value0 = value0;
         this.value1 = value1;
         this.value2 = value2;
         this.value3 = value3;
+        this.value4 = value4;
     };
     JavaMemoizedLoop.create = function (value0) {
         return function (value1) {
             return function (value2) {
                 return function (value3) {
-                    return new JavaMemoizedLoop(value0, value1, value2, value3);
+                    return function (value4) {
+                        return new JavaMemoizedLoop(value0, value1, value2, value3, value4);
+                    };
                 };
             };
         };
@@ -761,10 +767,10 @@ var children = /* #__PURE__ */ (function () {
             return v.value0;
         };
         if (v instanceof JavaWhileTrue) {
-            return [ v.value2 ];
+            return [ v.value3 ];
         };
         if (v instanceof JavaMemoizedLoop) {
-            return Data_Array.snoc(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(v.value2))(v.value3);
+            return Data_Array.snoc(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(v.value3))(v.value4);
         };
         if (v instanceof JavaLoopInvariant) {
             return [  ];
@@ -847,7 +853,7 @@ var children = /* #__PURE__ */ (function () {
         if (v instanceof JavaIf) {
             return Data_Array.cons(v.value0)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(v.value1)(v.value2));
         };
-        throw new Error("Failed pattern match at Javapurs.JavaAst (line 68, column 12 - line 113, column 86): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.JavaAst (line 71, column 12 - line 116, column 86): " + [ v.constructor.name ]);
     };
 })();
 export {

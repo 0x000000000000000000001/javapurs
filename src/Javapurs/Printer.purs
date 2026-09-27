@@ -93,15 +93,15 @@ printExpr = case _ of
     "( ((Boolean) (" <> printExpr cond <> ")) ? " <> printExpr a <> " : " <> printExpr b <> ")"
   JavaThrow msg ->
     "(new java.util.function.Supplier<Object>() { public Object get() { throw new RuntimeException(\"" <> msg <> "\"); } }).get()"
-  JavaWhileTrue args intParams expr ->
+  JavaWhileTrue loopId args intParams expr ->
     "(new java.util.function.Supplier<Object>() { public Object get() " <>
-      printLoopBody args intParams expr <> " }).get()"
-  JavaMemoizedLoop args intParams invariants expr ->
+      printLoopBody loopId args intParams expr <> " }).get()"
+  JavaMemoizedLoop loopId args intParams invariants expr ->
     "(new java.util.function.Supplier<Object>() { public Object get() " <>
-      printMemoizedLoopBody args intParams invariants expr <> " }).get()"
+      printMemoizedLoopBody loopId args intParams invariants expr <> " }).get()"
   JavaLoopInvariant name -> name <> ".getAsInt()"
   JavaContinue loopId argsExprs ->
-    "(new java.util.function.Supplier<Object>() { public Object get() { throw new TcoLoop(\"" <> loopId <> "\", new Object[]{" <> String.joinWith ", " (map printExpr argsExprs) <> "}); } }).get()"
+    "(new java.util.function.Supplier<Object>() { public Object get() { " <> printTcoThrow loopId argsExprs <> " } }).get()"
   JavaRecord fields ->
     let
       puts = map (\(Tuple k v) -> "__map.put(\"" <> escapeJavaString k <> "\", " <> printExpr v <> "); ") fields
@@ -256,25 +256,28 @@ assignField ty arg = case ty of
 
 -- A loop directly inside a function can use the lambda's block body. Keep the
 -- Supplier wrapper when the loop is needed as an expression elsewhere.
-printLoopBody :: Array String -> Array String -> JavaExpr -> String
-printLoopBody args intParams = printMemoizedLoopBody args intParams []
+printLoopBody :: String -> Array String -> Array String -> JavaExpr -> String
+printLoopBody loopId args intParams = printMemoizedLoopBody loopId args intParams []
 
 -- Allocate each cache per fully applied invocation. Its computation stays at
 -- the original expression site, preserving guards, evaluation order and throws.
-printMemoizedLoopBody :: Array String -> Array String -> Array (Tuple String JavaExpr) -> JavaExpr -> String
-printMemoizedLoopBody args intParams invariants expr =
+printMemoizedLoopBody :: String -> Array String -> Array String -> Array (Tuple String JavaExpr) -> JavaExpr -> String
+printMemoizedLoopBody loopId args intParams invariants expr =
   "{ " <>
     String.joinWith "" (map (\arg -> loopParamType intParams arg <> " __tco_" <> arg <> " = " <> printLoopValue intParams arg (JavaLocal arg) <> "; ") args) <>
     String.joinWith "" (map printInvariant invariants) <>
     (case countedLoop args intParams expr of
-      Just loop -> printCountedLoop args intParams loop
-      Nothing -> ""
+      Just loop | loopTargetsSelf loopId loop -> printCountedLoop loopId args intParams loop
+      _ -> ""
     ) <>
     "while(true) { " <>
       printLoopSnapshots args intParams <>
       "try { " <>
-        printLoopTail args intParams expr <>
+        printLoopTail loopId args intParams expr <>
       "} catch (TcoLoop __tco_ex) { " <>
+        -- A jump aimed at an enclosing loop passes through this loop's catch;
+        -- only the target may update its storage and iterate again.
+        "if (!\"" <> loopId <> "\".equals(__tco_ex.loopId)) throw __tco_ex; " <>
         String.joinWith "" (Array.mapWithIndex (\i arg -> "__tco_" <> arg <> " = " <> printLoopValue intParams arg (JavaRaw ("__tco_ex.args[" <> show i <> "]")) <> "; ") args) <>
       "} " <>
     "} " <>
@@ -291,15 +294,22 @@ printLoopSnapshots :: Array String -> Array String -> String
 printLoopSnapshots args intParams =
   String.joinWith "" (map (\arg -> "final " <> loopParamType intParams arg <> " __final_" <> arg <> " = __tco_" <> arg <> "; ") args)
 
-printCountedLoop :: Array String -> Array String -> CountedLoop -> String
-printCountedLoop args intParams loop =
+-- Only a step that continues this loop belongs to the counted form; a step
+-- aimed at an enclosing loop keeps the original loop below.
+loopTargetsSelf :: String -> CountedLoop -> Boolean
+loopTargetsSelf loopId loop = case loop.step of
+  JavaContinue target _ -> target == loopId
+  _ -> false
+
+printCountedLoop :: String -> Array String -> Array String -> CountedLoop -> String
+printCountedLoop loopId args intParams loop =
   -- A negative countdown reaches zero only after Int wraparound. Preserve that
   -- behavior in the original loop below; the counted path never overflows its
   -- index, even when the captured limit is Int.MAX_VALUE.
   "if (__tco_" <> loop.counter <> " >= 0) { " <>
     "for (int __counted$index = 0, __counted$limit = __tco_" <> loop.counter <> "; __counted$index < __counted$limit; __counted$index++) { " <>
       printLoopSnapshots args intParams <>
-      printLoopTail args intParams loop.step <>
+      printLoopTail loopId args intParams loop.step <>
     "} " <>
     printLoopSnapshots args intParams <>
     "return " <> printExpr loop.result <> "; " <>
@@ -308,34 +318,43 @@ printCountedLoop args intParams loop =
 -- Tail branches are statements in the loop's method, so they can continue it
 -- directly. Expression forms that introduce a method boundary retain the
 -- exception fallback; in particular, do not move a continue through a closure.
-printLoopTail :: Array String -> Array String -> JavaExpr -> String
-printLoopTail params intParams expr
+-- A continue aimed at an enclosing loop also uses the fallback: the loop that
+-- prints this tail must not turn it into its own iteration.
+printLoopTail :: String -> Array String -> Array String -> JavaExpr -> String
+printLoopTail loopId params intParams expr
   | not (hasDirectContinue expr) && not (branchNeedsStatements expr) = "return " <> printExpr expr <> "; "
   | otherwise = case expr of
-  JavaContinue _ values ->
-    "{ " <>
-      String.joinWith "" (map (\(Tuple param value) ->
-        "final " <> loopParamType intParams param <> " __next_" <> param <> " = " <> printLoopValue intParams param value <> "; "
-      ) (Array.zip params values)) <>
-      String.joinWith "" (map (\param ->
-        "__tco_" <> param <> " = __next_" <> param <> "; "
-      ) params) <>
-      "continue; } "
+  JavaContinue target values
+    | target == loopId && Array.length params == Array.length values ->
+        "{ " <>
+          String.joinWith "" (map (\(Tuple param value) ->
+            "final " <> loopParamType intParams param <> " __next_" <> param <> " = " <> printLoopValue intParams param value <> "; "
+          ) (Array.zip params values)) <>
+          String.joinWith "" (map (\param ->
+            "__tco_" <> param <> " = __next_" <> param <> "; "
+          ) params) <>
+          "continue; } "
+    | otherwise -> printTcoThrow target values
   JavaTernary cond yes no ->
     "if ((Boolean) (" <> printExpr cond <> ")) { " <>
-      printLoopTail params intParams yes <>
+      printLoopTail loopId params intParams yes <>
     "} else { " <>
-      printLoopTail params intParams no <>
+      printLoopTail loopId params intParams no <>
     "} "
   JavaBlock stmts body ->
     "{ " <> String.joinWith " " (map printExpr stmts) <> " " <>
-      printLoopTail params intParams body <> "} "
+      printLoopTail loopId params intParams body <> "} "
   JavaLet name value body ->
     "{ Object " <> name <> " = " <> printExpr value <> "; " <>
-      printLoopTail params intParams body <> "} "
+      printLoopTail loopId params intParams body <> "} "
   JavaLetRec binds body ->
-    "{ " <> printLetRecBindings binds <> printLoopTail params intParams body <> "} "
+    "{ " <> printLetRecBindings binds <> printLoopTail loopId params intParams body <> "} "
   other -> "return " <> printExpr other <> "; "
+
+-- Expression-level fallback for a jump that cannot be a direct `continue`.
+printTcoThrow :: String -> Array JavaExpr -> String
+printTcoThrow loopId argsExprs =
+  "throw new TcoLoop(\"" <> loopId <> "\", new Object[]{" <> String.joinWith ", " (map printExpr argsExprs) <> "}); "
 
 loopParamType :: Array String -> String -> String
 loopParamType intParams name = if Array.elem name intParams then "int" else "Object"
@@ -395,8 +414,8 @@ hasAnyContinue = case _ of
   JavaAbs _ _ -> false
   JavaIntAbs _ _ -> false
   JavaTypedAbs _ _ -> false
-  JavaWhileTrue _ _ _ -> false
-  JavaMemoizedLoop _ _ _ _ -> false
+  JavaWhileTrue _ _ _ _ -> false
+  JavaMemoizedLoop _ _ _ _ _ -> false
   JavaStaticMethod _ _ _ -> false
   JavaClassDecl _ _ _ -> false
   _ -> false
@@ -425,8 +444,8 @@ bodyNeedsTail = case _ of
 -- branch-heavy expression uses real statements so its blocks stay blocks.
 methodBody :: JavaExpr -> String
 methodBody body = case body of
-  JavaWhileTrue params intParams expr -> printLoopBody params intParams expr
-  JavaMemoizedLoop params intParams invariants expr -> printMemoizedLoopBody params intParams invariants expr
+  JavaWhileTrue loopId params intParams expr -> printLoopBody loopId params intParams expr
+  JavaMemoizedLoop loopId params intParams invariants expr -> printMemoizedLoopBody loopId params intParams invariants expr
   _ | bodyNeedsTail body -> "{ " <> printTailStatements body <> " }"
   JavaBlock stmts expr -> "{ " <> String.joinWith " " (map printExpr stmts) <> " return " <> printExpr expr <> "; }"
   _ -> "{ return " <> printExpr body <> "; }"

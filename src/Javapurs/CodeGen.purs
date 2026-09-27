@@ -33,7 +33,7 @@ import PureScript.Backend.Optimizer.Convert (BackendModule)
 import PureScript.Backend.Optimizer.CoreFn (Ident(..), Prop(..), Qualified(..), ModuleName(..), Literal(..))
 import Data.String as String
 
-type LoopCtx = { ident :: String, params :: Array String, canContinue :: Boolean }
+type LoopCtx = { ident :: String, params :: Array String, canContinue :: Boolean, ref :: Tco.TcoRef }
 
 -- A closure captures the current iteration's values, but cannot continue its caller's loop.
 captureLoopCtx :: Array LoopCtx -> Array LoopCtx
@@ -112,8 +112,8 @@ boxedFunctionArity env expression = case unwrapTcoExpr expression of
           Nothing -> 0
   _ -> 0
 
-translateLoop :: CodegenEnv -> Array LoopCtx -> String -> Array String -> TcoExpr -> JavaExpr
-translateLoop env parentCtx name args body =
+translateLoop :: CodegenEnv -> Array LoopCtx -> Tco.TcoRef -> Array Tco.TcoRef -> String -> Array String -> TcoExpr -> JavaExpr
+translateLoop env parentCtx ref joins name args body =
   let
     scope = env.invariantScope <> "$" <> name
     plan = if env.loopInvariants then prepareLoop env.sourceModule env.bindings scope body
@@ -122,17 +122,33 @@ translateLoop env parentCtx name args body =
       { invariantLocals = map (\item -> Tuple item.local item.name) plan.invariants <> env.invariantLocals
       , invariantScope = scope
       }
-    ctx = { ident: name, params: args, canContinue: true }
-    expression = wrapInBlock (translateExpr loopEnv (Array.cons ctx (captureLoopCtx parentCtx)) true plan.body)
+    ctx = { ident: name, params: args, canContinue: true, ref }
+    -- A group may continue the loops it is proven to tail-call (`joins`), and
+    -- only while that context is still live: a context captured behind a lambda
+    -- stays uncallable, because the closure could run outside the loop.
+    keepJoins = map (\parent ->
+      if parent.canContinue && Array.elem parent.ref joins then parent
+      else parent { canContinue = false }) parentCtx
+    expression = wrapInBlock (translateExpr loopEnv (Array.cons ctx keepJoins) true plan.body)
     intParams = if hasDirectContinue expression then intLoopParams args body else []
     values = map (\item -> Tuple item.name (wrapInBlock (translateExpr env (captureLoopCtx parentCtx) false item.value))) plan.invariants
     -- A recursive definition with no back edge runs at most once. Emitting its
     -- body directly keeps the original parameter names and primitive types
-    -- instead of boxing every argument into loop storage.
+    -- instead of boxing every argument into loop storage. A nested join can
+    -- still name this loop from inside a closure, and that jump needs the loop
+    -- to exist even when no direct continue appears at this tail.
+    hasJump = hasTargetContinue name expression
     directExpr = wrapInBlock (translateExpr loopEnv (captureLoopCtx parentCtx) false plan.body)
-  in if Array.null values && not (hasAnyContinue expression) then directExpr
-     else if Array.null values then JavaWhileTrue args intParams expression
-     else JavaMemoizedLoop args intParams values expression
+  in if Array.null values && not (hasAnyContinue expression) && not hasJump then directExpr
+     else if Array.null values then JavaWhileTrue name args intParams expression
+     else JavaMemoizedLoop name args intParams values expression
+
+-- Whether any continue names the given loop, including jumps written inside a
+-- nested loop or closure body.
+hasTargetContinue :: String -> JavaExpr -> Boolean
+hasTargetContinue target expression = case expression of
+  JavaContinue loopId _ -> loopId == target
+  expr -> any (hasTargetContinue target) (children expr)
 
 translateExpr :: CodegenEnv -> Array LoopCtx -> Boolean -> TcoExpr -> TransRes
 translateExpr env loopCtx isTail tcoExpr =
@@ -257,10 +273,11 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
           Just (Tuple (Ident name) val) ->
             let
               javaName = localId (Just (Ident name)) lvl
+              ref = Tco.TcoLocal (Just (Ident name)) lvl
             in case extractUncurriedAbs val of
               Just abs ->
                 let
-                  funcBody = translateLoop env loopCtx javaName abs.args abs.body
+                  funcBody = translateLoop env loopCtx ref tcoInfo.role.joins javaName abs.args abs.body
                   loopValue = JavaAbs abs.args funcBody
                   resBody = translateExprWith inEffectBlock env loopCtx isTail body
                 in
@@ -608,7 +625,8 @@ translateWithIntFunctions options@{ typedRecords, loopInvariants, intFunctions }
                     Just abs ->
                       let
                         javaName = sanitizeName n
-                        funcBody = translateLoop env [] javaName abs.args abs.body
+                        ref = Tco.TcoTopLevel (Qualified (Just env.sourceModule) (Ident n))
+                        funcBody = translateLoop env [] ref [] javaName abs.args abs.body
                       in
                         JavaLazyAssign javaName (JavaTypedAbs (Array.zip abs.args (paramKinds expr abs.args)) funcBody)
                     Nothing ->
