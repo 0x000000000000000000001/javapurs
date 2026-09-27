@@ -730,6 +730,9 @@
       "strings": {
         "path": "../../../javapurs-strings"
       },
+      "unfoldable": {
+        "path": "../../../javapurs-unfoldable"
+      },
       "unsafe-coerce": {
         "path": "../../../javapurs-unsafe-coerce"
       }
@@ -1191,9 +1194,8 @@
       ]
     },
     "unfoldable": {
-      "type": "registry",
-      "version": "6.0.0",
-      "integrity": "sha256-BK/6By1sKp/ztk+9CF3q43SV0QDTLVdsGqFerKHSmbg=",
+      "type": "local",
+      "path": "../../../javapurs-unfoldable",
       "dependencies": [
         "foldable-traversable",
         "maybe",
