@@ -213,9 +213,15 @@ printExpr = case _ of
       String.joinWith " " (map printExpr elseStmts) <>
     "} "
   JavaAssign name expr ->
-    -- A plain field: MainRun unwraps an Effect (Supplier) or an AlmostEff
-    -- (Function) main, so the field must not force a Supplier type here.
-    "public static final Object " <> name <> " = " <> printExpr expr <> ";"
+    -- The initializer lives in its own method: a module with many bindings
+    -- would otherwise blow the JVM 64K limit on the class initializer. MainRun
+    -- unwraps an Effect (Supplier) or an AlmostEff (Function) main, so the
+    -- field must not force a Supplier type here.
+    let
+      initName = "__init$" <> name
+    in
+      "public static final Object " <> name <> " = " <> initName <> "();\n" <>
+      "    private static Object " <> initName <> "() { return " <> printExpr expr <> "; }"
   JavaStaticMethod name args body ->
     let
       -- Object parameters keep the JVM signature stable; proven Int parameters
