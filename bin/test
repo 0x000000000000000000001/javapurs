@@ -137,6 +137,10 @@ FAILED_TESTS=()
 for test_file in "${TEST_FILES[@]}"; do
   test_name=$(basename "$test_file")
   test_base=$(basename "$test_file" .purs)
+  # A javapurs-specific override wins over the fork's copy (see tests/passing).
+  if [ -f "$LOCAL_PASSING_DIR/$test_name" ]; then
+    test_file="$LOCAL_PASSING_DIR/$test_name"
+  fi
   log_file="logs-$test_base.txt"
 
   if is_blacklisted "$test_name"; then
