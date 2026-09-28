@@ -1,0 +1,105 @@
+/**
+ * FFI Support JS (FfiSupport.js)
+ * Utilitaires JavaScript nécessaires pour relier et lier le code externe (Foreign Function Interface) au code PureScript. S'occupe notamment de résoudre les imports externes ou de vérifier la présence des fichiers cibles (ex: foreign import ...).
+ */
+
+// Ours
+import fs from 'fs';
+import path from 'path';
+
+export const hashString = (str) => {
+    let hash = 5381;
+    let i = str.length;
+    while(i) {
+        hash = (hash * 33) ^ str.charCodeAt(--i);
+    }
+    return (hash >>> 0).toString();
+};
+
+let cachedScanDirs = null;
+
+function getScanDirs(mbFfiDir, extraSpagoDirs) {
+    if (cachedScanDirs !== null) return cachedScanDirs;
+    
+    const rootDir = process.cwd();
+    const scanDirs = [];
+    
+    const spagoDirs = [
+        path.join(rootDir, '.spago'),
+        path.join(rootDir, 'spago.d')
+    ];
+    for (const d of extraSpagoDirs) {
+        spagoDirs.push(path.join(rootDir, d));
+    }
+    
+    for (const spagoDir of spagoDirs) {
+        if (fs.existsSync(spagoDir) && fs.statSync(spagoDir).isDirectory()) {
+            const packages = fs.readdirSync(spagoDir);
+            for (const pkg of packages) {
+                const pkgDir = path.join(spagoDir, pkg);
+                if (fs.statSync(pkgDir).isDirectory()) {
+                    let hasVersion = false;
+                    const subdirs = fs.readdirSync(pkgDir);
+                    for (const subdir of subdirs) {
+                        const versionDir = path.join(pkgDir, subdir);
+                        if (subdir.startsWith('v') && fs.statSync(versionDir).isDirectory()) {
+                            scanDirs.push(versionDir);
+                            hasVersion = true;
+                        }
+                    }
+                    if (!hasVersion) {
+                        scanDirs.push(pkgDir);
+                    }
+                }
+            }
+        }
+    }
+    
+    if (mbFfiDir) {
+        scanDirs.push(path.join(rootDir, mbFfiDir));
+    }
+    
+    // Always search local dir
+    scanDirs.push(rootDir);
+    
+    cachedScanDirs = scanDirs;
+    return scanDirs;
+}
+
+export const findFfiFileImpl = function(extension) {
+    return function(extraSpagoDirs) {
+        return function(mbFfiDir) {
+            return function(modNameStr) {
+                return function(mbModulePath) {
+                    return function() {
+                        if (mbModulePath) {
+                            const ffiPath = mbModulePath.replace(/\.purs$/, extension);
+                            if (fs.existsSync(ffiPath)) {
+
+                                return ffiPath;
+                            }
+                        }
+                        
+                        const scanDirs = getScanDirs(mbFfiDir, extraSpagoDirs);
+                        
+                        for (const dir of scanDirs) {
+                            const searchPaths = [
+                                path.join(dir, 'src', ...modNameStr.split('.')) + extension,
+                                path.join(dir, 'src', modNameStr + extension),
+                                path.join(dir, modNameStr + extension)
+                            ];
+                            for (const p of searchPaths) {
+                                if (fs.existsSync(p)) {
+
+                                    return p;
+                                }
+                            }
+                        }
+
+                        return null;
+                    };
+                };
+            };
+        };
+    };
+};
