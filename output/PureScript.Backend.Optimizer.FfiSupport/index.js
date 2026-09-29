@@ -16,7 +16,9 @@ var findFfiFile = function (extension) {
     };
 };
 export {
-    hashString
+    hashString,
+    compareStringImpl,
+    compareIntImpl
 } from "./foreign.js";
 export {
     findFfiFile

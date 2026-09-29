@@ -43,6 +43,7 @@ import * as PureScript_Backend_Optimizer_Cache from "../PureScript.Backend.Optim
 import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
 import * as PureScript_Backend_Optimizer_CoreFn_Usage from "../PureScript.Backend.Optimizer.CoreFn.Usage/index.js";
 import * as PureScript_Backend_Optimizer_Directives from "../PureScript.Backend.Optimizer.Directives/index.js";
+import * as PureScript_Backend_Optimizer_NativeMaps from "../PureScript.Backend.Optimizer.NativeMaps/index.js";
 import * as PureScript_Backend_Optimizer_Semantics from "../PureScript.Backend.Optimizer.Semantics/index.js";
 import * as PureScript_Backend_Optimizer_Substitute from "../PureScript.Backend.Optimizer.Substitute/index.js";
 import * as PureScript_Backend_Optimizer_Syntax from "../PureScript.Backend.Optimizer.Syntax/index.js";
@@ -70,8 +71,7 @@ var monoidSemigroupMap = /* #__PURE__ */ Data_Map.monoidSemigroupMap(PureScript_
 var foldl = /* #__PURE__ */ Data_Foldable.foldl(Data_Foldable.foldableArray);
 var semigroupSet = /* #__PURE__ */ Data_Set.semigroupSet(Data_Ord.ordString);
 var eqMaybe = /* #__PURE__ */ Data_Maybe.eqMaybe(Data_Eq.eqString);
-var insert = /* #__PURE__ */ Data_Map_Internal.insert(PureScript_Backend_Optimizer_CoreFn.ordIdent);
-var fromFoldable = /* #__PURE__ */ Data_Map_Internal.fromFoldable(PureScript_Backend_Optimizer_Semantics.ordInlineAccessor)(Data_Foldable.foldableArray);
+var compare = /* #__PURE__ */ Data_Ord.compare(PureScript_Backend_Optimizer_Semantics.ordEvalRef);
 var monoidRecord = /* #__PURE__ */ Data_Monoid.monoidRecord();
 var monoidRecord1 = /* #__PURE__ */ monoidRecord(/* #__PURE__ */ Data_Monoid.monoidRecordCons({
     reflectSymbol: function () {
@@ -94,8 +94,8 @@ var toUnfoldable = /* #__PURE__ */ Data_Map_Internal.toUnfoldable(Data_Unfoldabl
 var coerce = /* #__PURE__ */ Safe_Coerce.coerce();
 var conj = /* #__PURE__ */ Data_HeytingAlgebra.conj(Data_HeytingAlgebra.heytingAlgebraBoolean);
 var pure1 = /* #__PURE__ */ Control_Applicative.pure(Control_Applicative.applicativeArray);
-var fromFoldable1 = /* #__PURE__ */ Data_Map_Internal.fromFoldable(PureScript_Backend_Optimizer_CoreFn.ordIdent)(Data_Array_NonEmpty_Internal.foldableNonEmptyArray);
-var fromFoldable2 = /* #__PURE__ */ Data_Map_Internal.fromFoldable(PureScript_Backend_Optimizer_CoreFn.ordProperName)(Data_Foldable.foldableArray);
+var fromFoldable = /* #__PURE__ */ Data_Map_Internal.fromFoldable(PureScript_Backend_Optimizer_CoreFn.ordIdent)(Data_Array_NonEmpty_Internal.foldableNonEmptyArray);
+var fromFoldable1 = /* #__PURE__ */ Data_Map_Internal.fromFoldable(PureScript_Backend_Optimizer_CoreFn.ordProperName)(Data_Foldable.foldableArray);
 var ordQualified2 = /* #__PURE__ */ PureScript_Backend_Optimizer_CoreFn.ordQualified(PureScript_Backend_Optimizer_CoreFn.ordIdent);
 var semigroupSet1 = /* #__PURE__ */ Data_Set.semigroupSet(ordQualified2);
 var monoidSet = /* #__PURE__ */ Data_Set.monoidSet(ordQualified2);
@@ -197,6 +197,29 @@ var PatBoolean = /* #__PURE__ */ (function () {
 var Pattern = function (x) {
     return x;
 };
+var ExternFound = /* #__PURE__ */ (function () {
+    function ExternFound(value0) {
+        this.value0 = value0;
+    };
+    ExternFound.create = function (value0) {
+        return new ExternFound(value0);
+    };
+    return ExternFound;
+})();
+var ExternMissing = /* #__PURE__ */ (function () {
+    function ExternMissing() {
+
+    };
+    ExternMissing.value = new ExternMissing();
+    return ExternMissing;
+})();
+var ExternPending = /* #__PURE__ */ (function () {
+    function ExternPending() {
+
+    };
+    ExternPending.value = new ExternPending();
+    return ExternPending;
+})();
 var UnconditionalFn = /* #__PURE__ */ (function () {
     function UnconditionalFn(value0) {
         this.value0 = value0;
@@ -396,7 +419,7 @@ var unwrapExternSpine = function (v) {
     if (v instanceof PureScript_Backend_Optimizer_Semantics.ExternPrimOp) {
         return new PureScript_Backend_Optimizer_Semantics.ExternPrimOp(v.value0);
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 476, column 21 - line 481, column 37): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 538, column 21 - line 543, column 37): " + [ v.constructor.name ]);
 };
 var topEnv = function (v) {
     return {
@@ -465,16 +488,16 @@ var toExternImpl = function (env) {
                         var meta = Data_Function.apply(Data_Maybe.fromMaybe({
                             constructors: Data_Map_Internal.empty,
                             size: 0
-                        }))(Data_Map_Internal.lookup(PureScript_Backend_Optimizer_CoreFn.ordProperName)(v.value1.value1)(env.dataTypes));
+                        }))(PureScript_Backend_Optimizer_NativeMaps.lookupStringImpl(PureScript_Backend_Optimizer_NativeMaps.stringCompare)(v.value1.value1)(env.dataTypes));
                         return new Data_Tuple.Tuple(new Data_Tuple.Tuple(PureScript_Backend_Optimizer_Analysis.analysisOf(PureScript_Backend_Optimizer_Semantics.hasAnalysisBackendExpr)(expr), new PureScript_Backend_Optimizer_Semantics.ExternCtor(meta, v.value1.value0, v.value1.value1, v.value1.value2, v.value1.value3)), v3.value1);
                     };
                     var v3 = PureScript_Backend_Optimizer_Semantics.freeze(expr);
                     return new Data_Tuple.Tuple(new Data_Tuple.Tuple(v3.value0, new PureScript_Backend_Optimizer_Semantics.ExternExpr(group, v3.value1)), v3.value1);
                 };
                 if (isDict) {
-                    var $401 = getLitRecord(v);
-                    if ($401 instanceof Data_Maybe.Just) {
-                        var propsWithAnalysis = Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(PureScript_Backend_Optimizer_CoreFn.functorProp)(PureScript_Backend_Optimizer_Semantics.freeze))($401.value0);
+                    var $408 = getLitRecord(v);
+                    if ($408 instanceof Data_Maybe.Just) {
+                        var propsWithAnalysis = Data_Functor.map(Data_Functor.functorArray)(Data_Functor.map(PureScript_Backend_Optimizer_CoreFn.functorProp)(PureScript_Backend_Optimizer_Semantics.freeze))($408.value0);
                         var v2 = PureScript_Backend_Optimizer_Semantics.freeze(expr);
                         return new Data_Tuple.Tuple(new Data_Tuple.Tuple(PureScript_Backend_Optimizer_Analysis.analysisOf(PureScript_Backend_Optimizer_Semantics.hasAnalysisBackendExpr)(expr), new PureScript_Backend_Optimizer_Semantics.ExternDict(group, propsWithAnalysis)), v2.value1);
                     };
@@ -487,9 +510,9 @@ var toExternImpl = function (env) {
 };
 var toCaseRowVars = function (v) {
     return Data_Foldable.foldMap(Data_Set.foldableSet)(monoidSemigroupMap)((function () {
-        var $964 = Data_Function.flip(Data_Map_Internal.singleton)(v.column);
-        return function ($965) {
-            return Data_Map.SemigroupMap($964($965));
+        var $1004 = Data_Function.flip(Data_Map_Internal.singleton)(v.column);
+        return function ($1005) {
+            return Data_Map.SemigroupMap($1004($1005));
         };
     })())(v.pattern.vars);
 };
@@ -572,7 +595,7 @@ var normalizeCaseRows = /* #__PURE__ */ (function () {
                         $copy_columnsAcc = Data_Array.snoc(columnsAcc)(nextColumnFields.value0);
                         return;
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 884, column 7 - line 886, column 63): " + [ nextColumnFields.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 959, column 7 - line 961, column 63): " + [ nextColumnFields.constructor.name ]);
                 };
                 while (!$tco_done) {
                     $tco_result = $tco_loop($tco_var_columnIdx, $copy_columnsAcc);
@@ -633,42 +656,60 @@ var memberSubstitution = function (classDecls) {
         };
     };
 };
+var maxInlineDictionaryMemberSize = 64;
 var lookupPurmetaImplementation = function (moduleName) {
     return function (ident) {
         var v = Effect_Unsafe.unsafePerformEffect(PureScript_Backend_Optimizer_Cache.readPurmetaSync(moduleName));
         if (v instanceof Data_Maybe.Just) {
-            return Data_Map_Internal.lookup(ordQualified1)(new PureScript_Backend_Optimizer_CoreFn.Qualified(new Data_Maybe.Just(moduleName), ident))(v.value0);
+            var v1 = PureScript_Backend_Optimizer_NativeMaps.lookupQualifiedIdentImpl(PureScript_Backend_Optimizer_NativeMaps.qualifiedIdentCompare)(new PureScript_Backend_Optimizer_CoreFn.Qualified(new Data_Maybe.Just(moduleName), ident))(v.value0);
+            if (v1 instanceof Data_Maybe.Just) {
+                return new ExternFound(v1.value0);
+            };
+            if (v1 instanceof Data_Maybe.Nothing) {
+                return ExternMissing.value;
+            };
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 584, column 7 - line 586, column 33): " + [ v1.constructor.name ]);
         };
         if (v instanceof Data_Maybe.Nothing) {
-            return Data_Maybe.Nothing.value;
+            return ExternMissing.value;
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 515, column 3 - line 517, column 23): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 582, column 3 - line 587, column 29): " + [ v.constructor.name ]);
     };
 };
 var lookupImplementation = function (conv) {
     return function (v) {
-        var v1 = Data_Map_Internal.lookup(ordQualified1)(v)(conv.implementations);
+        var v1 = PureScript_Backend_Optimizer_NativeMaps.lookupQualifiedIdentImpl(PureScript_Backend_Optimizer_NativeMaps.qualifiedIdentCompare)(v)(conv.implementations);
         if (v1 instanceof Data_Maybe.Just) {
             return new Data_Maybe.Just(v1.value0);
         };
         if (v1 instanceof Data_Maybe.Nothing) {
             if (v.value0 instanceof Data_Maybe.Just) {
-                return conv.lookupPurmeta(Data_Newtype.unwrap()(v.value0.value0))(Data_Newtype.unwrap()(v.value1));
+                var v2 = conv.lookupPurmeta(Data_Newtype.unwrap()(v.value0.value0))(Data_Newtype.unwrap()(v.value1));
+                if (v2 instanceof ExternFound) {
+                    return new Data_Maybe.Just(v2.value0);
+                };
+                if (v2 instanceof ExternMissing) {
+                    return Data_Maybe.Nothing.value;
+                };
+                if (v2 instanceof ExternPending) {
+                    return Data_Maybe.Nothing.value;
+                };
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 572, column 18 - line 577, column 33): " + [ v2.constructor.name ]);
             };
             if (v.value0 instanceof Data_Maybe.Nothing) {
                 return Data_Maybe.Nothing.value;
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 509, column 16 - line 511, column 25): " + [ v.value0.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 571, column 16 - line 578, column 25): " + [ v.value0.constructor.name ]);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 507, column 3 - line 511, column 25): " + [ v1.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 569, column 3 - line 578, column 25): " + [ v1.constructor.name ]);
     };
 };
 var makeExternEvalRef = function (group) {
     return function (conv) {
         return function (env) {
             return function (qual) {
-                var $458 = Data_Array.elem(eqQualified1)(qual)(group);
-                if ($458) {
+                var $469 = Data_Array.elem(eqQualified1)(qual)(group);
+                if ($469) {
                     return Data_Maybe.Nothing.value;
                 };
                 return Data_Functor.map(Data_Maybe.functorMaybe)(PureScript_Backend_Optimizer_Semantics.evalExternRefFromImpl(env)(qual))(lookupImplementation(conv)(qual));
@@ -687,12 +728,12 @@ var makeExternEvalSpine = function (group) {
                         };
                         return true;
                     };
-                    var $461 = Data_Array.elem(eqQualified1)(qual)(group);
-                    if ($461) {
+                    var $472 = Data_Array.elem(eqQualified1)(qual)(group);
+                    if ($472) {
                         return Data_Maybe.Nothing.value;
                     };
                     var spine$prime = Data_Functor.map(Data_Functor.functorArray)(unwrapExternSpine)(spine);
-                    var result = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(ordQualified1)(qual)(conv.foreignSemantics))(function (fn) {
+                    var result = Control_Bind.bind(Data_Maybe.bindMaybe)(PureScript_Backend_Optimizer_NativeMaps.lookupQualifiedIdentImpl(PureScript_Backend_Optimizer_NativeMaps.qualifiedIdentCompare)(qual)(conv.foreignSemantics))(function (fn) {
                         return fn(env)(qual)(Data_Array.filter(isRuntimeSpine)(spine$prime));
                     });
                     var res = (function () {
@@ -843,10 +884,10 @@ var isTypeClassDictionaryWithProps = /* #__PURE__ */ (function () {
                     return new Data_Tuple.Tuple(false, [  ]);
                 };
                 if (v instanceof PureScript_Backend_Optimizer_CoreFn.ExprApp && (v.value2 instanceof PureScript_Backend_Optimizer_CoreFn.ExprLit && v.value2.value1 instanceof PureScript_Backend_Optimizer_CoreFn.LitRecord)) {
-                    var $518 = getConstructorMeta(v.value1);
-                    if ($518 instanceof Data_Maybe.Just) {
-                        var $519 = Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqMeta)($518.value0)(PureScript_Backend_Optimizer_CoreFn.IsTypeClassConstructor.value) || Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqMeta)($518.value0)(PureScript_Backend_Optimizer_CoreFn.IsNewtype.value);
-                        if ($519) {
+                    var $529 = getConstructorMeta(v.value1);
+                    if ($529 instanceof Data_Maybe.Just) {
+                        var $530 = Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqMeta)($529.value0)(PureScript_Backend_Optimizer_CoreFn.IsTypeClassConstructor.value) || Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqMeta)($529.value0)(PureScript_Backend_Optimizer_CoreFn.IsNewtype.value);
+                        if ($530) {
                             $tco_done2 = true;
                             return new Data_Tuple.Tuple(true, Data_Functor.map(Data_Functor.functorArray)(PureScript_Backend_Optimizer_CoreFn.propKey)(v.value2.value1.value0));
                         };
@@ -886,7 +927,11 @@ var intro = function (dictFoldable) {
                         rewriteLimit: env.rewriteLimit,
                         traceIdents: env.traceIdents,
                         currentLevel: env.currentLevel + 1 | 0,
-                        toLevel: Data_Foldable.foldr(dictFoldable)(Data_Function.flip(insert)(lvl))(env.toLevel)(ident)
+                        toLevel: Data_Foldable.foldr(dictFoldable)(function (id) {
+                            return function (m) {
+                                return PureScript_Backend_Optimizer_NativeMaps.insertStringImpl(PureScript_Backend_Optimizer_NativeMaps.stringCompare)(id)(lvl)(m);
+                            };
+                        })(env.toLevel)(ident)
                     });
                 };
             };
@@ -900,7 +945,7 @@ var inferTransitiveDirective = function (directives) {
                 return function (cfn) {
                     var fromImpl = (function () {
                         if (impl instanceof PureScript_Backend_Optimizer_Semantics.ExternExpr && (impl.value1 instanceof PureScript_Backend_Optimizer_Syntax.App && impl.value1.value0 instanceof PureScript_Backend_Optimizer_Syntax.Var)) {
-                            var v = Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Semantics.ordEvalRef)(new PureScript_Backend_Optimizer_Semantics.EvalExtern(impl.value1.value0.value0))(directives);
+                            var v = PureScript_Backend_Optimizer_NativeMaps.lookupEvalRefImpl(PureScript_Backend_Optimizer_NativeMaps.evalRefCompare)(compare)(new PureScript_Backend_Optimizer_Semantics.EvalExtern(impl.value1.value0.value0))(directives);
                             if (v instanceof Data_Maybe.Just) {
                                 var newDirs = Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(function (ix) {
                                     return function (dir) {
@@ -915,8 +960,8 @@ var inferTransitiveDirective = function (directives) {
                                         };
                                     };
                                 })(Data_Map_Internal.empty)(v.value0);
-                                var $533 = Data_Map_Internal.isEmpty(newDirs);
-                                if ($533) {
+                                var $544 = Data_Map_Internal.isEmpty(newDirs);
+                                if ($544) {
                                     return Data_Maybe.Nothing.value;
                                 };
                                 return new Data_Maybe.Just(newDirs);
@@ -924,7 +969,7 @@ var inferTransitiveDirective = function (directives) {
                             return Data_Maybe.Nothing.value;
                         };
                         if (impl instanceof PureScript_Backend_Optimizer_Semantics.ExternExpr && (impl.value1 instanceof PureScript_Backend_Optimizer_Syntax.Accessor && (impl.value1.value0 instanceof PureScript_Backend_Optimizer_Syntax.App && (impl.value1.value0.value0 instanceof PureScript_Backend_Optimizer_Syntax.Var && impl.value1.value1 instanceof PureScript_Backend_Optimizer_Syntax.GetProp)))) {
-                            var v = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Semantics.ordEvalRef)(new PureScript_Backend_Optimizer_Semantics.EvalExtern(impl.value1.value0.value0.value0))(directives))(Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Semantics.ordInlineAccessor)(new PureScript_Backend_Optimizer_Semantics.InlineSpineProp(impl.value1.value1.value0)));
+                            var v = Control_Bind.bind(Data_Maybe.bindMaybe)(PureScript_Backend_Optimizer_NativeMaps.lookupEvalRefImpl(PureScript_Backend_Optimizer_NativeMaps.evalRefCompare)(compare)(new PureScript_Backend_Optimizer_Semantics.EvalExtern(impl.value1.value0.value0.value0))(directives))(Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Semantics.ordInlineAccessor)(new PureScript_Backend_Optimizer_Semantics.InlineSpineProp(impl.value1.value1.value0)));
                             if (v instanceof Data_Maybe.Just && v.value0 instanceof PureScript_Backend_Optimizer_Semantics.InlineArity) {
                                 return Data_Function.apply(Data_Maybe.Just.create)(Data_Map_Internal.singleton(PureScript_Backend_Optimizer_Semantics.InlineRef.value)(new PureScript_Backend_Optimizer_Semantics.InlineArity(v.value0.value0)));
                             };
@@ -939,14 +984,14 @@ var inferTransitiveDirective = function (directives) {
                         var v = function (v1) {
                             var v2 = function (v3) {
                                 if (backendExpr instanceof PureScript_Backend_Optimizer_Semantics.ExprSyntax && (backendExpr.value1 instanceof PureScript_Backend_Optimizer_Syntax.App && (backendExpr.value1.value0 instanceof PureScript_Backend_Optimizer_Semantics.ExprSyntax && backendExpr.value1.value0.value1 instanceof PureScript_Backend_Optimizer_Syntax.Var))) {
-                                    var v4 = Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Semantics.ordEvalRef)(new PureScript_Backend_Optimizer_Semantics.EvalExtern(backendExpr.value1.value0.value1.value0))(directives))(Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Semantics.ordInlineAccessor)(PureScript_Backend_Optimizer_Semantics.InlineRef.value));
+                                    var v4 = Control_Bind.bind(Data_Maybe.bindMaybe)(PureScript_Backend_Optimizer_NativeMaps.lookupEvalRefImpl(PureScript_Backend_Optimizer_NativeMaps.evalRefCompare)(compare)(new PureScript_Backend_Optimizer_Semantics.EvalExtern(backendExpr.value1.value0.value1.value0))(directives))(Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Semantics.ordInlineAccessor)(PureScript_Backend_Optimizer_Semantics.InlineRef.value));
                                     var v5 = function (v6) {
                                         return Data_Maybe.Nothing.value;
                                     };
                                     if (v4 instanceof Data_Maybe.Just && v4.value0 instanceof PureScript_Backend_Optimizer_Semantics.InlineArity) {
-                                        var $559 = Data_Array_NonEmpty.length(backendExpr.value1.value1);
-                                        var $560 = $559 >= v4.value0.value0;
-                                        if ($560) {
+                                        var $570 = Data_Array_NonEmpty.length(backendExpr.value1.value1);
+                                        var $571 = $570 >= v4.value0.value0;
+                                        if ($571) {
                                             return Data_Function.apply(Data_Maybe.Just.create)(Data_Map_Internal.singleton(PureScript_Backend_Optimizer_Semantics.InlineRef.value)(PureScript_Backend_Optimizer_Semantics.InlineAlways.value));
                                         };
                                         return v5(true);
@@ -955,23 +1000,48 @@ var inferTransitiveDirective = function (directives) {
                                 };
                                 return Data_Maybe.Nothing.value;
                             };
-                            var $571 = isTypeClassDictionaryWithProps(cfn);
-                            if ($571.value0) {
-                                var $573 = dictSize <= 512000;
-                                if ($573) {
-                                    return Data_Function.apply(Data_Maybe.Just.create)(Data_Function.apply(fromFoldable)(Data_Semigroup.append(Data_Semigroup.semigroupArray)([ new Data_Tuple.Tuple(PureScript_Backend_Optimizer_Semantics.InlineRef.value, PureScript_Backend_Optimizer_Semantics.InlineAlways.value) ])(Control_Bind.bind(Control_Bind.bindArray)($571.value1)(function (p) {
-                                        return [ new Data_Tuple.Tuple(new PureScript_Backend_Optimizer_Semantics.InlineProp(p), PureScript_Backend_Optimizer_Semantics.InlineAlways.value), new Data_Tuple.Tuple(new PureScript_Backend_Optimizer_Semantics.InlineSpineProp(p), PureScript_Backend_Optimizer_Semantics.InlineAlways.value) ];
-                                    }))));
+                            var $582 = isTypeClassDictionaryWithProps(cfn);
+                            if ($582.value0) {
+                                var refDirectives = (function () {
+                                    var $584 = dictSize <= 512;
+                                    if ($584) {
+                                        return [ new Data_Tuple.Tuple(PureScript_Backend_Optimizer_Semantics.InlineRef.value, PureScript_Backend_Optimizer_Semantics.InlineAlways.value) ];
+                                    };
+                                    return [  ];
+                                })();
+                                var memberDirectives = (function () {
+                                    if (impl instanceof PureScript_Backend_Optimizer_Semantics.ExternDict) {
+                                        return Control_Bind.bind(Control_Bind.bindArray)(impl.value1)(function (v3) {
+                                            var $587 = (Data_Newtype.unwrap()(v3.value1.value0)).size <= maxInlineDictionaryMemberSize;
+                                            if ($587) {
+                                                return [ new Data_Tuple.Tuple(new PureScript_Backend_Optimizer_Semantics.InlineProp(v3.value0), PureScript_Backend_Optimizer_Semantics.InlineAlways.value), new Data_Tuple.Tuple(new PureScript_Backend_Optimizer_Semantics.InlineSpineProp(v3.value0), PureScript_Backend_Optimizer_Semantics.InlineAlways.value) ];
+                                            };
+                                            return [  ];
+                                        });
+                                    };
+                                    if (dictSize <= 512) {
+                                        return Control_Bind.bind(Control_Bind.bindArray)($582.value1)(function (p) {
+                                            return [ new Data_Tuple.Tuple(new PureScript_Backend_Optimizer_Semantics.InlineProp(p), PureScript_Backend_Optimizer_Semantics.InlineAlways.value), new Data_Tuple.Tuple(new PureScript_Backend_Optimizer_Semantics.InlineSpineProp(p), PureScript_Backend_Optimizer_Semantics.InlineAlways.value) ];
+                                        });
+                                    };
+                                    if (Data_Boolean.otherwise) {
+                                        return [  ];
+                                    };
+                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 421, column 28 - line 434, column 19): " + [ impl.constructor.name ]);
+                                })();
+                                var v3 = Data_Semigroup.append(Data_Semigroup.semigroupArray)(refDirectives)(memberDirectives);
+                                if (v3.length === 0) {
+                                    return Data_Maybe.Nothing.value;
                                 };
-                                return v2(true);
+                                return Data_Function.apply(Data_Maybe.Just.create)(Data_Map_Internal.fromFoldable(PureScript_Backend_Optimizer_Semantics.ordInlineAccessor)(Data_Foldable.foldableArray)(v3));
                             };
                             return v2(true);
                         };
                         if (cfn instanceof PureScript_Backend_Optimizer_CoreFn.ExprAbs && cfn.value0.meta instanceof Data_Maybe.Just) {
-                            var $577 = Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqMeta)(cfn.value0.meta.value0)(PureScript_Backend_Optimizer_CoreFn.IsTypeClassConstructor.value) || Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqMeta)(cfn.value0.meta.value0)(PureScript_Backend_Optimizer_CoreFn.IsNewtype.value);
-                            if ($577) {
-                                var $578 = dictSize <= 512;
-                                if ($578) {
+                            var $598 = Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqMeta)(cfn.value0.meta.value0)(PureScript_Backend_Optimizer_CoreFn.IsTypeClassConstructor.value) || Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqMeta)(cfn.value0.meta.value0)(PureScript_Backend_Optimizer_CoreFn.IsNewtype.value);
+                            if ($598) {
+                                var $599 = dictSize <= 512;
+                                if ($599) {
                                     return Data_Function.apply(Data_Maybe.Just.create)(Data_Map_Internal.singleton(PureScript_Backend_Optimizer_Semantics.InlineRef.value)(PureScript_Backend_Optimizer_Semantics.InlineAlways.value));
                                 };
                                 return v(true);
@@ -1033,7 +1103,7 @@ var inferExprType = function (v) {
         if (v2 instanceof Data_Maybe.Nothing) {
             return Data_Maybe.Nothing.value;
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1205, column 8 - line 1207, column 23): " + [ v2.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1280, column 8 - line 1282, column 23): " + [ v2.constructor.name ]);
     };
     return Data_Maybe.Nothing.value;
 };
@@ -1054,12 +1124,12 @@ var getCtx = function (env) {
                     if (acc instanceof Data_Maybe.Nothing) {
                         return new Data_Maybe.Just(v.value0);
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 553, column 9 - line 557, column 19): " + [ acc.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 623, column 9 - line 627, column 19): " + [ acc.constructor.name ]);
                 };
                 if (v.value1 instanceof PureScript_Backend_Optimizer_Semantics.ExternCtor) {
                     return Data_Maybe.Nothing.value;
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 547, column 5 - line 559, column 16): " + [ v.value1.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 617, column 5 - line 629, column 16): " + [ v.value1.constructor.name ]);
             });
         };
     };
@@ -1079,10 +1149,32 @@ var getCtx = function (env) {
                     };
                     return PureScript_Backend_Optimizer_Analysis.analyze(PureScript_Backend_Optimizer_Semantics.hasAnalysisBackendExpr)(PureScript_Backend_Optimizer_Semantics.hasSyntaxBackendExpr)(lookupExtern)(expr);
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 535, column 7 - line 541, column 38): " + [ v1.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 605, column 7 - line 611, column 38): " + [ v1.constructor.name ]);
             };
         },
         effect: false
+    };
+};
+var dictionaryAlias = function (arg) {
+    return function (v) {
+        var v1 = function (v2) {
+            return Data_Maybe.Nothing.value;
+        };
+        if (v instanceof PureScript_Backend_Optimizer_CoreFn.ExprApp && (v.value1 instanceof PureScript_Backend_Optimizer_CoreFn.ExprAbs && (v.value2 instanceof PureScript_Backend_Optimizer_CoreFn.ExprVar && v.value2.value1.value0 instanceof Data_Maybe.Nothing))) {
+            var $646 = Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqIdent)(v.value2.value1.value1)(arg);
+            if ($646) {
+                if (v.value1.value0.type instanceof Data_Maybe.Just) {
+                    var $648 = isConstrainedType(v.value1.value0.type.value0);
+                    if ($648) {
+                        return new Data_Maybe.Just(new Data_Tuple.Tuple(v.value1.value1, v.value1.value2));
+                    };
+                    return v1(true);
+                };
+                return v1(true);
+            };
+            return v1(true);
+        };
+        return v1(true);
     };
 };
 var decompose = function (chosenColumn) {
@@ -1112,7 +1204,7 @@ var decompose = function (chosenColumn) {
                     })
                 };
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1132, column 22 - line 1136, column 123): " + [ l.match.constructor.name, r.match.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1207, column 22 - line 1211, column 123): " + [ l.match.constructor.name, r.match.constructor.name ]);
         };
     };
     var checkMatch = function (p) {
@@ -1123,12 +1215,12 @@ var decompose = function (chosenColumn) {
                     match: Data_Maybe.Nothing.value
                 };
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1098, column 1 - line 1098, column 119): " + [ p.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1173, column 1 - line 1173, column 119): " + [ p.constructor.name ]);
         };
-        var $632 = Data_Eq.eq(PureScript_Backend_Optimizer_Syntax.eqLevel)(p.column)(chosenColumn.column);
-        if ($632) {
-            var $633 = Data_Eq.eq(eqPatternCase)(patternPatCase(p))(PatWild.value) || Data_Function.on(eq)(patternPatCase)(chosenColumn)(p);
-            if ($633) {
+        var $668 = Data_Eq.eq(PureScript_Backend_Optimizer_Syntax.eqLevel)(p.column)(chosenColumn.column);
+        if ($668) {
+            var $669 = Data_Eq.eq(eqPatternCase)(patternPatCase(p))(PatWild.value) || Data_Function.on(eq)(patternPatCase)(chosenColumn)(p);
+            if ($669) {
                 return {
                     nonMatchesBefore: [  ],
                     match: new Data_Maybe.Just({
@@ -1148,9 +1240,9 @@ var decompose = function (chosenColumn) {
         };
         if (v instanceof Data_Maybe.Just) {
             var v1 = PureScript_Backend_Optimizer_Utils.foldl1Array(function (l) {
-                var $966 = mergeResults(l);
-                return function ($967) {
-                    return $966(checkMatch($967));
+                var $1006 = mergeResults(l);
+                return function ($1007) {
+                    return $1006(checkMatch($1007));
                 };
             })(checkMatch)(v.value0);
             if (v1.match instanceof Data_Maybe.Just) {
@@ -1163,8 +1255,8 @@ var decompose = function (chosenColumn) {
                         nonMatchesAfter: v1.match.value0.nonMatchesAfter
                     } ],
                     rowsNoMatch: (function () {
-                        var $637 = Data_Eq.eq(eqPatternCase)(patternPatCase(v1.match.value0.match))(PatWild.value);
-                        if ($637) {
+                        var $673 = Data_Eq.eq(eqPatternCase)(patternPatCase(v1.match.value0.match))(PatWild.value);
+                        if ($673) {
                             return [ row ];
                         };
                         return [  ];
@@ -1177,9 +1269,9 @@ var decompose = function (chosenColumn) {
                     rowsNoMatch: [ row ]
                 };
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1104, column 7 - line 1112, column 12): " + [ v1.match.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1179, column 7 - line 1187, column 12): " + [ v1.match.constructor.name ]);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1100, column 3 - line 1112, column 12): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1175, column 3 - line 1187, column 12): " + [ v.constructor.name ]);
     });
 };
 var currentLevel = function (env) {
@@ -1205,9 +1297,9 @@ var chooseNextPattern = function (row0Patterns) {
                             if (v instanceof Data_Ordering.LT) {
                                 return Data_Function.apply(Data_Maybe.Just.create)(Data_Array_NonEmpty.singleton(next));
                             };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 988, column 19 - line 991, column 52): " + [ v.constructor.name ]);
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1063, column 19 - line 1066, column 52): " + [ v.constructor.name ]);
                         };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 986, column 7 - line 991, column 52): " + [ acc.constructor.name ]);
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1061, column 7 - line 1066, column 52): " + [ acc.constructor.name ]);
                     };
                 };
                 return Data_Foldable.foldl(dictFoldable)(keepAllMax)(Data_Maybe.Nothing.value);
@@ -1239,22 +1331,22 @@ var chooseNextPattern = function (row0Patterns) {
                                 tailRowIndices: Data_Monoid.guard(Data_Monoid.monoidArray)(Data_Function.on(eq)(patternPatCase)(v.value1)(v1.value0))([ rowIdx + 1 | 0 ]),
                                 ctors: Data_Function.apply(Data_Monoid.guard(monoidSet1)(Data_Eq.notEq(eqPatternCase)(patternPatCase(v1.value0))(PatWild.value)))(Data_Function.apply(Data_Set.singleton)(patternPatCase(v1.value0))),
                                 aScore: Data_Function.apply(Data_Monoid_Additive.Additive)(Data_Function.apply(negate)(Data_Function.apply(Data_Array.length)(Data_Function.apply(Data_Array.filter((function () {
-                                    var $968 = Data_Eq.notEq(eqPatternCase)(PatWild.value);
-                                    return function ($969) {
-                                        return $968(patternPatCase($969));
+                                    var $1008 = Data_Eq.notEq(eqPatternCase)(PatWild.value);
+                                    return function ($1009) {
+                                        return $1008(patternPatCase($1009));
                                     };
                                 })()))(patternSubterms(v1.value0)))))
                             };
                         };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 960, column 15 - line 967, column 20): " + [ v1.constructor.name ]);
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1035, column 15 - line 1042, column 20): " + [ v1.constructor.name ]);
                     };
                 }));
                 return {
                     pattern: v.value1,
                     pScore: Data_Foldable.foldl(Data_Foldable.foldableArray)(function (l) {
                         return function (r) {
-                            var $658 = (l + 1 | 0) === r;
-                            if ($658) {
+                            var $694 = (l + 1 | 0) === r;
+                            if ($694) {
                                 return r;
                             };
                             return l;
@@ -1269,16 +1361,16 @@ var chooseNextPattern = function (row0Patterns) {
             })))(Control_Bind.composeKleisli(Data_Maybe.bindMaybe)(maximumByAll(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(Data_Ord.comparing(Data_Ord.ordInt)(function (v) {
                 return v.bScore;
             })))((function () {
-                var $970 = Data_Functor.map(Data_Maybe.functorMaybe)(function ($973) {
+                var $1010 = Data_Functor.map(Data_Maybe.functorMaybe)(function ($1013) {
                     return (function (v) {
                         return v.pattern;
-                    })(Data_Array_NonEmpty.head($973));
+                    })(Data_Array_NonEmpty.head($1013));
                 });
-                var $971 = maximumByAll(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(Data_Ord.comparing(Data_Ord.ordInt)(function (v) {
+                var $1011 = maximumByAll(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(Data_Ord.comparing(Data_Ord.ordInt)(function (v) {
                     return v.aScore;
                 }));
-                return function ($972) {
-                    return $970($971($972));
+                return function ($1012) {
+                    return $1010($1011($1012));
                 };
             })()));
             var v = heuristic(matchingPatternGroups);
@@ -1288,9 +1380,9 @@ var chooseNextPattern = function (row0Patterns) {
             if (v instanceof Data_Maybe.Nothing) {
                 return Data_Function.apply(Data_Tuple.snd)(Data_Array_NonEmpty.head(row0Patterns));
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 978, column 7 - line 980, column 57): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1053, column 7 - line 1055, column 57): " + [ v.constructor.name ]);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 951, column 3 - line 980, column 57): " + [ expandIfPossible.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1026, column 3 - line 1055, column 57): " + [ expandIfPossible.constructor.name ]);
     };
 };
 var buildM = function (a) {
@@ -1350,7 +1442,7 @@ var makeLet = function (id) {
                 if (id instanceof Data_Maybe.Just) {
                     return Data_Function.apply(make)(new PureScript_Backend_Optimizer_Syntax.Let(id, lvl, a, intro(Data_Foldable.foldableArray)([ id.value0 ])(lvl)(k(lvl))));
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1144, column 3 - line 1148, column 56): " + [ id.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1219, column 3 - line 1223, column 56): " + [ id.constructor.name ]);
             });
         };
     };
@@ -1398,7 +1490,7 @@ var $lazy_binderToPattern = /* #__PURE__ */ $runtime_lazy("binderToPattern", "Pu
                                     accessor: buildAccessor(idx)(nextArg),
                                     pattern: v
                                 };
-                            })(Data_Function.apply($lazy_binderToPattern(835))(toBinder(nextArg)));
+                            })(Data_Function.apply($lazy_binderToPattern(910))(toBinder(nextArg)));
                         };
                     }));
                 };
@@ -1423,7 +1515,7 @@ var $lazy_binderToPattern = /* #__PURE__ */ $runtime_lazy("binderToPattern", "Pu
                     subterms: r.subterms,
                     vars: Data_Set.insert(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v.value1)(r.vars)
                 };
-            })))($lazy_binderToPattern(778)(v.value2));
+            })))($lazy_binderToPattern(853)(v.value2));
         };
         if (v instanceof PureScript_Backend_Optimizer_CoreFn.BinderLit) {
             if (v.value1 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
@@ -1455,7 +1547,7 @@ var $lazy_binderToPattern = /* #__PURE__ */ $runtime_lazy("binderToPattern", "Pu
                     };
                 })(PureScript_Backend_Optimizer_CoreFn.propValue);
             };
-            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 779, column 22 - line 799, column 18): " + [ v.value1.constructor.name ]);
+            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 854, column 22 - line 874, column 18): " + [ v.value1.constructor.name ]);
         };
         if (v instanceof PureScript_Backend_Optimizer_CoreFn.BinderConstructor) {
             var v1 = function (v2) {
@@ -1480,16 +1572,16 @@ var $lazy_binderToPattern = /* #__PURE__ */ $runtime_lazy("binderToPattern", "Pu
             };
             if (v.value0.meta instanceof Data_Maybe.Just && v.value0.meta.value0 instanceof PureScript_Backend_Optimizer_CoreFn.IsNewtype) {
                 if (v.value3.length === 1) {
-                    return $lazy_binderToPattern(805)(v["value3"][0]);
+                    return $lazy_binderToPattern(880)(v["value3"][0]);
                 };
                 return v1(true);
             };
             return v1(true);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 773, column 19 - line 821, column 55): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 848, column 19 - line 896, column 55): " + [ v.constructor.name ]);
     };
 });
-var binderToPattern = /* #__PURE__ */ $lazy_binderToPattern(772);
+var binderToPattern = /* #__PURE__ */ $lazy_binderToPattern(847);
 var toBackendExprWithType = function (mbTy) {
     return function (expr) {
         var stripTypeApps = function ($copy_v) {
@@ -1559,10 +1651,10 @@ var toBackendExprWithType = function (mbTy) {
                                                 if (v1 instanceof Data_Maybe.Just) {
                                                     return Data_Function.apply(mainCb)(Data_Function.apply(Data_Array.snoc(caseRows))(Data_Function.apply(buildCaseRow)(new GuardedFn(v1.value0))));
                                                 };
-                                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 709, column 23 - line 712, column 86): " + [ v1.constructor.name ]);
+                                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 784, column 23 - line 787, column 86): " + [ v1.constructor.name ]);
                                             })(v.value1.value0)([  ]);
                                         };
-                                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 698, column 13 - line 715, column 21): " + [ v.value1.constructor.name ]);
+                                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 773, column 13 - line 790, column 21): " + [ v.value1.constructor.name ]);
                                     });
                                 };
                             };
@@ -1584,11 +1676,11 @@ var toBackendExprWithType = function (mbTy) {
                                 return buildM(new PureScript_Backend_Optimizer_Syntax.Var(v.value1));
                             };
                             if (v.value1.value0 instanceof Data_Maybe.Just) {
-                                var $725 = Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqModuleName)(v.value1.value0.value0)(v1.currentModule);
-                                if ($725) {
-                                    var $726 = Data_Map_Internal.lookup(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v.value1.value1)(v1.toLevel);
-                                    if ($726 instanceof Data_Maybe.Just) {
-                                        return buildM(new PureScript_Backend_Optimizer_Syntax.Local(new Data_Maybe.Just(v.value1.value1), $726.value0));
+                                var $761 = Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqModuleName)(v.value1.value0.value0)(v1.currentModule);
+                                if ($761) {
+                                    var $762 = PureScript_Backend_Optimizer_NativeMaps.lookupStringImpl(PureScript_Backend_Optimizer_NativeMaps.stringCompare)(v.value1.value1)(v1.toLevel);
+                                    if ($762 instanceof Data_Maybe.Just) {
+                                        return buildM(new PureScript_Backend_Optimizer_Syntax.Local(new Data_Maybe.Just(v.value1.value1), $762.value0));
                                     };
                                     return v4(true);
                                 };
@@ -1597,9 +1689,9 @@ var toBackendExprWithType = function (mbTy) {
                             return v4(true);
                         };
                         if (v.value1.value0 instanceof Data_Maybe.Nothing) {
-                            var $732 = Data_Map_Internal.lookup(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v.value1.value1)(v1.toLevel);
-                            if ($732 instanceof Data_Maybe.Just) {
-                                return buildM(new PureScript_Backend_Optimizer_Syntax.Local(new Data_Maybe.Just(v.value1.value1), $732.value0));
+                            var $768 = PureScript_Backend_Optimizer_NativeMaps.lookupStringImpl(PureScript_Backend_Optimizer_NativeMaps.stringCompare)(v.value1.value1)(v1.toLevel);
+                            if ($768 instanceof Data_Maybe.Just) {
+                                return buildM(new PureScript_Backend_Optimizer_Syntax.Local(new Data_Maybe.Just(v.value1.value1), $768.value0));
                             };
                             return v2(true);
                         };
@@ -1607,14 +1699,14 @@ var toBackendExprWithType = function (mbTy) {
                     });
                 };
                 if (v instanceof PureScript_Backend_Optimizer_CoreFn.ExprLit) {
-                    return Control_Bind.bindFlipped(Control_Bind.bindFn)(function ($974) {
-                        return buildM(PureScript_Backend_Optimizer_Syntax.Lit.create($974));
+                    return Control_Bind.bindFlipped(Control_Bind.bindFn)(function ($1014) {
+                        return buildM(PureScript_Backend_Optimizer_Syntax.Lit.create($1014));
                     })(Data_Traversable.traverse(PureScript_Backend_Optimizer_CoreFn.traversableLiteral)(Control_Applicative.applicativeFn)(toBackendExpr)(v.value1));
                 };
                 if (v instanceof PureScript_Backend_Optimizer_CoreFn.ExprConstructor) {
                     return Control_Bind.bind(Control_Bind.bindFn)(ask1)(function (v1) {
                         var ct = (function () {
-                            var v2 = Data_Map_Internal.lookup(PureScript_Backend_Optimizer_CoreFn.ordProperName)(v.value1)(v1.dataTypes);
+                            var v2 = PureScript_Backend_Optimizer_NativeMaps.lookupStringImpl(PureScript_Backend_Optimizer_NativeMaps.stringCompare)(v.value1)(v1.dataTypes);
                             if (v2 instanceof Data_Maybe.Just && Data_Map_Internal.size(v2.value0.constructors) === 1) {
                                 return PureScript_Backend_Optimizer_CoreFn.ProductType.value;
                             };
@@ -1625,9 +1717,9 @@ var toBackendExprWithType = function (mbTy) {
                 };
                 if (v instanceof PureScript_Backend_Optimizer_CoreFn.ExprAccessor) {
                     return Control_Bind.bindFlipped(Control_Bind.bindFn)((function () {
-                        var $975 = Data_Function.flip(PureScript_Backend_Optimizer_Syntax.Accessor.create)(new PureScript_Backend_Optimizer_Syntax.GetProp(v.value2));
-                        return function ($976) {
-                            return buildM($975($976));
+                        var $1015 = Data_Function.flip(PureScript_Backend_Optimizer_Syntax.Accessor.create)(new PureScript_Backend_Optimizer_Syntax.GetProp(v.value2));
+                        return function ($1016) {
+                            return buildM($1015($1016));
                         };
                     })())(toBackendExpr(v.value1));
                 };
@@ -1640,7 +1732,16 @@ var toBackendExprWithType = function (mbTy) {
                 };
                 if (v instanceof PureScript_Backend_Optimizer_CoreFn.ExprAbs) {
                     return Control_Bind.bind(Control_Bind.bindFn)(currentLevel)(function (lvl) {
-                        return Data_Function.apply(make)(new PureScript_Backend_Optimizer_Syntax.Abs(Data_Array_NonEmpty.singleton(new Data_Tuple.Tuple(new Data_Maybe.Just(v.value1), lvl)), intro(Data_Foldable.foldableArray)([ v.value1 ])(lvl)(toBackendExpr(v.value2))));
+                        var v1 = dictionaryAlias(v.value1)(v.value2);
+                        if (v1 instanceof Data_Maybe.Just) {
+                            return Data_Function.apply(make)(new PureScript_Backend_Optimizer_Syntax.Abs(Data_Array_NonEmpty.singleton(new Data_Tuple.Tuple(new Data_Maybe.Just(v.value1), lvl)), intro(Data_Foldable.foldableArray)([ v.value1 ])(lvl)(makeLet(new Data_Maybe.Just(v1.value0.value0))(Data_Function.apply(make)(new PureScript_Backend_Optimizer_Syntax.Local(new Data_Maybe.Just(v.value1), lvl)))(function (v2) {
+                                return toBackendExpr(v1.value0.value1);
+                            }))));
+                        };
+                        if (v1 instanceof Data_Maybe.Nothing) {
+                            return Data_Function.apply(make)(new PureScript_Backend_Optimizer_Syntax.Abs(Data_Array_NonEmpty.singleton(new Data_Tuple.Tuple(new Data_Maybe.Just(v.value1), lvl)), intro(Data_Foldable.foldableArray)([ v.value1 ])(lvl)(toBackendExpr(v.value2))));
+                        };
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 713, column 7 - line 718, column 111): " + [ v1.constructor.name ]);
                     });
                 };
                 var v1 = function (v2) {
@@ -1659,20 +1760,20 @@ var toBackendExprWithType = function (mbTy) {
                                     if (bind$prime instanceof PureScript_Backend_Optimizer_CoreFn.Rec) {
                                         return Partial_Unsafe.unsafeCrashWith("CoreFn empty Rec binding group");
                                     };
-                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 578, column 1 - line 578, column 76): " + [ bind$prime.constructor.name ]);
+                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 648, column 1 - line 648, column 76): " + [ bind$prime.constructor.name ]);
                                 };
                                 if (bind$prime instanceof PureScript_Backend_Optimizer_CoreFn.Rec) {
-                                    var $772 = Data_Array_NonEmpty.fromArray(bind$prime.value0);
-                                    if ($772 instanceof Data_Maybe.Just) {
+                                    var $812 = Data_Array_NonEmpty.fromArray(bind$prime.value0);
+                                    if ($812 instanceof Data_Maybe.Just) {
                                         return Control_Bind.bind(Control_Bind.bindFn)(currentLevel)(function (lvl) {
                                             var idents = Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(function (v4) {
                                                 return v4.value1;
-                                            })($772.value0);
+                                            })($812.value0);
                                             return Data_Function.apply(join)(Control_Apply.apply(Control_Apply.applyFn)(Data_Functor.map(Data_Functor.functorFn)(function (x) {
                                                 return function (y) {
                                                     return buildM(new PureScript_Backend_Optimizer_Syntax.LetRec(lvl, x, y));
                                                 };
-                                            })(intro(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(idents)(lvl)(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(Control_Applicative.applicativeFn)(toBackendBinding)($772.value0))))(intro(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(idents)(lvl)(next)));
+                                            })(intro(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(idents)(lvl)(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(Control_Applicative.applicativeFn)(toBackendBinding)($812.value0))))(intro(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(idents)(lvl)(next)));
                                         });
                                     };
                                     return v3(true);
@@ -1696,7 +1797,7 @@ var toBackendExprWithType = function (mbTy) {
                             if (v3 instanceof Data_Maybe.Nothing) {
                                 return [  ];
                             };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 668, column 24 - line 670, column 24): " + [ v3.constructor.name ]);
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 743, column 24 - line 745, column 24): " + [ v3.constructor.name ]);
                         })();
                         return Data_Foldable.foldr(Data_Foldable.foldableArray)(function (v3) {
                             return function (next) {
@@ -1710,7 +1811,7 @@ var toBackendExprWithType = function (mbTy) {
                                         if (v4 instanceof Data_Maybe.Nothing) {
                                             return Data_Maybe.Nothing.value;
                                         };
-                                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 675, column 25 - line 677, column 37): " + [ v4.constructor.name ]);
+                                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 750, column 25 - line 752, column 37): " + [ v4.constructor.name ]);
                                     })();
                                     return makeLet(Data_Maybe.Nothing.value)(toBackendExprWithType(altTy)(v3.value1))(function (tmp) {
                                         return next(Data_Array.snoc(idents)(tmp));
@@ -1723,11 +1824,11 @@ var toBackendExprWithType = function (mbTy) {
                             });
                         })(Data_Array.mapWithIndex(Data_Tuple.Tuple.create)(v.value1))([  ]);
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 578, column 1 - line 578, column 76): " + [ v.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 648, column 1 - line 648, column 76): " + [ v.constructor.name ]);
                 };
                 if (v instanceof PureScript_Backend_Optimizer_CoreFn.ExprApp) {
-                    var $799 = stripTypeApps(v.value1);
-                    if ($799 instanceof PureScript_Backend_Optimizer_CoreFn.ExprVar && ($799.value0.meta instanceof Data_Maybe.Just && $799.value0.meta.value0 instanceof PureScript_Backend_Optimizer_CoreFn.IsNewtype)) {
+                    var $839 = stripTypeApps(v.value1);
+                    if ($839 instanceof PureScript_Backend_Optimizer_CoreFn.ExprVar && ($839.value0.meta instanceof Data_Maybe.Just && $839.value0.meta.value0 instanceof PureScript_Backend_Optimizer_CoreFn.IsNewtype)) {
                         return toBackendExpr(v.value2);
                     };
                     return v1(true);
@@ -1741,19 +1842,19 @@ var toBackendExprWithType = function (mbTy) {
                 return v2.type;
             };
             if (expr instanceof PureScript_Backend_Optimizer_CoreFn.ExprApp && (expr.value0.meta instanceof Data_Maybe.Just && (expr.value0.meta.value0 instanceof PureScript_Backend_Optimizer_CoreFn.IsSyntheticApp && expr.value0.type instanceof Data_Maybe.Just))) {
-                var $809 = PureScript_Backend_Optimizer_CoreFn.exprAnn(expr.value1);
-                if ($809.type instanceof Data_Maybe.Just) {
-                    var $810 = Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqExprType)(expr.value0.type.value0)($809.type.value0);
-                    if ($810) {
+                var $849 = PureScript_Backend_Optimizer_CoreFn.exprAnn(expr.value1);
+                if ($849.type instanceof Data_Maybe.Just) {
+                    var $850 = Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqExprType)(expr.value0.type.value0)($849.type.value0);
+                    if ($850) {
                         if (expr.value0.type.value0 instanceof PureScript_Backend_Optimizer_CoreFn.ConstrainedType) {
-                            var $812 = Data_Array.uncons(expr.value0.type.value0.value0);
-                            if ($812 instanceof Data_Maybe.Just) {
+                            var $852 = Data_Array.uncons(expr.value0.type.value0.value0);
+                            if ($852 instanceof Data_Maybe.Just) {
                                 return Data_Function.apply(Data_Maybe.Just.create)((function () {
-                                    var $813 = Data_Array["null"]($812.value0.tail);
-                                    if ($813) {
+                                    var $853 = Data_Array["null"]($852.value0.tail);
+                                    if ($853) {
                                         return expr.value0.type.value0.value1;
                                     };
-                                    return new PureScript_Backend_Optimizer_CoreFn.ConstrainedType($812.value0.tail, expr.value0.type.value0.value1);
+                                    return new PureScript_Backend_Optimizer_CoreFn.ConstrainedType($852.value0.tail, expr.value0.type.value0.value1);
                                 })());
                             };
                             return v(true);
@@ -1779,9 +1880,9 @@ var toBackendExprWithType = function (mbTy) {
                         if (mbTy instanceof Data_Maybe.Nothing) {
                             return inferExprType(expr);
                         };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 584, column 18 - line 586, column 38): " + [ mbTy.constructor.name ]);
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 654, column 18 - line 656, column 38): " + [ mbTy.constructor.name ]);
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 582, column 5 - line 586, column 38): " + [ annotationType.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 652, column 5 - line 656, column 38): " + [ annotationType.constructor.name ]);
                 })();
                 if (v instanceof Data_Maybe.Just) {
                     return new PureScript_Backend_Optimizer_Semantics.ExprSyntax(PureScript_Backend_Optimizer_Analysis.analysisOf(PureScript_Backend_Optimizer_Semantics.hasAnalysisBackendExpr)(backendExpr), new PureScript_Backend_Optimizer_Syntax.Typed(v.value0, backendExpr));
@@ -1789,7 +1890,7 @@ var toBackendExprWithType = function (mbTy) {
                 if (v instanceof Data_Maybe.Nothing) {
                     return backendExpr;
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 581, column 8 - line 589, column 27): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 651, column 8 - line 659, column 27): " + [ v.constructor.name ]);
             })());
         });
     };
@@ -1810,8 +1911,8 @@ var buildCaseTreeFromRows = function (denormalizedRows) {
         var row0NonPatWildPatterns = Data_Function.apply(Data_Array_NonEmpty.fromArray)(Data_Function.apply(Data_FoldableWithIndex.foldlWithIndex(Data_FoldableWithIndex.foldableWithIndexArray)(function (idx) {
             return function (acc) {
                 return function (p) {
-                    var $839 = Data_Eq.notEq(eqPatternCase)(patternPatCase(p))(PatWild.value);
-                    if ($839) {
+                    var $879 = Data_Eq.notEq(eqPatternCase)(patternPatCase(p))(PatWild.value);
+                    if ($879) {
                         return Data_Array.snoc(acc)(new Data_Tuple.Tuple(idx, p));
                     };
                     return acc;
@@ -1824,9 +1925,9 @@ var buildCaseTreeFromRows = function (denormalizedRows) {
         if (row0NonPatWildPatterns instanceof Data_Maybe.Just) {
             return Data_Function.apply(buildCasePattern(chooseNextPattern(row0NonPatWildPatterns.value0)(v1.tail)))(Data_Array_NonEmpty.toArray(v.value0));
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 870, column 5 - line 874, column 95): " + [ row0NonPatWildPatterns.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 945, column 5 - line 949, column 95): " + [ row0NonPatWildPatterns.constructor.name ]);
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 859, column 42 - line 874, column 95): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 934, column 42 - line 949, column 95): " + [ v.constructor.name ]);
 };
 var buildCasePattern = function (chosenColumn) {
     return function (rows) {
@@ -1919,7 +2020,7 @@ var buildCasePattern = function (chosenColumn) {
         if (v instanceof PatBoolean) {
             return buildCaseBranch(guardBoolean(v.value0));
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1000, column 38 - line 1020, column 37): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1075, column 38 - line 1095, column 37): " + [ v.constructor.name ]);
     };
 };
 var buildCaseLeaf = function (row0) {
@@ -1954,7 +2055,7 @@ var buildCaseLeaf = function (row0) {
                 });
             })(orderedArgs)([  ]);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 925, column 3 - line 947, column 11): " + [ row0.guardFn.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1000, column 3 - line 1022, column 11): " + [ row0.guardFn.constructor.name ]);
     };
 };
 var toTopLevelBackendBinding = function (group) {
@@ -1988,12 +2089,12 @@ var toTopLevelBackendBinding = function (group) {
                     if (v2 instanceof Data_Maybe.Nothing) {
                         return v1.value1;
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 307, column 1 - line 307, column 138): " + [ v2.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 321, column 1 - line 321, column 138): " + [ v2.constructor.name ]);
                 };
                 if (v2 instanceof Data_Maybe.Just) {
                     if (v1.value1 instanceof PureScript_Backend_Optimizer_Semantics.ExprSyntax && v1.value1.value1 instanceof PureScript_Backend_Optimizer_Syntax.Typed) {
-                        var $900 = Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqExprType)(v1.value1.value1.value0)(v2.value0);
-                        if ($900) {
+                        var $940 = Data_Eq.eq(PureScript_Backend_Optimizer_CoreFn.eqExprType)(v1.value1.value1.value0)(v2.value0);
+                        if ($940) {
                             return v1.value1;
                         };
                         return v3(true);
@@ -2016,13 +2117,13 @@ var toTopLevelBackendBinding = function (group) {
                     foreignSemantics: env.foreignSemantics,
                     rewriteLimit: env.rewriteLimit,
                     traceIdents: env.traceIdents,
-                    implementations: Data_Map_Internal.insert(ordQualified1)(qualifiedIdent)(v2.value0)(env.implementations),
-                    moduleImplementations: Data_Map_Internal.insert(ordQualified1)(qualifiedIdent)(v2.value0)(env.moduleImplementations),
+                    implementations: PureScript_Backend_Optimizer_NativeMaps.insertQualifiedIdentImpl(PureScript_Backend_Optimizer_NativeMaps.qualifiedIdentCompare)(qualifiedIdent)(v2.value0)(env.implementations),
+                    moduleImplementations: PureScript_Backend_Optimizer_NativeMaps.insertQualifiedIdentImpl(PureScript_Backend_Optimizer_NativeMaps.qualifiedIdentCompare)(qualifiedIdent)(v2.value0)(env.moduleImplementations),
                     optimizationSteps: Data_Function.apply(Data_Maybe.maybe(env.optimizationSteps)((function () {
-                        var $977 = Data_Array.snoc(env.optimizationSteps);
-                        var $978 = Data_Tuple.Tuple.create(qualifiedIdent);
-                        return function ($979) {
-                            return $977($978($979));
+                        var $1017 = Data_Array.snoc(env.optimizationSteps);
+                        var $1018 = Data_Tuple.Tuple.create(qualifiedIdent);
+                        return function ($1019) {
+                            return $1017($1018($1019));
                         };
                     })()))(Data_Array_NonEmpty.fromArray(v1.value0)),
                     directives: (function () {
@@ -2035,13 +2136,13 @@ var toTopLevelBackendBinding = function (group) {
                                 if (v5 instanceof Data_Maybe.Nothing) {
                                     return new Data_Maybe.Just(v4.value0);
                                 };
-                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 333, column 17 - line 337, column 30): " + [ v5.constructor.name ]);
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 347, column 17 - line 351, column 30): " + [ v5.constructor.name ]);
                             })(new PureScript_Backend_Optimizer_Semantics.EvalExtern(new PureScript_Backend_Optimizer_CoreFn.Qualified(new Data_Maybe.Just(env.currentModule), v.value1)))(env.directives);
                         };
                         if (v4 instanceof Data_Maybe.Nothing) {
                             return env.directives;
                         };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 330, column 11 - line 341, column 29): " + [ v4.constructor.name ]);
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 344, column 11 - line 355, column 29): " + [ v4.constructor.name ]);
                     })()
                 },
                 value: new Data_Tuple.Tuple(v.value1, new Data_Tuple.Tuple((Data_Newtype.unwrap()(Data_Tuple.fst(v2.value0))).deps, v2.value1))
@@ -2078,7 +2179,7 @@ var toBackendTopLevelBindingGroup = function (env) {
                 };
             }));
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 289, column 37 - line 296, column 52): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 303, column 37 - line 310, column 52): " + [ v.constructor.name ]);
     };
 };
 var toBackendTopLevelBindingGroups = function (binds) {
@@ -2093,10 +2194,10 @@ var toBackendTopLevelBindingGroups = function (binds) {
                         return v1.bindings;
                     })(Data_Array_NonEmpty.toArray(as))
                 };
-            })(Data_Array.groupBy(Data_Function.on(conj)(function ($980) {
+            })(Data_Array.groupBy(Data_Function.on(conj)(function ($1020) {
                 return !(function (v1) {
                     return v1.recursive;
-                })($980);
+                })($1020);
             }))(result.value))
         };
     };
@@ -2120,7 +2221,7 @@ var alignClassMemberAnnotations = function (classDecls) {
         if (v1 instanceof Data_Maybe.Nothing) {
             return v;
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1230, column 54 - line 1232, column 23): " + [ v1.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1305, column 54 - line 1307, column 23): " + [ v1.constructor.name ]);
     };
     var goBind = function (v) {
         if (v instanceof PureScript_Backend_Optimizer_CoreFn.NonRec) {
@@ -2129,7 +2230,7 @@ var alignClassMemberAnnotations = function (classDecls) {
         if (v instanceof PureScript_Backend_Optimizer_CoreFn.Rec) {
             return new PureScript_Backend_Optimizer_CoreFn.Rec(Data_Functor.map(Data_Functor.functorArray)(goBinding)(v.value0));
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1226, column 12 - line 1228, column 49): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Convert (line 1301, column 12 - line 1303, column 49): " + [ v.constructor.name ]);
     };
     return Data_Functor.map(Data_Functor.functorArray)(goBind);
 };
@@ -2139,8 +2240,8 @@ var toBackendModuleWithoutSourceUsage = function (v) {
         var isBindingUsed = function (deps) {
             return function (v1) {
                 var res = Data_Set.member(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v1.value0)(localExports) || Data_Set.member(ordQualified1)(new PureScript_Backend_Optimizer_CoreFn.Qualified(new Data_Maybe.Just(v.name), v1.value0))(deps);
-                var $940 = Data_Newtype.unwrap()(v.name) === "Data.Set";
-                if ($940) {
+                var $980 = Data_Newtype.unwrap()(v.name) === "Data.Set";
+                if ($980) {
                     return res;
                 };
                 return res;
@@ -2159,7 +2260,7 @@ var toBackendModuleWithoutSourceUsage = function (v) {
         });
         var dataTypes = Data_Function.applyFlipped(Data_Function.applyFlipped(Data_Function.applyFlipped(ctors)(Data_Array.groupAllBy(Data_Ord.comparing(PureScript_Backend_Optimizer_CoreFn.ordProperName)(Data_Tuple.fst))))(Data_Functor.map(Data_Functor.functorArray)(function (group) {
             var proper = Data_Function.apply(Data_Tuple.fst)(Data_Array_NonEmpty.head(group));
-            var constructors = Data_Function.apply(fromFoldable1)(Data_FunctorWithIndex.mapWithIndex(Data_Array_NonEmpty_Internal.functorWithIndexNonEmptyArray)(function (tag) {
+            var constructors = Data_Function.apply(fromFoldable)(Data_FunctorWithIndex.mapWithIndex(Data_Array_NonEmpty_Internal.functorWithIndexNonEmptyArray)(function (tag) {
                 return function (v1) {
                     return new Data_Tuple.Tuple(v1.value1.value0, {
                         fields: v1.value1.value1,
@@ -2167,14 +2268,14 @@ var toBackendModuleWithoutSourceUsage = function (v) {
                     });
                 };
             })(group));
-            var sizes = Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(function ($981) {
-                return Data_Array.length(Data_Tuple.snd(Data_Tuple.snd($981)));
+            var sizes = Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(function ($1021) {
+                return Data_Array.length(Data_Tuple.snd(Data_Tuple.snd($1021)));
             })(group);
             return new Data_Tuple.Tuple(proper, {
                 constructors: constructors,
                 size: Data_Semigroup_Foldable.maximum(Data_Ord.ordInt)(Data_Array_NonEmpty_Internal.foldable1NonEmptyArray)(sizes)
             });
-        })))(fromFoldable2);
+        })))(fromFoldable1);
         var moduleBindings = toBackendTopLevelBindingGroups(alignClassMemberAnnotations(v.classDecls)(v.decls))({
             lookupPurmeta: env.lookupPurmeta,
             analyzeCustom: env.analyzeCustom,
@@ -2201,16 +2302,16 @@ var toBackendModuleWithoutSourceUsage = function (v) {
             return function (group) {
                 var v1 = (function () {
                     if (group.recursive) {
-                        var $949 = Data_Array.any(isBindingUsed(deps))(group.bindings);
-                        if ($949) {
+                        var $989 = Data_Array.any(isBindingUsed(deps))(group.bindings);
+                        if ($989) {
                             return {
-                                accum: Data_Semigroup.append(semigroupSet1)(Data_Foldable.foldMap(Data_Foldable.foldableArray)(monoidSet)(function ($982) {
-                                    return Data_Tuple.fst(Data_Tuple.snd($982));
+                                accum: Data_Semigroup.append(semigroupSet1)(Data_Foldable.foldMap(Data_Foldable.foldableArray)(monoidSet)(function ($1022) {
+                                    return Data_Tuple.fst(Data_Tuple.snd($1022));
                                 })(group.bindings))(deps),
                                 value: Data_Functor.map(Data_Functor.functorArray)((function () {
-                                    var $983 = Data_Functor.map(Data_Tuple.functorTuple)(Data_Tuple.snd);
-                                    return function ($984) {
-                                        return Data_Maybe.Just.create($983($984));
+                                    var $1023 = Data_Functor.map(Data_Tuple.functorTuple)(Data_Tuple.snd);
+                                    return function ($1024) {
+                                        return Data_Maybe.Just.create($1023($1024));
                                     };
                                 })())(group.bindings)
                             };
@@ -2222,8 +2323,8 @@ var toBackendModuleWithoutSourceUsage = function (v) {
                     };
                     return Data_Traversable.mapAccumR(Data_Traversable.traversableArray)(function (deps$prime) {
                         return function (v2) {
-                            var $951 = isBindingUsed(deps$prime)(v2);
-                            if ($951) {
+                            var $991 = isBindingUsed(deps$prime)(v2);
+                            if ($991) {
                                 return {
                                     accum: Data_Semigroup.append(semigroupSet1)(v2.value1.value0)(deps$prime),
                                     value: new Data_Maybe.Just(new Data_Tuple.Tuple(v2.value0, v2.value1.value1))
@@ -2257,11 +2358,11 @@ var toBackendModuleWithoutSourceUsage = function (v) {
             classDecls: v.classDecls,
             imports: usedImports,
             dataTypes: Data_Map_Internal.filter(PureScript_Backend_Optimizer_CoreFn.ordProperName)((function () {
-                var $985 = Data_Array.any(isBindingUsed(usedBindings.accum));
-                return function ($986) {
-                    return $985(toUnfoldable1((function (v1) {
+                var $1025 = Data_Array.any(isBindingUsed(usedBindings.accum));
+                return function ($1026) {
+                    return $1025(toUnfoldable1((function (v1) {
                         return v1.constructors;
-                    })($986)));
+                    })($1026)));
                 };
             })())(dataTypes),
             bindings: usedBindings.value,
@@ -2304,6 +2405,9 @@ var toBackendModuleWithLookup = function (lookupPurmeta) {
 };
 var toBackendModule = /* #__PURE__ */ toBackendModuleWithLookup(lookupPurmetaImplementation);
 export {
+    ExternFound,
+    ExternMissing,
+    ExternPending,
     alignClassMemberAnnotations,
     toBackendModule,
     toBackendModuleWithLookup,

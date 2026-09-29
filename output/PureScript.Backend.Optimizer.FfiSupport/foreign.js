@@ -103,3 +103,10 @@ export const findFfiFileImpl = function(extension) {
         };
     };
 };
+
+// Comparaison native, sans passer par les dictionnaires `Ord` (qui boxent).
+export const compareStringImpl = (lt) => (eq) => (gt) => (x) => (y) =>
+    x < y ? lt : x > y ? gt : eq;
+
+export const compareIntImpl = (lt) => (eq) => (gt) => (x) => (y) =>
+    x < y ? lt : x > y ? gt : eq;

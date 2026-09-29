@@ -5,6 +5,7 @@ import * as Data_Newtype from "../Data.Newtype/index.js";
 var writePurmetaSync = function (mn) {
     return $foreign.writePurmetaSyncImpl(Data_Newtype.unwrap()(mn));
 };
+var writeAllocProfile = $foreign.writeAllocProfileImpl;
 var trimPurmetaCache = $foreign.trimPurmetaCacheImpl;
 var readPurmetaSync = function (mn) {
     return $foreign.readPurmetaSyncImpl(Data_Newtype.unwrap()(mn))(Data_Maybe.Just.create)(Data_Maybe.Nothing.value);
@@ -12,11 +13,13 @@ var readPurmetaSync = function (mn) {
 var logMemory = $foreign.logMemoryImpl;
 var clearPurmetaCache = $foreign.clearPurmetaCacheImpl;
 export {
+    nowMillis,
     beginPurmetaBuild
 } from "./foreign.js";
 export {
     writePurmetaSync,
     readPurmetaSync,
+    writeAllocProfile,
     clearPurmetaCache,
     trimPurmetaCache,
     logMemory

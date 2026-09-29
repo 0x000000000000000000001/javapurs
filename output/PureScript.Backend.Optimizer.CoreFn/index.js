@@ -12,6 +12,7 @@ import * as Data_Semiring from "../Data.Semiring/index.js";
 import * as Data_String_CodeUnits from "../Data.String.CodeUnits/index.js";
 import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
+import * as PureScript_Backend_Optimizer_FfiSupport from "../PureScript.Backend.Optimizer.FfiSupport/index.js";
 var $runtime_lazy = function (name, moduleName, init) {
     var state = 0;
     var val;
@@ -777,7 +778,6 @@ var propKey = function (v) {
 };
 var ordProperName = Data_Ord.ordString;
 var ordModuleName = Data_Ord.ordString;
-var ordMaybe = /* #__PURE__ */ Data_Maybe.ordMaybe(ordModuleName);
 var ordSourceBindingId = /* #__PURE__ */ Data_Ord.ordRecord()(/* #__PURE__ */ Data_Ord.ordRecordCons(/* #__PURE__ */ Data_Ord.ordRecordCons(Data_Ord.ordRecordNil)()(moduleNameIsSymbol)(ordModuleName))()(bindingIdIsSymbol)(Data_Ord.ordInt));
 var ordIdent = Data_Ord.ordString;
 var ordArray1 = /* #__PURE__ */ Data_Ord.ordArray(ordIdent);
@@ -856,7 +856,7 @@ var $lazy_functorBinder = /* #__PURE__ */ $runtime_lazy("functorBinder", "PureSc
         }
     };
 });
-var functorBinder = /* #__PURE__ */ $lazy_functorBinder(543);
+var functorBinder = /* #__PURE__ */ $lazy_functorBinder(593);
 var $lazy_functorBind = /* #__PURE__ */ $runtime_lazy("functorBind", "PureScript.Backend.Optimizer.CoreFn", function () {
     return {
         map: function (f) {
@@ -953,12 +953,12 @@ var $lazy_functorGuard = /* #__PURE__ */ $runtime_lazy("functorGuard", "PureScri
         }
     };
 });
-var functorBind = /* #__PURE__ */ $lazy_functorBind(401);
-var functorBinding = /* #__PURE__ */ $lazy_functorBinding(407);
-var functorCaseAlternative = /* #__PURE__ */ $lazy_functorCaseAlternative(429);
-var functorCaseGuard = /* #__PURE__ */ $lazy_functorCaseGuard(444);
-var functorExpr = /* #__PURE__ */ $lazy_functorExpr(421);
-var functorGuard = /* #__PURE__ */ $lazy_functorGuard(451);
+var functorBind = /* #__PURE__ */ $lazy_functorBind(451);
+var functorBinding = /* #__PURE__ */ $lazy_functorBinding(457);
+var functorCaseAlternative = /* #__PURE__ */ $lazy_functorCaseAlternative(479);
+var functorCaseGuard = /* #__PURE__ */ $lazy_functorCaseGuard(494);
+var functorExpr = /* #__PURE__ */ $lazy_functorExpr(471);
+var functorGuard = /* #__PURE__ */ $lazy_functorGuard(501);
 var foldableProp = {
     foldl: function (k) {
         return function (a) {
@@ -1028,7 +1028,7 @@ var $lazy_foldableLiteral = /* #__PURE__ */ $runtime_lazy("foldableLiteral", "Pu
         }
     };
 });
-var foldableLiteral = /* #__PURE__ */ $lazy_foldableLiteral(488);
+var foldableLiteral = /* #__PURE__ */ $lazy_foldableLiteral(538);
 var $lazy_traversableLiteral = /* #__PURE__ */ $runtime_lazy("traversableLiteral", "PureScript.Backend.Optimizer.CoreFn", function () {
     return {
         traverse: function (dictApplicative) {
@@ -1056,7 +1056,7 @@ var $lazy_traversableLiteral = /* #__PURE__ */ $runtime_lazy("traversableLiteral
                     if (v instanceof LitBoolean) {
                         return Control_Applicative.pure(dictApplicative)(new LitBoolean(v.value0));
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 497, column 16 - line 504, column 40): " + [ v.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 547, column 16 - line 554, column 40): " + [ v.constructor.name ]);
                 };
             };
         },
@@ -1073,11 +1073,11 @@ var $lazy_traversableLiteral = /* #__PURE__ */ $runtime_lazy("traversableLiteral
         }
     };
 });
-var traversableLiteral = /* #__PURE__ */ $lazy_traversableLiteral(496);
+var traversableLiteral = /* #__PURE__ */ $lazy_traversableLiteral(546);
 var findProp = function (prop) {
     return Data_Array.findMap(function (v) {
-        var $473 = prop === v.value0;
-        if ($473) {
+        var $484 = prop === v.value0;
+        if ($484) {
             return new Data_Maybe.Just(v.value1);
         };
         return Data_Maybe.Nothing.value;
@@ -1114,9 +1114,26 @@ var exprAnn = function (v) {
     if (v instanceof ExprTypeApp) {
         return v.value0;
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 549, column 11 - line 559, column 25): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 599, column 11 - line 609, column 25): " + [ v.constructor.name ]);
 };
 var eqProperName = Data_Eq.eqString;
+var eqModuleNames = function (v) {
+    return function (v1) {
+        if (v instanceof Data_Maybe.Nothing && v1 instanceof Data_Maybe.Nothing) {
+            return true;
+        };
+        if (v instanceof Data_Maybe.Nothing && v1 instanceof Data_Maybe.Just) {
+            return false;
+        };
+        if (v instanceof Data_Maybe.Just && v1 instanceof Data_Maybe.Nothing) {
+            return false;
+        };
+        if (v instanceof Data_Maybe.Just && v1 instanceof Data_Maybe.Just) {
+            return PureScript_Backend_Optimizer_FfiSupport.compareStringImpl(false)(true)(false)(v.value0)(v1.value0);
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 122, column 1 - line 122, column 65): " + [ v.constructor.name, v1.constructor.name ]);
+    };
+};
 var eqModuleName = Data_Eq.eqString;
 var eqMaybe = /* #__PURE__ */ Data_Maybe.eqMaybe(eqModuleName);
 var eqQualified = function (dictEq) {
@@ -1131,16 +1148,30 @@ var eqQualified = function (dictEq) {
 var ordQualified = function (dictOrd) {
     var eqQualified1 = eqQualified(dictOrd.Eq0());
     return {
-        compare: function (x) {
-            return function (y) {
-                var v = Data_Ord.compare(ordMaybe)(x.value0)(y.value0);
-                if (v instanceof Data_Ordering.LT) {
-                    return Data_Ordering.LT.value;
+        compare: function (v) {
+            return function (v1) {
+                var compareModule = function (v2) {
+                    return function (v3) {
+                        if (v2 instanceof Data_Maybe.Nothing && v3 instanceof Data_Maybe.Nothing) {
+                            return Data_Ordering.EQ.value;
+                        };
+                        if (v2 instanceof Data_Maybe.Nothing && v3 instanceof Data_Maybe.Just) {
+                            return Data_Ordering.LT.value;
+                        };
+                        if (v2 instanceof Data_Maybe.Just && v3 instanceof Data_Maybe.Nothing) {
+                            return Data_Ordering.GT.value;
+                        };
+                        if (v2 instanceof Data_Maybe.Just && v3 instanceof Data_Maybe.Just) {
+                            return Data_Ord.compare(ordModuleName)(v2.value0)(v3.value0);
+                        };
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 94, column 5 - line 94, column 39): " + [ v2.constructor.name, v3.constructor.name ]);
+                    };
                 };
-                if (v instanceof Data_Ordering.GT) {
-                    return Data_Ordering.GT.value;
+                var v2 = compareModule(v.value0)(v1.value0);
+                if (v2 instanceof Data_Ordering.EQ) {
+                    return Data_Ord.compare(dictOrd)(v.value1)(v1.value1);
                 };
-                return Data_Ord.compare(dictOrd)(x.value1)(y.value1);
+                return v2;
             };
         },
         Eq0: function () {
@@ -1149,6 +1180,16 @@ var ordQualified = function (dictOrd) {
     };
 };
 var eqSourceBindingId = /* #__PURE__ */ Data_Eq.eqRec()(/* #__PURE__ */ Data_Eq.eqRowCons(/* #__PURE__ */ Data_Eq.eqRowCons(Data_Eq.eqRowNil)()(moduleNameIsSymbol)(eqModuleName))()(bindingIdIsSymbol)(Data_Eq.eqInt));
+var eqIdents = function (v) {
+    return function (v1) {
+        return PureScript_Backend_Optimizer_FfiSupport.compareStringImpl(false)(true)(false)(v)(v1);
+    };
+};
+var eqQualifiedIdent = function (v) {
+    return function (v1) {
+        return eqModuleNames(v.value0)(v1.value0) && eqIdents(v.value1)(v1.value1);
+    };
+};
 var eqIdent = Data_Eq.eqString;
 var eqArray1 = /* #__PURE__ */ Data_Eq.eqArray(eqIdent);
 var eqReExport = {
@@ -1235,7 +1276,7 @@ var $lazy_eqExprType = /* #__PURE__ */ $runtime_lazy("eqExprType", "PureScript.B
         }
     };
 });
-var eqExprType = /* #__PURE__ */ $lazy_eqExprType(221);
+var eqExprType = /* #__PURE__ */ $lazy_eqExprType(271);
 var $lazy_ordExprType = /* #__PURE__ */ $runtime_lazy("ordExprType", "PureScript.Backend.Optimizer.CoreFn", function () {
     return {
         compare: function (x) {
@@ -1444,7 +1485,7 @@ var $lazy_ordExprType = /* #__PURE__ */ $runtime_lazy("ordExprType", "PureScript
         }
     };
 });
-var ordExprType = /* #__PURE__ */ $lazy_ordExprType(222);
+var ordExprType = /* #__PURE__ */ $lazy_ordExprType(272);
 var eqConstructorType = {
     eq: function (x) {
         return function (y) {
@@ -1575,6 +1616,37 @@ var emptySpan = {
     start: zero,
     end: zero
 };
+var compareModuleNames = function (v) {
+    return function (v1) {
+        if (v instanceof Data_Maybe.Nothing && v1 instanceof Data_Maybe.Nothing) {
+            return Data_Ordering.EQ.value;
+        };
+        if (v instanceof Data_Maybe.Nothing && v1 instanceof Data_Maybe.Just) {
+            return Data_Ordering.LT.value;
+        };
+        if (v instanceof Data_Maybe.Just && v1 instanceof Data_Maybe.Nothing) {
+            return Data_Ordering.GT.value;
+        };
+        if (v instanceof Data_Maybe.Just && v1 instanceof Data_Maybe.Just) {
+            return PureScript_Backend_Optimizer_FfiSupport.compareStringImpl(Data_Ordering.LT.value)(Data_Ordering.EQ.value)(Data_Ordering.GT.value)(v.value0)(v1.value0);
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 113, column 1 - line 113, column 71): " + [ v.constructor.name, v1.constructor.name ]);
+    };
+};
+var compareIdents = function (v) {
+    return function (v1) {
+        return PureScript_Backend_Optimizer_FfiSupport.compareStringImpl(Data_Ordering.LT.value)(Data_Ordering.EQ.value)(Data_Ordering.GT.value)(v)(v1);
+    };
+};
+var compareQualifiedIdent = function (v) {
+    return function (v1) {
+        var v2 = compareModuleNames(v.value0)(v1.value0);
+        if (v2 instanceof Data_Ordering.EQ) {
+            return compareIdents(v.value1)(v1.value1);
+        };
+        return v2;
+    };
+};
 var binderAnn = function (v) {
     if (v instanceof BinderNull) {
         return v.value0;
@@ -1591,7 +1663,7 @@ var binderAnn = function (v) {
     if (v instanceof BinderConstructor) {
         return v.value0;
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 565, column 13 - line 570, column 33): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 615, column 13 - line 620, column 33): " + [ v.constructor.name ]);
 };
 export {
     Ann,
@@ -1667,6 +1739,10 @@ export {
     findProp,
     propKey,
     propValue,
+    compareQualifiedIdent,
+    eqQualifiedIdent,
+    compareIdents,
+    eqIdents,
     binderAnn,
     exprAnn,
     qualifiedModuleName,
