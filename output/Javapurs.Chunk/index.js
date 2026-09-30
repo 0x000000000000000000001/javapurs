@@ -43,15 +43,15 @@ var unionFrees = /* #__PURE__ */ (function () {
             if (v instanceof Data_Maybe.Just && v1 instanceof Data_Maybe.Just) {
                 return new Data_Maybe.Just(Data_Set.union(Data_Ord.ordString)(v.value0)(v1.value0));
             };
-            throw new Error("Failed pattern match at Javapurs.Chunk (line 370, column 3 - line 370, column 27): " + [ v.constructor.name, v1.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Chunk (line 420, column 3 - line 420, column 27): " + [ v.constructor.name, v1.constructor.name ]);
         };
     };
     return Data_Foldable.foldl(Data_Foldable.foldableArray)(step)(new Data_Maybe.Just(Data_Set.empty));
 })();
 var unbound = /* #__PURE__ */ (function () {
-    var $280 = Data_Set.fromFoldable(Data_Foldable.foldableArray)(Data_Ord.ordString);
-    return function ($281) {
-        return Data_Maybe.Just.create($280($281));
+    var $302 = Data_Set.fromFoldable(Data_Foldable.foldableArray)(Data_Ord.ordString);
+    return function ($303) {
+        return Data_Maybe.Just.create($302($303));
     };
 })();
 var unary = function (expression) {
@@ -59,7 +59,8 @@ var unary = function (expression) {
         return Control_Applicative.pure(applicativeStateT)({
             expr: expression,
             cost: 1 + info.cost | 0,
-            free: info.free
+            free: info.free,
+            extractable: true
         });
     };
 };
@@ -72,10 +73,11 @@ var opaque = function (expression) {
     return Control_Applicative.pure(applicativeStateT)({
         expr: expression,
         cost: 1,
-        free: Data_Maybe.Nothing.value
+        free: Data_Maybe.Nothing.value,
+        extractable: false
     });
 };
-var maxChunkCost = 1200;
+var maxChunkCost = 256;
 var many = function (expression) {
     return function (infos) {
         return Control_Applicative.pure(applicativeStateT)({
@@ -85,7 +87,8 @@ var many = function (expression) {
             })(infos)) | 0,
             free: unionFrees(Data_Functor.map(Data_Functor.functorArray)(function (v) {
                 return v.free;
-            })(infos))
+            })(infos)),
+            extractable: true
         });
     };
 };
@@ -101,15 +104,15 @@ var makeGroupHelpers = function (offset) {
             }))(function (counter) {
                 var name = "__chunk$" + Data_Show.show(Data_Show.showInt)(counter);
                 return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT1)(function (state) {
-                    var $55 = {};
-                    for (var $56 in state) {
-                        if ({}.hasOwnProperty.call(state, $56)) {
-                            $55[$56] = state[$56];
+                    var $62 = {};
+                    for (var $63 in state) {
+                        if ({}.hasOwnProperty.call(state, $63)) {
+                            $62[$63] = state[$63];
                         };
                     };
-                    $55.counter = counter + 1 | 0;
-                    $55.helpers = Data_Semigroup.append(Data_Semigroup.semigroupArray)(state.helpers)([ new Javapurs_JavaAst.JavaStaticMethod(name, [  ], new Javapurs_JavaAst.JavaArray(v.value0.head)) ]);
-                    return $55;
+                    $62.counter = counter + 1 | 0;
+                    $62.helpers = Data_Semigroup.append(Data_Semigroup.semigroupArray)(state.helpers)([ new Javapurs_JavaAst.JavaStaticMethod(name, [  ], new Javapurs_JavaAst.JavaArray(v.value0.head)) ]);
+                    return $62;
                 }))(function () {
                     return Control_Bind.bind(bindStateT)(makeGroupHelpers(offset + Data_Array.length(v.value0.head) | 0)(v.value0.tail))(function (rest) {
                         return Control_Applicative.pure(applicativeStateT)(Data_Array.cons({
@@ -121,7 +124,7 @@ var makeGroupHelpers = function (offset) {
                 });
             });
         };
-        throw new Error("Failed pattern match at Javapurs.Chunk (line 175, column 34 - line 185, column 113): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.Chunk (line 186, column 34 - line 196, column 113): " + [ v.constructor.name ]);
     };
 };
 var loopInternals = function (args) {
@@ -140,7 +143,8 @@ var leaf = function (expression) {
         return Control_Applicative.pure(applicativeStateT)({
             expr: expression,
             cost: cost,
-            free: new Data_Maybe.Just(Data_Set.empty)
+            free: new Data_Maybe.Just(Data_Set.empty),
+            extractable: true
         });
     };
 };
@@ -166,8 +170,8 @@ var groupItems = function (infos) {
             })(v.before))(splitGroups(groupSize)(v.after));
         };
     };
-    var $66 = Data_Array["null"](infos);
-    if ($66) {
+    var $73 = Data_Array["null"](infos);
+    if ($73) {
         return [  ];
     };
     var maxItemCost = Data_Array.foldl(function (acc) {
@@ -182,14 +186,14 @@ var freshLocal = /* #__PURE__ */ Control_Bind.bind(bindStateT)(/* #__PURE__ */ C
     return v.localCounter;
 }))(function (counter) {
     return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT2)(function (state) {
-        var $67 = {};
-        for (var $68 in state) {
-            if ({}.hasOwnProperty.call(state, $68)) {
-                $67[$68] = state[$68];
+        var $74 = {};
+        for (var $75 in state) {
+            if ({}.hasOwnProperty.call(state, $75)) {
+                $74[$75] = state[$75];
             };
         };
-        $67.localCounter = counter + 1 | 0;
-        return $67;
+        $74.localCounter = counter + 1 | 0;
+        return $74;
     }))(function () {
         return Control_Applicative.pure(applicativeStateT)("__arr$" + Data_Show.show(Data_Show.showInt)(counter));
     });
@@ -278,7 +282,7 @@ var freeOf = function (boundNames) {
             return unbound([ expression.value0 ]);
         };
         if (expression instanceof Javapurs_JavaAst.JavaLoopInvariant) {
-            return unbound([ expression.value0 ]);
+            return Data_Maybe.Nothing.value;
         };
         if (expression instanceof Javapurs_JavaAst.JavaString) {
             return new Data_Maybe.Just(Data_Set.empty);
@@ -422,7 +426,8 @@ var splitArray = function (infos) {
             return Control_Applicative.pure(applicativeStateT)({
                 expr: block,
                 cost: 1 + (size * 8 | 0) | 0,
-                free: freeOf(Data_Set.empty)(block)
+                free: freeOf(Data_Set.empty)(block),
+                extractable: true
             });
         });
     });
@@ -439,20 +444,21 @@ var extract = function (expression) {
     }))(function (counter) {
         var name = "__chunk$" + Data_Show.show(Data_Show.showInt)(counter);
         return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT1)(function (state) {
-            var $159 = {};
-            for (var $160 in state) {
-                if ({}.hasOwnProperty.call(state, $160)) {
-                    $159[$160] = state[$160];
+            var $166 = {};
+            for (var $167 in state) {
+                if ({}.hasOwnProperty.call(state, $167)) {
+                    $166[$167] = state[$167];
                 };
             };
-            $159.counter = counter + 1 | 0;
-            $159.helpers = Data_Semigroup.append(Data_Semigroup.semigroupArray)(state.helpers)([ new Javapurs_JavaAst.JavaStaticMethod(name, [  ], expression) ]);
-            return $159;
+            $166.counter = counter + 1 | 0;
+            $166.helpers = Data_Semigroup.append(Data_Semigroup.semigroupArray)(state.helpers)([ new Javapurs_JavaAst.JavaStaticMethod(name, [  ], expression) ]);
+            return $166;
         }))(function () {
             return Control_Applicative.pure(applicativeStateT)({
                 expr: new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaGlobalVar(Data_Maybe.Nothing.value, name), [  ]),
                 cost: 1,
-                free: new Data_Maybe.Just(Data_Set.empty)
+                free: new Data_Maybe.Just(Data_Set.empty),
+                extractable: true
             });
         });
     });
@@ -468,15 +474,16 @@ var bound = function (expression) {
             return Control_Applicative.pure(applicativeStateT)({
                 expr: expression,
                 cost: 1 + info.cost | 0,
-                free: removeNames(names)(info.free)
+                free: removeNames(names)(info.free),
+                extractable: true
             });
         };
     };
 };
 var chunkValue = function (expression) {
     return Control_Bind.bind(bindStateT)(build(expression))(function (info) {
-        var $162 = info.cost > maxChunkCost && Data_Eq.eq(eqMaybe)(info.free)(new Data_Maybe.Just(Data_Set.empty));
-        if ($162) {
+        var $169 = info.extractable && (info.cost > maxChunkCost && Data_Eq.eq(eqMaybe)(info.free)(new Data_Maybe.Just(Data_Set.empty)));
+        if ($169) {
             return extract(info.expr);
         };
         return Control_Applicative.pure(applicativeStateT)(info);
@@ -588,6 +595,27 @@ var chunkStmt = function (statement) {
         });
     });
 };
+var chunkLoopBody = function (body) {
+    if (body instanceof Javapurs_JavaAst.JavaBlock) {
+        return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(chunkStmt)(body.value0))(function (statementInfos) {
+            return Control_Bind.bind(bindStateT)(chunkValue(body.value1))(function (info) {
+                var totalCost = (1 + Data_Foldable.sum(Data_Foldable.foldableArray)(Data_Semiring.semiringInt)(Data_Functor.map(Data_Functor.functorArray)(function (v) {
+                    return v.cost;
+                })(statementInfos)) | 0) + info.cost | 0;
+                var rebuilt = new Javapurs_JavaAst.JavaBlock(Data_Functor.map(Data_Functor.functorArray)(function (v) {
+                    return v.expr;
+                })(statementInfos), info.expr);
+                return Control_Applicative.pure(applicativeStateT)({
+                    expr: rebuilt,
+                    cost: totalCost,
+                    free: freeOf(Data_Set.empty)(rebuilt),
+                    extractable: true
+                });
+            });
+        });
+    };
+    return chunkValue(body);
+};
 var chunkField = function (v) {
     return Control_Bind.bind(bindStateT)(chunkValue(v.value1))(function (info) {
         return Control_Applicative.pure(applicativeStateT)(new Data_Tuple.Tuple(v.value0, info));
@@ -612,15 +640,12 @@ var build = function (expression) {
         return Control_Applicative.pure(applicativeStateT)({
             expr: new Javapurs_JavaAst.JavaLocal(expression.value0),
             cost: 1,
-            free: new Data_Maybe.Just(Data_Set.singleton(expression.value0))
+            free: new Data_Maybe.Just(Data_Set.singleton(expression.value0)),
+            extractable: true
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaLoopInvariant) {
-        return Control_Applicative.pure(applicativeStateT)({
-            expr: new Javapurs_JavaAst.JavaLoopInvariant(expression.value0),
-            cost: 1,
-            free: new Data_Maybe.Just(Data_Set.singleton(expression.value0))
-        });
+        return opaque(expression);
     };
     if (expression instanceof Javapurs_JavaAst.JavaGlobalVar) {
         return leaf(new Javapurs_JavaAst.JavaGlobalVar(expression.value0, expression.value1))(1);
@@ -706,8 +731,10 @@ var build = function (expression) {
             var totalCost = 1 + Data_Foldable.sum(Data_Foldable.foldableArray)(Data_Semiring.semiringInt)(Data_Functor.map(Data_Functor.functorArray)(function (v) {
                 return v.cost;
             })(infos)) | 0;
-            var $235 = totalCost > maxChunkCost;
-            if ($235) {
+            var $245 = totalCost > maxChunkCost && Data_Array.all(function (info) {
+                return Data_Eq.eq(eqMaybe)(info.free)(new Data_Maybe.Just(Data_Set.empty));
+            })(infos);
+            if ($245) {
                 return splitArray(infos);
             };
             return many(new Javapurs_JavaAst.JavaArray(Data_Functor.map(Data_Functor.functorArray)(function (v) {
@@ -757,7 +784,8 @@ var build = function (expression) {
                 return Control_Applicative.pure(applicativeStateT)({
                     expr: new Javapurs_JavaAst.JavaLet(expression.value0, valueInfo.expr, bodyInfo.expr),
                     cost: (1 + valueInfo.cost | 0) + bodyInfo.cost | 0,
-                    free: unionFrees([ valueInfo.free, removeNames([ expression.value0 ])(bodyInfo.free) ])
+                    free: unionFrees([ valueInfo.free, removeNames([ expression.value0 ])(bodyInfo.free) ]),
+                    extractable: true
                 });
             });
         });
@@ -777,7 +805,8 @@ var build = function (expression) {
                     })(bindingInfos)) | 0) + bodyInfo.cost | 0,
                     free: removeNames(names)(unionFrees(Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Functor.map(Data_Functor.functorArray)(function (v) {
                         return v.info.free;
-                    })(bindingInfos))([ bodyInfo.free ])))
+                    })(bindingInfos))([ bodyInfo.free ]))),
+                    extractable: true
                 });
             });
         });
@@ -818,7 +847,61 @@ var build = function (expression) {
                 return Control_Applicative.pure(applicativeStateT)({
                     expr: rebuilt,
                     cost: (1 + statementCost | 0) + info.cost | 0,
-                    free: freeOf(Data_Set.empty)(rebuilt)
+                    free: freeOf(Data_Set.empty)(rebuilt),
+                    extractable: true
+                });
+            });
+        });
+    };
+    if (expression instanceof Javapurs_JavaAst.JavaIf) {
+        return Control_Bind.bind(bindStateT)(chunkValue(expression.value0))(function (conditionInfo) {
+            return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(chunkStmt)(expression.value1))(function (thenInfos) {
+                return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(chunkStmt)(expression.value2))(function (elseInfos) {
+                    var totalCost = ((1 + conditionInfo.cost | 0) + Data_Foldable.sum(Data_Foldable.foldableArray)(Data_Semiring.semiringInt)(Data_Functor.map(Data_Functor.functorArray)(function (v) {
+                        return v.cost;
+                    })(thenInfos)) | 0) + Data_Foldable.sum(Data_Foldable.foldableArray)(Data_Semiring.semiringInt)(Data_Functor.map(Data_Functor.functorArray)(function (v) {
+                        return v.cost;
+                    })(elseInfos)) | 0;
+                    var rebuilt = new Javapurs_JavaAst.JavaIf(conditionInfo.expr, Data_Functor.map(Data_Functor.functorArray)(function (v) {
+                        return v.expr;
+                    })(thenInfos), Data_Functor.map(Data_Functor.functorArray)(function (v) {
+                        return v.expr;
+                    })(elseInfos));
+                    return Control_Applicative.pure(applicativeStateT)({
+                        expr: rebuilt,
+                        cost: totalCost,
+                        free: freeOf(Data_Set.empty)(rebuilt),
+                        extractable: false
+                    });
+                });
+            });
+        });
+    };
+    if (expression instanceof Javapurs_JavaAst.JavaWhileTrue) {
+        return Control_Bind.bind(bindStateT)(chunkLoopBody(expression.value3))(function (info) {
+            var rebuilt = new Javapurs_JavaAst.JavaWhileTrue(expression.value0, expression.value1, expression.value2, info.expr);
+            return Control_Applicative.pure(applicativeStateT)({
+                expr: rebuilt,
+                cost: 1 + info.cost | 0,
+                free: freeOf(Data_Set.empty)(rebuilt),
+                extractable: true
+            });
+        });
+    };
+    if (expression instanceof Javapurs_JavaAst.JavaMemoizedLoop) {
+        return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(chunkField)(expression.value3))(function (invariantInfos) {
+            return Control_Bind.bind(bindStateT)(chunkLoopBody(expression.value4))(function (info) {
+                var rebuilt = new Javapurs_JavaAst.JavaMemoizedLoop(expression.value0, expression.value1, expression.value2, Data_Functor.map(Data_Functor.functorArray)(fieldExpr)(invariantInfos), info.expr);
+                var invariantCost = Data_Foldable.sum(Data_Foldable.foldableArray)(Data_Semiring.semiringInt)(Data_Functor.map(Data_Functor.functorArray)(function ($304) {
+                    return (function (v) {
+                        return v.cost;
+                    })(fieldInfo($304));
+                })(invariantInfos));
+                return Control_Applicative.pure(applicativeStateT)({
+                    expr: rebuilt,
+                    cost: (1 + invariantCost | 0) + info.cost | 0,
+                    free: freeOf(Data_Set.empty)(rebuilt),
+                    extractable: true
                 });
             });
         });

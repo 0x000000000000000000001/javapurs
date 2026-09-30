@@ -1,13 +1,13 @@
--- | Lifts large closed subexpressions out of a method body.
+-- | Lifts large subexpressions out of a method body.
 -- |
 -- | javac attributes and compiles one expression tree at a time. A single
 -- | initializer with tens of thousands of applications needs gigabytes of heap
--- | and can exceed the 64K method limit anyway. Any closed subtree above a
--- | node budget becomes a `__chunk$N` static method, and the original site
--- | calls it. Closed means the subtree does not read a local that it does not
--- | bind itself, so no parameter has to be passed. Chunks are emitted deepest
--- | first, which splits a long application chain into a series of calls
--- | instead of one giant method.
+-- | and can exceed the 64K method limit anyway. Any subtree above a node
+-- | budget becomes a `__chunk$N` static method that receives the locals it
+-- | reads as parameters. Chunks are emitted deepest first, which splits a
+-- | long application chain or a large branch tree into a series of calls
+-- | instead of one giant method. Statement-only nodes (`if`, raw text) are
+-- | never extracted themselves, only the values inside them.
 module Javapurs.Chunk (chunkFile) where
 
 import Prelude
@@ -27,9 +27,16 @@ import Javapurs.JavaAst (JavaExpr(..), JavaFile, children)
 -- | unit is roughly one Java operation; the JVM stops at 65535 bytecode bytes,
 -- | so the budget leaves room for the casts around each application.
 maxChunkCost :: Int
-maxChunkCost = 1200
+maxChunkCost = 256
 
-type Info = { expr :: JavaExpr, cost :: Int, free :: Maybe (Set String) }
+
+type Info =
+  { expr :: JavaExpr
+  , cost :: Int
+  , free :: Maybe (Set String)
+  -- | A node whose printed form can be returned from a method.
+  , extractable :: Boolean
+  }
 
 type StatementInfo = { expr :: JavaExpr, cost :: Int }
 
@@ -123,11 +130,14 @@ chunkStmt statement = case statement of
 chunkValue :: JavaExpr -> Chunk Info
 chunkValue expression = do
   info <- build expression
-  if info.cost > maxChunkCost && info.free == Just Set.empty then
+  -- Only closed subtrees are lifted: passing free locals as parameters needs
+  -- scope-aware rewriting that is easy to get wrong across shadowing lets.
+  if info.extractable && info.cost > maxChunkCost && info.free == Just Set.empty then
     extract info.expr
   else
     pure info
 
+-- | Move a closed subtree into a nullary `__chunk$N` method.
 extract :: JavaExpr -> Chunk Info
 extract expression = do
   counter <- gets _.counter
@@ -136,12 +146,13 @@ extract expression = do
     { counter = counter + 1
     , helpers = state.helpers <> [ JavaStaticMethod name [] expression ]
     }
-  pure { expr: JavaCall (JavaGlobalVar Nothing name) [], cost: 1, free: Just Set.empty }
+  pure { expr: JavaCall (JavaGlobalVar Nothing name) [], cost: 1, free: Just Set.empty, extractable: true }
 
 -- | A large array literal becomes a block that allocates the array and fills
 -- | it from group helpers. Each helper returns a small array, so one method
 -- | never carries more than a budget of element constructors. Filling the
 -- | allocated array keeps the element order and the sharing of the literal.
+-- | Items must be closed: the group helpers are nullary.
 splitArray :: Array Info -> Chunk Info
 splitArray infos = do
   localName <- freshLocal
@@ -152,7 +163,7 @@ splitArray infos = do
     allocation = JavaLocalAssign localName (JavaRaw ("new Object[" <> show size <> "]"))
     fillStatements = Array.concatMap (fillGroup localName) groupCalls
     block = JavaBlock (Array.cons allocation fillStatements) (JavaLocal localName)
-  pure { expr: block, cost: 1 + size * 8, free: freeOf Set.empty block }
+  pure { expr: block, cost: 1 + size * 8, free: freeOf Set.empty block, extractable: true }
 
 -- | Group adjacent items so that one group's total cost stays within budget.
 -- | A single item over budget forms its own group; it cannot be split further
@@ -202,8 +213,10 @@ build :: JavaExpr -> Chunk Info
 build expression = case expression of
   JavaString value -> leaf (JavaString value) (1 + String.length value / 16)
   JavaRaw value -> leaf (JavaRaw value) (1 + String.length value / 16)
-  JavaLocal name -> pure { expr: JavaLocal name, cost: 1, free: Just (Set.singleton name) }
-  JavaLoopInvariant name -> pure { expr: JavaLoopInvariant name, cost: 1, free: Just (Set.singleton name) }
+  JavaLocal name -> pure { expr: JavaLocal name, cost: 1, free: Just (Set.singleton name), extractable: true }
+  -- A loop invariant prints as `name.getAsInt()` on an `IntSupplier` local;
+  -- a lifted parameter would change its type.
+  JavaLoopInvariant _ -> opaque expression
   JavaGlobalVar qualifier name -> leaf (JavaGlobalVar qualifier name) 1
   JavaCtorSingleton moduleName ctorName -> leaf (JavaCtorSingleton moduleName ctorName) 1
   JavaThrow message -> leaf (JavaThrow message) (1 + String.length message / 16)
@@ -248,7 +261,7 @@ build expression = case expression of
   JavaArray values -> do
     infos <- traverse chunkValue values
     let totalCost = 1 + sum (map (_.cost) infos)
-    if totalCost > maxChunkCost then
+    if totalCost > maxChunkCost && Array.all (\info -> info.free == Just Set.empty) infos then
       splitArray infos
     else
       many (JavaArray (map (_.expr) infos)) infos
@@ -280,6 +293,7 @@ build expression = case expression of
       { expr: JavaLet name valueInfo.expr bodyInfo.expr
       , cost: 1 + valueInfo.cost + bodyInfo.cost
       , free: unionFrees [ valueInfo.free, removeNames [ name ] bodyInfo.free ]
+      , extractable: true
       }
   JavaLetRec bindings body -> do
     bindingInfos <- traverse chunkBinding bindings
@@ -289,6 +303,7 @@ build expression = case expression of
       { expr: JavaLetRec (map (\binding -> Tuple binding.name binding.info.expr) bindingInfos) bodyInfo.expr
       , cost: 1 + sum (map (_.info.cost) bindingInfos) + bodyInfo.cost
       , free: removeNames names (unionFrees (map (_.info.free) bindingInfos <> [ bodyInfo.free ]))
+      , extractable: true
       }
   JavaBinaryOp operator left right -> do
     leftInfo <- chunkValue left
@@ -314,10 +329,43 @@ build expression = case expression of
       { expr: rebuilt
       , cost: 1 + statementCost + info.cost
       , free: freeOf Set.empty rebuilt
+      , extractable: true
       }
+  JavaIf condition thenStatements elseStatements -> do
+    conditionInfo <- chunkValue condition
+    thenInfos <- traverse chunkStmt thenStatements
+    elseInfos <- traverse chunkStmt elseStatements
+    let
+      rebuilt = JavaIf conditionInfo.expr (map (_.expr) thenInfos) (map (_.expr) elseInfos)
+      totalCost = 1 + conditionInfo.cost + sum (map (_.cost) thenInfos) + sum (map (_.cost) elseInfos)
+    pure { expr: rebuilt, cost: totalCost, free: freeOf Set.empty rebuilt, extractable: false }
+  JavaWhileTrue loopId params intParams body -> do
+    info <- chunkLoopBody body
+    let rebuilt = JavaWhileTrue loopId params intParams info.expr
+    pure { expr: rebuilt, cost: 1 + info.cost, free: freeOf Set.empty rebuilt, extractable: true }
+  JavaMemoizedLoop loopId params intParams invariants body -> do
+    invariantInfos <- traverse chunkField invariants
+    info <- chunkLoopBody body
+    let
+      rebuilt = JavaMemoizedLoop loopId params intParams (map fieldExpr invariantInfos) info.expr
+      invariantCost = sum (map (_.cost <<< fieldInfo) invariantInfos)
+    pure { expr: rebuilt, cost: 1 + invariantCost + info.cost, free: freeOf Set.empty rebuilt, extractable: true }
   -- Statement containers and control flow stay opaque: their pieces are not
   -- values and cannot be called from another method.
   _ -> opaque expression
+
+-- | A loop body is a statement tree. Values inside are still chunked, while
+-- | `JavaContinue` and nested loops stay whole so the control flow is intact.
+chunkLoopBody :: JavaExpr -> Chunk Info
+chunkLoopBody body = case body of
+  JavaBlock statements expression -> do
+    statementInfos <- traverse chunkStmt statements
+    info <- chunkValue expression
+    let
+      rebuilt = JavaBlock (map (_.expr) statementInfos) info.expr
+      totalCost = 1 + sum (map (_.cost) statementInfos) + info.cost
+    pure { expr: rebuilt, cost: totalCost, free: freeOf Set.empty rebuilt, extractable: true }
+  other -> chunkValue other
 
 chunkField :: Tuple String JavaExpr -> Chunk (Tuple String Info)
 chunkField (Tuple name value) = do
@@ -330,19 +378,20 @@ chunkBinding (Tuple bindingName value) = do
   pure { name: bindingName, info }
 
 leaf :: JavaExpr -> Int -> Chunk Info
-leaf expression cost = pure { expr: expression, cost, free: Just Set.empty }
+leaf expression cost = pure { expr: expression, cost, free: Just Set.empty, extractable: true }
 
 opaque :: JavaExpr -> Chunk Info
-opaque expression = pure { expr: expression, cost: 1, free: Nothing }
+opaque expression = pure { expr: expression, cost: 1, free: Nothing, extractable: false }
 
 unary :: JavaExpr -> Info -> Chunk Info
-unary expression info = pure { expr: expression, cost: 1 + info.cost, free: info.free }
+unary expression info = pure { expr: expression, cost: 1 + info.cost, free: info.free, extractable: true }
 
 many :: JavaExpr -> Array Info -> Chunk Info
 many expression infos = pure
   { expr: expression
   , cost: 1 + sum (map (_.cost) infos)
   , free: unionFrees (map (_.free) infos)
+  , extractable: true
   }
 
 bound :: JavaExpr -> Array String -> Info -> Chunk Info
@@ -350,6 +399,7 @@ bound expression names info = pure
   { expr: expression
   , cost: 1 + info.cost
   , free: removeNames names info.free
+  , extractable: true
   }
 
 consInfo :: Info -> Array Info -> Array Info
@@ -376,7 +426,7 @@ unionFrees = foldl step (Just Set.empty)
 freeOf :: Set String -> JavaExpr -> Maybe (Set String)
 freeOf boundNames expression = case expression of
   JavaLocal name -> unbound [ name ]
-  JavaLoopInvariant name -> unbound [ name ]
+  JavaLoopInvariant _ -> Nothing
   JavaString _ -> Just Set.empty
   JavaRaw _ -> Just Set.empty
   JavaGlobalVar _ _ -> Just Set.empty

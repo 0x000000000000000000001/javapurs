@@ -40,6 +40,7 @@ main = launchAff_ $ Metrics.measure "backend total" \_ -> do
   let directCalls = not (Array.elem "--direct-calls=off" args)
   let intFunctions = not (Array.elem "--int-functions=off" args)
   let ownership = not (Array.elem "--ownership=off" args)
+  let chunkEnabled = not (Array.elem "--no-chunk" args)
   let mainModule = case Array.findIndex (_ == "--main") args of
         Just i -> case Array.index args (i + 1) of
           Just m -> m
@@ -75,9 +76,12 @@ main = launchAff_ $ Metrics.measure "backend total" \_ -> do
           Just p -> FS.readTextFile UTF8 p
         
         let javaAst = translateWithIntFunctions { typedRecords, loopInvariants, directCalls, intFunctions, ownership } backendMod
-        -- A single binding can still be one giant expression; lift its closed
-        -- pieces into methods so javac never sees a 5 MB method body.
-        let chunkedAst = chunkFile javaAst
+        -- Rename first: the chunk pass reasons about free local names, which
+        -- are only unique once every scope has its own suffix.
+        let renamedAst = javaAst { decls = map renameExpr javaAst.decls }
+        -- A single binding can still be one giant expression; lift its pieces
+        -- into methods so javac never sees a 5 MB method body.
+        let chunkedAst = if chunkEnabled then chunkFile renamedAst else renamedAst
         let foreignIdents = Map.keys backendMod.foreign
         let ffiStubs =
               if String.length ffiContent > 0 then
@@ -92,7 +96,7 @@ main = launchAff_ $ Metrics.measure "backend total" \_ -> do
             "        public Object apply(Object arg) { throw new UnsupportedOperationException(\"Missing Java FFI in " <> modNameStr <> "\"); }\n" <>
             "    };\n" <>
             ffiStubs <> "\n\n" <>
-            String.joinWith "\n" (map (printExpr <<< renameExpr) chunkedAst.decls) <>
+            String.joinWith "\n" (map printExpr chunkedAst.decls) <>
             "\n}\n"
             
         FS.writeTextFile UTF8 ("java_output/" <> safeModName <> ".java") classContent

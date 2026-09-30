@@ -79,7 +79,7 @@ var localName = function (name) {
             $49.counter = current.counter + 1 | 0;
             return $49;
         }))(function () {
-            return Control_Applicative.pure(applicativeStateT)(name + ("_i" + Data_Show.show(Data_Show.showInt)(state.counter)));
+            return Control_Applicative.pure(applicativeStateT)(name + ("$r" + Data_Show.show(Data_Show.showInt)(state.counter)));
         });
     });
 };
@@ -486,7 +486,7 @@ var rename = function (expression) {
             });
         });
     };
-    throw new Error("Failed pattern match at Javapurs.Rename (line 57, column 21 - line 160, column 51): " + [ expression.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Rename (line 59, column 21 - line 162, column 51): " + [ expression.constructor.name ]);
 };
 var renameWith = function (env) {
     return function (expression) {

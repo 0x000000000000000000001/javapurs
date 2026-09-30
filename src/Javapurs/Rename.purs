@@ -40,7 +40,9 @@ localName :: String -> State RenameState String
 localName name = do
   state <- gets identity
   modify_ \current -> current { counter = current.counter + 1 }
-  pure (name <> "_i" <> show state.counter)
+  -- `$` cannot survive `sanitizeName`, so a fresh suffix can never collide
+  -- with a source-derived name, an earlier rename suffix or a generated name.
+  pure (name <> "$r" <> show state.counter)
 
 -- | Renames the given binders, runs the body with them in scope, and then
 -- | restores the enclosing scope.
