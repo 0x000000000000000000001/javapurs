@@ -19,6 +19,7 @@ import Data.List as List
 import Data.Array as Array
 import Data.Newtype (unwrap)
 import Data.String as String
+import Javapurs.Chunk (chunkFile)
 import Javapurs.CodeGen (translateWithIntFunctions)
 import Javapurs.Naming (modulePrefix, sanitizeName)
 import Javapurs.IntFunctions (runtimeSource)
@@ -74,6 +75,9 @@ main = launchAff_ $ Metrics.measure "backend total" \_ -> do
           Just p -> FS.readTextFile UTF8 p
         
         let javaAst = translateWithIntFunctions { typedRecords, loopInvariants, directCalls, intFunctions, ownership } backendMod
+        -- A single binding can still be one giant expression; lift its closed
+        -- pieces into methods so javac never sees a 5 MB method body.
+        let chunkedAst = chunkFile javaAst
         let foreignIdents = Map.keys backendMod.foreign
         let ffiStubs =
               if String.length ffiContent > 0 then
@@ -88,7 +92,7 @@ main = launchAff_ $ Metrics.measure "backend total" \_ -> do
             "        public Object apply(Object arg) { throw new UnsupportedOperationException(\"Missing Java FFI in " <> modNameStr <> "\"); }\n" <>
             "    };\n" <>
             ffiStubs <> "\n\n" <>
-            String.joinWith "\n" (map (printExpr <<< renameExpr) javaAst.decls) <>
+            String.joinWith "\n" (map (printExpr <<< renameExpr) chunkedAst.decls) <>
             "\n}\n"
             
         FS.writeTextFile UTF8 ("java_output/" <> safeModName <> ".java") classContent

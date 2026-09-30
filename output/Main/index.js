@@ -19,6 +19,7 @@ import * as Data_Unit from "../Data.Unit/index.js";
 import * as Effect_Aff from "../Effect.Aff/index.js";
 import * as Effect_Class from "../Effect.Class/index.js";
 import * as Effect_Console from "../Effect.Console/index.js";
+import * as Javapurs_Chunk from "../Javapurs.Chunk/index.js";
 import * as Javapurs_CodeGen from "../Javapurs.CodeGen/index.js";
 import * as Javapurs_IntFunctions from "../Javapurs.IntFunctions/index.js";
 import * as Javapurs_Metrics from "../Javapurs.Metrics/index.js";
@@ -55,12 +56,12 @@ var main = /* #__PURE__ */ Data_Function.apply(Effect_Aff.launchAff_)(/* #__PURE
                 if (v2 instanceof Data_Maybe.Nothing) {
                     return "Main";
                 };
-                throw new Error("Failed pattern match at Main (line 43, column 19 - line 45, column 28): " + [ v2.constructor.name ]);
+                throw new Error("Failed pattern match at Main (line 44, column 19 - line 46, column 28): " + [ v2.constructor.name ]);
             };
             if (v1 instanceof Data_Maybe.Nothing) {
                 return "Main";
             };
-            throw new Error("Failed pattern match at Main (line 42, column 20 - line 46, column 26): " + [ v1.constructor.name ]);
+            throw new Error("Failed pattern match at Main (line 43, column 20 - line 47, column 26): " + [ v1.constructor.name ]);
         })();
         return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(Data_Function.apply(liftEffect)(Effect_Console.log("Loading corefn.json files...")))(function () {
             return Control_Bind.bind(Effect_Aff.bindAff)(Javapurs_Metrics.measure("load TAST + sort")(function (v1) {
@@ -111,7 +112,7 @@ var main = /* #__PURE__ */ Data_Function.apply(Effect_Aff.launchAff_)(/* #__PURE
                                                             if (ffiPathMb instanceof Data_Maybe.Just) {
                                                                 return Node_FS_Aff.readTextFile(Node_Encoding.UTF8.value)(ffiPathMb.value0);
                                                             };
-                                                            throw new Error("Failed pattern match at Main (line 72, column 23 - line 74, column 43): " + [ ffiPathMb.constructor.name ]);
+                                                            throw new Error("Failed pattern match at Main (line 73, column 23 - line 75, column 43): " + [ ffiPathMb.constructor.name ]);
                                                         })())(function (ffiContent) {
                                                             var javaAst = Javapurs_CodeGen.translateWithIntFunctions({
                                                                 typedRecords: typedRecords,
@@ -120,6 +121,7 @@ var main = /* #__PURE__ */ Data_Function.apply(Effect_Aff.launchAff_)(/* #__PURE
                                                                 intFunctions: intFunctions,
                                                                 ownership: ownership
                                                             })(backendMod);
+                                                            var chunkedAst = Javapurs_Chunk.chunkFile(javaAst);
                                                             var foreignIdents = Data_Map.keys(backendMod.foreign);
                                                             var ffiStubs = (function () {
                                                                 var $25 = Data_String_CodePoints.length(ffiContent) > 0;
@@ -132,7 +134,7 @@ var main = /* #__PURE__ */ Data_Function.apply(Effect_Aff.launchAff_)(/* #__PURE
                                                             })();
                                                             var classContent = "public class " + (safeModName + (" {\x0a" + ("    public static final Object FFI_STUB = new java.util.function.Function<Object, Object>() {\x0a" + ("        public Object apply(Object arg) { throw new UnsupportedOperationException(\"Missing Java FFI in " + (modNameStr + ("\"); }\x0a" + ("    };\x0a" + (ffiStubs + ("\x0a\x0a" + (Data_String_Common.joinWith("\x0a")(Data_Functor.map(Data_Functor.functorArray)(function ($28) {
                                                                 return Javapurs_Printer.printExpr(Javapurs_Rename.renameExpr($28));
-                                                            })(javaAst.decls)) + "\x0a}\x0a"))))))))));
+                                                            })(chunkedAst.decls)) + "\x0a}\x0a"))))))))));
                                                             return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(Node_FS_Aff.writeTextFile(Node_Encoding.UTF8.value)("java_output/" + (safeModName + ".java"))(classContent))(function () {
                                                                 return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(Data_Foldable.for_(Effect_Aff.applicativeAff)(Data_Foldable.foldableArray)(javaAst.recordShapes)(function (shape) {
                                                                     return Node_FS_Aff.writeTextFile(Node_Encoding.UTF8.value)("java_output/" + (Javapurs_RecordShapes.recordClassName(shape) + ".java"))(Javapurs_RecordPrinter.printRecordShape(shape));

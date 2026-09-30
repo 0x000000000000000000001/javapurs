@@ -117,13 +117,22 @@ rewrite moduleName candidates declarationIndex expression = do
               candidate.index < declarationIndex && candidate.arity == Array.length args) candidates of
             Just candidate -> do
               modify_ (Set.insert candidate.index)
-              -- Lazy getters can enter a later declaration while the module
-              -- is still initializing. Preserve the original curried path when
-              -- its public field has not been initialized yet, including the
-              -- point at which a null call stops evaluating later arguments.
-              pure (JavaTernary
-                (JavaBinaryOp "==" (JavaGlobalVar qualifier name) (JavaRaw "null"))
-                result (workerCall moduleName candidate args))
+              if candidate.lazy then
+                -- Lazy getters can enter a later declaration while the module
+                -- is still initializing. Preserve the original curried path when
+                -- its public field has not been initialized yet, including the
+                -- point at which a null call stops evaluating later arguments.
+                -- The guard repeats the arguments once, so it stays limited to
+                -- lazy candidates.
+                pure (JavaTernary
+                  (JavaBinaryOp "==" (JavaGlobalVar qualifier name) (JavaRaw "null"))
+                  result (workerCall moduleName candidate args))
+              else
+                -- An eager field is assigned before any later declaration runs,
+                -- so the worker can be called directly. Reusing the rewritten
+                -- arguments only once avoids doubling a saturated call at every
+                -- nesting level, which was exponential before this branch.
+                pure (workerCall moduleName candidate args)
             Nothing -> pure result
     Just { head: JavaCall (JavaRaw getterName) [], args }
       | Just candidate <- Array.find (\c -> c.lazy &&
