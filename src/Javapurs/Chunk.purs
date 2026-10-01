@@ -13,15 +13,19 @@ module Javapurs.Chunk (chunkFile) where
 import Prelude
 
 import Control.Monad.State (State, gets, modify_, runState)
+import Effect.Console as Console
+import Effect.Unsafe (unsafePerformEffect)
 import Data.Array as Array
-import Data.Foldable (foldl, foldM, sum)
-import Data.Maybe (Maybe(..))
+import Data.Foldable (all, foldl, foldM, sum)
+import Data.Map (Map)
+import Data.Map as Map
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String as String
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst, snd)
-import Javapurs.JavaAst (JavaExpr(..), JavaFile, children)
+import Javapurs.JavaAst (JavaExpr(..), JavaFile, JavaParamType(..), children)
 
 -- | Largest method body the emitter keeps in one piece, in cost units. A cost
 -- | unit is roughly one Java operation; the JVM stops at 65535 bytecode bytes,
@@ -40,7 +44,14 @@ type Info =
 
 type StatementInfo = { expr :: JavaExpr, cost :: Int }
 
-type ChunkState = { counter :: Int, localCounter :: Int, helpers :: Array JavaExpr }
+type ChunkState =
+  { counter :: Int
+  , localCounter :: Int
+  , helpers :: Array JavaExpr
+  , env :: Map String JavaParamType
+  , candidates :: Int
+  , maxCost :: Int
+  }
 
 type Chunk = State ChunkState
 
@@ -48,11 +59,41 @@ chunkFile :: JavaFile -> JavaFile
 chunkFile file =
   let
     Tuple decls state = runState (traverse chunkDecl file.decls) initialState
+    kinds = String.joinWith "," (map kindOf file.decls)
+    _ = unsafePerformEffect (Console.log ("[chunk] decls=" <> show (Array.length file.decls) <> " [" <> kinds <> "] candidates=" <> show state.candidates <> " extractions=" <> show state.counter <> " maxCost=" <> show state.maxCost))
   in
     file { decls = state.helpers <> decls }
 
 initialState :: ChunkState
-initialState = { counter: 0, localCounter: 0, helpers: [] }
+initialState = { counter: 0, localCounter: 0, helpers: [], env: Map.empty, candidates: 0, maxCost: 0 }
+
+-- | Run an action with the given names bound to their Java types. Extracted
+-- | subtrees may read those names; passing them as parameters of the same type
+-- | keeps the call site valid.
+withTypedEnv :: forall a. Map String JavaParamType -> Chunk a -> Chunk a
+withTypedEnv extension action = do
+  previous <- gets _.env
+  modify_ \state -> state { env = Map.union extension previous }
+  result <- action
+  modify_ \state -> state { env = previous }
+  pure result
+
+bindParam :: String -> JavaParamType -> Chunk Unit
+bindParam name ty = modify_ \state -> state { env = Map.insert name ty state.env }
+
+loopEnv :: Array String -> Array String -> Map String JavaParamType
+loopEnv params intParams = Map.fromFoldable
+  (map (\name -> Tuple name ParamObject) params <> map (\name -> Tuple name ParamInt) intParams)
+
+kindOf :: JavaExpr -> String
+kindOf = case _ of
+  JavaStaticMethod name _ _ -> "method:" <> name
+  JavaAssign name _ -> "assign:" <> name
+  JavaLazyAssign name _ -> "lazy:" <> name
+  JavaRaw _ -> "raw"
+  JavaBlock _ _ -> "block"
+  JavaClassDecl name _ _ -> "class:" <> name
+  _ -> "other"
 
 chunkDecl :: JavaExpr -> Chunk JavaExpr
 chunkDecl = case _ of
@@ -63,7 +104,7 @@ chunkDecl = case _ of
     info <- chunkValue value
     pure (JavaLazyAssign name info.expr)
   JavaStaticMethod name args body -> do
-    body' <- chunkMethodBody body
+    body' <- withTypedEnv (Map.fromFoldable args) (chunkMethodBody body)
     pure (JavaStaticMethod name args body')
   declaration -> pure declaration
 
@@ -83,9 +124,11 @@ chunkStmt :: JavaExpr -> Chunk StatementInfo
 chunkStmt statement = case statement of
   JavaLocalAssign name value -> do
     info <- chunkValue value
+    bindParam name ParamObject
     pure { expr: JavaLocalAssign name info.expr, cost: 1 + info.cost }
   JavaIntLocalAssign name value -> do
     info <- chunkValue value
+    bindParam name ParamInt
     pure { expr: JavaIntLocalAssign name info.expr, cost: 1 + info.cost }
   JavaLocalSet name value -> do
     info <- chunkValue value
@@ -106,19 +149,23 @@ chunkStmt statement = case statement of
       , cost: 1 + targetInfo.cost + valueInfo.cost
       }
   JavaIf condition thenStatements elseStatements -> do
+    env <- gets _.env
     conditionInfo <- chunkValue condition
-    thenInfos <- traverse chunkStmt thenStatements
-    elseInfos <- traverse chunkStmt elseStatements
+    thenInfos <- withTypedEnv env (traverse chunkStmt thenStatements)
+    elseInfos <- withTypedEnv env (traverse chunkStmt elseStatements)
     pure
       { expr: JavaIf conditionInfo.expr (map (_.expr) thenInfos) (map (_.expr) elseInfos)
       , cost: 1 + conditionInfo.cost + sum (map (_.cost) thenInfos) + sum (map (_.cost) elseInfos)
       }
   JavaBlock statements expression -> do
-    statements' <- traverse chunkStmt statements
-    info <- chunkValue expression
+    env <- gets _.env
+    infos <- withTypedEnv env do
+      statements' <- traverse chunkStmt statements
+      info <- chunkValue expression
+      pure { statements: statements', info }
     pure
-      { expr: JavaBlock (map (_.expr) statements') info.expr
-      , cost: 1 + sum (map (_.cost) statements') + info.cost
+      { expr: JavaBlock (map (_.expr) infos.statements) infos.info.expr
+      , cost: 1 + sum (map (_.cost) infos.statements) + infos.info.cost
       }
   JavaRaw _ -> pure { expr: statement, cost: 1 }
   JavaWhileTrue _ _ _ _ -> pure { expr: statement, cost: 1 }
@@ -130,23 +177,42 @@ chunkStmt statement = case statement of
 chunkValue :: JavaExpr -> Chunk Info
 chunkValue expression = do
   info <- build expression
-  -- Only closed subtrees are lifted: passing free locals as parameters needs
-  -- scope-aware rewriting that is easy to get wrong across shadowing lets.
-  if info.extractable && info.cost > maxChunkCost && info.free == Just Set.empty then
-    extract info.expr
+  env <- gets _.env
+  when (info.cost > maxChunkCost) $ modify_ \state -> state { candidates = state.candidates + 1 }
+  modify_ \state -> state { maxCost = max state.maxCost info.cost }
+  -- A subtree is lifted when every name it reads is in scope at the call
+  -- site, so the helper can receive those locals as parameters.
+  if info.extractable && info.cost > maxChunkCost && liftable env info.free then
+    extract info.expr info.free
   else
     pure info
+  where
+  liftable _ Nothing = false
+  liftable env (Just names) = all (\name -> Map.member name env) names
 
--- | Move a closed subtree into a nullary `__chunk$N` method.
-extract :: JavaExpr -> Chunk Info
-extract expression = do
+-- | Move a subtree into a `__chunk$N` static method. Free locals become
+-- | parameters with their original names and Java types, so the body needs no
+-- | rewriting and the call site just passes the locals through.
+extract :: JavaExpr -> Maybe (Set String) -> Chunk Info
+extract expression freeNames = do
+  env <- gets _.env
   counter <- gets _.counter
-  let name = "__chunk$" <> show counter
+  let
+    name = "__chunk$" <> show counter
+    names = case freeNames of
+      Just free -> Array.sort (Set.toUnfoldable free)
+      Nothing -> []
+    params = map (\param -> Tuple param (fromMaybe ParamObject (Map.lookup param env))) names
   modify_ \state -> state
     { counter = counter + 1
-    , helpers = state.helpers <> [ JavaStaticMethod name [] expression ]
+    , helpers = state.helpers <> [ JavaStaticMethod name params expression ]
     }
-  pure { expr: JavaCall (JavaGlobalVar Nothing name) [], cost: 1, free: Just Set.empty, extractable: true }
+  pure
+    { expr: JavaCall (JavaGlobalVar Nothing name) (map (\(Tuple param _) -> JavaLocal param) params)
+    , cost: 1 + Array.length params
+    , free: Just Set.empty
+    , extractable: true
+    }
 
 -- | A large array literal becomes a block that allocates the array and fills
 -- | it from group helpers. Each helper returns a small array, so one method
@@ -229,13 +295,13 @@ build expression = case expression of
     info <- chunkValue value
     unary (JavaFunction info.expr) info
   JavaAbs params body -> do
-    info <- chunkValue body
+    info <- withTypedEnv (Map.fromFoldable (map (\param -> Tuple param ParamObject) params)) (chunkValue body)
     bound (JavaAbs params info.expr) params info
   JavaTypedAbs params body -> do
-    info <- chunkValue body
+    info <- withTypedEnv (Map.fromFoldable params) (chunkValue body)
     bound (JavaTypedAbs params info.expr) (map fst params) info
   JavaIntAbs arg body -> do
-    info <- chunkValue body
+    info <- withTypedEnv (Map.singleton arg ParamInt) (chunkValue body)
     bound (JavaIntAbs arg info.expr) [ arg ] info
   JavaNew className args -> do
     infos <- traverse chunkValue args
@@ -288,7 +354,7 @@ build expression = case expression of
     many (JavaIntApply fnInfo.expr argInfo.expr) [ fnInfo, argInfo ]
   JavaLet name value body -> do
     valueInfo <- chunkValue value
-    bodyInfo <- chunkValue body
+    bodyInfo <- withTypedEnv (Map.singleton name ParamObject) (chunkValue body)
     pure
       { expr: JavaLet name valueInfo.expr bodyInfo.expr
       , cost: 1 + valueInfo.cost + bodyInfo.cost
@@ -297,8 +363,9 @@ build expression = case expression of
       }
   JavaLetRec bindings body -> do
     bindingInfos <- traverse chunkBinding bindings
-    bodyInfo <- chunkValue body
     let names = map (_.name) bindingInfos
+    let env = Map.fromFoldable (map (\bindingName -> Tuple bindingName ParamObject) names)
+    bodyInfo <- withTypedEnv env (chunkValue body)
     pure
       { expr: JavaLetRec (map (\binding -> Tuple binding.name binding.info.expr) bindingInfos) bodyInfo.expr
       , cost: 1 + sum (map (_.info.cost) bindingInfos) + bodyInfo.cost
@@ -320,14 +387,17 @@ build expression = case expression of
     info <- chunkValue value
     unary (JavaCast ty info.expr) info
   JavaBlock statements body -> do
-    statementInfos <- traverse chunkStmt statements
-    info <- chunkValue body
+    env <- gets _.env
+    infos <- withTypedEnv env do
+      statementInfos <- traverse chunkStmt statements
+      info <- chunkValue body
+      pure { statements: statementInfos, info }
     let
-      rebuilt = JavaBlock (map (_.expr) statementInfos) info.expr
-      statementCost = sum (map (_.cost) statementInfos)
+      rebuilt = JavaBlock (map (_.expr) infos.statements) infos.info.expr
+      statementCost = sum (map (_.cost) infos.statements)
     pure
       { expr: rebuilt
-      , cost: 1 + statementCost + info.cost
+      , cost: 1 + statementCost + infos.info.cost
       , free: freeOf Set.empty rebuilt
       , extractable: true
       }
@@ -340,12 +410,12 @@ build expression = case expression of
       totalCost = 1 + conditionInfo.cost + sum (map (_.cost) thenInfos) + sum (map (_.cost) elseInfos)
     pure { expr: rebuilt, cost: totalCost, free: freeOf Set.empty rebuilt, extractable: false }
   JavaWhileTrue loopId params intParams body -> do
-    info <- chunkLoopBody body
+    info <- withTypedEnv (loopEnv params intParams) (chunkLoopBody body)
     let rebuilt = JavaWhileTrue loopId params intParams info.expr
     pure { expr: rebuilt, cost: 1 + info.cost, free: freeOf Set.empty rebuilt, extractable: true }
   JavaMemoizedLoop loopId params intParams invariants body -> do
-    invariantInfos <- traverse chunkField invariants
-    info <- chunkLoopBody body
+    invariantInfos <- withTypedEnv (loopEnv params intParams) (traverse chunkField invariants)
+    info <- withTypedEnv (loopEnv params intParams) (chunkLoopBody body)
     let
       rebuilt = JavaMemoizedLoop loopId params intParams (map fieldExpr invariantInfos) info.expr
       invariantCost = sum (map (_.cost <<< fieldInfo) invariantInfos)
@@ -359,11 +429,14 @@ build expression = case expression of
 chunkLoopBody :: JavaExpr -> Chunk Info
 chunkLoopBody body = case body of
   JavaBlock statements expression -> do
-    statementInfos <- traverse chunkStmt statements
-    info <- chunkValue expression
+    env <- gets _.env
+    infos <- withTypedEnv env do
+      statementInfos <- traverse chunkStmt statements
+      info <- chunkValue expression
+      pure { statements: statementInfos, info }
     let
-      rebuilt = JavaBlock (map (_.expr) statementInfos) info.expr
-      totalCost = 1 + sum (map (_.cost) statementInfos) + info.cost
+      rebuilt = JavaBlock (map (_.expr) infos.statements) infos.info.expr
+      totalCost = 1 + sum (map (_.cost) infos.statements) + infos.info.cost
     pure { expr: rebuilt, cost: totalCost, free: freeOf Set.empty rebuilt, extractable: true }
   other -> chunkValue other
 
