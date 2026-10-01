@@ -1,9 +1,10 @@
 import * as PursMap from "../output/Data.Map/index.js";
 import assert from "node:assert/strict";
 import { runtimeSource } from "../output/Javapurs.IntFunctions/index.js";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
+import { runCommandSync } from "../tools/test-process.mjs";
+import { resolveJavaTools } from "../tools/java-tools.mjs";
+import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 import { join, resolve } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import * as C from "../output/PureScript.Backend.Optimizer.CoreFn/index.js";
@@ -20,8 +21,7 @@ import { moduleClass, moduleText } from "./support/module-classes.mjs";
 import { translateOperator1, translateOperator2 } from "../output/Javapurs.Operators/index.js";
 
 // Run after the project backend build: node test/loop-invariants.mjs
-const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
-const java = process.env.JAVA || "/opt/homebrew/opt/openjdk/bin/java";
+const { javac, java } = resolveJavaTools();
 const raw = value => new A.JavaRaw(value);
 const local = name => new A.JavaLocal(name);
 const integer = expression => new A.JavaCast("int", expression);
@@ -415,14 +415,11 @@ const tcoLoopSource = `public final class TcoLoop extends RuntimeException {
   public TcoLoop(String loopId, Object[] args) { this.loopId = loopId; this.args = args; }
   @Override public synchronized Throwable fillInStackTrace() { return this; }
 }`;
-const directory = mkdtempSync(join(tmpdir(), "javapurs-loop-invariants-test-"));
-try {
+await withTemporaryDirectory("javapurs-loop-invariants-test-", directory => {
   writeFileSync(join(directory, "LoopInvariantChecks.java"), source);
   writeFileSync(join(directory, "TcoLoop.java"), tcoLoopSource);
   writeFileSync(join(directory, "__IntFn.java"), runtimeSource);
   writeFileSync(join(directory, `${moduleClass("Invariant_Fixtures")}.java`), unaryModuleSource);
-  execFileSync(javac, ["-nowarn", "LoopInvariantChecks.java", "TcoLoop.java", `${moduleClass("Invariant_Fixtures")}.java`], { cwd: directory, stdio: "inherit", timeout: 60000 });
-  execFileSync(java, ["-cp", directory, "LoopInvariantChecks"], { stdio: "inherit", timeout: 60000 });
-} finally {
-  rmSync(directory, { recursive: true, force: true });
-}
+  runCommandSync(javac, ["-nowarn", "LoopInvariantChecks.java", "TcoLoop.java", `${moduleClass("Invariant_Fixtures")}.java`], { cwd: directory, stdio: "inherit", timeout: 60000 });
+  runCommandSync(java, ["-cp", directory, "LoopInvariantChecks"], { stdio: "inherit", timeout: 60000 });
+});

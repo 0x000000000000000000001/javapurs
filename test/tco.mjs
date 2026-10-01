@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
+import { runCommandSync } from "../tools/test-process.mjs";
+import { resolveJavaTools } from "../tools/java-tools.mjs";
+import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 import { join } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import { printExpr } from "../output/Javapurs.Printer/index.js";
 import { Tuple } from "../output/Data.Tuple/index.js";
 
 // Run after rebuilding the backend: node test/tco.mjs
-const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
-const java = process.env.JAVA || "/opt/homebrew/opt/openjdk/bin/java";
+const { javac, java } = resolveJavaTools();
 const raw = code => new A.JavaRaw(code);
 const local = name => new A.JavaLocal(name);
 const snapshot = name => `__final_${name}`;
@@ -386,12 +386,9 @@ final class TcoLoop extends RuntimeException {
 }
 `;
 
-const directory = mkdtempSync(join(tmpdir(), "javapurs-tco-test-"));
-try {
+await withTemporaryDirectory("javapurs-tco-test-", directory => {
   const javaFile = join(directory, "TcoPrinterRegression.java");
   writeFileSync(javaFile, source);
-  execFileSync(javac, ["-nowarn", javaFile], { stdio: "inherit", timeout: 60000 });
-  execFileSync(java, ["-Xss2m", "-cp", directory, "TcoPrinterRegression"], { stdio: "inherit", timeout: 60000 });
-} finally {
-  rmSync(directory, { recursive: true, force: true });
-}
+  runCommandSync(javac, ["-nowarn", javaFile], { stdio: "inherit", timeout: 60000 });
+  runCommandSync(java, ["-Xss2m", "-cp", directory, "TcoPrinterRegression"], { stdio: "inherit", timeout: 60000 });
+});

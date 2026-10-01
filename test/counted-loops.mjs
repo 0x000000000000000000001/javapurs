@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
+import { runCommandSync } from "../tools/test-process.mjs";
+import { resolveJavaTools } from "../tools/java-tools.mjs";
+import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 import { join } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import { Just, Nothing } from "../output/Data.Maybe/index.js";
@@ -9,8 +10,7 @@ import { countedLoop } from "../output/Javapurs.CountedLoops/index.js";
 import { printExpr } from "../output/Javapurs.Printer/index.js";
 
 // Run after rebuilding the backend: node test/counted-loops.mjs
-const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
-const java = process.env.JAVA || "/opt/homebrew/opt/openjdk/bin/java";
+const { javac, java } = resolveJavaTools();
 const raw = value => new A.JavaRaw(String(value));
 const local = name => new A.JavaLocal(name);
 const snapshot = name => local(`__final_${name}`);
@@ -210,12 +210,9 @@ final class TcoLoop extends RuntimeException {
 `;
 
 console.log(`Counted loop classification: ${selections} selection and rejection cases passed`);
-const directory = mkdtempSync(join(tmpdir(), "javapurs-counted-loop-test-"));
-try {
+await withTemporaryDirectory("javapurs-counted-loop-test-", directory => {
   const file = join(directory, "CountedLoopRegression.java");
   writeFileSync(file, source);
-  execFileSync(javac, ["-nowarn", file], { stdio: "inherit", timeout: 60000 });
-  execFileSync(java, ["-cp", directory, "CountedLoopRegression"], { stdio: "inherit", timeout: 30000 });
-} finally {
-  rmSync(directory, { recursive: true, force: true });
-}
+  runCommandSync(javac, ["-nowarn", file], { stdio: "inherit", timeout: 60000 });
+  runCommandSync(java, ["-cp", directory, "CountedLoopRegression"], { stdio: "inherit", timeout: 30000 });
+});

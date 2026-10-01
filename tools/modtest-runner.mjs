@@ -3,6 +3,7 @@ import { mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parseOptions, selectModules, UsageError } from "./test-selection.mjs";
 import { Interrupted, TestProcesses } from "./test-process.mjs";
+import { resolveJavaTools } from "./java-tools.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 let processes;
@@ -22,15 +23,17 @@ Each sibling script still controls its own build, caches, and cleanup.`);
     if (!options.list) {
       console.log(`Selected ${modules.length} modules (${options.resume ? "resume" : options.targets.length ? "explicit selection" : "all"}).`);
       processes = new TestProcesses();
-      if (options.clean) await processes.run("build-javapurs", "./bin/build", [], { cwd: root });
+      const { env } = resolveJavaTools();
+      if (options.clean) await processes.run("build-javapurs", "./bin/build", [], { cwd: root, env });
       const logs = join(root, "logs", "modtest");
       mkdirSync(logs, { recursive: true });
       const failures = [];
       for (const directory of modules) {
         const name = basename(directory);
         try {
-          await processes.run(name, "./bin/test", [], { cwd: directory, log: join(logs, name + ".log") });
+          await processes.run(name, "./bin/test", [], { cwd: directory, env, log: join(logs, name + ".log") });
         } catch (error) {
+          if (error instanceof Interrupted) throw error;
           if (!options.keep) throw error;
           failures.push({ name, message: error.message });
         }

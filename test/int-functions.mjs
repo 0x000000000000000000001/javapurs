@@ -1,8 +1,9 @@
 import * as PursMap from "../output/Data.Map/index.js";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync, writeFileSync } from "node:fs";
+import { runCommandSync } from "../tools/test-process.mjs";
+import { resolveJavaTools } from "../tools/java-tools.mjs";
+import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 import { join, resolve } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import * as C from "../output/PureScript.Backend.Optimizer.CoreFn/index.js";
@@ -20,8 +21,7 @@ import { recordClassName } from "../output/Javapurs.RecordShapes/index.js";
 // representations; no backend rebuild or PureScript source compilation occurs.
 // Optional current optimized benchmark IR:
 // node test/int-functions.mjs --church-project ../../altbak.pub-javapurs
-const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
-const java = process.env.JAVA || "/opt/homebrew/opt/openjdk/bin/java";
+const { javac, java } = resolveJavaTools();
 const moduleName = "Int.Functions";
 const int = C.Int.value;
 const any = C.Any.value;
@@ -293,21 +293,14 @@ for (const enabled of [false, true]) {
       "the higher-order function type must type its otherwise bare returned lambda");
   }
   if (church) addModule(church);
-  const directory = mkdtempSync(join(tmpdir(), `javapurs-int-functions-${enabled ? "on" : "off"}-`));
-  let success = false;
-  try {
+  await withTemporaryDirectory(`javapurs-int-functions-${enabled ? "on" : "off"}-`, directory => {
     for (const [name, source] of files) writeFileSync(join(directory, name), source);
-    execFileSync(javac, ["-nowarn", ...files.keys()], { cwd: directory, encoding: "utf8", stdio: "pipe" });
-    const output = execFileSync(java, ["-Xss256k", "-cp", directory, "IntFunctionChecks", String(enabled)],
+    runCommandSync(javac, ["-nowarn", ...files.keys()], { cwd: directory, encoding: "utf8", stdio: "pipe" });
+    const output = runCommandSync(java, ["-Xss256k", "-cp", directory, "IntFunctionChecks", String(enabled)],
       { cwd: directory, encoding: "utf8", stdio: "pipe", timeout: 30000 }).trim();
     outputs.push(output);
     console.log(`${enabled ? "enabled" : "disabled"}: ${output}`);
-    success = true;
-  } catch (error) {
-    console.error(`Generated Java retained for inspection: ${directory}`);
-    if (error.stderr) console.error(String(error.stderr));
-    throw error;
-  } finally { if (success) rmSync(directory, { recursive: true, force: true }); }
+  });
 }
 assert.equal(outputs[0], outputs[1], "specialized and generic modes pass the same behavioral checks");
 console.log(`Int function representation checks${church ? " and current optimized Church" : ""} passed`);

@@ -1,8 +1,9 @@
 import * as PursMap from "../output/Data.Map/index.js";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
+import { runCommandSync } from "../tools/test-process.mjs";
+import { resolveJavaTools } from "../tools/java-tools.mjs";
+import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 import { join } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import * as C from "../output/PureScript.Backend.Optimizer.CoreFn/index.js";
@@ -15,8 +16,7 @@ import { renameWith, renameExpr } from "../output/Javapurs.Rename/index.js";
 import { moduleClass, moduleText } from "./support/module-classes.mjs";
 
 // Run after rebuilding the backend: node test/nullary-constructors.mjs
-const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
-const java = process.env.JAVA || "/opt/homebrew/opt/openjdk/bin/java";
+const { javac, java } = resolveJavaTools();
 const qualified = (module, name) => new C.Qualified(module === null ? Nothing.value : new Just(module), name);
 const reference = (module, name) => new S.Var(qualified(module, name));
 const literal = value => new S.Lit(new C.LitInt(value));
@@ -167,11 +167,8 @@ public final class NullaryChecks {
 }
 `, fixtureModules));
 
-const directory = mkdtempSync(join(tmpdir(), "javapurs-nullary-test-"));
-try {
+await withTemporaryDirectory("javapurs-nullary-test-", directory => {
   for (const [name, source] of sources) writeFileSync(join(directory, name), source);
-  execFileSync(javac, ["-nowarn", ...sources.keys()], { cwd: directory, stdio: "inherit", timeout: 60000 });
-  execFileSync(java, ["-cp", directory, "NullaryChecks"], { stdio: "inherit", timeout: 60000 });
-} finally {
-  rmSync(directory, { recursive: true, force: true });
-}
+  runCommandSync(javac, ["-nowarn", ...sources.keys()], { cwd: directory, stdio: "inherit", timeout: 60000 });
+  runCommandSync(java, ["-cp", directory, "NullaryChecks"], { stdio: "inherit", timeout: 60000 });
+});

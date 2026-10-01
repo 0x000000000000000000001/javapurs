@@ -1,16 +1,17 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { delimiter, join, resolve } from "node:path";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { delimiter, join } from "node:path";
+import { compilerRoot, prepareWorkspace, runFixture } from "../tools/fixture-runner.mjs";
+import { resolveJavaTools } from "../tools/java-tools.mjs";
+import { Interrupted, TestProcesses } from "../tools/test-process.mjs";
+import { parseOptions, selectFixtures } from "../tools/test-selection.mjs";
+import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 
-// Run immediately after ./bin/test BigFunction, while its generated classes
-// are still in tests/runner. Exercise f itself, not just the corpus main.
-const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
-const java = process.env.JAVA || "/opt/homebrew/opt/openjdk/bin/java";
-const runner = resolve("tests/runner");
+// Build the original fixture in an isolated workspace, then exercise f itself.
+// No dependency on the last program compiled in tests/runner or on the cwd.
+async function checkBranches(runner, { javac, java, env }, processes) {
 const source = readFileSync(join(runner, "src/Main.purs"), "utf8");
-assert.match(source, /f _ = 2137/, "run ./bin/test BigFunction first");
+assert.match(source, /f _ = 2137/, "expected the BigFunction fixture");
 const cases = new Map();
 for (const line of source.split("\n")) {
   const clause = line.match(/^f \[([^\]]+)\] \| (.+) = (.+)$/);
@@ -29,8 +30,8 @@ assert.equal(cases.size, 51, "cover every distinct array-pattern length");
 const elementBudget = 1_000_000;
 const successfulPatterns = [...cases.values()].filter(indices => indices.reduce((sum, i) => sum + i + 1, 0) <= elementBudget).length;
 
-const directory = mkdtempSync(join(tmpdir(), "javapurs-big-function-"));
-try {
+const directory = join(runner, "checks");
+mkdirSync(directory);
   const path = join(directory, "BigFunctionChecks.java");
   writeFileSync(path, `
 import java.util.*;
@@ -74,11 +75,28 @@ public final class BigFunctionChecks {
 }
 `);
   const classes = join(runner, "classes");
-  execFileSync(javac, ["--release", "17", "-cp", classes, "-d", directory, path], { stdio: "pipe", timeout: 30_000 });
-  const output = execFileSync(java, ["-Xmx512m", "-cp", `${directory}${delimiter}${classes}`, "BigFunctionChecks"],
-    { encoding: "utf8", timeout: 30_000 });
+  await processes.run("BigFunction: branch harness javac", javac,
+    ["--release", "17", "-cp", classes, "-d", directory, path],
+    { env, log: join(directory, "javac.log"), timeout: 30_000 });
+  const output = await processes.run("BigFunction: branch checks", java,
+    ["-Xmx512m", "-cp", `${directory}${delimiter}${classes}`, "BigFunctionChecks"],
+    { env, log: join(directory, "execution.log"), capture: true, timeout: 30_000 });
   assert.equal(output.trim(), `BigFunction: 155 branch checks passed (${successfulPatterns} successful nonempty patterns)`);
   process.stdout.write(output);
+}
+
+const processes = new TestProcesses();
+try {
+  const tools = resolveJavaTools();
+  const [fixture] = selectFixtures(compilerRoot, parseOptions(["BigFunction"], { fixture: true }));
+  await withTemporaryDirectory("javapurs-big-function-", async directory => {
+    prepareWorkspace(compilerRoot, directory);
+    await runFixture({ fixture, directory, processes, tools, javacArgs: ["-J-Xmx4g"] });
+    await checkBranches(directory, tools, processes);
+  });
+} catch (error) {
+  console.error(`[FAILED] ${error.stack || error.message}`);
+  process.exitCode = error instanceof Interrupted ? error.exitCode : 1;
 } finally {
-  rmSync(directory, { recursive: true, force: true });
+  processes.dispose();
 }

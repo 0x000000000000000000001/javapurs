@@ -1,9 +1,10 @@
 import * as PursMap from "../output/Data.Map/index.js";
 import assert from "node:assert/strict";
 import { runtimeSource } from "../output/Javapurs.IntFunctions/index.js";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync, writeFileSync } from "node:fs";
+import { runCommandSync } from "../tools/test-process.mjs";
+import { resolveJavaTools } from "../tools/java-tools.mjs";
+import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 import { join, resolve } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import * as C from "../output/PureScript.Backend.Optimizer.CoreFn/index.js";
@@ -21,8 +22,7 @@ import { renameWith } from "../output/Javapurs.Rename/index.js";
 // Run after the project backend build; --records=maps exercises the same values
 // and open/closed record operations using the retained Map representation.
 const typedRecords = !process.argv.includes("--records=maps");
-const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
-const java = process.env.JAVA || "/opt/homebrew/opt/openjdk/bin/java";
+const { javac, java } = resolveJavaTools();
 const tuples = fields => fields.map(([key, value]) => new Tuple(key, value));
 const type = (fields, tail = Nothing.value) => new C.Record(new C.Row(tuples(fields), tail));
 const typed = (ty, value) => new S.Typed(ty, value);
@@ -404,13 +404,10 @@ public final class TypedRecordChecks {
 }
 `, ["Test_Records", "Records_Producer", "Records_Consumer", "Records_Parameters"]));
 
-const directory = mkdtempSync(join(tmpdir(), "javapurs-typed-records-test-"));
 sources.set("__IntFn.java", runtimeSource);
-try {
+await withTemporaryDirectory("javapurs-typed-records-test-", directory => {
   for (const [name, source] of sources) writeFileSync(join(directory, name), source);
-  execFileSync(javac, ["-nowarn", ...sources.keys()], { cwd: directory, stdio: "inherit", timeout: 60000 });
-  execFileSync(java, ["-cp", directory, "TypedRecordChecks"], { stdio: "inherit", timeout: 60000 });
+  runCommandSync(javac, ["-nowarn", ...sources.keys()], { cwd: directory, stdio: "inherit", timeout: 60000 });
+  runCommandSync(java, ["-cp", directory, "TypedRecordChecks"], { stdio: "inherit", timeout: 60000 });
   console.log("Record shape recognition, typed translation and renaming passed");
-} finally {
-  rmSync(directory, { recursive: true, force: true });
-}
+});

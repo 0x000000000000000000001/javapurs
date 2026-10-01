@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
+import { runCommandSync } from "../tools/test-process.mjs";
+import { resolveJavaTools } from "../tools/java-tools.mjs";
+import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 import { join } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import { Nothing } from "../output/Data.Maybe/index.js";
@@ -13,8 +14,7 @@ import { renameExpr } from "../output/Javapurs.Rename/index.js";
 // Build the backend first, then run: node test/chunk.mjs
 // These fixtures force extraction and execute the resulting Java, including
 // nested captures, typed call sites, evaluation order and recursive closures.
-const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
-const java = process.env.JAVA || "/opt/homebrew/opt/openjdk/bin/java";
+const { javac, java } = resolveJavaTools();
 const raw = value => new A.JavaRaw(String(value));
 const local = name => new A.JavaLocal(name);
 const int = expr => new A.JavaCast("int", expr);
@@ -118,8 +118,7 @@ const loops = chunk([
 const fixtures = { ClosedBlock: closedBlock, Nested: nested, Scoped: scoped, Typed: typed,
   RawCapture: rawCapture, Recursive: recursive, Mutation: mutation, Effects: effects, ShortCircuit: shortCircuit,
   Scopes: scopes, Loops: loops };
-const directory = mkdtempSync(join(tmpdir(), "javapurs-chunk-"));
-try {
+await withTemporaryDirectory("javapurs-chunk-", directory => {
   for (const [name, file] of Object.entries(fixtures)) {
     writeFileSync(join(directory, `${name}.java`), printFile(name)(file));
   }
@@ -188,11 +187,9 @@ class TcoLoop extends RuntimeException {
   TcoLoop(String loopId, Object[] args) { this.loopId = loopId; this.args = args; }
 }
 `);
-  execFileSync(javac, ["--release", "17", "-d", directory, ...Object.keys(fixtures).map(name => join(directory, `${name}.java`)),
+  runCommandSync(javac, ["--release", "17", "-d", directory, ...Object.keys(fixtures).map(name => join(directory, `${name}.java`)),
     join(directory, "ChunkRuntime.java")], { stdio: "pipe", timeout: 120_000 });
-  const output = execFileSync(java, ["-cp", directory, "ChunkRuntime"], { encoding: "utf8", timeout: 30_000 });
+  const output = runCommandSync(java, ["-cp", directory, "ChunkRuntime"], { encoding: "utf8", timeout: 30_000 });
   assert.equal(output.trim(), "Chunk: 11 fixtures passed");
   process.stdout.write(output);
-} finally {
-  rmSync(directory, { recursive: true, force: true });
-}
+});

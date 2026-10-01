@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
+import { runCommandSync } from "../tools/test-process.mjs";
+import { resolveJavaTools } from "../tools/java-tools.mjs";
+import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 import { join } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import * as S from "../output/PureScript.Backend.Optimizer.Syntax/index.js";
@@ -9,8 +10,7 @@ import { translateOperator2 } from "../output/Javapurs.Operators/index.js";
 import { printExpr } from "../output/Javapurs.Printer/index.js";
 
 // Run after building the backend: node test/operators.mjs
-const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
-const java = process.env.JAVA || "/opt/homebrew/opt/openjdk/bin/java";
+const { javac, java } = resolveJavaTools();
 const raw = code => new A.JavaRaw(code);
 const int2 = (op, left, right) => printExpr(translateOperator2("IntegerOperators")(new S.OpIntNum(op))(raw(left))(raw(right)));
 const number2 = (op, left, right) => printExpr(translateOperator2("NumberOperators")(new S.OpNumberOrd(op))(raw(left))(raw(right)));
@@ -46,8 +46,7 @@ const numberValues = [0.0, -0.0, 1.0, -1.0, NaN, Infinity, -Infinity, 0.5, -0.5]
 const numberCases = [];
 for (const [i, a] of numbers.entries()) for (const [j, b] of numbers.entries()) numberCases.push([i, j, a, b]);
 
-const directory = mkdtempSync(join(tmpdir(), "javapurs-operators-"));
-try {
+await withTemporaryDirectory("javapurs-operators-", directory => {
   writeFileSync(join(directory, "IntegerOperators.java"), `public final class IntegerOperators {
     static int division(int x, int y) { return ((int) (${division})); }
     static int modulo(int x, int y) { return ((int) (${modulo})); }
@@ -66,8 +65,8 @@ try {
         }
     }
 }`);
-  execFileSync(javac, ["-d", directory, join(directory, "IntegerOperators.java")], { stdio: "pipe" });
-  const lines = execFileSync(java, ["-cp", directory, "IntegerOperators"], { encoding: "utf8" }).trim().split("\n");
+  runCommandSync(javac, ["-d", directory, join(directory, "IntegerOperators.java")], { stdio: "pipe" });
+  const lines = runCommandSync(java, ["-cp", directory, "IntegerOperators"], { encoding: "utf8" }).trim().split("\n");
   assert.equal(lines.length, intCases.length + numberCases.length, "every case must produce one line");
   let checked = 0;
   for (const line of lines.slice(0, intCases.length)) {
@@ -85,6 +84,4 @@ try {
     checked++;
   }
   console.log(`Integer and Number operators: ${checked} cases passed`);
-} finally {
-  rmSync(directory, { recursive: true, force: true });
-}
+});

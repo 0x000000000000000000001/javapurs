@@ -1,8 +1,9 @@
 import * as PursMap from "../output/Data.Map/index.js";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync, writeFileSync } from "node:fs";
+import { runCommandSync } from "../tools/test-process.mjs";
+import { resolveJavaTools } from "../tools/java-tools.mjs";
+import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 import { join, resolve } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import * as C from "../output/PureScript.Backend.Optimizer.CoreFn/index.js";
@@ -19,8 +20,7 @@ import { moduleClass, moduleText } from "./support/module-classes.mjs";
 
 // Build the backend first. Optional real optimized input:
 // node test/direct-calls.mjs --rbtree-project ../../altbak.pub-javapurs
-const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
-const java = process.env.JAVA || "/opt/homebrew/opt/openjdk/bin/java";
+const { javac, java } = resolveJavaTools();
 const moduleName = "Direct_Fixtures";
 const raw = value => new A.JavaRaw(String(value));
 const local = name => new A.JavaLocal(name);
@@ -339,20 +339,13 @@ for (const enabled of [false, true]) {
   const fixtureModules = [moduleName, "Direct_Typed", "Test_RBTree"];
   files.set("DirectRuntime.java", moduleText(runtimeSource, fixtureModules));
   files.set("DirectChecks.java", moduleText(checksSource, fixtureModules));
-  const directory = mkdtempSync(join(tmpdir(), `javapurs-direct-${enabled ? "on" : "off"}-`));
-  let success = false;
-  try {
+  await withTemporaryDirectory(`javapurs-direct-${enabled ? "on" : "off"}-`, directory => {
     for (const [name, source] of files) writeFileSync(join(directory, name), source);
-    execFileSync(javac, ["-nowarn", ...files.keys()], { cwd: directory, encoding: "utf8", stdio: "pipe" });
-    const output = execFileSync(java, ["-cp", directory, "DirectChecks"], { cwd: directory, encoding: "utf8", stdio: "pipe" }).trim();
+    runCommandSync(javac, ["-nowarn", ...files.keys()], { cwd: directory, encoding: "utf8", stdio: "pipe" });
+    const output = runCommandSync(java, ["-cp", directory, "DirectChecks"], { cwd: directory, encoding: "utf8", stdio: "pipe" }).trim();
     outputs.push(output);
     console.log(`${enabled ? "enabled" : "disabled"}: ${output}`);
-    success = true;
-  } catch (error) {
-    console.error(`Generated Java retained for inspection: ${directory}`);
-    if (error.stderr) console.error(String(error.stderr));
-    throw error;
-  } finally { if (success) rmSync(directory, { recursive: true, force: true }); }
+  });
 }
 assert.equal(outputs[0], outputs[1], "enabled and disabled variants must complete the same behavioral checks");
 console.log(`Direct call eligibility and ${actualModule ? "real RBTree" : "typed CodeGen"} IR checks passed`);

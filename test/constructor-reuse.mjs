@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
+import { runCommandSync } from "../tools/test-process.mjs";
+import { resolveJavaTools } from "../tools/java-tools.mjs";
+import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 import { join } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import { Tuple } from "../output/Data.Tuple/index.js";
@@ -10,8 +11,7 @@ import { reuseConstructors } from "../output/Javapurs.Reuse/index.js";
 import { printFile } from "../output/Javapurs.Printer/index.js";
 
 // Run after building the backend: node test/constructor-reuse.mjs
-const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
-const java = process.env.JAVA || "/opt/homebrew/opt/openjdk/bin/java";
+const { javac, java } = resolveJavaTools();
 const moduleName = "Reuse_Fixtures";
 const tuple = (a, b) => new Tuple(a, b);
 const objectField = name => tuple(name, A.ParamObject.value);
@@ -121,8 +121,7 @@ let checked = 0;
 // replacement constant already matches every other field.
 {
   const rewritten = reuseConstructors(moduleName)(file([...data, new A.JavaAssign("makeBlack", new A.JavaAbs(["v"], singleton("v"))), rebuild("copy")]));
-  const directory = mkdtempSync(join(tmpdir(), "javapurs-reuse-test-"));
-  try {
+  await withTemporaryDirectory("javapurs-reuse-test-", directory => {
     writeFileSync(join(directory, `${moduleName}.java`), printFile(moduleName)(rewritten));
     writeFileSync(join(directory, "ReuseRun.java"), `public class ReuseRun {
     @SuppressWarnings("unchecked")
@@ -142,13 +141,11 @@ let checked = 0;
         System.out.println(((Reuse_Fixtures.T) copy.apply(black)).value0 == Reuse_Fixtures.__singleton$B.value);
     }
 }`);
-    execFileSync(javac, ["-d", directory, join(directory, `${moduleName}.java`), join(directory, "ReuseRun.java")], { stdio: "pipe" });
-    const output = execFileSync(java, ["-cp", directory, "ReuseRun"], { encoding: "utf8" }).trim().split("\n");
+    runCommandSync(javac, ["-d", directory, join(directory, `${moduleName}.java`), join(directory, "ReuseRun.java")], { stdio: "pipe" });
+    const output = runCommandSync(java, ["-cp", directory, "ReuseRun"], { encoding: "utf8" }).trim().split("\n");
     assert.deepEqual(output, ["true", "true", "true", "7", "true", "true"], "the rewritten program must keep its behavior");
     checked += 1;
-  } finally {
-    rmSync(directory, { recursive: true, force: true });
-  }
+  });
 }
 
 console.log(`Constructor reuse: ${checked} fixture groups passed`);

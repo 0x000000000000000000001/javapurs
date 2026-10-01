@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
+import { runCommandSync } from "../tools/test-process.mjs";
+import { resolveJavaTools } from "../tools/java-tools.mjs";
+import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 import { join } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import * as C from "../output/PureScript.Backend.Optimizer.CoreFn/index.js";
@@ -15,8 +16,7 @@ import { printFile } from "../output/Javapurs.Printer/index.js";
 import { moduleClass, moduleText } from "./support/module-classes.mjs";
 
 // Run after building the backend: node test/ownership.mjs
-const javac = process.env.JAVAC || "/opt/homebrew/opt/openjdk/bin/javac";
-const java = process.env.JAVA || "/opt/homebrew/opt/openjdk/bin/java";
+const { javac, java } = resolveJavaTools();
 const moduleName = "Ownership_Fixtures";
 const treeType = new C.ADT(`${moduleName}.Tree`, [moduleName, "Tree"], []);
 const treeFunctionType = new C.Func([C.Int.value, treeType], treeType);
@@ -207,8 +207,7 @@ assert.ok(definitions(listSource, "__owned_append") >= 1, "the polymorphic worke
 assert.doesNotMatch(listSource, /public final Object value0;/, "the polymorphic node must stay mutable");
 
 // The worker builds the same tree as the persistent functions.
-const directory = mkdtempSync(join(tmpdir(), "javapurs-ownership-"));
-try {
+await withTemporaryDirectory("javapurs-ownership-", directory => {
   writeFileSync(join(directory, `${moduleClass(moduleName)}.java`), source);
   writeFileSync(join(directory, `${moduleClass(listName)}.java`), listSource);
   writeFileSync(join(directory, `${moduleClass(localName)}.java`), localSource);
@@ -258,11 +257,9 @@ try {
         System.out.println(owned.equals(shared) + " " + owned + " " + appended + " " + duplicated);
     }
 }`, [moduleName, listName, localName]));
-  execFileSync(javac, ["-d", directory, join(directory, `${moduleClass(moduleName)}.java`), join(directory, `${moduleClass(listName)}.java`), join(directory, `${moduleClass(localName)}.java`), join(directory, "TcoLoop.java"), join(directory, "OwnershipRun.java")], { stdio: "pipe" });
-  const output = execFileSync(java, ["-cp", directory, "OwnershipRun"], { encoding: "utf8" }).trim();
+  runCommandSync(javac, ["-d", directory, join(directory, `${moduleClass(moduleName)}.java`), join(directory, `${moduleClass(listName)}.java`), join(directory, `${moduleClass(localName)}.java`), join(directory, "TcoLoop.java"), join(directory, "OwnershipRun.java")], { stdio: "pipe" });
+  const output = runCommandSync(java, ["-cp", directory, "OwnershipRun"], { encoding: "utf8" }).trim();
   assert.equal(output, "true [1, 2, 3, 4, 5, 6, 7, 8] [1, 2, 3] [1, 7, 2, 7]",
     "the consuming builds must match the persistent tree, list and local group");
   console.log("Ownership: workers, rewrite guards, runtime tree, polymorphic list and local group passed");
-} finally {
-  rmSync(directory, { recursive: true, force: true });
-}
+});
