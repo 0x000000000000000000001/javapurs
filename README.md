@@ -180,7 +180,7 @@ The input directory is fixed to `output`, and Java output to `java_output`, both
 
 Loop invariant caches belong to each fully applied function invocation. They evaluate at the first original use, so skipped branches and zero-iteration loops keep their evaluation behavior. The analysis checks known definitions and closures recursively, rejects unknown FFI/effects and local captures, and only caches successful `Int` results.
 
-Direct calls use private static methods for eligible functions in the same module. Consecutive nonempty lambdas qualify at arities 2–32 for eager bindings and 1–32 for lazy bindings. Public curried functions remain available. Calls to earlier eager declarations use the worker directly; lazy declarations retain an initialization guard, with a separate path for saturated self calls through their getter. Proven `Int` worker parameters are primitive and receive explicit unboxing casts at call sites; other parameters use `Object`. See [DirectCalls](src/Javapurs/DirectCalls.purs) for the admission rules.
+Direct calls use private static methods for eligible functions in the same module. Consecutive nonempty lambdas qualify at arities 2–32 for eager bindings and 1–32 for lazy bindings. Public curried functions remain available. Calls between eager declarations use earlier workers directly. Calls to lazy declarations, or from lazy bindings that can be entered early through a getter, retain an initialization guard. Saturated self calls through their own getter use a separate direct path. Proven `Int` worker parameters are primitive and receive explicit unboxing casts at call sites; other parameters use `Object`. See [DirectCalls](src/Javapurs/DirectCalls.purs) for the admission rules.
 
 ## Foreign function interface
 
@@ -225,7 +225,7 @@ When no `.java` file is found, the backend emits missing-FFI stubs that throw wh
 Use the same checkout layout as the source build instructions and select tests by the responsibility being changed:
 
 - **`./bin/test`** compiles and runs the PureScript passing tests (`purescript/tests/purs/passing`) through the Java backend, like the other backend checkouts do.
-- **`test/*.mjs`** are the backend's own regression suites, run after `./bin/build`.
+- **`test/*.mjs`** are the backend's own regression suites, run after `./bin/build`. The Node-only `test/test-tools.mjs` checks the runners with simulated commands and requires no backend build or JDK.
 - **Each port's `bin/test`** checks that individual library through its own Spago workspace and Java runner.
 
 ```bash
@@ -236,7 +236,7 @@ Use the same checkout layout as the source build instructions and select tests b
 ./bin/test DerivingTraversable
 ```
 
-Each selected test replaces `tests/runner/src`, `output`, `java_output` and `classes`, then builds with Spago, generates Java, compiles with `javac` and executes `MainRun`. Backend-local overrides and FFI are described in the [testing guide](docs/testing.md). Use explicit existing names: the current runner falls back to its default whole-corpus selection if no supplied name resolves. `--list` shows the effective selection; `-c` also rebuilds the backend and cleans caches.
+Each selected test replaces `tests/runner/src`, `output`, `java_output` and `classes`, then builds with Spago, generates Java, compiles with `javac` and executes `MainRun`. Backend-local overrides and FFI are described in the [testing guide](docs/testing.md). An invalid explicit name, option or range boundary fails before building or cleaning. `--list` only resolves the selection, including when combined with `-c`. An executing `-c` run also rebuilds the backend and cleans caches. Phase logs remain in `logs/tests/<Name>/`.
 
 After a compiler-source change, rebuild the backend, select a JDK, then run the focused regression:
 
@@ -248,9 +248,11 @@ export JAVA="$(command -v java)"
 node test/typed-records.mjs
 ```
 
-The Java integration scripts default to Homebrew's `/opt/homebrew/opt/openjdk/bin` tools when `JAVAC` and `JAVA` are unset. Setting both variables makes the toolchain explicit on other installations. Most scripts import the compiler's built `output/` modules and generate temporary Java fixtures. `test/int-loops.mjs` also has a Node-only analysis path. `test/big-function.mjs` instead requires the generated classes from a preceding `./bin/test BigFunction` run.
+The shared JDK resolver uses explicit `JAVAC`/`JAVA` first, then `JAVA_HOME`, then `javac` on `PATH`, with a Homebrew fallback. If only one executable is supplied, its sibling is selected; mixed JDK bin directories are rejected. Most scripts import the compiler's built `output/` modules and generate Java fixtures under `TMPDIR` (or the OS temporary directory). Successful temporary workspaces are removed; failed ones are retained and their path is printed. `test/int-loops.mjs` has a Node-only analysis path.
 
-The [test matrix](docs/testing.md#matrice-des-tests) covers all 13 scripts, including the chunker and BigFunction checks, and identifies optional benchmark-cache inputs. Follow the [BigFunction recipe](docs/testing.md#chunker-et-bigfunction) before another selected test replaces its workspace. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
+`node test/big-function.mjs` prepares BigFunction in its own temporary Spago workspace, executes the corpus entrypoint and performs 155 branch checks. It can run independently of the last test in `tests/runner`. It caps the fixture's `javac` heap at 4 GiB and the branch-check JVM at 512 MiB.
+
+The [test matrix](docs/testing.md#matrice-des-tests) covers all 14 scripts and identifies optional benchmark-cache inputs. See the [BigFunction recipe](docs/testing.md#chunker-et-bigfunction) and [runner checks](docs/testing.md#outillage-des-tests) for focused commands. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
 
 ## Architecture
 

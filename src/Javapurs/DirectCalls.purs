@@ -42,7 +42,10 @@ directCalls moduleName file =
         Just { name, worker, index, arity: Array.length lambdas.args, params: map snd lambdas.args, lazy }
       else Nothing
     Tuple rewritten used = runState
-      (traverse identity (Array.mapWithIndex (rewrite moduleName candidates) file.decls)) Set.empty
+      (traverse identity (Array.mapWithIndex (\index declaration ->
+        rewrite moduleName candidates index (case declaration of
+          JavaLazyAssign _ _ -> true
+          _ -> false) declaration) file.decls)) Set.empty
     emit index declaration = case Array.find (\candidate -> candidate.index == index) candidates of
       Just candidate | Set.member index used -> case declaration of
         JavaAssign name value -> case lambdaChain 2 value of
@@ -105,11 +108,11 @@ lazyGetter moduleName name = moduleName <> ".__lazy_get_" <> name
 
 type Rewrite = State (Set Int)
 
-rewrite :: String -> Array Candidate -> Int -> JavaExpr -> Rewrite JavaExpr
-rewrite moduleName candidates declarationIndex expression = do
+rewrite :: String -> Array Candidate -> Int -> Boolean -> JavaExpr -> Rewrite JavaExpr
+rewrite moduleName candidates declarationIndex fromLazy expression = do
   -- Rewriting children first allows exactly the saturated prefix of an
   -- overapplication to become a method call. Later arguments remain outside it.
-  result <- children (rewrite moduleName candidates declarationIndex) expression
+  result <- children (rewrite moduleName candidates declarationIndex fromLazy) expression
   case application result of
     Just { head: JavaGlobalVar qualifier name, args }
       | qualifier == Nothing || qualifier == Just moduleName ->
@@ -117,19 +120,20 @@ rewrite moduleName candidates declarationIndex expression = do
               candidate.index < declarationIndex && candidate.arity == Array.length args) candidates of
             Just candidate -> do
               modify_ (Set.insert candidate.index)
-              if candidate.lazy then
+              if candidate.lazy || fromLazy then
                 -- Lazy getters can enter a later declaration while the module
                 -- is still initializing. Preserve the original curried path when
                 -- its public field has not been initialized yet, including the
                 -- point at which a null call stops evaluating later arguments.
-                -- The guard repeats the arguments once, so it stays limited to
-                -- lazy candidates.
+                -- This also applies to an eager callee reached from a later
+                -- lazy getter: textual order does not prove that its field has
+                -- already been assigned on that reentrant path.
                 pure (JavaTernary
                   (JavaBinaryOp "==" (JavaGlobalVar qualifier name) (JavaRaw "null"))
                   result (workerCall moduleName candidate args))
               else
-                -- An eager field is assigned before any later declaration runs,
-                -- so the worker can be called directly. Reusing the rewritten
+                -- Between eager declarations, the earlier field is assigned
+                -- before the caller is available. Reusing the rewritten
                 -- arguments only once avoids doubling a saturated call at every
                 -- nesting level, which was exponential before this branch.
                 pure (workerCall moduleName candidate args)

@@ -10,28 +10,28 @@ import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 // Build the original fixture in an isolated workspace, then exercise f itself.
 // No dependency on the last program compiled in tests/runner or on the cwd.
 async function checkBranches(runner, { javac, java, env }, processes) {
-const source = readFileSync(join(runner, "src/Main.purs"), "utf8");
-assert.match(source, /f _ = 2137/, "expected the BigFunction fixture");
-const cases = new Map();
-for (const line of source.split("\n")) {
-  const clause = line.match(/^f \[([^\]]+)\] \| (.+) = (.+)$/);
-  if (!clause) continue;
-  const binders = clause[1].split(/,\s*/);
-  if (cases.has(binders.length)) continue;
-  const lookups = [...clause[2].matchAll(/Just (x+) <- lookup (\d+) (m+)/g)];
-  assert.equal(lookups.length, binders.length);
-  assert.equal(clause[3], lookups.map(match => match[1]).join(" + "), "expected sum of successful guard values");
-  const indices = binders.map(binder => Number(lookups.find(match => match[3] === binder)[2]));
-  cases.set(binders.length, indices);
-}
-assert.equal(cases.size, 51, "cover every distinct array-pattern length");
-// Later clauses index beyond 222 million. Bound the fixture's allocation;
-// those lengths still exercise failure after a populated prefix of captures.
-const elementBudget = 1_000_000;
-const successfulPatterns = [...cases.values()].filter(indices => indices.reduce((sum, i) => sum + i + 1, 0) <= elementBudget).length;
+  const source = readFileSync(join(runner, "src/Main.purs"), "utf8");
+  assert.match(source, /f _ = 2137/, "expected the BigFunction fixture");
+  const cases = new Map();
+  for (const line of source.split("\n")) {
+    const clause = line.match(/^f \[([^\]]+)\] \| (.+) = (.+)$/);
+    if (!clause) continue;
+    const binders = clause[1].split(/,\s*/);
+    if (cases.has(binders.length)) continue;
+    const lookups = [...clause[2].matchAll(/Just (x+) <- lookup (\d+) (m+)/g)];
+    assert.equal(lookups.length, binders.length);
+    assert.equal(clause[3], lookups.map(match => match[1]).join(" + "), "expected sum of successful guard values");
+    const indices = binders.map(binder => Number(lookups.find(match => match[3] === binder)[2]));
+    cases.set(binders.length, indices);
+  }
+  assert.equal(cases.size, 51, "cover every distinct array-pattern length");
+  // Later clauses index beyond 222 million. Bound the fixture's allocation;
+  // those lengths still exercise failure after a populated prefix of captures.
+  const elementBudget = 1_000_000;
+  const successfulPatterns = [...cases.values()].filter(indices => indices.reduce((sum, i) => sum + i + 1, 0) <= elementBudget).length;
 
-const directory = join(runner, "checks");
-mkdirSync(directory);
+  const directory = join(runner, "checks");
+  mkdirSync(directory);
   const path = join(directory, "BigFunctionChecks.java");
   writeFileSync(path, `
 import java.util.*;

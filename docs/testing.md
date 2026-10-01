@@ -8,6 +8,7 @@ depuis le dépôt du compilateur `htdocs/javapurs/javapurs`, sauf indication con
 | Niveau | Entrée et résultat vérifié |
 | --- | --- |
 | Suites directes `test/*.mjs` | Modules JavaScript construits du compilateur, AST synthétiques et, suivant le script, compilation/exécution de fixtures Java. |
+| Outillage `test/test-tools.mjs` | Petit corpus et commandes simulés ; sélection, fichiers, processus et interruption. Node suffit. |
 | Fixture PureScript nommée | `bin/test NOM` réalise Spago → Javapurs → `javac` → `MainRun` dans `tests/runner`. |
 | Port Java particulier | Son propre `bin/test` prépare le workspace du port et exécute son `Test.Main`. |
 | Documentation/outillage | Contrôle des chemins, options, sélections, syntaxe des exemples et contrats des sous-processus effectivement modifiés. |
@@ -56,10 +57,19 @@ export JAVAC="$(command -v javac)"
 export JAVA="$(command -v java)"
 ```
 
-Les suites Node/Java utilisent ces variables, avec un défaut Homebrew
-`/opt/homebrew/opt/openjdk/bin`. `bin/test` préfère le PATH avant ce défaut.
-Les scripts des ports Aff/Refs appellent directement `javac` et `java` sur le
-PATH : leurs conventions restent propres au port.
+[tools/java-tools.mjs](../tools/java-tools.mjs) fournit le choix commun aux
+suites Java et aux runners :
+
+1. `JAVAC`/`JAVA` explicites ; si un seul est fourni, prendre l'autre exécutable
+   dans le même dossier réel, après résolution des liens symboliques.
+2. Sinon, le dossier `bin/` de `JAVA_HOME`.
+3. Sinon, `javac` sur le PATH et son voisin `java`, avec un dernier repli
+   vers `/opt/homebrew/opt/openjdk/bin/javac`.
+
+Un exécutable absent ou deux dossiers JDK différents produisent une erreur.
+Le support d'agrégation des ports transmet aussi le dossier du JDK sur le PATH,
+pour les scripts qui appellent directement `javac` et `java`. Appelés seuls,
+les scripts Aff/Refs conservent leur sélection sur le PATH.
 
 `JAVAPURS_HEAP` règle le heap Node du compilateur. Les options de heap Java,
 comme `JAVA_TOOL_OPTIONS=-Xmx4g`, concernent les processus JVM. La cible
@@ -85,13 +95,15 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Réutilisation des constructeurs | [test/constructor-reuse.mjs](../test/constructor-reuse.mjs) | Réécriture AST et exécution des cas de partage. |
 | Ownership et workers consommateurs | [test/ownership.mjs](../test/ownership.mjs) | Sélection, fraîcheur, cas polymorphes/locaux, génération et exécution. |
 | Renommage et chunking | [test/chunk.mjs](../test/chunk.mjs) | 11 fixtures : captures imbriquées, portées, types Java, récursion, mutations, ordre des effets, scopes profonds et boucles. |
-| Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | 155 contrôles de `f` ; nécessite immédiatement avant lui un run réussi de `bin/test BigFunction`. |
+| Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | Prépare et exécute BigFunction dans un workspace temporaire isolé, puis réalise 155 contrôles de `f`. |
+| Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 11 tests Node : noms et bornes invalides, absence d'effets de `--list`, préparation/FFI, erreurs par phase, logs, temporaires, timeout et signaux aux descendants. |
 
 Pour une modification de `JavaAst` ou de `Printer`, choisir les lignes qui
 utilisent les nœuds modifiés et vérifier leurs parcours dans les passes
 consommatrices. Pour `Main`, la CLI ou l'insertion FFI, préparer une fixture
 nommée qui emprunte le chemin complet ; les scripts AST seuls ne couvrent pas
-l'orchestration. Des fixtures CLI dédiées font partie des lots M02/M03.
+l'orchestration. Les fixtures CLI simulées de M02 couvrent le runner ; les
+fixtures du pilote de compilation relèvent de M03.
 
 ### Entrées optionnelles de benchmarks
 
@@ -110,9 +122,12 @@ lisent les caches du projet ; elles ne déclenchent pas sa préparation complèt
 
 ## Fixtures PureScript nommées
 
-[bin/test](../bin/test) lit en priorité le corpus du fork à
+[bin/test](../bin/test) délègue à [passing-runner](../tools/passing-runner.mjs).
+La sélection lit en priorité le corpus du fork à
 `../../purescript/tests/purs/passing`, avec un repli vers `tests/passing`.
-Les ports nécessaires sont énumérés dans [bin/pkg](../bin/pkg).
+Les ports nécessaires sont définis dans
+[tests/runner/spago.yaml](../tests/runner/spago.yaml), également utilisé comme
+template des workspaces isolés.
 
 ```bash
 ./bin/test BigFunction DerivingTraversable --list
@@ -121,10 +136,12 @@ Les ports nécessaires sont énumérés dans [bin/pkg](../bin/pkg).
 
 Le premier appel doit lister exactement les deux noms. Le second exécute une
 seule fixture. Le runner accepte nom, nom avec `.purs` ou chemin de fichier.
-Actuellement, un argument introuvable est affiché puis ignoré ; si aucun nom
-ne reste, la sélection devient le corpus par défaut. Inspecter les noms avec
-`--list` avant l'exécution. `--list` doit être utilisé sans `-c`, car ce dernier
-reconstruit et nettoie avant la sortie de la liste.
+Un nom, une option ou une borne introuvable fait échouer toute la sélection avec
+le code 2, avant tout build ou nettoyage. Une demande explicite de fixture exclue
+échoue aussi. `--list` résout seulement la sélection, même avec `-c` ; aucun JDK
+ni package Java n'est requis pour cette liste. Les noms sans chemin sont aussi
+cherchés dans `tests/passing`. L'absence de noms conserve la sélection par défaut
+du corpus ; les recettes de ce chantier utilisent des noms explicites.
 
 Pour chaque fixture sélectionnée :
 
@@ -134,15 +151,20 @@ Pour chaque fixture sélectionnée :
 3. Une FFI Java adjacente prime sur `tests/ffi/NOM.java` ; la FFI JavaScript
    adjacente, lorsqu'elle existe, satisfait la compilation PureScript.
 4. Il appelle Spago, Javapurs, `javac`, puis `java -cp classes MainRun`.
-5. Il compte les succès/échecs par phase. Le fichier `logs-NOM.txt` du runner est
-   réutilisé entre phases et supprimé au succès ; conserver la sortie externe
-   d'une investigation si son historique est nécessaire.
+5. Il conserve `purescript.log`, `generation.log`, `javac.log` et `execution.log`
+   dans `logs/tests/NOM/`. Le dossier de logs de cette fixture est remplacé au
+   début de son prochain run ; une phase non atteinte n'a donc pas de vieux log.
+   Les échecs indiquent nom, phase, code de sortie/signal et chemin du log.
 
-`--keep-going` poursuit la sélection après un échec. Les bornes `skip_before=`
-et `until=` s'appliquent à la sélection ; `-c` reconstruit aussi le backend et
-nettoie les caches du runner. Les exclusions actuelles sont `DerivingClause`,
+`--keep-going` poursuit les noms sélectionnés après un échec. Une interruption
+arrête le run, y compris dans ce mode, avec le code 130 pour SIGINT ou 143 pour
+SIGTERM. Les bornes inclusives `skip_before=` et `until=` s'appliquent à la
+sélection ; les formes `--skip-before NOM` et `--until NOM` sont aussi acceptées.
+`-c` reconstruit le backend, puis nettoie `.spago` et `.purmeta` du runner.
+Les exclusions actuelles sont `DerivingClause`,
 `DerivingContravariant`, `DerivingFunctorFromBi`, `DerivingFunctorFromPro`,
-`DerivingProfunctor` et `4179`, pour les raisons indiquées dans le script.
+`DerivingProfunctor` et `4179` : fonctionnalités rejetées par le frontend partagé
+ou sémantique JavaScript spécifique.
 
 ### Chunker et BigFunction
 
@@ -151,16 +173,50 @@ Séquence ciblée pour un changement des captures, scopes ou budgets :
 ```bash
 ./bin/build
 node test/chunk.mjs
-JAVA_TOOL_OPTIONS=-Xmx4g ./bin/test BigFunction
 node test/big-function.mjs
 ./bin/test DerivingTraversable
 ```
 
-Vérifier le succès de chaque commande avant la suivante. Le harness BigFunction
-lit `tests/runner/src/Main.purs` et réutilise ses classes ; le test suivant les
-remplacera. Son allocation d'entrée est bornée : les 51 tailles de motifs sont
+Vérifier le succès de chaque commande avant la suivante. BigFunction sélectionne
+la fixture du fork (ou sa surcharge locale), copie le template Spago avec les
+chemins des ports rendus absolus, puis déroule les quatre phases et le harness.
+Le compilateur doit être construit et les ports du template disponibles.
+Le script retrouve le dépôt depuis sa propre URL et fonctionne depuis un autre
+dossier courant. Il utilise `javac -J-Xmx4g` et une JVM de contrôle à `-Xmx512m`.
+
+Les workspaces temporaires utilisent `TMPDIR` ou le dossier temporaire de l'OS.
+Ils sont supprimés au succès, conservés avec un chemin explicite en cas d'échec.
+Les logs du pipeline BigFunction sont dans `logs/BigFunction/` du workspace, ceux
+du harness dans `checks/`. `tests/runner` reste disponible pour une autre fixture.
+
+L'allocation d'entrée du harness est bornée : les 51 tailles de motifs sont
 exercées, 26 avec succès de toutes les gardes et les grandes tailles par leurs
 chemins d'échec. Ce contrôle complète le `main` du corpus, qui couvre peu `f`.
+
+### Outillage des tests
+
+```bash
+node --test test/test-tools.mjs
+```
+
+Cette suite crée un petit dépôt temporaire et des exécutables simulés. Elle
+exerce réellement le launcher et ses phases, puis les erreurs de lancement,
+codes non nuls, timeout avec arrêt forcé et transmission des signaux aux
+petits-enfants. Elle vérifie aussi le nettoyage au succès et la conservation
+des fichiers en échec.
+
+| Module partagé | Responsabilité |
+| --- | --- |
+| [test-selection](../tools/test-selection.mjs) | Options et résolution complète de la sélection avant les opérations de fichiers. |
+| [fixture-runner](../tools/fixture-runner.mjs) | Template Spago, préparation de la fixture/FFI et phases jusqu'à la JVM. |
+| [java-tools](../tools/java-tools.mjs) | Paire cohérente `javac`/`java` et environnement des ports. |
+| [test-workspace](../tools/test-workspace.mjs) | Cycle de vie des répertoires temporaires. |
+| [test-process](../tools/test-process.mjs) | Commandes synchrones des suites AST et processus asynchrones des runners. |
+
+Les commandes synchrones conservent les choix de stdio et de timeout de chaque
+suite. Les runners asynchrones isolent chaque phase dans un groupe de processus,
+transmettent SIGINT/SIGTERM, puis forcent l'arrêt après une seconde si nécessaire.
+Le stdout capturé est distinct du stderr, tandis que le log contient les deux.
 
 ### Port particulier
 

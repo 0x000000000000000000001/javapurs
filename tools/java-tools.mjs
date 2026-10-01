@@ -1,4 +1,4 @@
-import { accessSync, constants, realpathSync } from "node:fs";
+import { accessSync, constants, realpathSync, statSync } from "node:fs";
 import { delimiter, dirname, isAbsolute, join, resolve } from "node:path";
 
 function executable(name, env) {
@@ -8,6 +8,7 @@ function executable(name, env) {
   for (const candidate of candidates) {
     try {
       accessSync(candidate, constants.X_OK);
+      if (!statSync(candidate).isFile()) continue;
       return realpathSync(candidate);
     } catch { /* Try the next PATH entry. */ }
   }

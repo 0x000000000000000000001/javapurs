@@ -50,6 +50,8 @@ function isFile(path) {
   return statSync(path, { throwIfNoEntry: false })?.isFile() ?? false;
 }
 
+// Unsupported features of the shared frontend, or JavaScript-only semantics.
+// Explicit requests fail; default corpus selection omits these fixtures.
 const excludedFixtures = new Set([
   "DerivingClause", "DerivingContravariant", "DerivingFunctorFromBi",
   "DerivingFunctorFromPro", "DerivingProfunctor", "4179",

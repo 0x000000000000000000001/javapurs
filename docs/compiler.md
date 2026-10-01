@@ -18,7 +18,7 @@ htdocs/
 │   │   ├── src/Javapurs/                   traduction, analyses, AST et rendu
 │   │   ├── test/                          régressions directes Node/Java
 │   │   ├── tests/runner/                   workspace des fixtures PureScript
-│   │   └── tools/                         sélection et processus des ports
+│   │   └── tools/                         sélection, workspaces et processus de test
 │   └── javapurs-*/                        bibliothèques et FFI Java
 └── b8x/                                   application d'intégration
 ```
@@ -201,6 +201,8 @@ utilise aussi son rendu : ces dépendances font partie de l'organisation actuell
 - **Initialisation.** `JavaAssign` délègue à `__init$…`. `JavaLazyAssign` possède
   un état et un getter d'initialisation. `DirectCalls` respecte l'ordre des
   déclarations et distingue bindings eager, lazy et appels récursifs saturés.
+  Un appel depuis un binding lazy peut survenir avant l'affectation d'un champ
+  eager situé plus haut dans le fichier : ce chemin garde le contrôle du champ.
 - **Effets.** Un effet différé est construit avant d'être forcé. Extraire son
   corps ou ses captures doit conserver le moment, l'ordre et le nombre d'exécutions.
 - **Boucles.** Une cible `JavaContinue` identifie sa boucle. Le printer peut

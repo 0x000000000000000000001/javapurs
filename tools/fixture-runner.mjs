@@ -34,6 +34,7 @@ export async function runFixture({ root = compilerRoot, fixture, directory, proc
     rmSync(join(directory, child), { recursive: true, force: true });
     mkdirSync(join(directory, child), { recursive: true });
   }
+  rmSync(logs, { recursive: true, force: true });
   mkdirSync(logs, { recursive: true });
   copyFileSync(source, join(directory, "src/Main.purs"));
   const stem = source.slice(0, -".purs".length);

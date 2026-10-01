@@ -55,7 +55,10 @@ function worker(file, name) {
   let body = field.value1;
   while (body instanceof A.JavaAbs) body = body.value1;
   const target = body instanceof A.JavaCall && body.value0 instanceof A.JavaGlobalVar ? body.value0.value1 : null;
-  return file.decls.find(decl => decl instanceof A.JavaStaticMethod && decl.value0 === target);
+  // An emitted worker follows its public field. An untouched lambda may also
+  // forward to another binding's worker (the "lazy" fixture calls "pair").
+  const next = file.decls[file.decls.indexOf(field) + 1];
+  return next instanceof A.JavaStaticMethod && next.value0 === target ? next : undefined;
 }
 
 const original = { recordShapes: [layout], decls: [
@@ -123,9 +126,10 @@ for (const name of ["pair", "nested", "constant", "returner", "scoped", "castPai
   assert.ok(worker(optimized, name), `${name}: extract the contiguous multi-argument lambda prefix`);
   assert.ok(declaration(optimized, name).value1 instanceof A.JavaAbs, `${name}: keep the public curried field`);
 }
-for (const name of ["middle", "alias", "lazy", "zero", "unary", "arity33"]) {
+for (const name of ["middle", "alias", "zero", "unary", "arity33"]) {
   assert.equal(worker(optimized, name), undefined, `${name}: not an eligible nonrecursive lambda`);
 }
+assert.equal(worker(optimized, "lazy"), undefined, "no dedicated worker without a rewritten caller");
 assert.equal(worker(optimized, "returner").value1.length, 2, "a computation before the returned lambda stops flattening");
 assert.equal(calls(declaration(optimized, "saturated")).length, 1);
 assert.equal(calls(declaration(optimized, "over")).length, 1);
