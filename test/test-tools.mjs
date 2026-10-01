@@ -183,13 +183,18 @@ test("process helpers report launch errors, exit status, output and timeout", as
     const log = join(temp, "command.log");
     const output = await processes.run("capture", process.execPath,
       ["-e", "console.log(process.env.VALUE); console.error('stderr')"],
-      { log, capture: true, env: { ...process.env, VALUE: "stdout" } });
-    assert.equal(output, "stdout\n");
+      { log, capture: true, env: { ...process.env, VALUE: "stdout — é" } });
+    assert.equal(output, "stdout — é\n");
     assert.match(readFileSync(log, "utf8"), /stderr/);
     await assert.rejects(processes.run("launch", "/missing/executable", [], { log }),
       error => error instanceof ProcessFailure && /launch failed.*ENOENT/.test(error.message));
     await assert.rejects(processes.run("exit", process.execPath, ["-e", "process.exit(9)"], { log }),
       error => error instanceof ProcessFailure && error.code === 9 && error.log === log);
+    await assert.rejects(processes.run("failed parent", process.execPath, ["-e", `
+      const { spawn } = require('node:child_process');
+      const leaf = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'inherit' });
+      leaf.once('spawn', () => process.exit(9));`], { log, timeout: 2000 }),
+      error => error instanceof ProcessFailure && error.code === 9 && !error.timeout);
     await assert.rejects(processes.run("timeout", process.execPath,
       ["-e", "process.on('SIGTERM', () => {}); setInterval(() => {}, 1000)"], { log, timeout: 250 }),
       error => error instanceof ProcessFailure && error.timeout === 250 && error.signal === "SIGKILL");

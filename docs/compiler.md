@@ -2,7 +2,7 @@
 
 État documenté au **1er octobre 2026**. Ce guide décrit le chemin de production
 actuel. Les références des sources et des outils figurent dans le
-[registre de validation](testing.md#validation-m01).
+[registre de validation](testing.md#validation-m02).
 
 ## Se repérer dans le workspace
 

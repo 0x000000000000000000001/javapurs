@@ -298,3 +298,78 @@ Contrôles documentaires réalisés :
 Les contrôles de M01 portent sur la documentation et la sélection des commandes.
 Les résultats d'exécution du tableau précédent sont les références acquises
 avant ce lot.
+
+## Validation M02
+
+**1er octobre 2026 — tests ciblés faciles à rejouer.**
+
+Base du lot : Javapurs `4ad2966eb6cd37362bff94a395993905a1a00f97`, checkout
+initial propre. Outils : versions de l'inventaire M01 ; `javac`/`java` résolus
+vers le même JDK OpenJDK 26.0.2. Les temporaires des vérifications ont utilisé
+`TMPDIR=/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode`.
+
+### Livrables et décisions
+
+- `bin/test` est un launcher vers `tools/passing-runner.mjs`. La sélection complète
+  est validée avant build/nettoyage ; noms, options et bornes invalides sortent en 2.
+- `tools/fixture-runner.mjs` partage préparation et phases avec BigFunction.
+  `tests/runner/spago.yaml` est la source unique des packages ; `bin/pkg`, devenu
+  sans consommateur, a été retiré.
+- `tools/java-tools.mjs`, `tools/test-workspace.mjs` et `tools/test-process.mjs`
+  partagent les contrats JDK, temporaires et processus. Les onze suites AST/Java
+  et BigFunction les utilisent. Le support des ports réutilise le choix du JDK
+  et propage l'interruption même en mode keep-going.
+- `test/big-function.mjs` prépare le corpus et son harness dans un workspace
+  isolé ; les échecs conservent les entrées et logs.
+- `test/test-tools.mjs` vérifie les contrats avec un petit dépôt et des commandes
+  simulés, dont le cas d'un parent défaillant laissant des descendants actifs.
+- README, guide et matrice ont été actualisés pour ces commandes et responsabilités.
+
+### Défaut révélé par le rejeu des appels directs
+
+Le helper de `test/direct-calls.mjs` pouvait attribuer à `lazy` le worker de
+`pair`, simplement parce que son corps l'appelait. Cet échec a été reproduit
+sur la version de départ, puis le helper a été corrigé pour reconnaître le
+worker émis avec sa déclaration.
+
+Le test d'exécution a ensuite révélé une différence sémantique : un getter lazy
+appelé depuis un initialiseur antérieur pouvait appeler directement le worker
+d'un champ eager encore nul. `src/Javapurs/DirectCalls.purs` transporte désormais
+le contexte `fromLazy` et garde ce champ avant de choisir l'appel direct. Le
+chemin de repli conserve l'arrêt avant l'évaluation des arguments suivants.
+Les appels entre déclarations eager gardent leur forme directe ; les fichiers
+construits de `Javapurs.DirectCalls` ont été régénérés.
+
+### Commandes et résultats
+
+| Contrôle ciblé | Résultat |
+| --- | --- |
+| `node --test test/test-tools.mjs` | **11/11** ; sélection/absence d'effets, préparation, logs, JDK, échecs de processus, timeout et SIGINT/SIGTERM. |
+| `./bin/build` | **0 erreur** ; 5 avertissements dans `CodeGen` concernant les imports et des motifs inaccessibles. |
+| `node test/chunk.mjs` | **11 fixtures**. |
+| `node test/direct-calls.mjs` | **37 contrôles runtime par mode**, direct désactivé puis activé, et assertions d'admission. |
+| `node test/big-function.mjs`, lancé depuis le dossier temporaire par son chemin absolu | Pipeline complet réussi, puis **155 contrôles**, dont 26 motifs non vides entièrement réussis. Rejoué après correction de `DirectCalls`. |
+| `./bin/test DerivingTraversable` | **1 passed, 0 failed**, avant puis après la correction d'initialisation. |
+| `node test/tco.mjs`, `node test/counted-loops.mjs`, `node test/nullary-constructors.mjs`, `node test/typed-records.mjs`, `node test/loop-invariants.mjs`, `node test/int-functions.mjs`, `node test/operators.mjs`, `node test/constructor-reuse.mjs`, `node test/ownership.mjs` | Tous réussis ; les consommateurs CodeGen concernés ont été rejoués après la correction. |
+
+Deux comparaisons complètent ces exécutions :
+
+- après le premier BigFunction isolé, les **1 254 fichiers** `src`, `java_output`
+  et `classes` du runner partagé ont les mêmes chemins et SHA-256 ;
+- après refactoring du runner, avant la correction de `DirectCalls`, les
+  **331 sources Java** de `DerivingTraversable` ont le même inventaire et les
+  mêmes SHA-256. La correction d'initialisation qui suit est un changement
+  sémantique explicite, vérifié avec les deux modes d'appels directs.
+
+Vérifications finales : syntaxe des modules Node et du launcher Bash, sélection
+documentée avec `--list`, liens/ancres et matrice des 14 suites, recalcul du score,
+revue du diff depuis la base du lot et `git diff --check`.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m02/`,
+notamment `test-tools-final.log`, `build.log`, `big-function-final.log`,
+`deriving-traversable-final.log`, `deriving-java-comparison.txt`,
+`direct-calls-before.log` et `direct-calls-initialization-failure.log`.
+
+**Conclusion : M02 validé, +10 points ; avancement 15/100, 2 lots sur 11.
+Prochain lot : M03 — orchestration et configuration.**

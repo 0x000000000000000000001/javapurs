@@ -83,6 +83,8 @@ export class TestProcesses {
       fd = log ? openSync(log, "w") : null;
       const child = spawn(command, args, { cwd, env, detached: true, stdio: ["ignore", "pipe", "pipe"] });
       this.active = child;
+      child.stdout.setEncoding("utf8");
+      child.stderr.setEncoding("utf8");
       child.stdout.on("data", chunk => {
         if (capture) output += chunk;
         if (fd !== null) writeSync(fd, chunk);
@@ -95,6 +97,11 @@ export class TestProcesses {
       if (timeout) timer = setTimeout(() => { timedOut = true; this.stop("SIGTERM"); }, timeout);
       status = await new Promise((resolve, reject) => {
         child.once("error", reject);
+        // Descendants can keep the pipes open after a failed wrapper exits.
+        // Stop them on exit, rather than waiting indefinitely for close.
+        child.once("exit", (code, signal) => {
+          if (code !== 0 || signal) this.killGroup("SIGKILL");
+        });
         child.once("close", (code, signal) => resolve({ code, signal }));
       });
     } catch (error) {
