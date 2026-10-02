@@ -86,6 +86,7 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | --- | --- | --- |
 | `IntLoops` | [test/int-loops.mjs](../test/int-loops.mjs) | Classification des paramètres primitifs, types polymorphes et `TypeApp` ; chemin synthétique Node sans `javac`. |
 | AST, `Rename`, `ControlFlow`, `Raw` | [test/ast-scopes.mjs](../test/ast-scopes.mjs) | Masquage, branches sœurs, récursion, métadonnées/sélecteurs, cibles de boucle imbriquées et Java brut ; 110 contrôles JVM par mode, avec/sans chunking. |
+| Contextes et traduction `CodeGen.Expr` | [test/codegen.mjs](../test/codegen.mjs) | 48 contrôles JVM par mode, avec/sans chunking : gardes, arguments, effets différés, binds, écritures uniques/identité ST, exceptions, récursion locale et captures échappées. |
 | TCO, captures d'itération, rendu du contrôle | [test/tco.mjs](../test/tco.mjs) | Boucles, cibles, closures et exécution Java. |
 | Boucles comptées | [test/counted-loops.mjs](../test/counted-loops.mjs) | Reconnaissance et génération des boucles, replis et résultats Java. |
 | Nommage, constructeurs nullaires, initialisation | [test/nullary-constructors.mjs](../test/nullary-constructors.mjs) | Singletons, portées, noms des modules/constructeurs et initialisations. |
@@ -274,6 +275,25 @@ l'externe. Les divisions/modulos structurés sont testés avec captures, extract
 Compléter avec les suites spécialisées de la matrice quand leur nœud ou leur
 analyse change. `operators.mjs` compare notamment 202 cas numériques à leurs
 références sémantiques ; `loop-invariants.mjs` couvre le scope des caches différés.
+
+### Traduction des expressions
+
+Pour les [contextes, priorités et frontières d'évaluation](expressions.md) :
+
+```bash
+./bin/build
+node test/codegen.mjs
+node test/int-functions.mjs
+node test/direct-calls.mjs
+node test/loop-invariants.mjs
+```
+
+`codegen.mjs` entre par `Pipeline.lowerModule` avec des fixtures BackendSyntax,
+puis compile et exécute le Java avec et sans chunking. Les traces vérifient
+l'ordre et le nombre d'exécutions, ainsi que les exceptions et l'identité des
+objets retournés par les écritures ST. Les autres suites couvrent notamment les
+replis génériques/primitifs, gardes d'initialisation et caches de boucle.
+Compléter par les lignes de la matrice correspondant aux workers modifiés.
 
 ### Outillage des tests
 
@@ -708,3 +728,107 @@ notamment `base/`, `versions.json`, `build-final.log`, `before/`, `after/`,
 
 **Conclusion : M05 validé, +10 points ; avancement 45/100, 5 lots sur 11.
 Prochain lot : M06 — traduction des expressions.**
+
+## Validation M06
+
+**2 octobre 2026 — traduction des expressions.**
+
+Base : Javapurs `17f9b1e3afb000d88d858f54cc8a6a4bd26390ed`, checkout initial
+propre. `base/` conserve les sources, tests, documents et l'ancien `CodeGen`
+construit. PBO Java : `0f41544464ec0f42e6cb0dd77b206852813f904f` ; fork PureScript :
+`3c27d1eeb68d9831e5157eacdae64043c7f45ba8`. Versions relevées à nouveau : Node
+24.8.0, Spago 1.0.3, même binaire `purs` TAST et OpenJDK 26.0.2. Aucun override
+JDK/heap initial ; les workspaces isolés utilisent le temporaire `opencode`.
+
+### Livrables et décisions
+
+- `CodeGen` possède l'assemblage du module et l'ordre des analyses/passes ; les
+  cinq entrées de traduction et la réexportation de `extractUncurriedAbs` sont
+  explicites. `CodeGen.Expr` contient le dispatcher exhaustif et ses workers.
+- `CodeGen.Context` nomme position terminale, construction/exécution des effets,
+  capacités de saut et captures. `Translation` distingue statements ordonnés et
+  résultat ; les opérandes gardent leurs statements à leur site d'évaluation.
+- `CodeGen.Syntax` regroupe reconnaissance/normalisation des applications,
+  abstractions et enveloppes d'effet. Les faits du module restent dans
+  `CodegenEnv`, distinct du contexte d'exécution.
+- Priorités visibles : ownership pour `App`, puis saut TCO admis, puis application
+  primitive/générique. Les chemins uncurried, effets, binders typés et records
+  conservent leurs admissions spécifiques. Les représentations de repli ne
+  traduisent pas spéculativement les bindings/appels déjà admis ailleurs.
+- Les closures conservent les snapshots et perdent les sauts parents. Les joins
+  n'activent que des cibles encore vivantes. Une fonction locale qui lit encore
+  son propre binding conserve son scope récursif.
+- [Le guide des expressions](expressions.md), la matrice, le README et les
+  artefacts construits accompagnent les modules et la nouvelle suite `codegen.mjs`.
+  Les deux anciens motifs de repli inaccessibles disparaissent au profit des
+  dispatchers exhaustifs.
+
+### Défaut d'évaluation reproduit et corrigé
+
+L'ancien `EffectRefWrite` concaténait les statements de ses opérandes, puis
+réutilisait ces opérandes avec leurs blocs et réévaluait la valeur pour la
+retourner. La nouvelle suite, exécutée sur le `CodeGen` sauvegardé, reproduit
+**six échecs sur 48 contrôles** : allocations doublées, résultat distinct de
+l'objet stocké, statements rejoués et ordre incorrect, y compris dans deux
+écritures successives.
+
+La correction évalue et caste la référence avant la valeur, conserve les deux
+résultats dans des locaux structurels, puis écrit et retourne la même valeur.
+`Rename` rend ces locaux frais. Les contrôles vérifient aussi l'arrêt avant la
+valeur si la référence lève une exception ou échoue au cast, et l'exécution
+uniquement au forçage de l'action. Ces primitives sont celles de ST ; la FFI
+synchronisée `Effect.Ref` reste une responsabilité distincte.
+
+### Commandes et résultats
+
+| Contrôle ciblé | Résultat |
+| --- | --- |
+| `./bin/build` | **0 erreur, 0 avertissement** au build final, avec `CodeGen.Expr` et ses consommateurs reconstruits. |
+| `node test/codegen.mjs` | **48 contrôles JVM par mode**, renommage puis chunking désactivé/activé ; `javac --release 17`, pile JVM 256 Kio. |
+| `node test/int-functions.mjs` | Modes générique et spécialisé : interopérabilité, ordre, exceptions, captures et TCO réussis. |
+| `node test/direct-calls.mjs` | **37 contrôles runtime par mode**, appels directs désactivés/activés, et assertions d'admission. |
+| `node test/tco.mjs` | **16 cas comportementaux** du contrôle et des captures réussis. |
+| `node test/loop-invariants.mjs`, `node test/ownership.mjs`, `node test/typed-records.mjs`, `node test/nullary-constructors.mjs`, `node test/operators.mjs` | Tous réussis ; **202 cas numériques** dans la dernière suite. |
+| `node test/big-function.mjs` | Pipeline isolé réussi, puis **155 contrôles**, dont 26 motifs non vides entièrement réussis. |
+| `runFixture` ciblé sur `Collatz`, avant/après, puis harness local | Deux pipelines Java 17 réussis sur les mêmes entrées ; **7 résultats de référence avant et après**. |
+| `ChangedSTChecks.java`, avant/après | **33 contrôles par version** sur les deux bibliothèques dont le Java change : itérateurs et `monadRecST`, ordre/forçage répété, état et récursion profonde. |
+
+### Comparaison du Java
+
+La sonde locale conserve les sources des suites avant nettoyage. Les huit suites
+existantes produisent **50/50 sources identiques**, inventaires inclus. La suite
+CodeGen ajoute dix sources cumulées ; sa référence défaillante conservée permet
+de localiser la correction dans les fonctions d'écriture.
+
+Pour les deux programmes réels, **210 TAST par programme** sont vérifiés :
+Collatz réutilise exactement les mêmes fichiers entre les deux générations ;
+BigFunction retrouve les empreintes de la clôture M05, ainsi que sa source,
+configuration et harness. Les résultats sont :
+
+| Programme | Sources identiques | Différences |
+| --- | --- | --- |
+| BigFunction | **327/329** | `Control.Monad.ST.Internal`, `Data.Array.ST.Iterator`. |
+| Collatz | **326/329** | Les mêmes bibliothèques, plus `Main.collatz`. |
+
+Les différences correspondent aux locaux d'écriture unique, à leurs suffixes de
+renommage et au déplacement d'une frontière de chunk dans `Iterator.iterate`.
+Les fragments FFI sont identiques. Le harness ciblé vérifie `next`, `peek`,
+`iterate`, `pushWhile`, `pushAll`, l'épuisement et les invocations répétées de
+`tailRecM` jusqu'à 100 000 étapes. Après la revue des replis, la dernière génération
+conserve les **329 sources de chaque programme** à l'octet près par rapport aux
+versions déjà compilées et exécutées.
+
+Vérifications de clôture : exports et consommateurs, absence de traduction
+anticipée des replis, liens/ancres, matrice des 17 suites, sept options CLI,
+exemples Bash, syntaxe Node, score et revue du diff depuis la base sauvegardée.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m06/`,
+notamment `base/`, `versions.json`, `build-final.log`, `before/`, `reviewed/`,
+`baseline-final/`, `codegen-baseline-final.log`, `java-comparison-final.txt`,
+`collatz-before/`, `collatz-after/`, `collatz-inputs.json`, `big-function-final/`,
+`ChangedSTChecks.java`, `st-libraries-before.log`, `st-libraries-after.log`,
+`reviewed-generation.txt`, les diffs Java et `final-checks.txt`.
+
+**Conclusion : M06 validé, +10 points ; avancement 55/100, 6 lots sur 11.
+Prochain lot : M07 — impression Java et runtime généré.**

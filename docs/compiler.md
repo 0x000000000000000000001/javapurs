@@ -2,7 +2,7 @@
 
 État documenté au **2 octobre 2026**. Ce guide décrit le chemin de production
 actuel. Les références des sources et des outils figurent dans le
-[registre de validation](testing.md#validation-m05).
+[registre de validation](testing.md#validation-m06).
 
 ## Se repérer dans le workspace
 
@@ -113,8 +113,8 @@ Sa première étape, `CodeGen.translateWithIntFunctions`, coordonne dans l'ordre
    réécriture du module, déclarations de workers et classes rendues mutables.
 2. Analyse TCO des bindings, puis `RecordTypes.annotateRecordTypes`.
 3. `FunctionTypes.annotateFunctionTypes`, si les fonctions Int sont activées.
-4. Traduction des expressions, fonctions, bindings récursifs et branches.
-   `translateLoop` prépare les invariants et les paramètres Int lorsque les
+4. Traduction des expressions, fonctions, bindings récursifs et branches dans
+   `CodeGen.Expr`. `translateLoop` prépare les invariants et les paramètres Int lorsque les
    conditions de contrôle le permettent.
 5. Déclarations des classes d'ADT depuis `dataDecls`, collecte des formes de
    records et assemblage d'un `JavaFile`.
@@ -123,6 +123,10 @@ Sa première étape, `CodeGen.translateWithIntFunctions`, coordonne dans l'ordre
 Le résultat contient `decls` et `recordShapes`. Les entrées simplifiées comme
 `translate` ou `translateWithRecords` donnent des valeurs par défaut aux
 options supplémentaires. Elles ne réalisent pas les étapes suivantes de `Pipeline`.
+
+[Traduction des expressions](expressions.md) détaille le dispatcher, les contextes
+de position/effet, les captures des closures, les priorités des appels et le
+contrat `Translation` : statements ordonnés puis résultat dans leur portée.
 
 ### 4. Noms lexicaux puis découpage
 
@@ -226,7 +230,7 @@ et une erreur de décodage est journalisée avant d'écarter le module concerné
 | Quels nœuds Java existent et quels sont leurs enfants/portées ? | [JavaAst](../src/Javapurs/JavaAst.purs), [contrats de l'IR](ast.md). |
 | Où sont analysés les sauts et leurs frontières ? | [ControlFlow](../src/Javapurs/ControlFlow.purs). |
 | Quel texte brut peut être renommé ou considéré sans captures ? | [Raw](../src/Javapurs/Raw.purs). |
-| Comment sont traduits applications, effets, bindings et branches ? | [CodeGen](../src/Javapurs/CodeGen.purs), [Operators](../src/Javapurs/Operators.purs). |
+| Comment sont traduits applications, effets, bindings et branches ? | [CodeGen](../src/Javapurs/CodeGen.purs), [Expr](../src/Javapurs/CodeGen/Expr.purs), [Context](../src/Javapurs/CodeGen/Context.purs), [Syntax](../src/Javapurs/CodeGen/Syntax.purs), [guide des expressions](expressions.md). |
 | Quand un paramètre ou une fonction devient-il primitif ? | [IntLoops](../src/Javapurs/IntLoops.purs), [FunctionTypes](../src/Javapurs/FunctionTypes.purs), [IntFunctions](../src/Javapurs/IntFunctions.purs). |
 | Quels calculs peuvent être mis en cache dans une boucle ? | [PureInvariants](../src/Javapurs/PureInvariants.purs), [LoopInvariants](../src/Javapurs/LoopInvariants.purs). |
 | Quand utilise-t-on un worker statique ou un constructeur existant ? | [DirectCalls](../src/Javapurs/DirectCalls.purs), [Reuse](../src/Javapurs/Reuse.purs). |
