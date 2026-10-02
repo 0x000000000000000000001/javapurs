@@ -1,15 +1,21 @@
-module Javapurs.Naming (sanitizeName, modulePrefix, safeCtorName, constructorClassName) where
+module Javapurs.Naming
+  ( sanitizeName, modulePrefix, safeCtorName, constructorClassName
+  , renamedLocal, lazyGetterName, singletonHolderName
+  , loopSnapshotName, loopStorageName, loopNextName, snapshotBaseName
+  ) where
 
 import Prelude
 
 import Data.Foldable (foldl)
+import Data.Maybe (Maybe)
 import Data.String as String
 import Data.String.Pattern (Pattern(..), Replacement(..))
 import Data.Tuple (Tuple(..))
 import PureScript.Backend.Optimizer.CoreFn (ModuleName(..))
 
--- Java identifiers keep `$` out of source names; the backend reserves it for
--- generated prefixes such as `__singleton$`. Operator characters that appear in
+-- Source `$` characters are removed; keyword escaping may add a leading `$`.
+-- Embedded suffixes such as `$rN` and `__singleton$` remain backend-only.
+-- Operator characters that appear in
 -- generated names (class instances named after symbol literals, for example)
 -- become words, and a leading digit gets a prefix, so every name is a valid
 -- identifier.
@@ -69,3 +75,28 @@ safeCtorName = String.replaceAll (String.Pattern "'") (String.Replacement "_prim
 
 constructorClassName :: String -> String -> String
 constructorClassName modPart ctorName = modPart <> "." <> safeCtorName ctorName
+
+-- Generated names take already-escaped binding names; never sanitize them a
+-- second time. Rename owns the freshness counter, independently of scope exit.
+renamedLocal :: String -> Int -> String
+renamedLocal name counter = name <> "$r" <> show counter
+
+lazyGetterName :: String -> String
+lazyGetterName name = "__lazy_get_" <> name
+
+singletonHolderName :: String -> String
+singletonHolderName name = "__singleton$" <> name
+
+-- Loop storage is mutable; snapshots are final values captured by closures.
+-- The three prefixes must agree between CodeGen, Rename, Chunk and Printer.
+loopSnapshotName :: String -> String
+loopSnapshotName name = "__final_" <> name
+
+loopStorageName :: String -> String
+loopStorageName name = "__tco_" <> name
+
+loopNextName :: String -> String
+loopNextName name = "__next_" <> name
+
+snapshotBaseName :: String -> Maybe String
+snapshotBaseName = String.stripPrefix (Pattern "__final_")

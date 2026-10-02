@@ -25,10 +25,10 @@ var projectionAt = function (className) {
                 return Data_Maybe.Nothing.value;
             };
             if (v instanceof Javapurs_JavaAst.JavaPropertyAccess && v.value0 instanceof Javapurs_JavaAst.JavaLocal) {
-                var $27 = v.value1 === className;
-                if ($27) {
-                    var $28 = v.value2 === "value" + Data_Show.show(Data_Show.showInt)(index);
-                    if ($28) {
+                var $20 = v.value1 === className;
+                if ($20) {
+                    var $21 = v.value2 === "value" + Data_Show.show(Data_Show.showInt)(index);
+                    if ($21) {
                         return new Data_Maybe.Just(v.value0.value0);
                     };
                     return v1(true);
@@ -51,15 +51,15 @@ var othersProjection = function (className) {
         return function (args) {
             var scrutinees = Data_Array.mapMaybe(identity)(Data_Array.mapWithIndex(function (index) {
                 return function (arg) {
-                    var $33 = index === skip;
-                    if ($33) {
+                    var $26 = index === skip;
+                    if ($26) {
                         return Data_Maybe.Nothing.value;
                     };
                     return projectionAt(className)(index)(arg);
                 };
             })(args));
-            var $34 = Data_Array.length(scrutinees) !== (Data_Array.length(args) - 1 | 0);
-            if ($34) {
+            var $27 = Data_Array.length(scrutinees) !== (Data_Array.length(args) - 1 | 0);
+            if ($27) {
                 return Data_Maybe.Nothing.value;
             };
             var v = Data_Array.nub(Data_Ord.ordString)(scrutinees);
@@ -69,162 +69,6 @@ var othersProjection = function (className) {
             return Data_Maybe.Nothing.value;
         };
     };
-};
-var mapExpr = function (rewrite) {
-    var rebuild = function (v) {
-        if (v instanceof Javapurs_JavaAst.JavaString) {
-            return new Javapurs_JavaAst.JavaString(v.value0);
-        };
-        if (v instanceof Javapurs_JavaAst.JavaCall) {
-            return new Javapurs_JavaAst.JavaCall(go(v.value0), Data_Functor.map(Data_Functor.functorArray)(go)(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaFunction) {
-            return new Javapurs_JavaAst.JavaFunction(go(v.value0));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaLocal) {
-            return new Javapurs_JavaAst.JavaLocal(v.value0);
-        };
-        if (v instanceof Javapurs_JavaAst.JavaAbs) {
-            return new Javapurs_JavaAst.JavaAbs(v.value0, go(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaTypedAbs) {
-            return new Javapurs_JavaAst.JavaTypedAbs(v.value0, go(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaIntAbs) {
-            return new Javapurs_JavaAst.JavaIntAbs(v.value0, go(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaNew) {
-            return new Javapurs_JavaAst.JavaNew(v.value0, Data_Functor.map(Data_Functor.functorArray)(go)(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaCtorSingleton) {
-            return new Javapurs_JavaAst.JavaCtorSingleton(v.value0, v.value1);
-        };
-        if (v instanceof Javapurs_JavaAst.JavaTernary) {
-            return new Javapurs_JavaAst.JavaTernary(go(v.value0), go(v.value1), go(v.value2));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaThrow) {
-            return new Javapurs_JavaAst.JavaThrow(v.value0);
-        };
-        if (v instanceof Javapurs_JavaAst.JavaRecord) {
-            return new Javapurs_JavaAst.JavaRecord(Data_Functor.map(Data_Functor.functorArray)(function (v1) {
-                return new Data_Tuple.Tuple(v1.value0, go(v1.value1));
-            })(v.value0));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaTypedRecord) {
-            return new Javapurs_JavaAst.JavaTypedRecord(v.value0, Data_Functor.map(Data_Functor.functorArray)(function (v1) {
-                return new Data_Tuple.Tuple(v1.value0, go(v1.value1));
-            })(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaTypedRecordGet) {
-            return new Javapurs_JavaAst.JavaTypedRecordGet(v.value0, go(v.value1), v.value2);
-        };
-        if (v instanceof Javapurs_JavaAst.JavaTypedRecordUpdate) {
-            return new Javapurs_JavaAst.JavaTypedRecordUpdate(v.value0, go(v.value1), Data_Functor.map(Data_Functor.functorArray)(function (v1) {
-                return new Data_Tuple.Tuple(v1.value0, go(v1.value1));
-            })(v.value2));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaArray) {
-            return new Javapurs_JavaAst.JavaArray(Data_Functor.map(Data_Functor.functorArray)(go)(v.value0));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaWhileTrue) {
-            return new Javapurs_JavaAst.JavaWhileTrue(v.value0, v.value1, v.value2, go(v.value3));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaMemoizedLoop) {
-            return new Javapurs_JavaAst.JavaMemoizedLoop(v.value0, v.value1, v.value2, Data_Functor.map(Data_Functor.functorArray)(function (v1) {
-                return new Data_Tuple.Tuple(v1.value0, go(v1.value1));
-            })(v.value3), go(v.value4));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaLoopInvariant) {
-            return new Javapurs_JavaAst.JavaLoopInvariant(v.value0);
-        };
-        if (v instanceof Javapurs_JavaAst.JavaContinue) {
-            return new Javapurs_JavaAst.JavaContinue(v.value0, Data_Functor.map(Data_Functor.functorArray)(go)(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaMapGet) {
-            return new Javapurs_JavaAst.JavaMapGet(go(v.value0), v.value1);
-        };
-        if (v instanceof Javapurs_JavaAst.JavaMapUpdate) {
-            return new Javapurs_JavaAst.JavaMapUpdate(go(v.value0), Data_Functor.map(Data_Functor.functorArray)(function (v1) {
-                return new Data_Tuple.Tuple(v1.value0, go(v1.value1));
-            })(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaInstanceOf) {
-            return new Javapurs_JavaAst.JavaInstanceOf(go(v.value0), v.value1);
-        };
-        if (v instanceof Javapurs_JavaAst.JavaPropertyAccess) {
-            return new Javapurs_JavaAst.JavaPropertyAccess(go(v.value0), v.value1, v.value2);
-        };
-        if (v instanceof Javapurs_JavaAst.JavaApply) {
-            return new Javapurs_JavaAst.JavaApply(go(v.value0), go(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaIntApply) {
-            return new Javapurs_JavaAst.JavaIntApply(go(v.value0), go(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaLet) {
-            return new Javapurs_JavaAst.JavaLet(v.value0, go(v.value1), go(v.value2));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaLetRec) {
-            return new Javapurs_JavaAst.JavaLetRec(Data_Functor.map(Data_Functor.functorArray)(function (v1) {
-                return new Data_Tuple.Tuple(v1.value0, go(v1.value1));
-            })(v.value0), go(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaGlobalVar) {
-            return new Javapurs_JavaAst.JavaGlobalVar(v.value0, v.value1);
-        };
-        if (v instanceof Javapurs_JavaAst.JavaClassDecl) {
-            return new Javapurs_JavaAst.JavaClassDecl(v.value0, v.value1, v.value2);
-        };
-        if (v instanceof Javapurs_JavaAst.JavaRaw) {
-            return new Javapurs_JavaAst.JavaRaw(v.value0);
-        };
-        if (v instanceof Javapurs_JavaAst.JavaAssign) {
-            return new Javapurs_JavaAst.JavaAssign(v.value0, go(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaLazyAssign) {
-            return new Javapurs_JavaAst.JavaLazyAssign(v.value0, go(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaStaticMethod) {
-            return new Javapurs_JavaAst.JavaStaticMethod(v.value0, v.value1, go(v.value2));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaLocalAssign) {
-            return new Javapurs_JavaAst.JavaLocalAssign(v.value0, go(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaIntLocalAssign) {
-            return new Javapurs_JavaAst.JavaIntLocalAssign(v.value0, go(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaBinaryOp) {
-            return new Javapurs_JavaAst.JavaBinaryOp(v.value0, go(v.value1), go(v.value2));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaUnaryOp) {
-            return new Javapurs_JavaAst.JavaUnaryOp(v.value0, go(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaArrayIndex) {
-            return new Javapurs_JavaAst.JavaArrayIndex(go(v.value0), go(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaArraySet) {
-            return new Javapurs_JavaAst.JavaArraySet(go(v.value0), go(v.value1), go(v.value2));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaCast) {
-            return new Javapurs_JavaAst.JavaCast(v.value0, go(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaBlock) {
-            return new Javapurs_JavaAst.JavaBlock(Data_Functor.map(Data_Functor.functorArray)(go)(v.value0), go(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaFieldSet) {
-            return new Javapurs_JavaAst.JavaFieldSet(go(v.value0), v.value1, v.value2, v.value3, go(v.value4));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaLocalSet) {
-            return new Javapurs_JavaAst.JavaLocalSet(v.value0, go(v.value1));
-        };
-        if (v instanceof Javapurs_JavaAst.JavaIf) {
-            return new Javapurs_JavaAst.JavaIf(go(v.value0), Data_Functor.map(Data_Functor.functorArray)(go)(v.value1), Data_Functor.map(Data_Functor.functorArray)(go)(v.value2));
-        };
-        throw new Error("Failed pattern match at Javapurs.Reuse (line 114, column 13 - line 163, column 66): " + [ v.constructor.name ]);
-    };
-    var go = function (expression) {
-        return rewrite(rebuild(expression));
-    };
-    return go;
 };
 var ctorOf = function (v) {
     if (v instanceof Javapurs_JavaAst.JavaClassDecl) {
@@ -244,10 +88,10 @@ var constantClass = function (ctors) {
             return Data_Maybe.Nothing.value;
         };
         if (v instanceof Javapurs_JavaAst.JavaGlobalVar && v.value0 instanceof Data_Maybe.Just) {
-            var $164 = Data_Array.find(function (c) {
+            var $38 = Data_Array.find(function (c) {
                 return c.name === v.value0.value0 + ("." + v.value1) && Data_Array["null"](c.kinds);
             })(ctors);
-            if ($164 instanceof Data_Maybe.Just) {
+            if ($38 instanceof Data_Maybe.Just) {
                 return new Data_Maybe.Just(v.value0.value0 + ("." + v.value1));
             };
             return v1(true);
@@ -287,8 +131,8 @@ var replacement = function (ctors) {
 var allProjections = function (className) {
     return function (args) {
         var scrutinees = Data_Array.mapMaybe(identity)(Data_Array.mapWithIndex(projectionAt(className))(args));
-        var $175 = Data_Array.length(scrutinees) !== Data_Array.length(args);
-        if ($175) {
+        var $49 = Data_Array.length(scrutinees) !== Data_Array.length(args);
+        if ($49) {
             return Data_Maybe.Nothing.value;
         };
         var v = Data_Array.nub(Data_Ord.ordString)(scrutinees);
@@ -304,18 +148,18 @@ var reuse = function (ctors) {
             return expression;
         };
         if (expression instanceof Javapurs_JavaAst.JavaNew) {
-            var $179 = Data_Array.find(function (c) {
+            var $53 = Data_Array.find(function (c) {
                 return c.name === expression.value0;
             })(ctors);
-            if ($179 instanceof Data_Maybe.Just) {
-                var $180 = Data_Array.length(expression.value1) === Data_Array.length($179.value0.kinds);
-                if ($180) {
+            if ($53 instanceof Data_Maybe.Just) {
+                var $54 = Data_Array.length(expression.value1) === Data_Array.length($53.value0.kinds);
+                if ($54) {
                     var v1 = allProjections(expression.value0)(expression.value1);
                     if (v1 instanceof Data_Maybe.Just) {
                         return new Javapurs_JavaAst.JavaLocal(v1.value0);
                     };
                     if (v1 instanceof Data_Maybe.Nothing) {
-                        var v2 = replacement(ctors)(expression.value0)($179.value0)(expression.value1);
+                        var v2 = replacement(ctors)(expression.value0)($53.value0)(expression.value1);
                         if (v2 instanceof Data_Maybe.Just) {
                             return new Javapurs_JavaAst.JavaTernary(new Javapurs_JavaAst.JavaBinaryOp("==", projection(expression.value0)(v2.value0.field)(v2.value0.scrutinee), v2.value0.constant), new Javapurs_JavaAst.JavaLocal(v2.value0.scrutinee), expression);
                         };
@@ -336,7 +180,7 @@ var reuse = function (ctors) {
 var reuseConstructors = function (moduleName) {
     return function (file) {
         var ctors = Data_Functor.map(Data_Functor.functorArray)(qualify(moduleName))(Data_Array.mapMaybe(ctorOf)(file.decls));
-        var rewrite = mapExpr(reuse(ctors));
+        var rewrite = Javapurs_JavaAst.rewriteBottomUp(reuse(ctors));
         return {
             recordShapes: file.recordShapes,
             decls: Data_Functor.map(Data_Functor.functorArray)(rewrite)(file.decls)

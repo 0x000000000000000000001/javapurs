@@ -1,32 +1,27 @@
--- | Makes every Java local unique within its method.
--- |
--- | TAST levels are reused across sibling scopes and inlining can translate the
--- | same binding twice, but Java rejects one local hiding another. Declarations
--- | (let and let-rec binders, lambda parameters and local assignment statements)
--- | are renamed and their references follow. Scopes are restored when a block,
--- | lambda or let body ends, so references outside their scope keep their name.
-module Javapurs.Rename where
+-- | Make local bindings unique before chunking. Each lexical scope restores
+-- | its environment, but never the freshness counter: sibling Java scopes and
+-- | inlined copies cannot accidentally share a generated local name.
+module Javapurs.Rename (renameExpr, renameWith) where
 
 import Prelude
 
 import Control.Monad.State (State, gets, modify_, runState)
 import Data.Array as Array
-import Data.Array.NonEmpty as NonEmptyArray
-import Data.Char as Char
 import Data.Maybe (Maybe(..))
-import Data.String as String
-import Data.String.CodeUnits as StringCodeUnits
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst)
-import Javapurs.JavaAst (JavaExpr(..))
+import Javapurs.JavaAst (JavaExpr(..), traverseChildren)
+import Javapurs.Naming (loopSnapshotName, renamedLocal, snapshotBaseName)
+import Javapurs.Raw (renameIdentifiers)
 
 type RenameState = { counter :: Int, env :: Array (Tuple String String) }
+type Rename = State RenameState
 
 renameExpr :: JavaExpr -> JavaExpr
 renameExpr = renameWith []
 
--- | Renames with a starting environment, for the regression scripts that
--- | check how a given binding is rewritten.
+-- | A starting lexical environment is useful for isolated AST consumers.
+-- | It never rewrites module fields, method names, class names or field labels.
 renameWith :: Array (Tuple String String) -> JavaExpr -> JavaExpr
 renameWith env expression = case runState (rename expression) { counter: 0, env } of
   Tuple result _ -> result
@@ -36,151 +31,87 @@ lookupName name env = case Array.find (\(Tuple key _) -> key == name) env of
   Just (Tuple _ value) -> value
   Nothing -> name
 
-localName :: String -> State RenameState String
-localName name = do
-  state <- gets identity
-  modify_ \current -> current { counter = current.counter + 1 }
-  -- `$` cannot survive `sanitizeName`, so a fresh suffix can never collide
-  -- with a source-derived name, an earlier rename suffix or a generated name.
-  pure (name <> "$r" <> show state.counter)
+lookupCurrent :: String -> Rename String
+lookupCurrent name = gets (lookupName name <<< _.env)
 
--- | Renames the given binders, runs the body with them in scope, and then
--- | restores the enclosing scope.
-scoped :: Array String -> (Array String -> State RenameState JavaExpr) -> State RenameState JavaExpr
-scoped names body = do
-  outerEnv <- gets _.env
-  renamedNames <- traverse localName names
-  modify_ \state -> state { env = Array.zipWith Tuple names renamedNames <> outerEnv }
-  result <- body renamedNames
-  modify_ \state -> state { env = outerEnv }
+freshLocal :: String -> Rename String
+freshLocal name = do
+  counter <- gets _.counter
+  modify_ \state -> state { counter = state.counter + 1 }
+  pure (renamedLocal name counter)
+
+-- Restore only the lexical environment, including between sister branches.
+inScope :: forall a. Rename a -> Rename a
+inScope action = do
+  outer <- gets _.env
+  result <- action
+  modify_ \state -> state { env = outer }
   pure result
 
-rename :: JavaExpr -> State RenameState JavaExpr
+bindNames :: Array String -> Rename (Array String)
+bindNames names = do
+  renamed <- traverse freshLocal names
+  modify_ \state -> state { env = Array.zipWith Tuple names renamed <> state.env }
+  pure renamed
+
+scoped :: Array String -> (Array String -> Rename JavaExpr) -> Rename JavaExpr
+scoped names body = inScope (bindNames names >>= body)
+
+-- All members of a recursive/cache group are visible in every initializer.
+renameGroup :: Array (Tuple String JavaExpr) -> Rename (Array (Tuple String JavaExpr))
+renameGroup bindings = do
+  names <- bindNames (map fst bindings)
+  traverse (\(Tuple (Tuple _ value) name) -> Tuple name <$> rename value) (Array.zip bindings names)
+
+-- A statement declaration is nonrecursive: its initializer sees the previous
+-- environment. Reserve the suffix first to keep traversal-order naming stable.
+declareLocal :: (String -> JavaExpr -> JavaExpr) -> String -> JavaExpr -> Rename JavaExpr
+declareLocal constructor name value = do
+  renamed <- freshLocal name
+  value' <- rename value
+  modify_ \state -> state { env = Array.cons (Tuple name renamed) state.env }
+  pure (constructor renamed value')
+
+rename :: JavaExpr -> Rename JavaExpr
 rename expression = case expression of
-  JavaString str -> pure (JavaString str)
-  JavaCall fn args -> JavaCall <$> rename fn <*> traverse rename args
-  JavaApply fn arg -> JavaApply <$> rename fn <*> rename arg
-  JavaIntApply fn arg -> JavaIntApply <$> rename fn <*> rename arg
-  JavaFunction value -> JavaFunction <$> rename value
-  JavaLocal name
-    | String.take 8 name == "__final_" -> do
-        renamed <- lookupCurrent (String.drop 8 name)
-        pure (JavaLocal ("__final_" <> renamed))
-    | otherwise -> JavaLocal <$> lookupCurrent name
-  JavaAbs args body -> scoped args \renamed -> JavaAbs renamed <$> rename body
-  JavaTypedAbs params body -> scoped (map fst params) \renamed ->
-    JavaTypedAbs (Array.zipWith (\(Tuple _ ty) name -> Tuple name ty) params renamed) <$> rename body
-  JavaIntAbs arg body -> scoped [ arg ] \renamed -> case renamed of
+  JavaLocal name -> case snapshotBaseName name of
+    Just base -> JavaLocal <<< loopSnapshotName <$> lookupCurrent base
+    Nothing -> JavaLocal <$> lookupCurrent name
+  JavaAbs args body -> scoped args \names -> JavaAbs names <$> rename body
+  JavaTypedAbs params body -> scoped (map fst params) \names ->
+    JavaTypedAbs (Array.zipWith (\(Tuple _ ty) name -> Tuple name ty) params names) <$> rename body
+  JavaIntAbs arg body -> scoped [ arg ] \names -> case names of
     [ name ] -> JavaIntAbs name <$> rename body
     _ -> pure expression
-  JavaStaticMethod name args body -> scoped (map fst args) \renamed ->
-    JavaStaticMethod name (Array.zipWith (\(Tuple _ ty) newName -> Tuple newName ty) args renamed) <$> rename body
-  JavaNew className args -> JavaNew className <$> traverse rename args
-  JavaCtorSingleton modName ctorName -> pure (JavaCtorSingleton modName ctorName)
-  JavaTernary condition yes no -> JavaTernary <$> rename condition <*> rename yes <*> rename no
-  JavaThrow msg -> pure (JavaThrow msg)
-  JavaRecord fields -> JavaRecord <$> renameFields fields
-  JavaTypedRecord shape fields -> JavaTypedRecord shape <$> renameFields fields
-  JavaTypedRecordGet shape value prop -> (\value' -> JavaTypedRecordGet shape value' prop) <$> rename value
-  JavaTypedRecordUpdate shape value updates -> JavaTypedRecordUpdate shape <$> rename value <*> renameFields updates
-  JavaArray items -> JavaArray <$> traverse rename items
-  JavaWhileTrue loopId args intParams body -> do
-    loopId' <- lookupCurrent loopId
-    args' <- traverse lookupCurrent args
-    intParams' <- traverse lookupCurrent intParams
-    JavaWhileTrue loopId' args' intParams' <$> rename body
+  JavaStaticMethod name params body -> scoped (map fst params) \names ->
+    JavaStaticMethod name (Array.zipWith (\(Tuple _ ty) renamed -> Tuple renamed ty) params names) <$> rename body
+  JavaLet name value body -> do
+    value' <- rename value
+    scoped [ name ] \names -> case names of
+      [ bound ] -> JavaLet bound value' <$> rename body
+      _ -> pure expression
+  JavaLetRec bindings body -> inScope do
+    bindings' <- renameGroup bindings
+    JavaLetRec bindings' <$> rename body
+  JavaLocalAssign name value -> declareLocal JavaLocalAssign name value
+  JavaIntLocalAssign name value -> declareLocal JavaIntLocalAssign name value
+  JavaLocalSet name value -> JavaLocalSet <$> lookupCurrent name <*> rename value
+  JavaBlock statements body -> inScope $
+    JavaBlock <$> traverse rename statements <*> rename body
+  JavaIf condition thenStatements elseStatements ->
+    JavaIf <$> rename condition <*> inScope (traverse rename thenStatements) <*> inScope (traverse rename elseStatements)
+  JavaWhileTrue loopId args intParams body ->
+    JavaWhileTrue <$> lookupCurrent loopId <*> traverse lookupCurrent args <*> traverse lookupCurrent intParams <*> inScope (rename body)
   JavaMemoizedLoop loopId args intParams invariants body -> do
     loopId' <- lookupCurrent loopId
     args' <- traverse lookupCurrent args
     intParams' <- traverse lookupCurrent intParams
-    outerEnv <- gets _.env
-    renamedNames <- traverse (\(Tuple name _) -> localName name) invariants
-    modify_ \state -> state { env = Array.zipWith (\entry name -> Tuple (fst entry) name) invariants renamedNames <> outerEnv }
-    values <- traverse (\(Tuple (Tuple _ value) name) -> Tuple name <$> rename value) (Array.zip invariants renamedNames)
-    body' <- rename body
-    modify_ \state -> state { env = outerEnv }
-    pure (JavaMemoizedLoop loopId' args' intParams' values body')
+    inScope $ JavaMemoizedLoop loopId' args' intParams' <$> renameGroup invariants <*> rename body
   JavaLoopInvariant name -> JavaLoopInvariant <$> lookupCurrent name
-  JavaContinue ctx args -> JavaContinue <$> lookupCurrent ctx <*> traverse rename args
-  JavaMapGet value prop -> (\value' -> JavaMapGet value' prop) <$> rename value
-  JavaMapUpdate value updates -> JavaMapUpdate <$> rename value <*> renameFields updates
-  JavaInstanceOf value className -> (\value' -> JavaInstanceOf value' className) <$> rename value
-  JavaPropertyAccess value className prop -> (\value' -> JavaPropertyAccess value' className prop) <$> rename value
-  JavaLet name value body -> do
-    value' <- rename value
-    scoped [ name ] \renamed -> case renamed of
-      [ bound ] -> JavaLet bound value' <$> rename body
-      _ -> pure expression
-  JavaLetRec binds body -> do
-    outerEnv <- gets _.env
-    renamedNames <- traverse (\(Tuple name _) -> localName name) binds
-    modify_ \state -> state { env = Array.zipWith (\(Tuple name _) newName -> Tuple name newName) binds renamedNames <> outerEnv }
-    renamedBinds <- traverse (\(Tuple (Tuple _ value) name) -> Tuple name <$> rename value) (Array.zip binds renamedNames)
-    body' <- rename body
-    modify_ \state -> state { env = outerEnv }
-    pure (JavaLetRec renamedBinds body')
-  JavaGlobalVar modName name -> pure (JavaGlobalVar modName name)
-  JavaClassDecl className fields mutable -> pure (JavaClassDecl className fields mutable)
+  JavaContinue target args -> JavaContinue <$> lookupCurrent target <*> traverse rename args
   JavaRaw code -> do
     env <- gets _.env
-    pure (JavaRaw (renameRaw env code))
-  JavaAssign name value -> JavaAssign <$> lookupCurrent name <*> rename value
-  JavaLazyAssign name value -> JavaLazyAssign <$> lookupCurrent name <*> rename value
-  JavaBinaryOp op left right -> JavaBinaryOp op <$> rename left <*> rename right
-  JavaUnaryOp op value -> JavaUnaryOp op <$> rename value
-  JavaArrayIndex array index -> JavaArrayIndex <$> rename array <*> rename index
-  JavaArraySet array index value -> JavaArraySet <$> rename array <*> rename index <*> rename value
-  JavaCast ty value -> JavaCast ty <$> rename value
-  JavaLocalAssign name value -> do
-    renamed <- localName name
-    modify_ \state -> state { env = Array.cons (Tuple name renamed) state.env }
-    value' <- rename value
-    pure (JavaLocalAssign renamed value')
-  JavaIntLocalAssign name value -> do
-    renamed <- localName name
-    modify_ \state -> state { env = Array.cons (Tuple name renamed) state.env }
-    value' <- rename value
-    pure (JavaIntLocalAssign renamed value')
-  JavaBlock stmts body -> do
-    outerEnv <- gets _.env
-    stmts' <- traverse rename stmts
-    body' <- rename body
-    modify_ \state -> state { env = outerEnv }
-    pure (JavaBlock stmts' body')
-  JavaFieldSet target className fieldName fieldType value ->
-    JavaFieldSet <$> rename target <*> pure className <*> pure fieldName <*> pure fieldType <*> rename value
-  JavaLocalSet name value -> do
-    renamed <- lookupCurrent name
-    JavaLocalSet renamed <$> rename value
-  JavaIf condition thenStmts elseStmts -> do
-    condition' <- rename condition
-    outerEnv <- gets _.env
-    thenStmts' <- traverse rename thenStmts
-    modify_ \state -> state { env = outerEnv }
-    elseStmts' <- traverse rename elseStmts
-    modify_ \state -> state { env = outerEnv }
-    pure (JavaIf condition' thenStmts' elseStmts')
-  where
-  lookupCurrent name = do
-    env <- gets _.env
-    pure (lookupName name env)
-
-  renameFields fields = traverse (\(Tuple key value) -> Tuple key <$> rename value) fields
-
--- | Raw Java is opaque except for identifiers that name a renamed local, which
--- | the operator translations reference from generated text.
-renameRaw :: Array (Tuple String String) -> String -> String
-renameRaw env code =
-  String.joinWith "" (map (renamePart <<< NonEmptyArray.toArray) (Array.groupBy sameKind (StringCodeUnits.toCharArray code)))
-  where
-  isIdentifierChar char =
-    let code = Char.toCharCode char
-    in (code >= 97 && code <= 122)
-      || (code >= 65 && code <= 90)
-      || (code >= 48 && code <= 57)
-      || char == '_'
-      || char == '$'
-  sameKind left right = isIdentifierChar left && isIdentifierChar right
-  renamePart chars = case Array.head chars of
-    Just first | isIdentifierChar first -> lookupName (StringCodeUnits.fromCharArray chars) env
-    _ -> StringCodeUnits.fromCharArray chars
+    pure (JavaRaw (renameIdentifiers (flip lookupName env) code))
+  -- Only nodes above own lexical behavior. The common traversal preserves
+  -- declaration/selector names, field labels and types while visiting values.
+  _ -> traverseChildren rename expression

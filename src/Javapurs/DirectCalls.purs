@@ -10,7 +10,8 @@ import Data.Set (Set)
 import Data.Set as Set
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst, snd)
-import Javapurs.JavaAst (JavaExpr(..), JavaParamType(..), JavaFile)
+import Javapurs.JavaAst (JavaExpr(..), JavaParamType(..), JavaFile, traverseChildren)
+import Javapurs.Naming (lazyGetterName)
 
 type Candidate = { name :: String, worker :: String, index :: Int, arity :: Int, params :: Array JavaParamType, lazy :: Boolean }
 type Lambdas = { groups :: Array (Array (Tuple String JavaParamType)), args :: Array (Tuple String JavaParamType), body :: JavaExpr }
@@ -98,13 +99,10 @@ lambdaChain minimum = collect [] []
 -- public curried chains and the guarded fallbacks keep Object arguments.
 workerCall :: String -> Candidate -> Array JavaExpr -> JavaExpr
 workerCall moduleName candidate args =
-  JavaCall (JavaGlobalVar (Just moduleName) candidate.worker)
+  JavaCall (JavaStaticMethodRef (Just moduleName) candidate.worker)
     (Array.zipWith (\paramType arg -> case paramType of
         ParamInt -> JavaCast "int" arg
         _ -> arg) candidate.params args)
-
-lazyGetter :: String -> String -> String
-lazyGetter moduleName name = moduleName <> ".__lazy_get_" <> name
 
 type Rewrite = State (Set Int)
 
@@ -112,7 +110,7 @@ rewrite :: String -> Array Candidate -> Int -> Boolean -> JavaExpr -> Rewrite Ja
 rewrite moduleName candidates declarationIndex fromLazy expression = do
   -- Rewriting children first allows exactly the saturated prefix of an
   -- overapplication to become a method call. Later arguments remain outside it.
-  result <- children (rewrite moduleName candidates declarationIndex fromLazy) expression
+  result <- traverseChildren (rewrite moduleName candidates declarationIndex fromLazy) expression
   case application result of
     Just { head: JavaGlobalVar qualifier name, args }
       | qualifier == Nothing || qualifier == Just moduleName ->
@@ -138,10 +136,11 @@ rewrite moduleName candidates declarationIndex fromLazy expression = do
                 -- nesting level, which was exponential before this branch.
                 pure (workerCall moduleName candidate args)
             Nothing -> pure result
-    Just { head: JavaCall (JavaRaw getterName) [], args }
-      | Just candidate <- Array.find (\c -> c.lazy &&
+    Just { head: JavaCall (JavaStaticMethodRef qualifier getterName) [], args }
+      | qualifier == Nothing || qualifier == Just moduleName
+      , Just candidate <- Array.find (\c -> c.lazy &&
             c.index == declarationIndex && c.arity == Array.length args &&
-            getterName == lazyGetter moduleName c.name) candidates -> do
+            getterName == lazyGetterName c.name) candidates -> do
           -- The function calls itself. Its own getter already completed before
           -- any body can run, so the worker needs no initialization guard.
           modify_ (Set.insert candidate.index)
@@ -158,50 +157,3 @@ application = collect []
     head
       | not (Array.null args) -> Just { head, args }
       | otherwise -> Nothing
-
--- Preserve every structural child and leave raw Java opaque. This traversal
--- neither prints expressions early nor changes binder names or record metadata.
-children :: (JavaExpr -> Rewrite JavaExpr) -> JavaExpr -> Rewrite JavaExpr
-children visit expression = case expression of
-  JavaCall fn args -> JavaCall <$> visit fn <*> traverse visit args
-  JavaFunction value -> JavaFunction <$> visit value
-  JavaAbs args body -> JavaAbs args <$> visit body
-  JavaTypedAbs args body -> JavaTypedAbs args <$> visit body
-  JavaIntAbs arg body -> JavaIntAbs arg <$> visit body
-  JavaNew name args -> JavaNew name <$> traverse visit args
-  JavaTernary condition yes no -> JavaTernary <$> visit condition <*> visit yes <*> visit no
-  JavaRecord fields -> JavaRecord <$> fieldsOf fields
-  JavaTypedRecord shape fields -> JavaTypedRecord shape <$> fieldsOf fields
-  JavaTypedRecordGet shape value label -> (\value' -> JavaTypedRecordGet shape value' label) <$> visit value
-  JavaTypedRecordUpdate shape value fields -> JavaTypedRecordUpdate shape <$> visit value <*> fieldsOf fields
-  JavaArray values -> JavaArray <$> traverse visit values
-  JavaWhileTrue loopId args intParams body -> JavaWhileTrue loopId args intParams <$> visit body
-  JavaMemoizedLoop loopId args intParams invariants body -> JavaMemoizedLoop loopId args intParams <$> fieldsOf invariants <*> visit body
-  JavaContinue name args -> JavaContinue name <$> traverse visit args
-  JavaMapGet value label -> (\value' -> JavaMapGet value' label) <$> visit value
-  JavaMapUpdate value fields -> JavaMapUpdate <$> visit value <*> fieldsOf fields
-  JavaInstanceOf value name -> (\value' -> JavaInstanceOf value' name) <$> visit value
-  JavaPropertyAccess value name property -> (\value' -> JavaPropertyAccess value' name property) <$> visit value
-  JavaApply fn arg -> JavaApply <$> visit fn <*> visit arg
-  JavaIntApply fn arg -> JavaIntApply <$> visit fn <*> visit arg
-  JavaLet name value body -> JavaLet name <$> visit value <*> visit body
-  JavaLetRec bindings body -> JavaLetRec <$> fieldsOf bindings <*> visit body
-  JavaAssign name value -> JavaAssign name <$> visit value
-  JavaLazyAssign name value -> JavaLazyAssign name <$> visit value
-  JavaStaticMethod name args body -> JavaStaticMethod name args <$> visit body
-  JavaLocalAssign name value -> JavaLocalAssign name <$> visit value
-  JavaIntLocalAssign name value -> JavaIntLocalAssign name <$> visit value
-  JavaBinaryOp operator left right -> JavaBinaryOp operator <$> visit left <*> visit right
-  JavaUnaryOp operator value -> JavaUnaryOp operator <$> visit value
-  JavaArrayIndex value index -> JavaArrayIndex <$> visit value <*> visit index
-  JavaArraySet array index value -> JavaArraySet <$> visit array <*> visit index <*> visit value
-  JavaCast name value -> JavaCast name <$> visit value
-  JavaBlock statements value -> JavaBlock <$> traverse visit statements <*> visit value
-  JavaFieldSet target className fieldName fieldType value ->
-    JavaFieldSet <$> visit target <*> pure className <*> pure fieldName <*> pure fieldType <*> visit value
-  JavaLocalSet name value -> JavaLocalSet name <$> visit value
-  JavaIf condition thenStmts elseStmts ->
-    JavaIf <$> visit condition <*> traverse visit thenStmts <*> traverse visit elseStmts
-  _ -> pure expression
-  where
-  fieldsOf = traverse (\(Tuple name value) -> Tuple name <$> visit value)

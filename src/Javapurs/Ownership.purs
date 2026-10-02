@@ -27,7 +27,7 @@ import Data.String.Pattern (Pattern(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst, snd)
 import Javapurs.JavaAst (JavaExpr(..), JavaParamType(..))
-import Javapurs.Naming (constructorClassName, modulePrefix, safeCtorName, sanitizeName)
+import Javapurs.Naming (constructorClassName, modulePrefix, safeCtorName, sanitizeName, loopSnapshotName)
 import Javapurs.Operators (translateOperator1, translateOperator2)
 import Javapurs.Printer (printExpr)
 import PureScript.Backend.Optimizer.Convert (BackendModule)
@@ -704,7 +704,7 @@ emitTree context env pool outer = case _ of
     pure
       { stmts: values.stmts <> donor.stmts
           <> [ JavaLocalAssign result
-                 (JavaCall (JavaLocal fn.javaName) (map _.expr captures <> values.exprs <> [ donor.expr ])) ]
+                  (JavaCall (JavaStaticMethodRef Nothing fn.javaName) (map _.expr captures <> values.exprs <> [ donor.expr ])) ]
       , expr: JavaLocal result
       , pool: donor.pool
       }
@@ -844,8 +844,8 @@ compileTerm name allParams term =
         fallbackDecls = compileTerm fallbackName allParams decision.fallback
         go index = case Array.index decision.cases index of
           Just (Tuple condition _) ->
-            JavaTernary condition (JavaCall (JavaLocal (caseName index)) caseArgs) (go (index + 1))
-          Nothing -> JavaCall (JavaLocal fallbackName) caseArgs
+             JavaTernary condition (JavaCall (JavaStaticMethodRef Nothing (caseName index)) caseArgs) (go (index + 1))
+          Nothing -> JavaCall (JavaStaticMethodRef Nothing fallbackName) caseArgs
       in
         caseDecls <> fallbackDecls <> [ JavaStaticMethod name allParams (go 0) ]
 
@@ -869,7 +869,7 @@ workerDeclarations context fn = do
     envWith nameOf = Map.fromFoldable (Map.toUnfoldable captureEnv <> argEnv nameOf)
     plainEnv = envWith identity
     loops = hasTailSelfCall context plainEnv fn.body
-    env = envWith (\name -> if loops then "__final_" <> name else name)
+    env = envWith (\name -> if loops then loopSnapshotName name else name)
     donorName = if loops then "__donorOwned" else "donor"
     context' = context { candidate = fn, donorName = donorName }
   term <- evalStateT (emitBody context' env fn.body) 0
@@ -877,7 +877,7 @@ workerDeclarations context fn = do
     intParams = Array.mapMaybe (\(Tuple name javaTy) -> if javaTy == ParamInt then Just name else Nothing) params
     loopArgs = map fst params <> [ donorArg ]
     allParams = captureParams <> params <> [ Tuple donorArg ParamObject ]
-    initialize = if loops then [ JavaLocalAssign donorName (JavaLocal ("__final_" <> donorArg)) ] else []
+    initialize = if loops then [ JavaLocalAssign donorName (JavaLocal (loopSnapshotName donorArg)) ] else []
   if loops then
     pure [ JavaStaticMethod fn.javaName allParams (JavaWhileTrue fn.javaName loopArgs intParams (JavaBlock initialize (termExpr term))) ]
   else

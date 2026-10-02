@@ -15,7 +15,7 @@ module Javapurs.JavaAst
 
 import Prelude
 
-import Data.Const (Const(..), getConst)
+import Data.Const (Const(..))
 import Data.Identity (Identity(..))
 import Data.Maybe (Maybe)
 import Data.Traversable (traverse)
@@ -89,7 +89,8 @@ data JavaExpr
 -- | Direct children in source order. Includes deferred bodies and initializers;
 -- | this is neither a free-variable analysis nor a dynamic evaluation trace.
 children :: JavaExpr -> Array JavaExpr
-children expression = getConst (traverseChildren (\child -> Const [ child ]) expression)
+children expression = case traverseChildren (\child -> Const [ child ]) expression of
+  Const result -> result
 
 -- | One layer only. Metadata (names, labels, field types, record shapes) is
 -- | preserved. A visitor that knows about binders must intercept those nodes

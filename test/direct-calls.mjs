@@ -30,7 +30,10 @@ const add = (a, b) => binary("+", a, b);
 const abs = (args, body) => new A.JavaAbs(args, body);
 const global = (name, module = moduleClass(moduleName)) => new A.JavaGlobalVar(module === null ? Nothing.value : new Just(module), name);
 const apply = (fn, args) => args.reduce((result, arg) => new A.JavaApply(result, arg), fn);
-const invoke = (name, args) => new A.JavaCall(raw(name), args);
+const invoke = (qualified, args) => {
+  const dot = qualified.lastIndexOf(".");
+  return new A.JavaCall(new A.JavaStaticMethodRef(dot < 0 ? Nothing.value : new Just(qualified.slice(0, dot)), qualified.slice(dot + 1)), args);
+};
 const note = (label, value) => invoke("DirectRuntime.note", [new A.JavaString(label), value]);
 const assign = (name, value) => new A.JavaAssign(name, value);
 const fields = pairs => pairs.map(([key, value]) => new Tuple(key, value));
@@ -48,13 +51,13 @@ function nodes(value, constructor, result = []) {
 const declaration = (file, name) => file.decls.find(decl =>
   (decl instanceof A.JavaAssign || decl instanceof A.JavaLazyAssign) && decl.value0 === name);
 const calls = expression => nodes(expression, A.JavaCall).filter(call =>
-  call.value0 instanceof A.JavaGlobalVar && call.value0.value1.startsWith("__direct$"));
+  call.value0 instanceof A.JavaStaticMethodRef && call.value0.value1.startsWith("__direct$"));
 function worker(file, name) {
   const field = declaration(file, name);
   if (!field) return undefined;
   let body = field.value1;
   while (body instanceof A.JavaAbs) body = body.value1;
-  const target = body instanceof A.JavaCall && body.value0 instanceof A.JavaGlobalVar ? body.value0.value1 : null;
+  const target = body instanceof A.JavaCall && body.value0 instanceof A.JavaStaticMethodRef ? body.value0.value1 : null;
   // An emitted worker follows its public field. An untouched lambda may also
   // forward to another binding's worker (the "lazy" fixture calls "pair").
   const next = file.decls[file.decls.indexOf(field) + 1];

@@ -1095,12 +1095,12 @@ var compileTerm = function (name) {
             var go = function (index) {
                 var v = Data_Array.index(decision.cases)(index);
                 if (v instanceof Data_Maybe.Just) {
-                    return new Javapurs_JavaAst.JavaTernary(v.value0.value0, new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaLocal(caseName(index)), caseArgs), go(index + 1 | 0));
+                    return new Javapurs_JavaAst.JavaTernary(v.value0.value0, new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaStaticMethodRef(Data_Maybe.Nothing.value, caseName(index)), caseArgs), go(index + 1 | 0));
                 };
                 if (v instanceof Data_Maybe.Nothing) {
-                    return new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaLocal(fallbackName), caseArgs);
+                    return new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaStaticMethodRef(Data_Maybe.Nothing.value, fallbackName), caseArgs);
                 };
-                throw new Error("Failed pattern match at Javapurs.Ownership (line 845, column 20 - line 848, column 64): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.Ownership (line 845, column 20 - line 848, column 82): " + [ v.constructor.name ]);
             };
             var fallbackDecls = compileTerm(fallbackName)(allParams)(decision.fallback);
             var caseDecls = Data_Function.apply(Data_Array.concat)(Data_Array.mapWithIndex(function (index) {
@@ -1318,7 +1318,7 @@ var emitTree = function (context) {
                                     })())(function (donor) {
                                         return Control_Bind.bind(bindStateT)(freshName("__result_"))(function (result) {
                                             return Control_Applicative.pure(applicativeStateT)({
-                                                stmts: Data_Semigroup.append(Data_Semigroup.semigroupArray)(values.stmts)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(donor.stmts)([ new Javapurs_JavaAst.JavaLocalAssign(result, new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaLocal(fn.javaName), Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Functor.map(Data_Functor.functorArray)(function (v1) {
+                                                stmts: Data_Semigroup.append(Data_Semigroup.semigroupArray)(values.stmts)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(donor.stmts)([ new Javapurs_JavaAst.JavaLocalAssign(result, new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaStaticMethodRef(Data_Maybe.Nothing.value, fn.javaName), Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Functor.map(Data_Functor.functorArray)(function (v1) {
                                                     return v1.expr;
                                                 })(captures))(Data_Semigroup.append(Data_Semigroup.semigroupArray)(values.exprs)([ donor.expr ])))) ])),
                                                 expr: new Javapurs_JavaAst.JavaLocal(result),
@@ -1888,7 +1888,7 @@ var workerDeclarations = function (context) {
         };
         var env = envWith(function (name) {
             if (loops) {
-                return "__final_" + name;
+                return Javapurs_Naming.loopSnapshotName(name);
             };
             return name;
         });
@@ -1903,7 +1903,7 @@ var workerDeclarations = function (context) {
             })(params);
             var initialize = (function () {
                 if (loops) {
-                    return [ new Javapurs_JavaAst.JavaLocalAssign(donorName, new Javapurs_JavaAst.JavaLocal("__final_" + "donor")) ];
+                    return [ new Javapurs_JavaAst.JavaLocalAssign(donorName, new Javapurs_JavaAst.JavaLocal(Javapurs_Naming.loopSnapshotName("donor"))) ];
                 };
                 return [  ];
             })();

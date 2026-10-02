@@ -3,8 +3,6 @@ module Javapurs.CodeGen where
 import Prelude
 
 import Data.Array as Array
-import Data.Char as Char
-import Data.Int as Int
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Data.Foldable (any, foldl, foldr, foldMap)
@@ -27,13 +25,13 @@ import Javapurs.DirectCalls (directCalls)
 import Javapurs.Reuse (reuseConstructors)
 import Javapurs.FunctionTypes (annotateFunctionTypes)
 import Javapurs.IntFunctions (abstractFunction, applyFunction)
-import Javapurs.Naming (modulePrefix, sanitizeName)
+import Javapurs.Naming (modulePrefix, sanitizeName, lazyGetterName, loopSnapshotName)
 import Javapurs.Operators (translateOperator1, translateOperator2)
 import Javapurs.Ownership (prepare)
 import PureScript.Backend.Optimizer.CoreFn as CoreFn
-import Javapurs.Printer (hasAnyContinue, hasDirectContinue)
+import Javapurs.ControlFlow (hasAnyContinue, hasDirectContinue, hasTargetContinue)
 import PureScript.Backend.Optimizer.Convert (BackendModule)
-import PureScript.Backend.Optimizer.CoreFn (Ident(..), Prop(..), Qualified(..), ModuleName(..), Literal(..))
+import PureScript.Backend.Optimizer.CoreFn (Ident(..), Prop(..), Qualified(..), ModuleName, Literal(..))
 import Data.String as String
 
 type LoopCtx = { ident :: String, params :: Array String, canContinue :: Boolean, ref :: Tco.TcoRef }
@@ -78,7 +76,7 @@ ownedCall env loopCtx expression =
           case Map.lookup name env.ownedFunctions of
             Just fn
               | Array.length flat.args == Array.length fn.params ->
-                  Just $ JavaCall (JavaLocal fn.javaName)
+                   Just $ JavaCall (JavaStaticMethodRef Nothing fn.javaName)
                     (Array.zipWith
                       (\param arg -> case param of
                         ParamInt -> JavaCast "int" (wrapInBlock (translateExpr env loopCtx false arg))
@@ -87,7 +85,7 @@ ownedCall env loopCtx expression =
               | not (Array.null fn.params) && Array.length flat.args == Array.length fn.params - 1 ->
                   -- The module call has no donor yet: a fresh tree cannot be
                   -- shared, so the worker starts without a reusable cell.
-                  Just $ JavaCall (JavaLocal fn.javaName)
+                   Just $ JavaCall (JavaStaticMethodRef Nothing fn.javaName)
                     (Array.zipWith
                       (\param arg -> case param of
                         ParamInt -> JavaCast "int" (wrapInBlock (translateExpr env loopCtx false arg))
@@ -145,13 +143,6 @@ translateLoop env parentCtx ref joins name args body =
   in if Array.null values && not (hasAnyContinue expression) && not hasJump then directExpr
      else if Array.null values then JavaWhileTrue name args intParams expression
      else JavaMemoizedLoop name args intParams values expression
-
--- Whether any continue names the given loop, including jumps written inside a
--- nested loop or closure body.
-hasTargetContinue :: String -> JavaExpr -> Boolean
-hasTargetContinue target expression = case expression of
-  JavaContinue loopId _ -> loopId == target
-  expr -> any (hasTargetContinue target) (children expr)
 
 -- JavaScript `show` renders the special Number values with names that are not
 -- Java expressions; emit the Java constants instead. -0.0 keeps its sign.
@@ -267,7 +258,7 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
     in
       pureExpr $ case Array.find (\(Tuple local _) -> local == Tuple mbIdent (Level lvl)) env.invariantLocals of
         Just (Tuple _ name) -> JavaLoopInvariant name
-        Nothing -> if isLoopVar then JavaLocal ("__final_" <> varName) else JavaLocal varName
+        Nothing -> if isLoopVar then JavaLocal (loopSnapshotName varName) else JavaLocal varName
   Abs args body ->
     let resBody = translateExpr env (captureLoopCtx loopCtx) true body
     in pureExpr $ foldr (\(Tuple mbI lvl) acc -> JavaAbs [localId mbI lvl] acc) (wrapInBlock resBody) (Array.fromFoldable args)
@@ -345,12 +336,12 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
       varName = localId mbI lvl
       executedExpr =
         if isEffectNode realExpr then resExprExpr
-        else JavaCall (JavaPropertyAccess resExprExpr "java.util.function.Supplier" "get") []
+        else JavaCall (JavaInstanceMethodRef resExprExpr "java.util.function.Supplier" "get") []
       assignStmt = JavaLocalAssign varName executedExpr
       resRest = translateExprWith true env loopCtx isTail realRest
       executedRestExpr =
         if isEffectNode realRest then resRest.expr
-        else JavaCall (JavaPropertyAccess resRest.expr "java.util.function.Supplier" "get") []
+        else JavaCall (JavaInstanceMethodRef resRest.expr "java.util.function.Supplier" "get") []
     in { stmts: Array.cons assignStmt resRest.stmts, expr: executedRestExpr }
   Fail msg -> pureExpr $ JavaThrow msg
   Typed ty expr ->
@@ -425,7 +416,7 @@ translateExprWith inEffectBlock env loopCtx isTail tcoExpr@(TcoExpr tcoAnalysis 
         isCurrentModule = qModName == Nothing || qModName == Just env.moduleName
       in pureExpr $
         if isCurrentModule && Array.elem javaName env.lazyBindings then
-          JavaCall (JavaRaw (env.moduleName <> ".__lazy_get_" <> javaName)) []
+          JavaCall (JavaStaticMethodRef (Just env.moduleName) (lazyGetterName javaName)) []
         else
           JavaGlobalVar qModName javaName
   Branch cases def ->

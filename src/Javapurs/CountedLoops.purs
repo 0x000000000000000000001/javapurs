@@ -7,6 +7,7 @@ import Data.Foldable (all)
 import Data.Int as Int
 import Data.Maybe (Maybe(..))
 import Javapurs.JavaAst (JavaExpr(..))
+import Javapurs.Naming (loopSnapshotName)
 
 type CountedLoop =
   { counter :: String
@@ -45,7 +46,7 @@ zeroTest params = case _ of
 
 isSnapshot :: String -> JavaExpr -> Boolean
 isSnapshot param expr = case stripIntCast expr of
-  JavaLocal name -> name == "__final_" <> param
+  JavaLocal name -> name == loopSnapshotName param
   _ -> false
 
 isLiteral :: String -> JavaExpr -> Boolean
@@ -60,7 +61,7 @@ stripIntCast = case _ of
 
 isIntExpr :: Array String -> JavaExpr -> Boolean
 isIntExpr params = case _ of
-  JavaLocal name -> Array.any (\param -> name == "__final_" <> param) params
+  JavaLocal name -> Array.any (\param -> name == loopSnapshotName param) params
   JavaRaw literal -> case Int.fromString literal of
     Just value -> Int.toStringAs Int.decimal value == literal
     Nothing -> false

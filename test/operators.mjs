@@ -20,7 +20,7 @@ const equal = number2(S.OpEq.value, "a", "b");
 const notEqual = number2(S.OpNotEq.value, "a", "b");
 
 assert.match(division, /Math\.floor/, "division must not truncate towards zero");
-assert.match(division, /== 0 \? 0 :/, "a zero divisor must return zero");
+assert.match(division, /== 0\).*\? 0 :/, "a zero divisor must return zero");
 assert.match(modulo, /Math\.floorMod/, "modulo must stay non-negative");
 assert.doesNotMatch(equal, /Objects\.equals/, "Number equality must compare values, not boxes");
 assert.match(equal, /\(double\)/, "Number equality must widen to primitive doubles");

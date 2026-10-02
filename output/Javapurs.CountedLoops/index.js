@@ -7,6 +7,7 @@ import * as Data_HeytingAlgebra from "../Data.HeytingAlgebra/index.js";
 import * as Data_Int from "../Data.Int/index.js";
 import * as Data_Maybe from "../Data.Maybe/index.js";
 import * as Javapurs_JavaAst from "../Javapurs.JavaAst/index.js";
+import * as Javapurs_Naming from "../Javapurs.Naming/index.js";
 var stripIntCast = function ($copy_v) {
     var $tco_done = false;
     var $tco_result;
@@ -27,7 +28,7 @@ var isSnapshot = function (param) {
     return function (expr) {
         var v = stripIntCast(expr);
         if (v instanceof Javapurs_JavaAst.JavaLocal) {
-            return v.value0 === "__final_" + param;
+            return v.value0 === Javapurs_Naming.loopSnapshotName(param);
         };
         return false;
     };
@@ -55,7 +56,7 @@ var isIntExpr = function (params) {
     return function (v) {
         if (v instanceof Javapurs_JavaAst.JavaLocal) {
             return Data_Array.any(function (param) {
-                return v.value0 === "__final_" + param;
+                return v.value0 === Javapurs_Naming.loopSnapshotName(param);
             })(params);
         };
         if (v instanceof Javapurs_JavaAst.JavaRaw) {
@@ -66,7 +67,7 @@ var isIntExpr = function (params) {
             if (v1 instanceof Data_Maybe.Nothing) {
                 return false;
             };
-            throw new Error("Failed pattern match at Javapurs.CountedLoops (line 64, column 22 - line 66, column 21): " + [ v1.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.CountedLoops (line 65, column 22 - line 67, column 21): " + [ v1.constructor.name ]);
         };
         if (v instanceof Javapurs_JavaAst.JavaCast && v.value0 === "int") {
             return isIntExpr(params)(v.value1);

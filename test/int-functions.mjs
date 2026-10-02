@@ -105,7 +105,7 @@ function workerOf(file, name) {
   const declaration_ = declaration(file, name);
   let body = declaration_.value1;
   while (body instanceof A.JavaAbs) body = body.value1;
-  const target = body instanceof A.JavaCall && body.value0 instanceof A.JavaGlobalVar ? body.value0.value1 : null;
+  const target = body instanceof A.JavaCall && body.value0 instanceof A.JavaStaticMethodRef ? body.value0.value1 : null;
   return target && file.decls.find(value => value instanceof A.JavaStaticMethod && value.value0 === target);
 }
 
@@ -275,7 +275,7 @@ for (const enabled of [false, true]) {
   assert.ok(genericFibWorker, "genericFib: recursive lazy body becomes a worker");
   assert.equal(nodes(genericFibWorker.value2, A.JavaIntApply).length, 0,
     "genericFib: the worker keeps the generic callable representation");
-  assert.ok(nodes(genericFibWorker.value2, A.JavaGlobalVar).some(value => String(value.value1).startsWith("__direct$")),
+  assert.ok(nodes(genericFibWorker.value2, A.JavaStaticMethodRef).some(value => String(value.value1).startsWith("__direct$")),
     "genericFib: recursion uses the worker directly");
   assert.ok(nodes(declaration(generated, "callGenericFib").value1, A.JavaApply).length > 0,
     "callGenericFib: the guarded field path retains the generic call");

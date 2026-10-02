@@ -4,6 +4,50 @@ import * as Data_String_Common from "../Data.String.Common/index.js";
 import * as Javapurs_JavaAst from "../Javapurs.JavaAst/index.js";
 import * as Javapurs_Naming from "../Javapurs.Naming/index.js";
 import * as PureScript_Backend_Optimizer_Syntax from "../PureScript.Backend.Optimizer.Syntax/index.js";
+var translateOperator1 = function (modName) {
+    return function (op) {
+        return function (e) {
+            if (op instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanNot) {
+                return new Javapurs_JavaAst.JavaUnaryOp("!", new Javapurs_JavaAst.JavaCast("Boolean", e));
+            };
+            if (op instanceof PureScript_Backend_Optimizer_Syntax.OpIntBitNot) {
+                return new Javapurs_JavaAst.JavaUnaryOp("~", new Javapurs_JavaAst.JavaCast("int", e));
+            };
+            if (op instanceof PureScript_Backend_Optimizer_Syntax.OpIntNegate) {
+                return new Javapurs_JavaAst.JavaUnaryOp("-", new Javapurs_JavaAst.JavaCast("int", e));
+            };
+            if (op instanceof PureScript_Backend_Optimizer_Syntax.OpNumberNegate) {
+                return new Javapurs_JavaAst.JavaUnaryOp("-", new Javapurs_JavaAst.JavaCast("Double", e));
+            };
+            if (op instanceof PureScript_Backend_Optimizer_Syntax.OpArrayLength) {
+                return new Javapurs_JavaAst.JavaPropertyAccess(e, "Object[]", "length");
+            };
+            if (op instanceof PureScript_Backend_Optimizer_Syntax.OpIsTag) {
+                var safeTag = Data_String_Common.replaceAll("'")("_prime_")(op.value0.value1);
+                var modPart = (function () {
+                    if (op.value0.value0 instanceof Data_Maybe.Just) {
+                        return Javapurs_Naming.modulePrefix(op.value0.value0.value0);
+                    };
+                    if (op.value0.value0 instanceof Data_Maybe.Nothing) {
+                        return modName;
+                    };
+                    throw new Error("Failed pattern match at Javapurs.Operators (line 22, column 17 - line 24, column 27): " + [ op.value0.value0.constructor.name ]);
+                })();
+                var javaClass = modPart + ("." + safeTag);
+                return new Javapurs_JavaAst.JavaInstanceOf(e, javaClass);
+            };
+            throw new Error("Failed pattern match at Javapurs.Operators (line 13, column 35 - line 27, column 33): " + [ op.constructor.name ]);
+        };
+    };
+};
+var objectEquals = function (left) {
+    return function (right) {
+        return new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaStaticMethodRef(new Data_Maybe.Just("java.util.Objects"), "equals"), [ left, right ]);
+    };
+};
+var mathCall = function (name) {
+    return Javapurs_JavaAst.JavaCall.create(new Javapurs_JavaAst.JavaStaticMethodRef(new Data_Maybe.Just("Math"), name));
+};
 var translateOperator2 = function (v) {
     return function (op) {
         return function (e1) {
@@ -15,10 +59,10 @@ var translateOperator2 = function (v) {
                     return new Javapurs_JavaAst.JavaBinaryOp("||", new Javapurs_JavaAst.JavaCast("Boolean", e1), new Javapurs_JavaAst.JavaCast("Boolean", e2));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpEq) {
-                    return new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaRaw("java.util.Objects.equals"), [ e1, e2 ]);
+                    return objectEquals(e1)(e2);
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpNotEq) {
-                    return new Javapurs_JavaAst.JavaUnaryOp("!", new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaRaw("java.util.Objects.equals"), [ e1, e2 ]));
+                    return new Javapurs_JavaAst.JavaUnaryOp("!", objectEquals(e1)(e2));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpGt) {
                     return new Javapurs_JavaAst.JavaBinaryOp("&&", new Javapurs_JavaAst.JavaCast("Boolean", e1), new Javapurs_JavaAst.JavaUnaryOp("!", new Javapurs_JavaAst.JavaCast("Boolean", e2)));
@@ -33,10 +77,10 @@ var translateOperator2 = function (v) {
                     return new Javapurs_JavaAst.JavaBinaryOp("||", new Javapurs_JavaAst.JavaUnaryOp("!", new Javapurs_JavaAst.JavaCast("Boolean", e1)), new Javapurs_JavaAst.JavaCast("Boolean", e2));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpCharOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpEq) {
-                    return new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaRaw("java.util.Objects.equals"), [ e1, e2 ]);
+                    return objectEquals(e1)(e2);
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpCharOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpNotEq) {
-                    return new Javapurs_JavaAst.JavaUnaryOp("!", new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaRaw("java.util.Objects.equals"), [ e1, e2 ]));
+                    return new Javapurs_JavaAst.JavaUnaryOp("!", objectEquals(e1)(e2));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpCharOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpGt) {
                     return new Javapurs_JavaAst.JavaBinaryOp(">", new Javapurs_JavaAst.JavaCast("Character", e1), new Javapurs_JavaAst.JavaCast("Character", e2));
@@ -78,10 +122,17 @@ var translateOperator2 = function (v) {
                     return new Javapurs_JavaAst.JavaBinaryOp("*", new Javapurs_JavaAst.JavaCast("int", e1), new Javapurs_JavaAst.JavaCast("int", e2));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpIntNum && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpDivide) {
-                    return new Javapurs_JavaAst.JavaBlock([ new Javapurs_JavaAst.JavaLocalAssign("__div_l", e1), new Javapurs_JavaAst.JavaLocalAssign("__div_r", e2) ], new Javapurs_JavaAst.JavaRaw("(((Integer) __div_r) == 0 ? 0 : (((Integer) __div_r) > 0 ? (int) Math.floor((double) ((Integer) __div_l) / ((Integer) __div_r)) : -(int) Math.floor((double) ((Integer) __div_l) / -((double) ((Integer) __div_r)))))"));
+                    var right = new Javapurs_JavaAst.JavaCast("Integer", new Javapurs_JavaAst.JavaLocal("__div_r"));
+                    var left = new Javapurs_JavaAst.JavaCast("Integer", new Javapurs_JavaAst.JavaLocal("__div_l"));
+                    var quotient = function (divisor) {
+                        return new Javapurs_JavaAst.JavaCast("int", mathCall("floor")([ new Javapurs_JavaAst.JavaBinaryOp("/", new Javapurs_JavaAst.JavaCast("double", left), divisor) ]));
+                    };
+                    return new Javapurs_JavaAst.JavaBlock([ new Javapurs_JavaAst.JavaLocalAssign("__div_l", e1), new Javapurs_JavaAst.JavaLocalAssign("__div_r", e2) ], new Javapurs_JavaAst.JavaTernary(new Javapurs_JavaAst.JavaBinaryOp("==", right, new Javapurs_JavaAst.JavaRaw("0")), new Javapurs_JavaAst.JavaRaw("0"), new Javapurs_JavaAst.JavaTernary(new Javapurs_JavaAst.JavaBinaryOp(">", right, new Javapurs_JavaAst.JavaRaw("0")), quotient(right), new Javapurs_JavaAst.JavaUnaryOp("-", quotient(new Javapurs_JavaAst.JavaUnaryOp("-", new Javapurs_JavaAst.JavaCast("double", right)))))));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpIntNum && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpMod) {
-                    return new Javapurs_JavaAst.JavaBlock([ new Javapurs_JavaAst.JavaLocalAssign("__mod_l", e1), new Javapurs_JavaAst.JavaLocalAssign("__mod_r", e2) ], new Javapurs_JavaAst.JavaRaw("(((Integer) __mod_r) == 0 ? 0 : (int) Math.floorMod((long) ((Integer) __mod_l), Math.abs((long) ((Integer) __mod_r))))"));
+                    var right = new Javapurs_JavaAst.JavaCast("Integer", new Javapurs_JavaAst.JavaLocal("__mod_r"));
+                    var left = new Javapurs_JavaAst.JavaCast("Integer", new Javapurs_JavaAst.JavaLocal("__mod_l"));
+                    return new Javapurs_JavaAst.JavaBlock([ new Javapurs_JavaAst.JavaLocalAssign("__mod_l", e1), new Javapurs_JavaAst.JavaLocalAssign("__mod_r", e2) ], new Javapurs_JavaAst.JavaTernary(new Javapurs_JavaAst.JavaBinaryOp("==", right, new Javapurs_JavaAst.JavaRaw("0")), new Javapurs_JavaAst.JavaRaw("0"), new Javapurs_JavaAst.JavaCast("int", mathCall("floorMod")([ new Javapurs_JavaAst.JavaCast("long", left), mathCall("abs")([ new Javapurs_JavaAst.JavaCast("long", right) ]) ]))));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpIntOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpEq) {
                     return new Javapurs_JavaAst.JavaBinaryOp("==", new Javapurs_JavaAst.JavaCast("int", e1), new Javapurs_JavaAst.JavaCast("int", e2));
@@ -138,64 +189,28 @@ var translateOperator2 = function (v) {
                     return new Javapurs_JavaAst.JavaBinaryOp("+", new Javapurs_JavaAst.JavaCast("String", e1), new Javapurs_JavaAst.JavaCast("String", e2));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpStringOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpEq) {
-                    return new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaRaw("java.util.Objects.equals"), [ e1, e2 ]);
+                    return objectEquals(e1)(e2);
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpStringOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpNotEq) {
-                    return new Javapurs_JavaAst.JavaUnaryOp("!", new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaRaw("java.util.Objects.equals"), [ e1, e2 ]));
+                    return new Javapurs_JavaAst.JavaUnaryOp("!", objectEquals(e1)(e2));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpStringOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpGt) {
-                    return new Javapurs_JavaAst.JavaBinaryOp(">", new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaPropertyAccess(e1, "String", "compareTo"), [ new Javapurs_JavaAst.JavaCast("String", e2) ]), new Javapurs_JavaAst.JavaRaw("0"));
+                    return new Javapurs_JavaAst.JavaBinaryOp(">", new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaInstanceMethodRef(e1, "String", "compareTo"), [ new Javapurs_JavaAst.JavaCast("String", e2) ]), new Javapurs_JavaAst.JavaRaw("0"));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpStringOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpGte) {
-                    return new Javapurs_JavaAst.JavaBinaryOp(">=", new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaPropertyAccess(e1, "String", "compareTo"), [ new Javapurs_JavaAst.JavaCast("String", e2) ]), new Javapurs_JavaAst.JavaRaw("0"));
+                    return new Javapurs_JavaAst.JavaBinaryOp(">=", new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaInstanceMethodRef(e1, "String", "compareTo"), [ new Javapurs_JavaAst.JavaCast("String", e2) ]), new Javapurs_JavaAst.JavaRaw("0"));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpStringOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpLt) {
-                    return new Javapurs_JavaAst.JavaBinaryOp("<", new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaPropertyAccess(e1, "String", "compareTo"), [ new Javapurs_JavaAst.JavaCast("String", e2) ]), new Javapurs_JavaAst.JavaRaw("0"));
+                    return new Javapurs_JavaAst.JavaBinaryOp("<", new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaInstanceMethodRef(e1, "String", "compareTo"), [ new Javapurs_JavaAst.JavaCast("String", e2) ]), new Javapurs_JavaAst.JavaRaw("0"));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpStringOrd && op.value0 instanceof PureScript_Backend_Optimizer_Syntax.OpLte) {
-                    return new Javapurs_JavaAst.JavaBinaryOp("<=", new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaPropertyAccess(e1, "String", "compareTo"), [ new Javapurs_JavaAst.JavaCast("String", e2) ]), new Javapurs_JavaAst.JavaRaw("0"));
+                    return new Javapurs_JavaAst.JavaBinaryOp("<=", new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaInstanceMethodRef(e1, "String", "compareTo"), [ new Javapurs_JavaAst.JavaCast("String", e2) ]), new Javapurs_JavaAst.JavaRaw("0"));
                 };
                 if (op instanceof PureScript_Backend_Optimizer_Syntax.OpArrayIndex) {
                     return new Javapurs_JavaAst.JavaArrayIndex(e1, e2);
                 };
-                throw new Error("Failed pattern match at Javapurs.Operators (line 30, column 33 - line 93, column 39): " + [ op.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.Operators (line 30, column 33 - line 103, column 39): " + [ op.constructor.name ]);
             };
-        };
-    };
-};
-var translateOperator1 = function (modName) {
-    return function (op) {
-        return function (e) {
-            if (op instanceof PureScript_Backend_Optimizer_Syntax.OpBooleanNot) {
-                return new Javapurs_JavaAst.JavaUnaryOp("!", new Javapurs_JavaAst.JavaCast("Boolean", e));
-            };
-            if (op instanceof PureScript_Backend_Optimizer_Syntax.OpIntBitNot) {
-                return new Javapurs_JavaAst.JavaUnaryOp("~", new Javapurs_JavaAst.JavaCast("int", e));
-            };
-            if (op instanceof PureScript_Backend_Optimizer_Syntax.OpIntNegate) {
-                return new Javapurs_JavaAst.JavaUnaryOp("-", new Javapurs_JavaAst.JavaCast("int", e));
-            };
-            if (op instanceof PureScript_Backend_Optimizer_Syntax.OpNumberNegate) {
-                return new Javapurs_JavaAst.JavaUnaryOp("-", new Javapurs_JavaAst.JavaCast("Double", e));
-            };
-            if (op instanceof PureScript_Backend_Optimizer_Syntax.OpArrayLength) {
-                return new Javapurs_JavaAst.JavaPropertyAccess(e, "Object[]", "length");
-            };
-            if (op instanceof PureScript_Backend_Optimizer_Syntax.OpIsTag) {
-                var safeTag = Data_String_Common.replaceAll("'")("_prime_")(op.value0.value1);
-                var modPart = (function () {
-                    if (op.value0.value0 instanceof Data_Maybe.Just) {
-                        return Javapurs_Naming.modulePrefix(op.value0.value0.value0);
-                    };
-                    if (op.value0.value0 instanceof Data_Maybe.Nothing) {
-                        return modName;
-                    };
-                    throw new Error("Failed pattern match at Javapurs.Operators (line 22, column 17 - line 24, column 27): " + [ op.value0.value0.constructor.name ]);
-                })();
-                var javaClass = modPart + ("." + safeTag);
-                return new Javapurs_JavaAst.JavaInstanceOf(e, javaClass);
-            };
-            throw new Error("Failed pattern match at Javapurs.Operators (line 13, column 35 - line 27, column 33): " + [ op.constructor.name ]);
         };
     };
 };

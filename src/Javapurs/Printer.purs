@@ -5,10 +5,12 @@ import Data.String as String
 import Data.String.CodeUnits as StringCodeUnits
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Array as Array
-import Data.Tuple (Tuple(..), snd)
+import Data.Tuple (Tuple(..))
 import Data.Char as Char
 import Data.Int as Int
 import Javapurs.CountedLoops (CountedLoop, countedLoop)
+import Javapurs.ControlFlow (hasDirectContinue)
+import Javapurs.Naming (lazyGetterName, singletonHolderName, loopSnapshotName, loopStorageName, loopNextName)
 import Javapurs.RecordPrinter as RecordPrinter
 import Javapurs.JavaAst (JavaExpr(..), JavaParamType(..), JavaFile)
 
@@ -43,6 +45,8 @@ printExpr = case _ of
       argsStr = String.joinWith ", " (map printExpr args)
     in
       fnStr <> "(" <> argsStr <> ")"
+  JavaStaticMethodRef qualifier name -> maybeQualifier qualifier <> name
+  JavaInstanceMethodRef value className method -> printExpr (JavaPropertyAccess value className method)
   JavaApply fn arg ->
     "((java.util.function.Function<Object, Object>) (" <> printExpr fn <> ")).apply(" <> printExpr arg <> ")"
   JavaIntApply fn arg ->
@@ -233,7 +237,7 @@ printExpr = case _ of
     let
       valueName = "__lazy_value_" <> name
       stateName = "__lazy_state_" <> name
-      getterName = "__lazy_get_" <> name
+      getterName = lazyGetterName name
     in
       -- No explicit cache initializers: another getter may fill this cache earlier.
       "private static Object " <> valueName <> ";\n" <>
@@ -246,11 +250,12 @@ printExpr = case _ of
         stateName <> " = 2; " <>
         "return " <> valueName <> "; " <>
       "}\n" <>
-      printExpr (JavaAssign name (JavaCall (JavaRaw getterName) []))
+      printExpr (JavaAssign name (JavaCall (JavaStaticMethodRef Nothing getterName) []))
 
--- This prefix cannot be produced by source-binding or constructor sanitization.
-singletonHolderName :: String -> String
-singletonHolderName ctorName = "__singleton$" <> ctorName
+maybeQualifier :: Maybe String -> String
+maybeQualifier = case _ of
+  Just name -> name <> "."
+  Nothing -> ""
 
 paramType :: JavaParamType -> String
 paramType = case _ of
@@ -272,7 +277,7 @@ printLoopBody loopId args intParams = printMemoizedLoopBody loopId args intParam
 printMemoizedLoopBody :: String -> Array String -> Array String -> Array (Tuple String JavaExpr) -> JavaExpr -> String
 printMemoizedLoopBody loopId args intParams invariants expr =
   "{ " <>
-    String.joinWith "" (map (\arg -> loopParamType intParams arg <> " __tco_" <> arg <> " = " <> printLoopValue intParams arg (JavaLocal arg) <> "; ") args) <>
+    String.joinWith "" (map (\arg -> loopParamType intParams arg <> " " <> loopStorageName arg <> " = " <> printLoopValue intParams arg (JavaLocal arg) <> "; ") args) <>
     String.joinWith "" (map printInvariant invariants) <>
     (case countedLoop args intParams expr of
       Just loop | loopTargetsSelf loopId loop -> printCountedLoop loopId args intParams loop
@@ -286,7 +291,7 @@ printMemoizedLoopBody loopId args intParams invariants expr =
         -- A jump aimed at an enclosing loop passes through this loop's catch;
         -- only the target may update its storage and iterate again.
         "if (!\"" <> loopId <> "\".equals(__tco_ex.loopId)) throw __tco_ex; " <>
-        String.joinWith "" (Array.mapWithIndex (\i arg -> "__tco_" <> arg <> " = " <> printLoopValue intParams arg (JavaRaw ("__tco_ex.args[" <> show i <> "]")) <> "; ") args) <>
+        String.joinWith "" (Array.mapWithIndex (\i arg -> loopStorageName arg <> " = " <> printLoopValue intParams arg (JavaRaw ("__tco_ex.args[" <> show i <> "]")) <> "; ") args) <>
       "} " <>
     "} " <>
   "}"
@@ -300,7 +305,7 @@ printInvariant (Tuple name value) =
 
 printLoopSnapshots :: Array String -> Array String -> String
 printLoopSnapshots args intParams =
-  String.joinWith "" (map (\arg -> "final " <> loopParamType intParams arg <> " __final_" <> arg <> " = __tco_" <> arg <> "; ") args)
+  String.joinWith "" (map (\arg -> "final " <> loopParamType intParams arg <> " " <> loopSnapshotName arg <> " = " <> loopStorageName arg <> "; ") args)
 
 -- Only a step that continues this loop belongs to the counted form; a step
 -- aimed at an enclosing loop keeps the original loop below.
@@ -314,8 +319,8 @@ printCountedLoop loopId args intParams loop =
   -- A negative countdown reaches zero only after Int wraparound. Preserve that
   -- behavior in the original loop below; the counted path never overflows its
   -- index, even when the captured limit is Int.MAX_VALUE.
-  "if (__tco_" <> loop.counter <> " >= 0) { " <>
-    "for (int __counted$index = 0, __counted$limit = __tco_" <> loop.counter <> "; __counted$index < __counted$limit; __counted$index++) { " <>
+  "if (" <> loopStorageName loop.counter <> " >= 0) { " <>
+    "for (int __counted$index = 0, __counted$limit = " <> loopStorageName loop.counter <> "; __counted$index < __counted$limit; __counted$index++) { " <>
       printLoopSnapshots args intParams <>
       printLoopTail loopId args intParams loop.step <>
     "} " <>
@@ -336,10 +341,10 @@ printLoopTail loopId params intParams expr
     | target == loopId && Array.length params == Array.length values ->
         "{ " <>
           String.joinWith "" (map (\(Tuple param value) ->
-            "final " <> loopParamType intParams param <> " __next_" <> param <> " = " <> printLoopValue intParams param value <> "; "
+            "final " <> loopParamType intParams param <> " " <> loopNextName param <> " = " <> printLoopValue intParams param value <> "; "
           ) (Array.zip params values)) <>
           String.joinWith "" (map (\param ->
-            "__tco_" <> param <> " = __next_" <> param <> "; "
+            loopStorageName param <> " = " <> loopNextName param <> "; "
           ) params) <>
           "continue; } "
     | otherwise -> printTcoThrow target values
@@ -372,61 +377,6 @@ loopParamType intParams name = if Array.elem name intParams then "int" else "Obj
 printLoopValue :: Array String -> String -> JavaExpr -> String
 printLoopValue intParams name expr =
   printExpr (if Array.elem name intParams then JavaCast "int" expr else expr)
-
-hasDirectContinue :: JavaExpr -> Boolean
-hasDirectContinue = case _ of
-  JavaContinue _ _ -> true
-  JavaTernary _ yes no -> hasDirectContinue yes || hasDirectContinue no
-  JavaBlock _ body -> hasDirectContinue body
-  JavaLet _ _ body -> hasDirectContinue body
-  JavaLetRec _ body -> hasDirectContinue body
-  _ -> false
-
--- A continue that lands in a statement or operand position is printed as a
--- `TcoLoop` throw and must keep a catch entry for its target. This searches
--- those positions too, so a recursive definition without any continue can be
--- emitted without a loop at all. Lambda and loop boundaries are skipped: their
--- bodies are separate methods and hold only their own continues.
-hasAnyContinue :: JavaExpr -> Boolean
-hasAnyContinue = case _ of
-  JavaContinue _ _ -> true
-  JavaTernary _ yes no -> hasAnyContinue yes || hasAnyContinue no
-  JavaBlock stmts body -> Array.any hasAnyContinue stmts || hasAnyContinue body
-  JavaLet _ value body -> hasAnyContinue value || hasAnyContinue body
-  JavaLetRec binds body -> Array.any (hasAnyContinue <<< snd) binds || hasAnyContinue body
-  JavaAssign _ value -> hasAnyContinue value
-  JavaLocalAssign _ value -> hasAnyContinue value
-  JavaIntLocalAssign _ value -> hasAnyContinue value
-  JavaBinaryOp _ left right -> hasAnyContinue left || hasAnyContinue right
-  JavaUnaryOp _ expr -> hasAnyContinue expr
-  JavaCast _ expr -> hasAnyContinue expr
-  JavaCall fn args -> hasAnyContinue fn || Array.any hasAnyContinue args
-  JavaApply fn arg -> hasAnyContinue fn || hasAnyContinue arg
-  JavaIntApply fn arg -> hasAnyContinue fn || hasAnyContinue arg
-  JavaFieldSet target _ _ _ value -> hasAnyContinue target || hasAnyContinue value
-  JavaLocalSet _ value -> hasAnyContinue value
-  JavaIf condition thenStmts elseStmts ->
-    hasAnyContinue condition || Array.any hasAnyContinue thenStmts || Array.any hasAnyContinue elseStmts
-  JavaNew _ args -> Array.any hasAnyContinue args
-  JavaArray items -> Array.any hasAnyContinue items
-  JavaArraySet array index value -> hasAnyContinue array || hasAnyContinue index || hasAnyContinue value
-  JavaRecord fields -> Array.any (hasAnyContinue <<< snd) fields
-  JavaTypedRecord _ fields -> Array.any (hasAnyContinue <<< snd) fields
-  JavaTypedRecordGet _ value _ -> hasAnyContinue value
-  JavaTypedRecordUpdate _ value updates ->
-    hasAnyContinue value || Array.any (hasAnyContinue <<< snd) updates
-  JavaMapGet expr _ -> hasAnyContinue expr
-  JavaMapUpdate expr updates -> hasAnyContinue expr || Array.any (hasAnyContinue <<< snd) updates
-  JavaInstanceOf expr _ -> hasAnyContinue expr
-  JavaPropertyAccess expr _ _ -> hasAnyContinue expr
-  JavaAbs _ _ -> false
-  JavaIntAbs _ _ -> false
-  JavaTypedAbs _ _ -> false
-  JavaWhileTrue _ _ _ _ -> false
-  JavaMemoizedLoop _ _ _ _ _ -> false
-  JavaStaticMethod _ _ _ -> false
-  JavaClassDecl _ _ _ -> false
-  _ -> false
 
 -- A branch value that requires statements normally becomes a Supplier in
 -- expression form. Method, lambda and thunk bodies can print the branches as

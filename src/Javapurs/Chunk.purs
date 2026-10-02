@@ -22,10 +22,11 @@ import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String as String
-import Data.String.CodeUnits as CodeUnits
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst, snd)
 import Javapurs.JavaAst (JavaExpr(..), JavaFile, JavaParamType(..), children)
+import Javapurs.Naming (loopSnapshotName, loopStorageName, loopNextName)
+import Javapurs.Raw (isClosedValue)
 
 -- | Flat expressions cost roughly one unit per operation. Expression blocks
 -- | print as anonymous Suppliers: javac repeatedly copies their enclosing scopes
@@ -174,7 +175,7 @@ extract expression params = do
     , helpers = state.helpers <> [ JavaStaticMethod name params expression ]
     }
   pure
-    { expr: JavaCall (JavaGlobalVar Nothing name) (map (JavaLocal <<< fst) params)
+    { expr: JavaCall (JavaStaticMethodRef Nothing name) (map (JavaLocal <<< fst) params)
     , cost: 1 + Array.length params
     , free: Just (Set.fromFoldable (map fst params))
     , extractable: true
@@ -225,7 +226,7 @@ makeGroupHelpers offset groups = case Array.uncons groups of
       , helpers = state.helpers <> [ JavaStaticMethod name [] (JavaArray items) ]
       }
     rest <- makeGroupHelpers (offset + Array.length items) tail
-    pure (Array.cons { offset, count: Array.length items, call: JavaCall (JavaGlobalVar Nothing name) [] } rest)
+    pure (Array.cons { offset, count: Array.length items, call: JavaCall (JavaStaticMethodRef Nothing name) [] } rest)
 
 fillGroup :: String -> { offset :: Int, count :: Int, call :: JavaExpr } -> Array JavaExpr
 fillGroup localName group =
@@ -252,6 +253,10 @@ build expression = case expression of
   -- a lifted parameter would change its type.
   JavaLoopInvariant _ -> opaque expression
   JavaGlobalVar qualifier name -> leaf (JavaGlobalVar qualifier name) 1
+  JavaStaticMethodRef _ _ -> pure { expr: expression, cost: 1, free: Just Set.empty, extractable: false }
+  JavaInstanceMethodRef value className method -> do
+    info <- chunkValue value
+    pure { expr: JavaInstanceMethodRef info.expr className method, cost: 1 + info.cost, free: info.free, extractable: false }
   JavaCtorSingleton moduleName ctorName -> leaf (JavaCtorSingleton moduleName ctorName) 1
   JavaThrow message -> leaf (JavaThrow message) (1 + String.length message / 16)
   JavaClassDecl className fields mutable -> leaf (JavaClassDecl className fields mutable) 1
@@ -567,9 +572,8 @@ loopInternals :: Array String -> Array String -> Set String
 loopInternals args intParams =
   let
     all = args <> intParams
-    withPrefix prefix = map (\name -> prefix <> name) all
   in
-    Set.fromFoldable (withPrefix "__tco_" <> withPrefix "__final_" <> withPrefix "__next_")
+    Set.fromFoldable (map loopStorageName all <> map loopSnapshotName all <> map loopNextName all)
 
 insertAll :: Array String -> Set String -> Set String
 insertAll names set = foldl (flip Set.insert) set names
@@ -578,24 +582,9 @@ insertAll names set = foldl (flip Set.insert) set names
 -- | Mutable loop storage and memoized IntSuppliers are not helper parameters.
 loopEnv :: Array String -> Array String -> Map String JavaParamType
 loopEnv params intParams = Map.fromFoldable $ map
-  (\name -> Tuple ("__final_" <> name) (if Array.elem name intParams then ParamInt else ParamObject)) params
+  (\name -> Tuple (loopSnapshotName name) (if Array.elem name intParams then ParamInt else ParamObject)) params
 
--- | Raw snippets have no lexical metadata. Recognize only closed forms emitted
--- | by CodeGen; arithmetic snippets referencing locals and raw statements stay
--- | opaque. In particular, treating all raw text as closed loses hidden captures.
+-- | Raw value admission is shared with the documented escape-hatch contract.
+-- | Raw statements remain barriers even when their text looks like a literal.
 rawFree :: String -> Maybe (Set String)
-rawFree code
-  | Array.elem code [ "true", "false", "null", "Double.NaN", "Double.POSITIVE_INFINITY", "Double.NEGATIVE_INFINITY", "java.util.Objects.equals" ] = Just Set.empty
-  | numericRaw code = Just Set.empty
-  | String.take 13 code == "null /* TODO:" = Just Set.empty
-  | String.take 1 code == "'" && String.take 1 (String.drop (String.length code - 1) code) == "'" && String.length code <= 4 = Just Set.empty
-  | String.take 4 code == "__M$" && String.contains (String.Pattern ".__lazy_get_") code = Just Set.empty
-  | String.take 11 code == "new Object[" && String.drop (String.length code - 1) code == "]" && numericRaw (String.take (String.length code - 12) (String.drop 11 code)) = Just Set.empty
-  | otherwise = Nothing
-
-numericRaw :: String -> Boolean
-numericRaw value = case CodeUnits.uncons value of
-  Just { head, tail: _ }
-    | (head >= '0' && head <= '9') || head == '-' || head == '+' ->
-        Array.all (\char -> (char >= '0' && char <= '9') || Array.elem char [ '.', '-', '+', 'e', 'E' ]) (CodeUnits.toCharArray value)
-  _ -> false
+rawFree code = if isClosedValue code then Just Set.empty else Nothing
