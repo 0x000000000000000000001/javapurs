@@ -2,7 +2,7 @@
 
 État documenté au **2 octobre 2026**. Ce guide décrit le chemin de production
 actuel. Les références des sources et des outils figurent dans le
-[registre de validation](testing.md#validation-m03).
+[registre de validation](testing.md#validation-m05).
 
 ## Se repérer dans le workspace
 
@@ -130,9 +130,12 @@ options supplémentaires. Elles ne réalisent pas les étapes suivantes de `Pipe
 sauf avec `--no-chunk`. **Cet ordre est un contrat de la passe.**
 
 - `Rename` distingue les bindings homonymes par des suffixes `$rN` et restaure
-  l'environnement à la sortie des blocs, lambdas et branches.
+  les environnements à la sortie des blocs, lambdas et branches. Les valeurs
+  et les cibles de boucle ont des environnements distincts.
 - `Chunk` décide quelles valeurs peuvent devenir des méthodes `__chunk$N`.
-  Les variables libres deviennent des paramètres avec leur type Java effectif.
+  `Chunk.Captures` décrit dépendances et barrières ; `Chunk.Extraction` décide
+  de l'admission. Les variables libres deviennent des paramètres avec leur type
+  Java effectif.
 - L'appel produit conserve les dépendances de ses arguments : une extraction
   englobante doit encore transporter ces captures.
 - Les mutations de locaux extérieurs, sauts de boucle et fragments Java opaques
@@ -144,8 +147,11 @@ Le budget courant est 256 unités ; les scopes de blocs/lets sont pondérés par
 le découpage du travail de `javac` et de la taille des méthodes ; il ne mesure
 pas exactement les octets de bytecode. `BigFunction` a montré qu'un budget
 additif seul laissait des `Supplier` profondément imbriqués très coûteux à
-attribuer. Voir [Chunk](../src/Javapurs/Chunk.purs) et ses
+attribuer. Voir le [guide du chunker](chunking.md) et ses
 [régressions ciblées](testing.md#chunker-et-bigfunction).
+
+Les contrats de chaque famille de nœuds, les binders et les parcours communs
+sont détaillés dans [AST Java, parcours et portées](ast.md).
 
 ### 5. Rendu, FFI et écritures
 
@@ -217,21 +223,24 @@ et une erreur de décodage est journalisée avant d'écarter le module concerné
 | Qui lit les fragments FFI et écrit les fichiers Java ? | [Ffi](../src/Javapurs/Ffi.purs), [Emit](../src/Javapurs/Emit.purs). |
 | Où sont les templates communs et le launcher JVM ? | [Runtime](../src/Javapurs/Runtime.purs). |
 | Comment sont nommés modules, constructeurs et locaux ? | [Naming](../src/Javapurs/Naming.purs), [Rename](../src/Javapurs/Rename.purs). |
-| Quels nœuds Java existent et quels sont leurs enfants ? | [JavaAst](../src/Javapurs/JavaAst.purs). |
+| Quels nœuds Java existent et quels sont leurs enfants/portées ? | [JavaAst](../src/Javapurs/JavaAst.purs), [contrats de l'IR](ast.md). |
+| Où sont analysés les sauts et leurs frontières ? | [ControlFlow](../src/Javapurs/ControlFlow.purs). |
+| Quel texte brut peut être renommé ou considéré sans captures ? | [Raw](../src/Javapurs/Raw.purs). |
 | Comment sont traduits applications, effets, bindings et branches ? | [CodeGen](../src/Javapurs/CodeGen.purs), [Operators](../src/Javapurs/Operators.purs). |
 | Quand un paramètre ou une fonction devient-il primitif ? | [IntLoops](../src/Javapurs/IntLoops.purs), [FunctionTypes](../src/Javapurs/FunctionTypes.purs), [IntFunctions](../src/Javapurs/IntFunctions.purs). |
 | Quels calculs peuvent être mis en cache dans une boucle ? | [PureInvariants](../src/Javapurs/PureInvariants.purs), [LoopInvariants](../src/Javapurs/LoopInvariants.purs). |
 | Quand utilise-t-on un worker statique ou un constructeur existant ? | [DirectCalls](../src/Javapurs/DirectCalls.purs), [Reuse](../src/Javapurs/Reuse.purs). |
 | Quelle preuve autorise la consommation d'un arbre ? | [Ownership](../src/Javapurs/Ownership.purs). |
 | Quels records peuvent avoir une classe spécialisée ? | [RecordTypes](../src/Javapurs/RecordTypes.purs), [RecordShapes](../src/Javapurs/RecordShapes.purs). |
-| Pourquoi une expression est-elle extraite dans un helper ? | [Chunk](../src/Javapurs/Chunk.purs). |
+| Pourquoi une expression est-elle extraite dans un helper ? | [Chunk](../src/Javapurs/Chunk.purs), [Captures](../src/Javapurs/Chunk/Captures.purs), [Extraction](../src/Javapurs/Chunk/Extraction.purs), [guide du chunker](chunking.md). |
 | Comment sont rendus blocs, boucles, classes et records ? | [Printer](../src/Javapurs/Printer.purs), [CountedLoops](../src/Javapurs/CountedLoops.purs), [RecordPrinter](../src/Javapurs/RecordPrinter.purs). |
 
-`JavaExpr` représente actuellement expressions, statements et déclarations.
-`children` est un parcours structurel de lecture ; il ne modélise pas les portées.
-Les passes de réécriture et les analyses lexicales ont leurs règles propres.
-`CodeGen` importe encore des analyses de contrôle de `Printer`, et `Ownership`
-utilise aussi son rendu : ces dépendances font partie de l'organisation actuelle.
+`JavaExpr` représente valeurs, statements, déclarations et sélecteurs de méthodes.
+`traverseChildren` définit leurs enfants ; `children`, `mapChildren` et
+`rewriteBottomUp` en dérivent. `DirectCalls` et `Reuse` utilisent ces parcours,
+`Rename` leur ajoute les règles lexicales. Les analyses de contrôle appartiennent
+à `ControlFlow`, consommé par `CodeGen` et `Printer`. `Ownership` utilise encore
+le rendu de `Printer` pour choisir certains workers.
 
 ## Représentations et invariants à conserver
 
@@ -255,9 +264,10 @@ utilise aussi son rendu : ces dépendances font partie de l'organisation actuell
 - **Records.** Les formes closes éligibles utilisent des classes immuables
   compatibles avec `Map`; les autres formes gardent le chemin Map. Une annotation
   `TypeApp` ou une queue polymorphe ne prouve pas une forme close.
-- **Java brut.** `JavaRaw` contient du texte sans métadonnées lexicales complètes.
-  `Rename` traite les identifiants connus ; le chunker ne reconnaît comme fermées
-  que certaines formes. Les conditions d'admission doivent respecter cette limite.
+- **Java brut.** `JavaRaw` est opaque ; `Raw` définit les formes fermées admises
+  et le scanner de renommage de compatibilité. Les lectures/écritures/binders
+  produits par le compilateur sont structurels, notamment la division/modulo Int.
+  Voir le [contrat du texte brut](ast.md#java-brut).
 
 ## Runtime et FFI des ports
 

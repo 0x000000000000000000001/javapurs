@@ -55,6 +55,11 @@ assert.equal(isClosedValue("__M$Any.__lazy_get_value() + capture"), false,
   "a generated-looking method prefix does not prove raw text closed");
 assert.equal(isClosedValue("null /* TODO: value */ + capture"), false,
   "text after a comment still has unknown captures");
+assert.equal(isClosedValue("1-e"), false, "a subtraction can read the local e");
+assert.equal(isClosedValue("new Object[1-e]"), false, "array dimensions can capture too");
+for (const literal of ["0", "-2147483648", "1.0e-7", "-0.0", "Double.NaN", "new Object[300]"]) {
+  assert.equal(isClosedValue(literal), true, `${literal}: generated closed form`);
+}
 
 // Field/method names, record labels and types are metadata, not local reads.
 const metadata = new A.JavaArray([
@@ -120,6 +125,27 @@ const operandLoop = wrap => abs(["n"], new A.JavaWhileTrue("again", ["n"], ["n"]
     wrap(new A.JavaContinue("again", [binary("-", local("__final_n"), raw(1))])))));
 const conditionJump = operandLoop(jump => choose(jump, raw(1), raw(2)));
 const indexJump = operandLoop(jump => new A.JavaArrayIndex(new A.JavaArray([raw(1)]), jump));
+const shadowedTarget = operandLoop(jump => new A.JavaLet("again", raw(99), jump));
+const nestedJump = operandLoop(jump => {
+  const callback = abs([], new A.JavaLet("again", raw(99), jump));
+  const innerBody = choose(binary("==", local("__final_innerN"), raw(0)),
+    new A.JavaCall(new A.JavaInstanceMethodRef(callback, "java.util.function.Supplier", "get"), []),
+    new A.JavaContinue("inner", [binary("-", local("__final_innerN"), raw(1))]));
+  return new A.JavaLet("innerN", raw(1), new A.JavaWhileTrue("inner", ["innerN"], ["innerN"], innerBody));
+});
+// The initializer reads the outer value go, while its loop and continue use
+// the new local function's control identity. Value and target environments differ.
+const localLoop = abs(["go"], block([
+  new A.JavaLocalAssign("go", abs(["n"], new A.JavaWhileTrue("go", ["n"], ["n"],
+    choose(binary("==", local("__final_n"), raw(0)), local("go"),
+      new A.JavaContinue("go", [binary("-", local("__final_n"), raw(1))]))))),
+], new A.JavaApply(local("go"), raw(3))));
+const localLoopRenamed = renameExpr(localLoop);
+const localLoopDeclaration = localLoopRenamed.value1.value0[0];
+const localLoopBody = localLoopDeclaration.value1.value1;
+assert.equal(localLoopBody.value0, localLoopDeclaration.value0);
+assert.equal(localLoopBody.value3.value1.value0, localLoopRenamed.value0[0]);
+assert.equal(localLoopBody.value3.value2.value0, localLoopBody.value0);
 
 // Large arithmetic trees can now advertise their local captures to Chunk.
 // The outer block still evaluates each source operand once, left before right.
@@ -134,7 +160,7 @@ const numericThrow = abs([], divide(call("AstScopeRegression", "fail"), mark("un
 assert.ok(walk(divide(local("x"), local("y"))).some(expr => expr instanceof A.JavaLocal && expr.value0 === "__div_l"));
 assert.ok(!walk(divide(local("x"), local("y"))).some(expr => expr instanceof A.JavaRaw && expr.value0.includes("__div_")));
 
-const fixtures = { initializer, letShadow, branches, selectors, rawText, recursive, conditionJump, indexJump, numeric, numericOnce, numericThrow };
+const fixtures = { initializer, letShadow, branches, selectors, rawText, recursive, conditionJump, indexJump, shadowedTarget, nestedJump, localLoop, numeric, numericOnce, numericThrow };
 const original = { recordShapes: [], decls: [
   new A.JavaAssign("same", raw(17)), new A.JavaAssign("x", raw(23)),
   new A.JavaStaticMethod("same", pairs([["value", A.ParamObject.value]]), local("value")),
@@ -172,6 +198,9 @@ const harness = `public class AstScopeRegression {
     equal(apply(parity[1], 30), false);
     equal(apply(ScopeFixtures.conditionJump, 5000), 42);
     equal(apply(ScopeFixtures.indexJump, 5000), 42);
+    equal(apply(ScopeFixtures.shadowedTarget, 5000), 42);
+    equal(apply(ScopeFixtures.nestedJump, 5000), 42);
+    equal(apply(ScopeFixtures.localLoop, 7), 7);
     Object[] numeric = (Object[]) apply(ScopeFixtures.numeric, -7, -3);
     equal(numeric.length, 90);
     for (int i = 0; i < numeric.length; i++) equal(numeric[i], i % 2 == 0 ? 3 : 2);

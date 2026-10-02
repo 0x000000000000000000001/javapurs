@@ -115,9 +115,37 @@ const loops = chunk([
     pairs([["cached", sum(local("n"), 80)]]), loopBody("memo", new A.JavaLoopInvariant("cached"))))),
 ]);
 
+// A value exactly at the budget stays in place; the next node permits lifting.
+// Keep the arrays open so this exercises value extraction, not closed groups.
+const budgetCase = length => chunk([
+  new A.JavaStaticMethod("worker", pairs([["n", A.ParamInt.value]]), array(local("n"), length)),
+  assign("result", call("worker", [raw(42)])),
+]);
+const atBudget = budgetCase(255);
+const overBudget = budgetCase(256);
+assert.equal(helpers(atBudget).length, 0, "256 units fit the method budget");
+assert.equal(helpers(overBudget).length, 1, "257 units can be extracted");
+
+// The parameter cap is distinct from cost. Original Java methods may have 65
+// parameters, but a generated helper must refuse the capture set of that size.
+const parameterCase = count => {
+  const names = Array.from({ length: count }, (_, index) => `p${index}`);
+  return chunk([
+    new A.JavaStaticMethod("worker", pairs(names.map(name => [name, A.ParamObject.value])),
+      new A.JavaArray(Array.from({ length: 320 }, (_, index) => local(names[index % count])))),
+    assign("result", call("worker", names.map((_, index) => raw(index)))),
+  ]);
+};
+const atParameterLimit = parameterCase(64);
+const overParameterLimit = parameterCase(65);
+assert.equal(helpers(atParameterLimit).length, 1);
+assert.equal(helpers(atParameterLimit)[0].value1.length, 64, "all 64 captures reach the helper");
+assert.equal(helpers(overParameterLimit).length, 0, "65 captures retain the original body");
+
 const fixtures = { ClosedBlock: closedBlock, Nested: nested, Scoped: scoped, Typed: typed,
   RawCapture: rawCapture, Recursive: recursive, Mutation: mutation, Effects: effects, ShortCircuit: shortCircuit,
-  Scopes: scopes, Loops: loops };
+  Scopes: scopes, Loops: loops, AtBudget: atBudget, OverBudget: overBudget,
+  AtParameterLimit: atParameterLimit, OverParameterLimit: overParameterLimit };
 await withTemporaryDirectory("javapurs-chunk-", directory => {
   for (const [name, file] of Object.entries(fixtures)) {
     writeFileSync(join(directory, `${name}.java`), printFile(name)(file));
@@ -174,7 +202,17 @@ public final class ChunkRuntime {
     equal(apply(Scopes.scopes, 3), 240);
     equal(apply(Loops.loop, 5), 0);
     equal(apply(Loops.memoized, 5), 400);
-    System.out.println("Chunk: 11 fixtures passed");
+    elements(AtBudget.result, 255, 42);
+    elements(OverBudget.result, 256, 42);
+    Object[] atLimit = (Object[])AtParameterLimit.result;
+    Object[] overLimit = (Object[])OverParameterLimit.result;
+    equal(atLimit.length, 320);
+    equal(overLimit.length, 320);
+    for (int i = 0; i < 320; i++) {
+      equal(atLimit[i], i % 64);
+      equal(overLimit[i], i % 65);
+    }
+    System.out.println("Chunk: 15 fixtures passed");
   }
 }
 interface __IntFn extends Function<Object,Object> {
@@ -190,6 +228,6 @@ class TcoLoop extends RuntimeException {
   runCommandSync(javac, ["--release", "17", "-d", directory, ...Object.keys(fixtures).map(name => join(directory, `${name}.java`)),
     join(directory, "ChunkRuntime.java")], { stdio: "pipe", timeout: 120_000 });
   const output = runCommandSync(java, ["-cp", directory, "ChunkRuntime"], { encoding: "utf8", timeout: 30_000 });
-  assert.equal(output.trim(), "Chunk: 11 fixtures passed");
+  assert.equal(output.trim(), "Chunk: 15 fixtures passed");
   process.stdout.write(output);
 });

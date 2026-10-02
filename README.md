@@ -8,7 +8,7 @@ An optimizing **PureScript-to-Java compiler**, written in PureScript, bringing p
 
 `javapurs` consumes the enriched **TAST / `tcorefn`** representation produced by our [PureScript compiler fork](https://github.com/0x000000000000000000001/purescript), optimizes it through `purescript-backend-optimizer`, and emits Java source. Node.js runs the compiler; the generated application runs on the JVM.
 
-For maintainers: [compiler guide](docs/compiler.md) · [focused testing and validation records](docs/testing.md).
+For maintainers: [compiler guide](docs/compiler.md) · [Java AST and scope contracts](docs/ast.md) · [focused testing and validation records](docs/testing.md).
 
 ## Features
 
@@ -254,17 +254,19 @@ The shared JDK resolver uses explicit `JAVAC`/`JAVA` first, then `JAVA_HOME`, th
 
 `node test/driver.mjs` builds a small, isolated TAST application and exercises the real compiler CLI, entrypoint selection, FFI and I/O diagnostics, then compiles and runs its Java with `--release 17`. It requires the built backend, the TAST-capable `purs` and a JDK. Its recording/comparison modes preserve identical inputs for refactoring checks; see the [driver recipe](docs/testing.md#pilote-de-compilation).
 
-The [test matrix](docs/testing.md#matrice-des-tests) covers all 15 scripts and identifies optional benchmark-cache inputs. See the [BigFunction recipe](docs/testing.md#chunker-et-bigfunction) and [runner checks](docs/testing.md#outillage-des-tests) for focused commands. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
+`node test/ast-scopes.mjs` checks local shadowing, sibling branches, recursive captures, method selectors, nested loop targets and the raw-Java boundary. It compiles and executes the same fixtures after renaming, with and without chunking, targeting Java 17.
+
+The [test matrix](docs/testing.md#matrice-des-tests) covers all 16 scripts and identifies optional benchmark-cache inputs. See the [BigFunction recipe](docs/testing.md#chunker-et-bigfunction) and [runner checks](docs/testing.md#outillage-des-tests) for focused commands. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
 
 ## Architecture
 
 1. **Configuration and orchestration:** [Main](src/Main.purs) passes process arguments through [Config](src/Javapurs/Config.purs) to [Driver](src/Javapurs/Driver.purs). The driver loads enriched `corefn.json` modules and directives, prepares shared helpers, then calls PBO's `buildModules` to obtain optimized `BackendModule` values.
 2. **FFI resolution and Java lowering:** Each module callback reads the Java snippet through [Ffi](src/Javapurs/Ffi.purs) and calls [Pipeline](src/Javapurs/Pipeline.purs). Its [CodeGen](src/Javapurs/CodeGen.purs) step prepares ownership workers, analyzes TCO and types, translates expressions and emits constructor classes into [JavaAst](src/Javapurs/JavaAst.purs), then applies direct calls and constructor reuse.
-3. **Lexical names and chunking:** `Pipeline` runs [Rename](src/Javapurs/Rename.purs) before [Chunk](src/Javapurs/Chunk.purs), so helper extraction can reason about unique bindings and their captures.
+3. **Lexical names and chunking:** `Pipeline` runs [Rename](src/Javapurs/Rename.purs) before [Chunk](src/Javapurs/Chunk.purs). [Chunk.Captures](src/Javapurs/Chunk/Captures.purs) analyzes dependencies and movement barriers; [Chunk.Extraction](src/Javapurs/Chunk/Extraction.purs) owns costs and the extraction decision. `Chunk` tracks effective Java local types and constructs helpers.
 4. **Printing and templates:** [Printer](src/Javapurs/Printer.purs) and [RecordPrinter](src/Javapurs/RecordPrinter.purs) render Java declarations, control flow, and record helpers. [Runtime](src/Javapurs/Runtime.purs) owns the `__IntFn`, `TcoLoop` and `MainRun` templates.
 5. **Assembly and output:** [Emit](src/Javapurs/Emit.purs) assembles modules with the members supplied by `Ffi`, writes module/record classes and the selected launcher, and writes shared runtime files once during preparation. [Diagnostics](src/Javapurs/Diagnostics.purs) adds context to propagated I/O errors. `javac` and `java` perform the final compilation and execution outside the backend.
 
-The [compiler guide](docs/compiler.md) details the pass order, source modules, representation contracts and workspace boundaries.
+The [compiler guide](docs/compiler.md) details the pass order, source modules, representation contracts and workspace boundaries. The [AST guide](docs/ast.md) defines valid node positions, shared traversals, lexical scopes and raw-Java admission. The [chunker guide](docs/chunking.md) explains extraction decisions, the separate cost/parameter limits, recursive captures and evaluation-once array groups. [ControlFlow](src/Javapurs/ControlFlow.purs) owns the continuation analyses shared by translation and printing.
 
 ## Current status and limitations
 

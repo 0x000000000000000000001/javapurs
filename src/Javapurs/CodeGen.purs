@@ -76,7 +76,7 @@ ownedCall env loopCtx expression =
           case Map.lookup name env.ownedFunctions of
             Just fn
               | Array.length flat.args == Array.length fn.params ->
-                   Just $ JavaCall (JavaStaticMethodRef Nothing fn.javaName)
+                  Just $ JavaCall (JavaStaticMethodRef Nothing fn.javaName)
                     (Array.zipWith
                       (\param arg -> case param of
                         ParamInt -> JavaCast "int" (wrapInBlock (translateExpr env loopCtx false arg))
@@ -85,7 +85,7 @@ ownedCall env loopCtx expression =
               | not (Array.null fn.params) && Array.length flat.args == Array.length fn.params - 1 ->
                   -- The module call has no donor yet: a fresh tree cannot be
                   -- shared, so the worker starts without a reusable cell.
-                   Just $ JavaCall (JavaStaticMethodRef Nothing fn.javaName)
+                  Just $ JavaCall (JavaStaticMethodRef Nothing fn.javaName)
                     (Array.zipWith
                       (\param arg -> case param of
                         ParamInt -> JavaCast "int" (wrapInBlock (translateExpr env loopCtx false arg))

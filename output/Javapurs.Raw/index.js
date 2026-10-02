@@ -8,6 +8,9 @@ import * as Data_Maybe from "../Data.Maybe/index.js";
 import * as Data_String_CodePoints from "../Data.String.CodePoints/index.js";
 import * as Data_String_CodeUnits from "../Data.String.CodeUnits/index.js";
 import * as Data_String_Common from "../Data.String.Common/index.js";
+import * as Data_String_Regex from "../Data.String.Regex/index.js";
+import * as Data_String_Regex_Flags from "../Data.String.Regex.Flags/index.js";
+import * as Data_String_Regex_Unsafe from "../Data.String.Regex.Unsafe/index.js";
 var renameIdentifiers = function (rename) {
     return function (code) {
         var whitespace = function ($$char) {
@@ -41,7 +44,7 @@ var renameIdentifiers = function (rename) {
                     $copy_index = index + 1 | 0;
                     return;
                 };
-                throw new Error("Failed pattern match at Javapurs.Raw (line 58, column 3 - line 61, column 41): " + [ index.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.Raw (line 57, column 3 - line 60, column 41): " + [ index.constructor.name ]);
             };
             while (!$tco_done) {
                 $tco_result = $tco_loop($copy_index);
@@ -72,7 +75,7 @@ var renameIdentifiers = function (rename) {
                         $copy_index = index + 1 | 0;
                         return;
                     };
-                    throw new Error("Failed pattern match at Javapurs.Raw (line 52, column 3 - line 56, column 46): " + [ quote.constructor.name, index.constructor.name ]);
+                    throw new Error("Failed pattern match at Javapurs.Raw (line 51, column 3 - line 55, column 46): " + [ quote.constructor.name, index.constructor.name ]);
                 };
                 while (!$tco_done1) {
                     $tco_result = $tco_loop($tco_var_quote, $copy_index);
@@ -95,7 +98,7 @@ var renameIdentifiers = function (rename) {
                         $tco_done2 = true;
                         return index;
                     };
-                    throw new Error("Failed pattern match at Javapurs.Raw (line 48, column 3 - line 50, column 24): " + [ predicate.constructor.name, index.constructor.name ]);
+                    throw new Error("Failed pattern match at Javapurs.Raw (line 47, column 3 - line 49, column 24): " + [ predicate.constructor.name, index.constructor.name ]);
                 };
                 while (!$tco_done2) {
                     $tco_result = $tco_loop($tco_var_predicate, $copy_index);
@@ -117,16 +120,16 @@ var renameIdentifiers = function (rename) {
                         };
                         if (Data_Boolean.otherwise) {
                             var $$char = charAt(index);
-                            var $12 = $$char === "\"" || $$char === "'";
-                            if ($12) {
+                            var $11 = $$char === "\"" || $$char === "'";
+                            if ($11) {
                                 var end = quotedEnd($$char)(index + 1 | 0);
                                 $tco_var_index = end;
                                 $tco_var_previous = $$char;
                                 $copy_parts = new Data_List_Types.Cons(slice(index)(end), parts);
                                 return;
                             };
-                            var $13 = $$char === "/" && charAt(index + 1 | 0) === "/";
-                            if ($13) {
+                            var $12 = $$char === "/" && charAt(index + 1 | 0) === "/";
+                            if ($12) {
                                 var end = advanceWhile(function (v) {
                                     return v !== "\x0a";
                                 })(index + 2 | 0);
@@ -135,23 +138,23 @@ var renameIdentifiers = function (rename) {
                                 $copy_parts = new Data_List_Types.Cons(slice(index)(end), parts);
                                 return;
                             };
-                            var $14 = $$char === "/" && charAt(index + 1 | 0) === "*";
-                            if ($14) {
+                            var $13 = $$char === "/" && charAt(index + 1 | 0) === "*";
+                            if ($13) {
                                 var end = commentEnd(index + 2 | 0);
                                 $tco_var_index = end;
                                 $tco_var_previous = previous;
                                 $copy_parts = new Data_List_Types.Cons(slice(index)(end), parts);
                                 return;
                             };
-                            var $15 = identifier($$char);
-                            if ($15) {
+                            var $14 = identifier($$char);
+                            if ($14) {
                                 var end = advanceWhile(identifier)(index + 1 | 0);
                                 var token = slice(index)(end);
                                 $tco_var_index = end;
                                 $tco_var_previous = $$char;
                                 $copy_parts = new Data_List_Types.Cons((function () {
-                                    var $16 = previous === ".";
-                                    if ($16) {
+                                    var $15 = previous === ".";
+                                    if ($15) {
                                         return token;
                                     };
                                     return rename(token);
@@ -160,8 +163,8 @@ var renameIdentifiers = function (rename) {
                             };
                             $tco_var_index = index + 1 | 0;
                             $tco_var_previous = (function () {
-                                var $17 = whitespace($$char);
-                                if ($17) {
+                                var $16 = whitespace($$char);
+                                if ($16) {
                                     return previous;
                                 };
                                 return $$char;
@@ -169,7 +172,7 @@ var renameIdentifiers = function (rename) {
                             $copy_parts = new Data_List_Types.Cons(Data_String_CodeUnits.singleton($$char), parts);
                             return;
                         };
-                        throw new Error("Failed pattern match at Javapurs.Raw (line 63, column 3 - line 82, column 112): " + [ index.constructor.name, previous.constructor.name, parts.constructor.name ]);
+                        throw new Error("Failed pattern match at Javapurs.Raw (line 62, column 3 - line 81, column 112): " + [ index.constructor.name, previous.constructor.name, parts.constructor.name ]);
                     };
                     while (!$tco_done3) {
                         $tco_result = $tco_loop($tco_var_index, $tco_var_previous, $copy_parts);
@@ -181,15 +184,7 @@ var renameIdentifiers = function (rename) {
         return Data_String_Common.joinWith("")(Data_Array.fromFoldable(Data_List_Types.foldableList)(Data_List.reverse(scan(0)(" ")(Data_List_Types.Nil.value))));
     };
 };
-var numeric = function (value) {
-    var v = Data_String_CodeUnits.uncons(value);
-    if (v instanceof Data_Maybe.Just && (v.value0.head >= "0" && v.value0.head <= "9" || (v.value0.head === "-" || v.value0.head === "+"))) {
-        return Data_Array.all(function ($$char) {
-            return $$char >= "0" && $$char <= "9" || Data_Array.elem(Data_Eq.eqChar)($$char)([ ".", "-", "+", "e", "E" ]);
-        })(Data_String_CodeUnits.toCharArray(value));
-    };
-    return false;
-};
+var numeric = /* #__PURE__ */ Data_String_Regex.test(/* #__PURE__ */ Data_String_Regex_Unsafe.unsafeRegex("^[+-]?[0-9]+(?:\\.[0-9]*)?(?:[eE][+-]?[0-9]+)?$")(Data_String_Regex_Flags.noFlags));
 var isClosedValue = function (code) {
     if (Data_Array.elem(Data_Eq.eqString)(code)([ "true", "false", "null", "Double.NaN", "Double.POSITIVE_INFINITY", "Double.NEGATIVE_INFINITY" ])) {
         return true;
@@ -207,12 +202,12 @@ var isClosedValue = function (code) {
         if (Data_Boolean.otherwise) {
             return false;
         };
-        throw new Error("Failed pattern match at Javapurs.Raw (line 17, column 1 - line 17, column 35): " + [ code.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.Raw (line 20, column 1 - line 20, column 35): " + [ code.constructor.name ]);
     };
-    var $25 = Data_String_CodeUnits.stripPrefix("null /* TODO:")(code);
-    if ($25 instanceof Data_Maybe.Just) {
-        var $26 = Data_String_Common.split("*/")($25.value0);
-        if ($26.length === 2 && $26[1] === "") {
+    var $20 = Data_String_CodeUnits.stripPrefix("null /* TODO:")(code);
+    if ($20 instanceof Data_Maybe.Just) {
+        var $21 = Data_String_Common.split("*/")($20.value0);
+        if ($21.length === 2 && $21[1] === "") {
             return true;
         };
         return v(true);

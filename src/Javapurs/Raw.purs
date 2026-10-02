@@ -10,6 +10,9 @@ import Data.List as List
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String as String
 import Data.String.CodeUnits as CodeUnits
+import Data.String.Regex as Regex
+import Data.String.Regex.Flags (noFlags)
+import Data.String.Regex.Unsafe (unsafeRegex)
 
 -- | A deliberately small whitelist, used by capture analysis. Unknown text is
 -- | a barrier even if a caller knows it happens to be closed. Method selectors
@@ -25,11 +28,7 @@ isClosedValue code
   | otherwise = false
 
 numeric :: String -> Boolean
-numeric value = case CodeUnits.uncons value of
-  Just { head, tail: _ }
-    | (head >= '0' && head <= '9') || head == '-' || head == '+' ->
-        Array.all (\char -> (char >= '0' && char <= '9') || Array.elem char [ '.', '-', '+', 'e', 'E' ]) (CodeUnits.toCharArray value)
-  _ -> false
+numeric = Regex.test (unsafeRegex "^[+-]?[0-9]+(?:\\.[0-9]*)?(?:[eE][+-]?[0-9]+)?$" noFlags)
 
 -- | Compatibility for hand-written AST fixtures with raw local reads. Protect
 -- | quoted text, comments and qualified member names. This is token substitution,

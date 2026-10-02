@@ -14,7 +14,15 @@ import Javapurs.JavaAst (JavaExpr(..), traverseChildren)
 import Javapurs.Naming (loopSnapshotName, renamedLocal, snapshotBaseName)
 import Javapurs.Raw (renameIdentifiers)
 
-type RenameState = { counter :: Int, env :: Array (Tuple String String) }
+type Names = Array (Tuple String String)
+type RenameState =
+  { counter :: Int
+  , env :: Names
+  -- A local function's loop can use its fresh declaration name even though
+  -- the function's nonrecursive initializer cannot read that local yet.
+  , loopNames :: Names
+  , loopTargets :: Names
+  }
 type Rename = State RenameState
 
 renameExpr :: JavaExpr -> JavaExpr
@@ -23,7 +31,7 @@ renameExpr = renameWith []
 -- | A starting lexical environment is useful for isolated AST consumers.
 -- | It never rewrites module fields, method names, class names or field labels.
 renameWith :: Array (Tuple String String) -> JavaExpr -> JavaExpr
-renameWith env expression = case runState (rename expression) { counter: 0, env } of
+renameWith env expression = case runState (rename expression) { counter: 0, env, loopNames: env, loopTargets: [] } of
   Tuple result _ -> result
 
 lookupName :: String -> Array (Tuple String String) -> String
@@ -40,18 +48,19 @@ freshLocal name = do
   modify_ \state -> state { counter = state.counter + 1 }
   pure (renamedLocal name counter)
 
--- Restore only the lexical environment, including between sister branches.
+-- Restore name environments, but keep the counter, including between siblings.
 inScope :: forall a. Rename a -> Rename a
 inScope action = do
-  outer <- gets _.env
+  outer <- gets identity
   result <- action
-  modify_ \state -> state { env = outer }
+  modify_ \state -> state { env = outer.env, loopNames = outer.loopNames, loopTargets = outer.loopTargets }
   pure result
 
 bindNames :: Array String -> Rename (Array String)
 bindNames names = do
   renamed <- traverse freshLocal names
-  modify_ \state -> state { env = Array.zipWith Tuple names renamed <> state.env }
+  let bindings = Array.zipWith Tuple names renamed
+  modify_ \state -> state { env = bindings <> state.env, loopNames = bindings <> state.loopNames }
   pure renamed
 
 scoped :: Array String -> (Array String -> Rename JavaExpr) -> Rename JavaExpr
@@ -68,9 +77,21 @@ renameGroup bindings = do
 declareLocal :: (String -> JavaExpr -> JavaExpr) -> String -> JavaExpr -> Rename JavaExpr
 declareLocal constructor name value = do
   renamed <- freshLocal name
-  value' <- rename value
-  modify_ \state -> state { env = Array.cons (Tuple name renamed) state.env }
+  value' <- inScope do
+    modify_ \state -> state { loopNames = Array.cons (Tuple name renamed) state.loopNames }
+    rename value
+  modify_ \state -> state
+    { env = Array.cons (Tuple name renamed) state.env
+    , loopNames = Array.cons (Tuple name renamed) state.loopNames
+    }
   pure (constructor renamed value')
+
+-- A control identity becomes active only inside its actual loop. Looking up a
+-- continue in the lexical env would confuse a shadowing value with its target.
+inLoop :: String -> String -> Rename JavaExpr -> Rename JavaExpr
+inLoop original renamed action = inScope do
+  modify_ \state -> state { loopTargets = Array.cons (Tuple original renamed) state.loopTargets }
+  action
 
 rename :: JavaExpr -> Rename JavaExpr
 rename expression = case expression of
@@ -100,15 +121,18 @@ rename expression = case expression of
     JavaBlock <$> traverse rename statements <*> rename body
   JavaIf condition thenStatements elseStatements ->
     JavaIf <$> rename condition <*> inScope (traverse rename thenStatements) <*> inScope (traverse rename elseStatements)
-  JavaWhileTrue loopId args intParams body ->
-    JavaWhileTrue <$> lookupCurrent loopId <*> traverse lookupCurrent args <*> traverse lookupCurrent intParams <*> inScope (rename body)
-  JavaMemoizedLoop loopId args intParams invariants body -> do
-    loopId' <- lookupCurrent loopId
+  JavaWhileTrue loopId args intParams body -> do
+    loopId' <- gets (lookupName loopId <<< _.loopNames)
     args' <- traverse lookupCurrent args
     intParams' <- traverse lookupCurrent intParams
-    inScope $ JavaMemoizedLoop loopId' args' intParams' <$> renameGroup invariants <*> rename body
+    JavaWhileTrue loopId' args' intParams' <$> inLoop loopId loopId' (rename body)
+  JavaMemoizedLoop loopId args intParams invariants body -> do
+    loopId' <- gets (lookupName loopId <<< _.loopNames)
+    args' <- traverse lookupCurrent args
+    intParams' <- traverse lookupCurrent intParams
+    inLoop loopId loopId' $ JavaMemoizedLoop loopId' args' intParams' <$> renameGroup invariants <*> rename body
   JavaLoopInvariant name -> JavaLoopInvariant <$> lookupCurrent name
-  JavaContinue target args -> JavaContinue <$> lookupCurrent target <*> traverse rename args
+  JavaContinue target args -> JavaContinue <$> gets (lookupName target <<< _.loopTargets) <*> traverse rename args
   JavaRaw code -> do
     env <- gets _.env
     pure (JavaRaw (renameIdentifiers (flip lookupName env) code))

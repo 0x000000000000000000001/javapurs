@@ -85,7 +85,8 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Responsabilité touchée | Suite disponible | Contrats couverts / prérequis particuliers |
 | --- | --- | --- |
 | `IntLoops` | [test/int-loops.mjs](../test/int-loops.mjs) | Classification des paramètres primitifs, types polymorphes et `TypeApp` ; chemin synthétique Node sans `javac`. |
-| TCO, captures d'itération, contrôle dans `Printer` | [test/tco.mjs](../test/tco.mjs) | Boucles, cibles, closures et exécution Java. |
+| AST, `Rename`, `ControlFlow`, `Raw` | [test/ast-scopes.mjs](../test/ast-scopes.mjs) | Masquage, branches sœurs, récursion, métadonnées/sélecteurs, cibles de boucle imbriquées et Java brut ; 110 contrôles JVM par mode, avec/sans chunking. |
+| TCO, captures d'itération, rendu du contrôle | [test/tco.mjs](../test/tco.mjs) | Boucles, cibles, closures et exécution Java. |
 | Boucles comptées | [test/counted-loops.mjs](../test/counted-loops.mjs) | Reconnaissance et génération des boucles, replis et résultats Java. |
 | Nommage, constructeurs nullaires, initialisation | [test/nullary-constructors.mjs](../test/nullary-constructors.mjs) | Singletons, portées, noms des modules/constructeurs et initialisations. |
 | Records, types de champs et interopérabilité Map | [test/typed-records.mjs](../test/typed-records.mjs) | Construction, lectures, mises à jour et ABI ; le script accepte aussi `--records=maps`. |
@@ -95,7 +96,7 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Opérateurs numériques | [test/operators.mjs](../test/operators.mjs) | Division/modulo Int et égalité Number confrontés aux références sémantiques. |
 | Réutilisation des constructeurs | [test/constructor-reuse.mjs](../test/constructor-reuse.mjs) | Réécriture AST et exécution des cas de partage. |
 | Ownership et workers consommateurs | [test/ownership.mjs](../test/ownership.mjs) | Sélection, fraîcheur, cas polymorphes/locaux, génération et exécution. |
-| Renommage et chunking | [test/chunk.mjs](../test/chunk.mjs) | 11 fixtures : captures imbriquées, portées, types Java, récursion, mutations, ordre des effets, scopes profonds et boucles. |
+| `Chunk`, `Chunk.Captures`, `Chunk.Extraction` | [test/chunk.mjs](../test/chunk.mjs) | 15 fixtures : captures imbriquées, portées, types Java, récursion, mutations, ordre des effets, scopes profonds, boucles et frontières 256/257 unités, 64/65 captures. |
 | Configuration, pilote, pipeline, FFI et émission | [test/driver.mjs](../test/driver.mjs) | 13 variantes CLI, deux ABI de launcher, entrée vide et six erreurs d'I/O ; TAST-capable `purs`, backend construit et JDK. Modes de comparaison sur entrées figées. |
 | Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | Prépare et exécute BigFunction dans un workspace temporaire isolé, puis réalise 155 contrôles de `f`. |
 | Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 11 tests Node : noms et bornes invalides, absence d'effets de `--list`, préparation/FFI, erreurs par phase, logs, temporaires, timeout et signaux aux descendants. |
@@ -218,6 +219,9 @@ et le mode normal contrôlent les diagnostics contextualisés du pilote actuel.
 
 ### Chunker et BigFunction
 
+Le [guide du chunker](chunking.md) relie les décisions de capture, coût,
+signature et construction des helpers à leurs points d'entrée.
+
 Séquence ciblée pour un changement des captures, scopes ou budgets :
 
 ```bash
@@ -242,6 +246,34 @@ du harness dans `checks/`. `tests/runner` reste disponible pour une autre fixtur
 L'allocation d'entrée du harness est bornée : les 51 tailles de motifs sont
 exercées, 26 avec succès de toutes les gardes et les grandes tailles par leurs
 chemins d'échec. Ce contrôle complète le `main` du corpus, qui couvre peu `f`.
+
+### AST, portées et contrôle
+
+Pour les [contrats de l'IR](ast.md), choisir les suites de portée et de contrôle :
+
+```bash
+./bin/build
+node test/ast-scopes.mjs
+node test/tco.mjs
+node test/chunk.mjs
+```
+
+`ast-scopes.mjs` construit les mêmes AST sous deux variantes : `Rename`, puis
+`Rename` → `Chunk`. Les deux variantes passent par `javac --release 17` et la
+JVM ; le backend construit et le JDK commun suffisent. Les assertions Node
+vérifient aussi les frontières des parcours, l'identité des métadonnées, la
+distinction lecture de champ/sélecteur et les formes brutes admises.
+
+Les cas exécutés couvrent les initialiseurs non récursifs masquant un paramètre,
+les branches sœurs, les mutations locales, la récursion mutuelle, les lectures
+brutes entourées de chaînes/commentaires/membres et les cibles masquées par une
+valeur. Un saut traverse une closure puis une boucle interne pour rejoindre
+l'externe. Les divisions/modulos structurés sont testés avec captures, extraction,
+évaluation unique gauche → droite, diviseur nul et exception du premier opérande.
+
+Compléter avec les suites spécialisées de la matrice quand leur nœud ou leur
+analyse change. `operators.mjs` compare notamment 202 cas numériques à leurs
+références sémantiques ; `loop-invariants.mjs` couvre le scope des caches différés.
 
 ### Outillage des tests
 
@@ -486,3 +518,193 @@ et `final-checks.txt`.
 
 **Conclusion : M03 validé, +10 points ; avancement 25/100, 3 lots sur 11.
 Prochain lot : M04 — AST, parcours et portées.**
+
+## Validation M04
+
+**2 octobre 2026 — AST, parcours et portées.**
+
+Base du lot : Javapurs `af6c50574277e846e86c338d89ff9e0395176727`, checkout
+initial propre. Les commits intermédiaires du workspace sont inclus dans la
+revue depuis cette base. PBO Java : `0f41544464ec0f42e6cb0dd77b206852813f904f` ;
+fork PureScript : `3c27d1eeb68d9831e5157eacdae64043c7f45ba8`.
+Versions relevées à nouveau : Node 24.8.0, Spago 1.0.3, même binaire `purs`
+TAST que l'inventaire M01, JDK commun OpenJDK 26.0.2. Aucun override de JDK/heap
+n'était défini ; les suites isolées ont utilisé le `TMPDIR` approuvé `opencode`.
+
+### Livrables et décisions
+
+- `JavaAst` possède le parcours exhaustif `traverseChildren`, dont dérivent
+  `children`, `mapChildren` et `rewriteBottomUp`. Les duplications de `DirectCalls`
+  et `Reuse` sont remplacées par ces opérations ; `Rename` ne spécialise que les
+  règles de noms et de portées.
+- `JavaStaticMethodRef` et `JavaInstanceMethodRef` distinguent les sélecteurs des
+  lectures de locaux, champs et propriétés. Leurs producteurs (`CodeGen`,
+  `DirectCalls`, `Ownership`, `Operators`, `Chunk`) et le rendu les utilisent.
+  Le chunker transporte les captures du récepteur et n'extrait pas un sélecteur seul.
+- `Naming` possède les noms partagés des locaux frais, getters, singletons et
+  variables de boucle. `Rename` restaure les environnements entre scopes mais
+  conserve le compteur ; valeurs, noms de boucle et cibles actives sont distincts.
+- `ControlFlow` possède les analyses `hasDirectContinue`, `hasAnyContinue` et
+  `hasTargetContinue`. `CodeGen` dépend de cette analyse indépendante du printer.
+  Les conditions et indices sont désormais parcourus, avec frontières explicites
+  pour les fonctions et boucles imbriquées.
+- `Raw` possède le scanner de compatibilité et la reconnaissance limitée des
+  formes fermées. Les préfixes de getters et les faux nombres comme `1-e` ne
+  suffisent pas à déclarer du texte sans captures. Division et modulo Int dans
+  `Operators` exposent leurs binders, lectures et appels `Math` structurellement.
+- `test/ast-scopes.mjs`, [le contrat AST](ast.md), README, guide, matrice et
+  artefacts construits documentent et vérifient ces responsabilités.
+
+### Défauts reproduits sur la base
+
+Les anciens modules construits ont été chargés depuis la révision de départ,
+sans remplacer le checkout courant :
+
+1. Un `JavaLocalAssign "x" (JavaLocal "x")` sous un paramètre homonyme lisait
+   son nouveau local. `javac` rejetait `Object x$r1 = x$r1;` avec
+   `variable x$r1 might not have been initialized`. L'initialiseur lit désormais
+   le binding extérieur ; la même règle vaut pour `JavaIntLocalAssign`.
+2. Le remplacement textuel de `JavaRaw` modifiait aussi chaînes, caractères,
+   commentaires et noms de membres. Le scanner protège ces régions tout en
+   renommant les lectures locales connues ; le texte reste opaque pour Chunk.
+3. Une valeur nommée comme la boucle pouvait renommer un `JavaContinue` sans
+   changer sa boucle cible. Le programme Java compilait puis laissait échapper
+   `TcoLoop`. La résolution par les cibles actives préserve le saut, y compris
+   avec une closure et une boucle intermédiaire.
+
+La couverture de `hasAnyContinue` a aussi été confrontée à l'ancienne version :
+les sauts dans une condition de ternaire ou un indice de tableau étaient ignorés.
+Ces positions sont maintenant incluses par le parcours commun.
+
+### Commandes et résultats
+
+| Contrôle ciblé | Résultat |
+| --- | --- |
+| `./bin/build` | **0 erreur**, deux avertissements de motifs inaccessibles préexistants dans `CodeGen` ; les imports inutiles touchés ont été retirés. |
+| `node test/ast-scopes.mjs` | Assertions AST et **110 contrôles JVM dans chacun des deux modes**, renommage seul puis renommage/chunking. |
+| `node test/chunk.mjs` | **11 fixtures** réussies, Java identique à la base. |
+| `node test/operators.mjs` | **202 cas numériques** réussis. |
+| `node test/direct-calls.mjs` | **37 contrôles runtime par mode**, désactivé puis activé ; sélecteurs et récursion directe vérifiés. |
+| `node test/tco.mjs`, `node test/counted-loops.mjs`, `node test/nullary-constructors.mjs`, `node test/typed-records.mjs`, `node test/loop-invariants.mjs`, `node test/int-functions.mjs`, `node test/constructor-reuse.mjs`, `node test/ownership.mjs` | Tous réussis ; modes Int activé/désactivé et frontières de portée/contrôle des consommateurs concernés. |
+| `node test/big-function.mjs` | Pipeline isolé réussi et **155 contrôles**, dont 26 motifs non vides entièrement réussis. |
+| `./bin/test DerivingTraversable` | **1 passed, 0 failed**, **210 modules TAST** inchangés. |
+| Harness local `ChangedArithmeticChecks.java`, `javac --release 17`, puis JVM | **49 contrôles avant et 49 après** sur les trois définitions de bibliothèque dont le Java change. |
+
+### Comparaison du Java
+
+Une sonde locale de `fs.writeFileSync`, chargée par `node --import` dans les
+onze suites Java existantes, a conservé les sources avant suppression de leurs
+temporaires. Les inventaires correspondent : **64/65 sources identiques**.
+Seul `IntegerOperators.java` change pour le rendu structurel de division/modulo ;
+les 202 résultats restent conformes. La nouvelle suite ajoute huit sources
+cumulées pour ses deux modes, sans référence historique.
+
+Pour `DerivingTraversable`, les empreintes des 210 TAST correspondent à la
+référence. Sur **331 sources Java**, **328 sont identiques** ; les fragments FFI
+insérés ne changent pas. Les trois différences sont localisées :
+
+| Module et définition | Helpers `__chunk$` avant → après | Cause |
+| --- | --- | --- |
+| `Data.Monoid.power` | 1 → 2 dans le module | Division/modulo et captures visibles par le chunker. |
+| `Data.String.CodePoints.singletonFallback` | 2 → 3 | Arithmétique du couple de substituts Unicode structurée et extractible. |
+| `Data.Enum.Generic.genericBoundedEnumProduct` | 7 → 10 | Quotient/reste et closures capturantes désormais extractibles. |
+
+Ces écarts incluent le nouveau rendu des casts/conditions et les helpers
+autorisés par les enfants structurels et l'admission des marqueurs `null` fermés.
+Le harness compare puissances, codepoints BMP/supplémentaires, énumération d'un
+produit, bornes Int, cardinalité nulle et ordre d'appel des deux dictionnaires.
+Après la dernière précision de la reconnaissance numérique brute, une nouvelle
+génération conserve les **331 sources à l'octet près** par rapport au run déjà
+compilé/exécuté ; `ast-scopes` et `chunk` passent à nouveau.
+
+Vérifications de clôture : contrats et consommateurs des nouveaux nœuds, liens
+et ancres, matrice des 16 suites, sept options CLI, syntaxe des exemples et des
+modules Node concernés, score du plan, revue depuis la base et `git diff --check`.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m04/`,
+notamment `versions.json`, `build-final.log`, `before/`, `final/`,
+`ast-comparison-final.txt`, `ast-scopes-final.log`, `baseline-regressions.log`,
+`control-shadow-before.log`, `big-function-final.log`, `deriving-inputs.json`,
+`deriving-before/`, `deriving-final/`, `deriving-comparison-final.txt`,
+`deriving-regeneration-final.txt`, les diffs Java, `ChangedArithmeticChecks.java`,
+`changed-arithmetic.log` et `final-checks.txt`.
+
+**Conclusion : M04 validé, +10 points ; avancement 35/100, 4 lots sur 11.
+Prochain lot : M05 — chunker compréhensible et vérifiable.**
+
+## Validation M05
+
+**2 octobre 2026 — chunker compréhensible et vérifiable.**
+
+Base effective : état de clôture M04, avec HEAD
+`05e1be6058d43059ece6b391d2e68755c5ac3abe` et ses modifications non committées.
+`base/` dans les preuves conserve les sources/documents, les SHA-256, l'ancien
+module Chunk construit, le statut et le diff du checkout. Cette référence
+inclut les dernières corrections de portée et de Java brut de M04.
+PBO Java et fork PureScript restent aux révisions relevées en M04 ; Node 24.8.0,
+Spago 1.0.3, binaire `purs` TAST et JDK OpenJDK 26.0.2 ont été relevés à nouveau.
+
+### Livrables et décisions
+
+- `Chunk.Captures` extrait l'analyse lexicale et ses opérations de combinaison.
+  `Captures` distingue ensemble connu et barrière nommée : Java opaque, saut,
+  cache de boucle, mutation extérieure, boucle statement ou forme non admise.
+  Les séquences partagent le traitement des déclarations et délèguent les
+  scopes imbriqués à la même analyse.
+- `Chunk.Extraction` nomme `ChunkedValue`, `LocalTypes`, `ResultForm`,
+  `ExtractionPlan` et `KeepReason`. `planExtraction` donne une signature typée
+  ou le premier motif de maintien. Coûts, budget 256, limite de 64 paramètres,
+  pondération des scopes et largeur des groupes sont regroupés ici.
+- `Chunk` garde le parcours contextuel et l'état d'émission. `rebuildBlock` et
+  `rebuildBranches` partagent la logique des séquences ; `emitHelper` est
+  l'allocateur commun aux extractions ordinaires et aux groupes de tableaux.
+- L'appel d'un helper conserve les captures de ses arguments ; les paramètres
+  reflètent leur type Java effectif. L'absence volontaire des types de bindings
+  récursifs dans leurs initialiseurs rend leur refus explicable sans capturer null.
+- `test/chunk.mjs` ajoute quatre cas aux limites du coût et des captures,
+  exécutés sur la version de départ avant refactoring. Les fixtures existantes
+  continuent à contrôler l'évaluation unique et l'identité des groupes de tableaux.
+- [docs/chunking.md](chunking.md), guide AST, carte du compilateur, README,
+  matrice et artefacts construits sont actualisés.
+
+### Commandes et résultats
+
+| Contrôle ciblé | Résultat |
+| --- | --- |
+| `./bin/build` | Build incrémental réussi : **0 erreur, 0 avertissement dans les modules reconstruits**. |
+| `node test/chunk.mjs`, avant/après | **15 fixtures** réussies, dont 256 unités conservées / 257 extractibles, 64 paramètres admis / 65 refusés. |
+| `node test/ast-scopes.mjs`, avant/après | **110 contrôles JVM par mode**, renommage seul puis renommage/chunking. |
+| `node test/big-function.mjs`, avant/après | Pipeline isolé réussi, **155 contrôles** dans chaque run, dont 26 motifs non vides entièrement réussis. |
+| `./bin/test DerivingTraversable` | **1 passed, 0 failed**. |
+
+Comparaisons à options et outils identiques, inventaires inclus :
+
+- `chunk.mjs` : **16 sources Java identiques**, avec les quatre nouvelles
+  fixtures présentes des deux côtés ; `ast-scopes.mjs` : **8 sources identiques**.
+- BigFunction : **210 TAST identiques**, source PureScript et configuration Spago
+  identiques, **329 sources Java identiques**, ainsi que le harness supplémentaire.
+- DerivingTraversable : **210 TAST identiques** et **331 sources Java identiques**
+  à la référence issue du dernier run M04.
+
+Soit **684 sources Java cumulées comparées à l'octet près**, hors harness
+supplémentaire BigFunction. Les sources Java contiennent les mêmes fragments
+FFI. Une sonde locale de validation conserve les écritures des suites AST et
+les entrées/sorties BigFunction avant leur nettoyage habituel. Les règles
+d'admission, noms, ordre des helpers et coûts produisent les mêmes sorties.
+
+La revue finale vérifie les contrats de coût/captures, les consommateurs et
+exports des modules extraits, les chemins et ancres, la matrice des 16 suites,
+les sept options CLI, les exemples Bash, la syntaxe Node et le score du plan.
+Le diff de M05 est comparé à la copie effective de M04, en plus de
+`git diff --check` sur le checkout.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m05/`,
+notamment `base/`, `versions.json`, `build-final.log`, `before/`, `after/`,
+`ast-comparison.txt`, `big-function-before/`, `big-function-after/`,
+`big-function-comparison.txt`, `deriving-before/`, `deriving-after/`,
+`deriving-comparison.txt`, les logs des suites et `final-checks.txt`.
+
+**Conclusion : M05 validé, +10 points ; avancement 45/100, 5 lots sur 11.
+Prochain lot : M06 — traduction des expressions.**

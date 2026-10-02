@@ -704,7 +704,7 @@ emitTree context env pool outer = case _ of
     pure
       { stmts: values.stmts <> donor.stmts
           <> [ JavaLocalAssign result
-                  (JavaCall (JavaStaticMethodRef Nothing fn.javaName) (map _.expr captures <> values.exprs <> [ donor.expr ])) ]
+                 (JavaCall (JavaStaticMethodRef Nothing fn.javaName) (map _.expr captures <> values.exprs <> [ donor.expr ])) ]
       , expr: JavaLocal result
       , pool: donor.pool
       }
@@ -844,7 +844,7 @@ compileTerm name allParams term =
         fallbackDecls = compileTerm fallbackName allParams decision.fallback
         go index = case Array.index decision.cases index of
           Just (Tuple condition _) ->
-             JavaTernary condition (JavaCall (JavaStaticMethodRef Nothing (caseName index)) caseArgs) (go (index + 1))
+            JavaTernary condition (JavaCall (JavaStaticMethodRef Nothing (caseName index)) caseArgs) (go (index + 1))
           Nothing -> JavaCall (JavaStaticMethodRef Nothing fallbackName) caseArgs
       in
         caseDecls <> fallbackDecls <> [ JavaStaticMethod name allParams (go 0) ]
