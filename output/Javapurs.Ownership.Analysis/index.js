@@ -263,6 +263,30 @@ var knownCall = function (context) {
         });
     };
 };
+var hasTailSelfCall = function (context) {
+    return function (expr) {
+        var v = Javapurs_Ownership_Candidates.strip(expr);
+        if (v instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
+            return Data_Foldable.any(Data_Foldable.foldableArray)(Data_HeytingAlgebra.heytingAlgebraBoolean)(function (v1) {
+                return hasTailSelfCall(context)(v1.value1);
+            })(Data_Array_NonEmpty.toArray(v.value0)) || hasTailSelfCall(context)(v.value1);
+        };
+        if (v instanceof PureScript_Backend_Optimizer_Syntax.Let) {
+            return hasTailSelfCall(context)(v.value3);
+        };
+        if (v instanceof PureScript_Backend_Optimizer_Syntax.LetRec) {
+            return hasTailSelfCall(context)(v.value2);
+        };
+        if (v instanceof PureScript_Backend_Optimizer_Syntax.Fail) {
+            return false;
+        };
+        var v1 = knownCall(context)(expr);
+        if (v1 instanceof Data_Maybe.Just) {
+            return Data_Eq.eq(Javapurs_Ownership_Model.eqCandidateKey)(v1.value0.fn.key)(context.candidate.key);
+        };
+        return false;
+    };
+};
 var fieldArgType = function (v) {
     if (v instanceof Javapurs_Ownership_Model.TreeField) {
         return Javapurs_Ownership_Model.ArgTree.value;
@@ -380,13 +404,13 @@ var freshTree = function (context) {
         var v = Javapurs_Ownership_Candidates.strip(expr);
         if (v instanceof PureScript_Backend_Optimizer_Syntax.CtorSaturated) {
             var qualified = Javapurs_Ownership_Candidates.qualify(context.moduleName)(v.value0);
-            var $130 = Data_Eq.eq(eqMaybe1)(new Data_Maybe.Just(qualified))(context.candidate.spec.leaf);
-            if ($130) {
+            var $146 = Data_Eq.eq(eqMaybe1)(new Data_Maybe.Just(qualified))(context.candidate.spec.leaf);
+            if ($146) {
                 return Data_Array["null"](v.value4);
             };
             return Data_Eq.eq(eqQualified)(qualified)(context.candidate.spec.nodeCtor) && (Data_Array.length(v.value4) === Data_Array.length(context.candidate.spec.fields) && Data_Foldable.all(Data_Foldable.foldableArray)(Data_HeytingAlgebra.heytingAlgebraBoolean)(function (v1) {
-                var $132 = Data_Eq.eq(Javapurs_Ownership_Model.eqFieldType)(v1.value0)(Javapurs_Ownership_Model.TreeField.value);
-                if ($132) {
+                var $148 = Data_Eq.eq(Javapurs_Ownership_Model.eqFieldType)(v1.value0)(Javapurs_Ownership_Model.TreeField.value);
+                if ($148) {
                     return freshTree(context)(v1.value1.value1);
                 };
                 return Data_Maybe.isJust(scalar(context)(Data_Map_Internal.empty)(v1.value1.value1));
@@ -423,7 +447,7 @@ var callees = function (context) {
             if (v1 instanceof Data_Maybe.Nothing) {
                 return [  ];
             };
-            throw new Error("Failed pattern match at Javapurs.Ownership.Analysis (line 240, column 4 - line 242, column 18): " + [ v1.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Ownership.Analysis (line 245, column 4 - line 247, column 18): " + [ v1.constructor.name ]);
         })())(Data_Foldable.foldMap(PureScript_Backend_Optimizer_Syntax.foldableBackendSyntax)(Data_Monoid.monoidArray)(callees(context))(v));
     };
 };
@@ -438,8 +462,8 @@ var treeTerm = function (context) {
                 var v1 = Javapurs_Ownership_Candidates.strip(expr);
                 if (v1 instanceof PureScript_Backend_Optimizer_Syntax.CtorSaturated) {
                     var qualified = Javapurs_Ownership_Candidates.qualify(context.moduleName)(v1.value0);
-                    var $160 = Data_Eq.eq(eqMaybe1)(new Data_Maybe.Just(qualified))(context.candidate.spec.leaf) && Data_Array["null"](v1.value4);
-                    if ($160) {
+                    var $176 = Data_Eq.eq(eqMaybe1)(new Data_Maybe.Just(qualified))(context.candidate.spec.leaf) && Data_Array["null"](v1.value4);
+                    if ($176) {
                         return Control_Applicative.pure(Data_Maybe.applicativeMaybe)(Javapurs_Ownership_Model.Empty.value);
                     };
                     return Control_Bind.discard(Control_Bind.discardUnit)(Data_Maybe.bindMaybe)(Control_Alternative.guard(Data_Maybe.alternativeMaybe)(Data_Eq.eq(eqQualified)(qualified)(context.candidate.spec.nodeCtor)))(function () {
@@ -467,35 +491,12 @@ var argument = function (context) {
     return function (env) {
         return function (expected) {
             return function (expr) {
-                var $175 = Data_Eq.eq(Javapurs_Ownership_Model.eqArgType)(expected)(Javapurs_Ownership_Model.ArgTree.value);
-                if ($175) {
+                var $191 = Data_Eq.eq(Javapurs_Ownership_Model.eqArgType)(expected)(Javapurs_Ownership_Model.ArgTree.value);
+                if ($191) {
                     return Data_Functor.map(Data_Maybe.functorMaybe)(Javapurs_Ownership_Model.TreeArg.create)(treeTerm(context)(env)(expr));
                 };
                 return Data_Functor.map(Data_Maybe.functorMaybe)(Javapurs_Ownership_Model.ScalarArg.create)(scalar(context)(env)(expr));
             };
-        };
-    };
-};
-var hasTailSelfCall = function (context) {
-    return function (env) {
-        return function (expr) {
-            var v = Javapurs_Ownership_Candidates.strip(expr);
-            if (v instanceof PureScript_Backend_Optimizer_Syntax.Branch) {
-                return Data_Foldable.any(Data_Foldable.foldableArray)(Data_HeytingAlgebra.heytingAlgebraBoolean)(function (v1) {
-                    return hasTailSelfCall(context)(env)(v1.value1);
-                })(Data_Array_NonEmpty.toArray(v.value0)) || hasTailSelfCall(context)(env)(v.value1);
-            };
-            if (v instanceof PureScript_Backend_Optimizer_Syntax.Let) {
-                return hasTailSelfCall(context)(env)(v.value3);
-            };
-            if (v instanceof PureScript_Backend_Optimizer_Syntax.Fail) {
-                return false;
-            };
-            var v1 = treeTerm(context)(env)(expr);
-            if (v1 instanceof Data_Maybe.Just && v1.value0 instanceof Javapurs_Ownership_Model.Call) {
-                return Data_Eq.eq(Javapurs_Ownership_Model.eqCandidateKey)(v1.value0.value0)(context.candidate.key);
-            };
-            return false;
         };
     };
 };

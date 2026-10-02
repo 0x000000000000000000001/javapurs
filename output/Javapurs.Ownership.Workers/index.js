@@ -2,7 +2,6 @@
 import * as Control_Alternative from "../Control.Alternative/index.js";
 import * as Control_Applicative from "../Control.Applicative/index.js";
 import * as Control_Bind from "../Control.Bind/index.js";
-import * as Control_Category from "../Control.Category/index.js";
 import * as Control_Monad_State_Trans from "../Control.Monad.State.Trans/index.js";
 import * as Control_Monad_Trans_Class from "../Control.Monad.Trans.Class/index.js";
 import * as Data_Array from "../Data.Array/index.js";
@@ -42,7 +41,6 @@ var ordTuple1 = /* #__PURE__ */ ordTuple(PureScript_Backend_Optimizer_Syntax.ord
 var lift3 = /* #__PURE__ */ lift(Data_Maybe.monadMaybe);
 var lift4 = /* #__PURE__ */ lift(Data_Maybe.monadMaybe);
 var fromFoldable = /* #__PURE__ */ Data_Map_Internal.fromFoldable(/* #__PURE__ */ ordTuple(PureScript_Backend_Optimizer_Syntax.ordLevel))(Data_Foldable.foldableArray);
-var identity = /* #__PURE__ */ Control_Category.identity(Control_Category.categoryFn);
 var termSize = function (term) {
     return Data_String_CodePoints.length(Javapurs_Printer.printExpr(Javapurs_Ownership_Model.termExpr(term)));
 };
@@ -318,11 +316,11 @@ var compileTerm = function (name) {
             };
             var caseCount = Data_Array.length(decision.cases);
             var fallbackName = caseName(caseCount);
-            var caseArgs = Data_Functor.map(Data_Functor.functorArray)(function ($92) {
-                return Javapurs_JavaAst.JavaLocal.create(Data_Tuple.fst($92));
+            var caseArgs = Data_Functor.map(Data_Functor.functorArray)(function ($91) {
+                return Javapurs_JavaAst.JavaLocal.create(Data_Tuple.fst($91));
             })(allParams);
-            var $75 = termSize(term) <= termBudget || Data_Array["null"](decision.cases);
-            if ($75) {
+            var $74 = termSize(term) <= termBudget || Data_Array["null"](decision.cases);
+            if ($74) {
                 return [ new Javapurs_JavaAst.JavaStaticMethod(name, allParams, Javapurs_Ownership_Model.termExpr(term)) ];
             };
             var go = function (index) {
@@ -352,6 +350,20 @@ var workerDeclarations = function (context) {
                 return new Data_Tuple.Tuple("owned" + Data_Show.show(Data_Show.showInt)(index), Javapurs_Ownership_Candidates.argJavaType(argTy));
             };
         })(fn.argTypes);
+        var loops = Javapurs_Ownership_Analysis.hasTailSelfCall(context)(fn.body);
+        var donorName = (function () {
+            if (loops) {
+                return "__donorOwned";
+            };
+            return "donor";
+        })();
+        var context$prime = {
+            candidates: context.candidates,
+            dataDecls: context.dataDecls,
+            moduleName: context.moduleName,
+            candidate: fn,
+            donorName: donorName
+        };
         var captureParams = Data_Array.mapWithIndex(function (index) {
             return function (v) {
                 return new Data_Tuple.Tuple("captured" + Data_Show.show(Data_Show.showInt)(index), Javapurs_JavaAst.ParamObject.value);
@@ -397,21 +409,6 @@ var workerDeclarations = function (context) {
         var envWith = function (nameOf) {
             return Data_Map_Internal.fromFoldable(ordTuple1)(Data_Foldable.foldableArray)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Map_Internal.toUnfoldable(Data_Unfoldable.unfoldableArray)(captureEnv))(argEnv(nameOf)));
         };
-        var plainEnv = envWith(identity);
-        var loops = Javapurs_Ownership_Analysis.hasTailSelfCall(context)(plainEnv)(fn.body);
-        var donorName = (function () {
-            if (loops) {
-                return "__donorOwned";
-            };
-            return "donor";
-        })();
-        var context$prime = {
-            candidates: context.candidates,
-            dataDecls: context.dataDecls,
-            moduleName: context.moduleName,
-            candidate: fn,
-            donorName: donorName
-        };
         var env = envWith(function (name) {
             if (loops) {
                 return Javapurs_Naming.loopSnapshotName(name);
@@ -421,8 +418,8 @@ var workerDeclarations = function (context) {
         return Control_Bind.bind(Data_Maybe.bindMaybe)(Control_Monad_State_Trans.evalStateT(Data_Maybe.functorMaybe)(emitBody(context$prime)(env)(fn.body))(0))(function (term) {
             var loopArgs = Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst)(params))([ "donor" ]);
             var intParams = Data_Array.mapMaybe(function (v) {
-                var $87 = Data_Eq.eq(Javapurs_JavaAst.eqJavaParamType)(v.value1)(Javapurs_JavaAst.ParamInt.value);
-                if ($87) {
+                var $86 = Data_Eq.eq(Javapurs_JavaAst.eqJavaParamType)(v.value1)(Javapurs_JavaAst.ParamInt.value);
+                if ($86) {
                     return new Data_Maybe.Just(v.value0);
                 };
                 return Data_Maybe.Nothing.value;

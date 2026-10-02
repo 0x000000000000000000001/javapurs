@@ -99,6 +99,8 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Opérateurs numériques | [test/operators.mjs](../test/operators.mjs) | Division/modulo Int et égalité Number confrontés aux références sémantiques. |
 | Réutilisation des constructeurs | [test/constructor-reuse.mjs](../test/constructor-reuse.mjs) | Réécriture AST et exécution des cas de partage. |
 | Ownership et workers consommateurs | [test/ownership.mjs](../test/ownership.mjs) | Sélection, fraîcheur, cas polymorphes/locaux, génération et exécution. |
+| Admission ownership, alias, cellules et littéraux | [test/ownership-admission.mjs](../test/ownership-admission.mjs) | 11 admissions/refus, 28 contrôles JVM en mode persistant et 31 avec ownership : snapshots, identité des cellules, Char/String et nombres IEEE ; `--simple-scalars` isole le cas Char sans erreur d'échappement. |
+| Cibles des boucles ownership | [test/ownership-loops.mjs](../test/ownership-loops.mjs) | 9 contrôles JVM par mode : alias arbre/scalaire et scope récursif, 0/1/100 000 itérations avec `-Xss256k`. |
 | `Chunk`, `Chunk.Captures`, `Chunk.Extraction` | [test/chunk.mjs](../test/chunk.mjs) | 15 fixtures : captures imbriquées, portées, types Java, récursion, mutations, ordre des effets, scopes profonds, boucles et frontières 256/257 unités, 64/65 captures. |
 | Configuration, pilote, pipeline, FFI et émission | [test/driver.mjs](../test/driver.mjs) | 13 variantes CLI, deux ABI de launcher, entrée vide et six erreurs d'I/O ; TAST-capable `purs`, backend construit et JDK. Modes de comparaison sur entrées figées. |
 | Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | Prépare et exécute BigFunction dans un workspace temporaire isolé, puis réalise 155 contrôles de `f`. |
@@ -316,6 +318,33 @@ réexécutée à chaque forçage. Les autres suites couvrent sauts, paramètres 
 représentations. Choisir aussi les suites de déclarations/scopes concernées dans
 la matrice ; un changement de frontière de méthode appelle notamment les tests
 de chunking et de captures.
+
+### Passes spécialisées
+
+Le [guide des passes](specialized-passes.md) relie reconnaissances, preuves,
+transformations et replis à leurs suites. Pour ownership, après reconstruction :
+
+```bash
+./bin/build
+node test/ownership.mjs
+node test/ownership-admission.mjs
+node test/ownership-loops.mjs
+```
+
+Les deux nouvelles suites entrent par `Pipeline.lowerModule`, puis renommage,
+chunking, `javac --release 17` et JVM, avec ownership désactivé puis activé.
+`ownership-admission.mjs` vérifie aussi la sélection directement par `prepare` :
+alias égal/préfixe, arbres empruntés, continuations vivantes, cascade de refus,
+layout ambigu et réservation des noms. Le runtime contrôle les snapshots et
+l'identité de la cellule réutilisée ; les littéraux vérifient wrappers et bits IEEE.
+
+`ownership-loops.mjs` passe les auto-appels sous alias arbre, alias scalaire et
+`LetRec`, jusqu'à 100 000 itérations. Le harness JVM utilise `-Xss256k` pour
+vérifier l'exécution en boucle. Ces fixtures synthétiques n'ont besoin que du
+backend construit et du JDK commun. Choisir dans la matrice les autres suites
+selon la passe et ses interactions : arité/initialisation pour `DirectCalls`,
+pureté/cache pour les invariants, classification Int et boucle comptée pour
+les représentations de boucle, partage pour `Reuse`.
 
 ### Outillage des tests
 
@@ -1029,3 +1058,114 @@ suites/pilote, `effective-m08.diff` et `final-checks.txt`.
 
 **Conclusion : M08 validé, +10 points ; avancement 75/100, 8 lots sur 11.
 Prochain lot : M09 — passes spécialisées.**
+
+## Validation M09
+
+**2 octobre 2026 — passes spécialisées.**
+
+Base effective : clôture M08, HEAD `7acf2dc4717be7ae7808a1f2958444433af34b8f`
+avec M07/M08 encore non committés. Les empreintes `final-source-hashes.json` de
+M08 ont été vérifiées avant copie des sources, documents et modules construits
+dans `base/`. Un commit intermédiaire a déplacé le HEAD à
+`512935246e73bbb4b07ce21dae8dc1a8f96a1167` pendant le lot ; les comparaisons
+restent fondées sur cette sauvegarde effective et son diff initial.
+
+PBO Java : `0f41544464ec0f42e6cb0dd77b206852813f904f`, checkout propre.
+Checkout PureScript relevé à la clôture : `b4a7fb1ca78eeb10b847558af0fcbeab06fa5c16` ;
+binaire `purs` du PATH toujours
+`0.15.16 [development build; commit: 3c8fcfd7a3d440bba487fe9fe059284cffc6e908 DIRTY]`.
+Node 24.8.0, Spago 1.0.3, JDK commun OpenJDK 26.0.2 ; aucun override JDK/heap.
+Les workspaces utilisent le dossier temporaire `opencode`. Le lien `b8x/output`
+relevé pointe vers `run/bak/rust/output`.
+
+### Livrables et décisions
+
+- `Ownership.prepare` conserve l'orchestration. Le monolithe de 959 lignes est
+  réparti entre `Candidates` (sélection/signatures/noms), `Model` (IR/chemins),
+  `Analysis` (usages/alias/fraîcheur), `Cells` (snapshots/retrait/pools) et
+  `Workers` (écritures/scopes/boucles/déclarations), avec exports explicites.
+- La validation atteint un point fixe avant de réécrire les appels frais et de
+  fermer les dépendances atteignables. Les déclarations validées du dernier
+  graphe sont conservées avec leur candidat, au lieu d'être régénérées à
+  l'émission. Le helper `hasTermContinue`, sans consommateur, a été retiré.
+- `DirectCalls.admitCall` produit un `CallPlan` pur. Le parcours réécrit les
+  enfants, applique ce plan et note les workers utilisés ; l'émission partage
+  le wrapper eager/lazy et reprend les corps déjà réécrits. Les gardes
+  d'initialisation et les frontières d'application restent explicites.
+- `PureInvariants` utilise `TypeEvidence.applyArguments` ; `LoopInvariants`
+  expose `LoopPlan`. Les petites passes `IntLoops`, `CountedLoops` et `Reuse`
+  conservent leur découpage existant, jugé adapté après revue. Le guide précise
+  notamment que `Printer.Body` vérifie la cible du plan compté avant rendu.
+- [Guide des passes spécialisées](specialized-passes.md), carte du compilateur,
+  conventions de littéraux, recettes, matrice et artefacts construits actualisés.
+  Les limites de découpage ownership sont documentées : **6000 caractères
+  imprimés**, pas une garantie de bytecode ni d'inlining HotSpot.
+
+### Deux défauts reproduits puis corrigés
+
+**Littéraux dans les workers.** Sur le backend sauvegardé,
+`ownership-admission.mjs --simple-scalars` réussit les huit contrôles persistants,
+puis échoue sur `Char is a String` avec ownership. Le chemin consommateur boxait
+un `char` Java en `Character`, alors que l'ABI attend une `String`. La fixture
+complète révèle aussi les caractères non échappés ; ses workers contiennent
+les identifiants Java invalides `NaN`/`Infinity` et perdent le signe de `-0.0`.
+`Literals.charLiteral` et `numberLiteral` sont désormais partagés par
+`CodeGen.Expr` et `Ownership.Analysis`. Le chemin ordinaire conserve son rendu.
+
+**Auto-appels sous alias.** Sur la référence, `ownership-loops.mjs` réussit les
+neuf contrôles persistants, puis les trois workers consommateurs échouent à
+`javac`. La détection initiale essayait de prouver les arguments avec un
+environnement qui ne contenait pas encore les alias `let`, et ignorait `LetRec`.
+L'émission produisait ensuite un saut sans avoir installé la boucle. Le choix
+du scope de boucle utilise maintenant la cible de l'appel connu ; les arguments
+restent intégralement validés dans l'environnement de snapshots avant admission.
+
+### Commandes et résultats
+
+| Contrôle ciblé | Résultat |
+| --- | --- |
+| `./bin/build` | **0 erreur, 0 avertissement** après refactoring et après les corrections. |
+| `node test/direct-calls.mjs` | **37 contrôles JVM par mode** et assertions d'admission. |
+| `node test/int-loops.mjs`, `node test/counted-loops.mjs` | **25** classifications Int, **51** admissions/refus comptés ; exécution des échanges, overflow, effets et repli négatif réussie. |
+| `node test/loop-invariants.mjs` | **23** preuves/refus de pureté, **13** contrôles de portée, **50** comportements de cache. |
+| `node test/constructor-reuse.mjs`, `node test/ownership.mjs` | **7 groupes** de réutilisation ; arbres, listes polymorphes, workers locaux et capture scalaire réussis. |
+| `node test/tco.mjs`, `node test/chunk.mjs` | **16** cas de contrôle et **15** fixtures de chunking. |
+| `node test/representations.mjs` | **43 contrôles JVM × 8 modes**, soit **344 par version**. |
+| `node test/printer.mjs` | **86 contrôles JVM** ; rendu commun des littéraux, corps et templates. |
+| `node test/ownership-admission.mjs` | **11** admissions/refus ; **28** contrôles JVM persistants et **31** avec ownership. |
+| `node test/ownership-loops.mjs` | **9 contrôles JVM par mode**, avec 0/1/100 000 itérations et pile de 256 Kio. |
+
+Les dix suites existantes ont été exécutées sur la référence sauvegardée et le
+backend refactoré. Les deux nouvelles suites ont d'abord reproduit leurs échecs
+sur cette référence, puis réussi après correction. Leurs AST, options, harnesses
+et helpers Java ont été conservés pour comparaison ; aucune FFI externe n'est
+nécessaire. Le rejeu après la correction des boucles couvre les suites ownership,
+appels directs, invariants, représentations, TCO et chunking concernées.
+
+### Comparaisons et clôture
+
+- Refactoring seul, avant correction comportementale : **67/67 sources Java
+  identiques** sur les neuf premières suites, inventaires compris.
+- Version corrigée, avec la suite printer : **74/74 sources existantes identiques**.
+- Nouvelles fixtures : **16/18 sources identiques**. Les deux écarts sont limités
+  au module des littéraux avec ownership et au module des boucles avec ownership ;
+  les variantes persistantes, harnesses et helpers gardent leurs octets.
+
+La revue finale confronte les fonctions extraites à leur définition initiale,
+contrôle exports/consommateurs et suppression du seul helper inutilisé, puis
+vérifie liens/ancres, matrice des **21 suites**, sept options CLI, exemples Bash,
+syntaxe Node, score et diff depuis la base effective M08.
+Résultat : **298 liens/ancres**, **21 exemples Bash** et **13 entrées Node**
+vérifiés ; score recalculé et `git diff --check` réussis.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m09/`,
+notamment `base/`, `environment-final.json`, `head-before.txt`, `status-before.txt`,
+`diff-before.patch`, `build-refactor.log`, `build-final.log`, `build-loops.log`,
+`before/`, `refactor/`, `after/`, `corrected/`, les logs d'échecs
+`simple-scalars-baseline.log`, `all-scalars-baseline.log`, `loops-baseline.log`,
+les diffs des deux nouvelles fixtures, `comparison-existing.json`,
+`effective-m09.diff` et `final-checks.txt`.
+
+**Conclusion : M09 validé, +10 points ; avancement 85/100, 9 lots sur 11.
+Prochain lot : M10 — contrats FFI et runtimes des ports.**

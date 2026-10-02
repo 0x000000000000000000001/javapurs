@@ -197,8 +197,7 @@ workerDeclarations context fn = do
           ArgInt -> Scalar { expr: JavaLocal (nameOf name), ty: ScalarInt, reads: [] }
           ArgObject -> Scalar { expr: JavaLocal (nameOf name), ty: ScalarObject, reads: [] })) fn.args
     envWith nameOf = Map.fromFoldable (Map.toUnfoldable captureEnv <> argEnv nameOf)
-    plainEnv = envWith identity
-    loops = hasTailSelfCall context plainEnv fn.body
+    loops = hasTailSelfCall context fn.body
     env = envWith (\name -> if loops then loopSnapshotName name else name)
     donorName = if loops then "__donorOwned" else "donor"
     context' = context { candidate = fn, donorName = donorName }

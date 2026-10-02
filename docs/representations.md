@@ -95,6 +95,12 @@ Les captures de [Chunk](chunking.md) suivent le **type Java effectif** : un bind
 snapshots Int de boucle. Une méthode extraite retourne encore `Object` ; son
 appel est reconverti lorsque le site consommateur exige une primitive.
 
+[Literals](../src/Javapurs/Literals.purs) fixe les mêmes représentations dans la
+traduction ordinaire et les workers ownership : `Char` est une `String` d'un
+caractère, et `Number` un `double` (boxé en `Double` dans `Object`). NaN et les
+infinis utilisent les constantes Java ; `-0.0` conserve son signe. `JavaString`
+délègue l'échappement des caractères au printer commun.
+
 Deux conversions intentionnelles sont visibles dans
 [Printer.Syntax](../src/Javapurs/Printer/Syntax.purs) :
 

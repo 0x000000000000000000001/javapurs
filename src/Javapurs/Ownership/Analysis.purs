@@ -208,15 +208,20 @@ continuationPaths env (NeutralExpr syn) = case syn of
     _ -> []
   _ -> foldMap (continuationPaths env) syn
 
-hasTailSelfCall :: Context -> Env -> NeutralExpr -> Boolean
-hasTailSelfCall context env expr = case strip expr of
+-- Decide whether to install the loop from its target, before resolving argument
+-- values. Let aliases are not in the initial Env yet; using treeTerm here would
+-- hide a valid self jump that emitBody later discovers. Full usage validation
+-- still runs with the loop's snapshot environment before accepting the worker.
+hasTailSelfCall :: Context -> NeutralExpr -> Boolean
+hasTailSelfCall context expr = case strip expr of
   Branch branches fallback ->
-    any (\(Pair _ body) -> hasTailSelfCall context env body) (NonEmptyArray.toArray branches)
-      || hasTailSelfCall context env fallback
-  Let _ _ _ body -> hasTailSelfCall context env body
+    any (\(Pair _ body) -> hasTailSelfCall context body) (NonEmptyArray.toArray branches)
+      || hasTailSelfCall context fallback
+  Let _ _ _ body -> hasTailSelfCall context body
+  LetRec _ _ body -> hasTailSelfCall context body
   Fail _ -> false
-  _ -> case treeTerm context env expr of
-    Just (Call key _) -> key == context.candidate.key
+  _ -> case knownCall context expr of
+    Just call -> call.fn.key == context.candidate.key
     _ -> false
 
 -- The rewrite boundary accepts fresh constructor trees, never a borrowed local,

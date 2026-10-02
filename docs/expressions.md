@@ -12,12 +12,14 @@ Ce guide décrit les décisions avant `Rename`, le chunker et le rendu Java.
 | [CodeGen.Context](../src/Javapurs/CodeGen/Context.purs) | Faits de traduction, position, exécution d'effet, capacités de saut et contrat du résultat. |
 | [CodeGen.Syntax](../src/Javapurs/CodeGen/Syntax.purs) | Reconnaissance des applications, abstractions et enveloppes d'effet ; conservation des annotations utiles. |
 | `CodeGen.Expr` | Dispatcher exhaustif et workers de traduction des appels, fonctions, bindings, effets, branches et boucles. |
+| [Literals](../src/Javapurs/Literals.purs) | Représentation commune de Char/Number, partagée avec les workers ownership. |
 
 Les cinq entrées `translate*` de `CodeGen` restent disponibles. L'entrée complète
 est `translateWithIntFunctions :: CodegenOptions -> BackendModule -> JavaFile`.
 `extractUncurriedAbs` est réexporté pour les consommateurs existants. Les analyses
 spécialisées gardent leurs propriétaires : `IntLoops`, `LoopInvariants`,
 `IntFunctions`, `RecordShapes`, `Ownership` et `ControlFlow`.
+Leurs admissions et replis sont décrits dans le [guide des passes](specialized-passes.md).
 
 ## Contexte et résultat
 

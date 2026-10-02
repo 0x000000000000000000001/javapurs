@@ -2,7 +2,7 @@
 
 État documenté au **2 octobre 2026**. Ce guide décrit le chemin de production
 actuel. Les références des sources et des outils figurent dans le
-[registre de validation](testing.md#validation-m08).
+[registre de validation](testing.md#validation-m09).
 
 ## Se repérer dans le workspace
 
@@ -128,6 +128,10 @@ options supplémentaires. Elles ne réalisent pas les étapes suivantes de `Pipe
 de position/effet, les captures des closures, les priorités des appels et le
 contrat `Translation` : statements ordonnés puis résultat dans leur portée.
 
+Le guide des [passes spécialisées](specialized-passes.md) expose sélection,
+admission, transformation et repli pour appels directs, boucles, invariants,
+réutilisation et ownership. Il relie chaque preuve aux contre-exemples testés.
+
 ### 4. Noms lexicaux puis découpage
 
 `Pipeline.lowerModule` applique `Rename.renameExpr` aux déclarations, puis `Chunk.chunkFile`,
@@ -241,18 +245,21 @@ et une erreur de décodage est journalisée avant d'écarter le module concerné
 | Quand un paramètre ou une fonction devient-il primitif ? | [Representation](../src/Javapurs/Representation.purs), [IntLoops](../src/Javapurs/IntLoops.purs), [IntFunctions](../src/Javapurs/IntFunctions.purs), [guide des représentations](representations.md). |
 | Quels calculs peuvent être mis en cache dans une boucle ? | [PureInvariants](../src/Javapurs/PureInvariants.purs), [LoopInvariants](../src/Javapurs/LoopInvariants.purs). |
 | Quand utilise-t-on un worker statique ou un constructeur existant ? | [DirectCalls](../src/Javapurs/DirectCalls.purs), [Reuse](../src/Javapurs/Reuse.purs). |
-| Quelle preuve autorise la consommation d'un arbre ? | [Ownership](../src/Javapurs/Ownership.purs). |
+| Quelle preuve autorise la consommation d'un arbre ? | [Ownership](../src/Javapurs/Ownership.purs), [Candidates](../src/Javapurs/Ownership/Candidates.purs), [Analysis](../src/Javapurs/Ownership/Analysis.purs), [guide des passes](specialized-passes.md). |
+| Qui gère snapshots, cellules et émission des workers consommateurs ? | [Model](../src/Javapurs/Ownership/Model.purs), [Cells](../src/Javapurs/Ownership/Cells.purs), [Workers](../src/Javapurs/Ownership/Workers.purs). |
 | Quels records peuvent avoir une classe spécialisée ? | [RecordTypes](../src/Javapurs/RecordTypes.purs), [RecordShapes](../src/Javapurs/RecordShapes.purs). |
 | Pourquoi une expression est-elle extraite dans un helper ? | [Chunk](../src/Javapurs/Chunk.purs), [Captures](../src/Javapurs/Chunk/Captures.purs), [Extraction](../src/Javapurs/Chunk/Extraction.purs), [guide du chunker](chunking.md). |
 | Comment sont rendus blocs, boucles, classes et records ? | [Printer](../src/Javapurs/Printer.purs), [Body](../src/Javapurs/Printer/Body.purs), [Declarations](../src/Javapurs/Printer/Declarations.purs), [RecordPrinter](../src/Javapurs/RecordPrinter.purs), [guide du rendu](printing.md). |
 | Où sont les chaînes Java et les enveloppes Supplier communes ? | [Printer.Syntax](../src/Javapurs/Printer/Syntax.purs). |
+| Où sont fixées les représentations des littéraux Char/Number ? | [Literals](../src/Javapurs/Literals.purs), partagé par la traduction ordinaire et ownership. |
 
 `JavaExpr` représente valeurs, statements, déclarations et sélecteurs de méthodes.
 `traverseChildren` définit leurs enfants ; `children`, `mapChildren` et
 `rewriteBottomUp` en dérivent. `DirectCalls` et `Reuse` utilisent ces parcours,
 `Rename` leur ajoute les règles lexicales. Les analyses de contrôle appartiennent
-à `ControlFlow`, consommé par `CodeGen` et `Printer`. `Ownership` utilise encore
-le rendu de `Printer` pour choisir certains workers.
+à `ControlFlow`, consommé par `CodeGen` et `Printer`. `Ownership.Workers` utilise
+le rendu de `Printer` pour son budget de découpage des branches, une heuristique
+en caractères distincte du coût du chunker Java.
 
 ## Représentations et invariants à conserver
 

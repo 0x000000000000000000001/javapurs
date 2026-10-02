@@ -8,7 +8,7 @@ An optimizing **PureScript-to-Java compiler**, written in PureScript, bringing p
 
 `javapurs` consumes the enriched **TAST / `tcorefn`** representation produced by our [PureScript compiler fork](https://github.com/0x000000000000000000001/purescript), optimizes it through `purescript-backend-optimizer`, and emits Java source. Node.js runs the compiler; the generated application runs on the JVM.
 
-For maintainers: [compiler guide](docs/compiler.md) · [types and calling conventions](docs/representations.md) · [expression translation](docs/expressions.md) · [Java rendering](docs/printing.md) · [Java AST and scope contracts](docs/ast.md) · [focused testing and validation records](docs/testing.md).
+For maintainers: [compiler guide](docs/compiler.md) · [types and calling conventions](docs/representations.md) · [expression translation](docs/expressions.md) · [specialized passes](docs/specialized-passes.md) · [Java rendering](docs/printing.md) · [Java AST and scope contracts](docs/ast.md) · [focused testing and validation records](docs/testing.md).
 
 ## Features
 
@@ -182,6 +182,8 @@ Loop invariant caches belong to each fully applied function invocation. They eva
 
 Direct calls use private static methods for eligible functions in the same module. Consecutive nonempty lambdas qualify at arities 2–32 for eager bindings and 1–32 for lazy bindings. Public curried functions remain available. Calls between eager declarations use earlier workers directly. Calls to lazy declarations, or from lazy bindings that can be entered early through a getter, retain an initialization guard. Saturated self calls through their own getter use a separate direct path. Proven `Int` worker parameters are primitive and receive explicit unboxing casts at call sites; other parameters use `Object`. See [DirectCalls](src/Javapurs/DirectCalls.purs) for the admission rules.
 
+Ownership workers consume eligible fresh trees after proving that retained subtrees do not alias and that later reads remain valid. Reads are snapshotted before writes; shared leaves are never reusable cells. The [specialized-pass guide](docs/specialized-passes.md) maps candidate selection, usage proofs, cells, worker emission and fallbacks, together with the contracts of direct calls, loops, invariants and constructor reuse.
+
 ## Foreign function interface
 
 Place a `.java` file beside the corresponding `.purs` source. The resolver first checks that adjacent file, then searches local and Spago package source locations. For example, `src/Example.purs`:
@@ -256,7 +258,7 @@ The shared JDK resolver uses explicit `JAVAC`/`JAVA` first, then `JAVA_HOME`, th
 
 `node test/ast-scopes.mjs` checks local shadowing, sibling branches, recursive captures, method selectors, nested loop targets and the raw-Java boundary. It compiles and executes the same fixtures after renaming, with and without chunking, targeting Java 17.
 
-The [test matrix](docs/testing.md#matrice-des-tests) covers all 16 scripts and identifies optional benchmark-cache inputs. See the [BigFunction recipe](docs/testing.md#chunker-et-bigfunction) and [runner checks](docs/testing.md#outillage-des-tests) for focused commands. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
+The [test matrix](docs/testing.md#matrice-des-tests) covers all 21 scripts and identifies optional benchmark-cache inputs. The [specialized-pass recipe](docs/testing.md#passes-spécialisées) includes ownership admission and deep-recursion checks in both modes. See the [BigFunction recipe](docs/testing.md#chunker-et-bigfunction) and [runner checks](docs/testing.md#outillage-des-tests) for focused commands. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
 
 ## Architecture
 
