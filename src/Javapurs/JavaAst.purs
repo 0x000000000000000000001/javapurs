@@ -21,9 +21,11 @@ import Data.Maybe (Maybe)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 
--- A proven Int parameter or field stays primitive; every other value keeps the
--- generic Object ABI. The marker is only used where a declaration is emitted
--- (static workers and ADT classes); call sites keep using plain Java values.
+-- Declaration/storage evidence, not the static type of every expression.
+-- Static worker parameters and ADT fields use int for ParamInt; JavaTypedAbs
+-- retains the public Object parameter and carries evidence for a future worker.
+-- Representation owns selection/coercion. Chunk tracks actual lexical types
+-- separately: a JavaTypedAbs binder is Object, a JavaIntAbs binder is int.
 data JavaParamType = ParamObject | ParamInt
 
 derive instance eqJavaParamType :: Eq JavaParamType
@@ -159,6 +161,8 @@ rewriteBottomUp rewrite = go
   where
   go expression = rewrite (mapChildren go expression)
 
+-- Nested records keep the Map ABI. The shape describes storage, not a guarantee
+-- that every value at a typed read/update site is an instance of that class.
 data JavaRecordFieldType = RecordInt | RecordObject | RecordNested
 
 newtype JavaRecordShape = JavaRecordShape (Array (Tuple String JavaRecordFieldType))

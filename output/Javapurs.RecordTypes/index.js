@@ -9,6 +9,7 @@ import * as Data_Functor from "../Data.Functor/index.js";
 import * as Data_Maybe from "../Data.Maybe/index.js";
 import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
+import * as Javapurs_TypeEvidence from "../Javapurs.TypeEvidence/index.js";
 import * as PureScript_Backend_Optimizer_Codegen_Tco from "../PureScript.Backend.Optimizer.Codegen.Tco/index.js";
 import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
 import * as PureScript_Backend_Optimizer_FreeVars from "../PureScript.Backend.Optimizer.FreeVars/index.js";
@@ -20,18 +21,10 @@ var typeOf = function (env) {
             return new Data_Maybe.Just(v.value1.value0);
         };
         if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Local) {
-            return Data_Functor.map(Data_Maybe.functorMaybe)(Data_Tuple.snd)(Data_Array.find(function (entry) {
-                return Data_Tuple.fst(entry) === PureScript_Backend_Optimizer_FreeVars.localId(v.value1.value0)(v.value1.value1);
-            })(env));
+            return Javapurs_TypeEvidence.lookupLocalType(env)(PureScript_Backend_Optimizer_FreeVars.localId(v.value1.value0)(v.value1.value1));
         };
         if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Accessor && v.value1.value1 instanceof PureScript_Backend_Optimizer_Syntax.GetProp) {
-            var v1 = typeOf(env)(v.value1.value0);
-            if (v1 instanceof Data_Maybe.Just && (v1.value0 instanceof PureScript_Backend_Optimizer_CoreFn.Record && v1.value0.value0 instanceof PureScript_Backend_Optimizer_CoreFn.Row)) {
-                return Data_Functor.map(Data_Maybe.functorMaybe)(Data_Tuple.snd)(Data_Array.find(function (field) {
-                    return Data_Tuple.fst(field) === v.value1.value1.value0;
-                })(v1.value0.value0.value0));
-            };
-            return Data_Maybe.Nothing.value;
+            return Control_Bind.bind(Data_Maybe.bindMaybe)(typeOf(env)(v.value1.value0))(Javapurs_TypeEvidence.recordProperty(v.value1.value1.value0));
         };
         if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Update) {
             var v1 = typeOf(env)(v.value1.value0);
@@ -55,7 +48,7 @@ var typeOf = function (env) {
                         if (v2 instanceof Data_Maybe.Nothing) {
                             return field;
                         };
-                        throw new Error("Failed pattern match at Javapurs.RecordTypes (line 86, column 47 - line 88, column 25): " + [ v2.constructor.name ]);
+                        throw new Error("Failed pattern match at Javapurs.RecordTypes (line 62, column 47 - line 64, column 25): " + [ v2.constructor.name ]);
                     })(v1.value0.value0.value0), v1.value0.value0.value1)));
                 });
             };
@@ -118,62 +111,6 @@ var typeOf = function (env) {
         return Data_Maybe.Nothing.value;
     };
 };
-var bindType = function (env) {
-    return function (name) {
-        return function (ty) {
-            var rest = Data_Array.filter(function (entry) {
-                return Data_Tuple.fst(entry) !== name;
-            })(env);
-            if (ty instanceof Data_Maybe.Just) {
-                return Data_Array.cons(new Data_Tuple.Tuple(name, ty.value0))(rest);
-            };
-            if (ty instanceof Data_Maybe.Nothing) {
-                return rest;
-            };
-            throw new Error("Failed pattern match at Javapurs.RecordTypes (line 54, column 6 - line 56, column 20): " + [ ty.constructor.name ]);
-        };
-    };
-};
-var bindArguments = function (env) {
-    return function (expected) {
-        return function (args) {
-            var step = function (state) {
-                return function (v) {
-                    if (state.result instanceof Data_Maybe.Just && state.result.value0 instanceof PureScript_Backend_Optimizer_CoreFn.Func) {
-                        var v1 = Data_Array.uncons(state.result.value0.value0);
-                        if (v1 instanceof Data_Maybe.Just) {
-                            return {
-                                env: bindType(state.env)(PureScript_Backend_Optimizer_FreeVars.localId(v.value0)(v.value1))(new Data_Maybe.Just(v1.value0.head)),
-                                result: new Data_Maybe.Just((function () {
-                                    var $64 = Data_Array["null"](v1.value0.tail);
-                                    if ($64) {
-                                        return state.result.value0.value1;
-                                    };
-                                    return new PureScript_Backend_Optimizer_CoreFn.Func(v1.value0.tail, state.result.value0.value1);
-                                })())
-                            };
-                        };
-                        if (v1 instanceof Data_Maybe.Nothing) {
-                            return {
-                                env: bindType(state.env)(PureScript_Backend_Optimizer_FreeVars.localId(v.value0)(v.value1))(Data_Maybe.Nothing.value),
-                                result: Data_Maybe.Nothing.value
-                            };
-                        };
-                        throw new Error("Failed pattern match at Javapurs.RecordTypes (line 63, column 35 - line 68, column 92): " + [ v1.constructor.name ]);
-                    };
-                    return {
-                        env: bindType(state.env)(PureScript_Backend_Optimizer_FreeVars.localId(v.value0)(v.value1))(Data_Maybe.Nothing.value),
-                        result: Data_Maybe.Nothing.value
-                    };
-                };
-            };
-            return Data_Foldable.foldl(Data_Foldable.foldableArray)(step)({
-                env: env,
-                result: expected
-            })(args);
-        };
-    };
-};
 var annotate = function (env) {
     return function (expected) {
         return function (v) {
@@ -181,22 +118,22 @@ var annotate = function (env) {
                 return new PureScript_Backend_Optimizer_Codegen_Tco.TcoExpr(v.value0, new PureScript_Backend_Optimizer_Syntax.Typed(v.value1.value0, annotate(env)(new Data_Maybe.Just(v.value1.value0))(v.value1.value1)));
             };
             if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Abs) {
-                var scope = bindArguments(env)(expected)(Data_Array.fromFoldable(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(v.value1.value0));
-                return new PureScript_Backend_Optimizer_Codegen_Tco.TcoExpr(v.value0, new PureScript_Backend_Optimizer_Syntax.Abs(v.value1.value0, annotate(scope.env)(scope.result)(v.value1.value1)));
+                var scope = Javapurs_TypeEvidence.bindArgumentTypes(env)(expected)(Data_Array.fromFoldable(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(v.value1.value0));
+                return new PureScript_Backend_Optimizer_Codegen_Tco.TcoExpr(v.value0, new PureScript_Backend_Optimizer_Syntax.Abs(v.value1.value0, annotate(scope.locals)(scope.result)(v.value1.value1)));
             };
             if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.UncurriedAbs) {
-                var scope = bindArguments(env)(expected)(v.value1.value0);
-                return new PureScript_Backend_Optimizer_Codegen_Tco.TcoExpr(v.value0, new PureScript_Backend_Optimizer_Syntax.UncurriedAbs(v.value1.value0, annotate(scope.env)(scope.result)(v.value1.value1)));
+                var scope = Javapurs_TypeEvidence.bindArgumentTypes(env)(expected)(v.value1.value0);
+                return new PureScript_Backend_Optimizer_Codegen_Tco.TcoExpr(v.value0, new PureScript_Backend_Optimizer_Syntax.UncurriedAbs(v.value1.value0, annotate(scope.locals)(scope.result)(v.value1.value1)));
             };
             if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Let) {
                 var value$prime = annotate(env)(Data_Maybe.Nothing.value)(v.value1.value2);
-                var env$prime = bindType(env)(PureScript_Backend_Optimizer_FreeVars.localId(v.value1.value0)(v.value1.value1))(typeOf(env)(value$prime));
+                var env$prime = Javapurs_TypeEvidence.bindLocalType(env)(PureScript_Backend_Optimizer_FreeVars.localId(v.value1.value0)(v.value1.value1))(typeOf(env)(value$prime));
                 return new PureScript_Backend_Optimizer_Codegen_Tco.TcoExpr(v.value0, new PureScript_Backend_Optimizer_Syntax.Let(v.value1.value0, v.value1.value1, value$prime, annotate(env$prime)(Data_Maybe.Nothing.value)(v.value1.value3)));
             };
             if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.LetRec) {
                 var env$prime = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (acc) {
                     return function (v1) {
-                        return bindType(acc)(PureScript_Backend_Optimizer_FreeVars.localId(new Data_Maybe.Just(v1.value0))(v.value1.value0))(typeOf(env)(v1.value1));
+                        return Javapurs_TypeEvidence.bindLocalType(acc)(PureScript_Backend_Optimizer_FreeVars.localId(new Data_Maybe.Just(v1.value0))(v.value1.value0))(typeOf(env)(v1.value1));
                     };
                 })(env)(Data_Array.fromFoldable(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(v.value1.value1));
                 var bindings$prime = Data_Functor.map(Data_Array_NonEmpty_Internal.functorNonEmptyArray)(function (v1) {

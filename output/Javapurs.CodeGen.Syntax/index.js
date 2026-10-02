@@ -4,9 +4,8 @@ import * as Data_Array_NonEmpty from "../Data.Array.NonEmpty/index.js";
 import * as Data_Functor from "../Data.Functor/index.js";
 import * as Data_Maybe from "../Data.Maybe/index.js";
 import * as Data_Semigroup from "../Data.Semigroup/index.js";
-import * as Javapurs_JavaAst from "../Javapurs.JavaAst/index.js";
+import * as Javapurs_Representation from "../Javapurs.Representation/index.js";
 import * as PureScript_Backend_Optimizer_Codegen_Tco from "../PureScript.Backend.Optimizer.Codegen.Tco/index.js";
-import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
 import * as PureScript_Backend_Optimizer_FreeVars from "../PureScript.Backend.Optimizer.FreeVars/index.js";
 import * as PureScript_Backend_Optimizer_Syntax from "../PureScript.Backend.Optimizer.Syntax/index.js";
 var unwrapTcoExpr = function ($copy_v) {
@@ -84,19 +83,6 @@ var stripEffectAbs = function (v) {
     };
     return v;
 };
-var paramKinds = function (v) {
-    return function (args) {
-        if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Typed && (v.value1.value0 instanceof PureScript_Backend_Optimizer_CoreFn.Func && Data_Array.length(v.value1.value0.value0) === Data_Array.length(args))) {
-            return Data_Functor.map(Data_Functor.functorArray)(function (paramType) {
-                if (paramType instanceof PureScript_Backend_Optimizer_CoreFn.Int) {
-                    return Javapurs_JavaAst.ParamInt.value;
-                };
-                return Javapurs_JavaAst.ParamObject.value;
-            })(v.value1.value0.value0);
-        };
-        return Data_Array.replicate(Data_Array.length(args))(Javapurs_JavaAst.ParamObject.value);
-    };
-};
 var isEffectNode = function ($copy_expr) {
     var $tco_done = false;
     var $tco_result;
@@ -133,8 +119,8 @@ var isEffectNode = function ($copy_expr) {
 var flattenApp = function (v) {
     var throughWrapper = function (inner) {
         var flat = flattenApp(inner);
-        var $93 = Data_Array["null"](flat.args);
-        if ($93) {
+        var $82 = Data_Array["null"](flat.args);
+        if ($82) {
             return {
                 fn: v,
                 args: [  ]
@@ -185,7 +171,7 @@ var extractUncurriedAbs = function (v) {
                 body: v.value1.value1
             });
         };
-        throw new Error("Failed pattern match at Javapurs.CodeGen.Syntax (line 45, column 8 - line 47, column 47): " + [ v1.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.CodeGen.Syntax (line 44, column 8 - line 46, column 47): " + [ v1.constructor.name ]);
     };
     if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.UncurriedAbs) {
         return new Data_Maybe.Just({
@@ -217,7 +203,9 @@ export {
     unwrapTcoExpr,
     isEffectNode,
     stripEffectDefer,
-    stripEffectAbs,
-    paramKinds
+    stripEffectAbs
 };
+export {
+    paramKinds
+} from "../Javapurs.Representation/index.js";
 //# sourceMappingURL=index.js.map

@@ -80,7 +80,9 @@ gardes d'initialisation eager/lazy et conditions d'arité.
 
 Pour `Typed`, les fonctions spécialisées ont priorité, puis les records typés ;
 le repli traduit l'enfant dans le même contexte. `TypeApp` ne sélectionne jamais
-les binders primitifs d'une définition polymorphe.
+les binders primitifs d'une définition polymorphe. Le guide des
+[représentations](representations.md) détaille la provenance de ces preuves,
+leur projection commune et les conversions aux frontières Java/FFI.
 
 ## Exécution différée et références
 

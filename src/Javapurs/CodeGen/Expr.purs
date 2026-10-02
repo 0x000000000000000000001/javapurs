@@ -15,11 +15,12 @@ import Javapurs.CodeGen.Syntax (Application, extractUncurriedAbs, flattenApp, is
 import Javapurs.ControlFlow (hasAnyContinue, hasDirectContinue, hasTargetContinue)
 import Javapurs.IntFunctions (abstractFunction, applyFunction)
 import Javapurs.IntLoops (intLoopParams)
-import Javapurs.JavaAst (JavaExpr(..), JavaParamType(..), children)
+import Javapurs.JavaAst (JavaExpr(..), children)
 import Javapurs.LoopInvariants (prepareLoop)
 import Javapurs.Naming (constructorClassName, lazyGetterName, loopSnapshotName, modulePrefix, safeCtorName, sanitizeName)
 import Javapurs.Operators (translateOperator1, translateOperator2)
 import Javapurs.RecordShapes (recordShape, recordShapeOf)
+import Javapurs.Representation (coerceArgument)
 import PureScript.Backend.Optimizer.Codegen.Tco (TcoExpr(..))
 import PureScript.Backend.Optimizer.Codegen.Tco as Tco
 import PureScript.Backend.Optimizer.CoreFn (Ident(..), Literal(..), Prop(..), Qualified(..))
@@ -113,9 +114,7 @@ ownedCall env context flat = case unwrapTcoExpr flat.fn of
         else Nothing
   _ -> Nothing
   where
-  translateArgument parameter argument = case parameter of
-    ParamInt -> JavaCast "int" (translateValue env context argument)
-    _ -> translateValue env context argument
+  translateArgument parameter argument = coerceArgument parameter (translateValue env context argument)
 
 translateApplication :: CodegenEnv -> TranslationContext -> Application -> JavaExpr
 translateApplication env context flat =

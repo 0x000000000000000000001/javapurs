@@ -6,13 +6,12 @@ import Data.Array as Array
 import Data.Foldable (foldl)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse)
-import Data.Tuple (Tuple(..), fst, snd)
+import Data.Tuple (Tuple(..), fst)
+import Javapurs.TypeEvidence (LocalTypes, bindArgumentTypes, bindLocalType, lookupLocalType, recordProperty)
 import PureScript.Backend.Optimizer.Codegen.Tco (TcoExpr(..))
 import PureScript.Backend.Optimizer.CoreFn as C
 import PureScript.Backend.Optimizer.FreeVars (localId)
-import PureScript.Backend.Optimizer.Syntax (BackendSyntax(..), BackendAccessor(..), BackendOperator(..), BackendOperator1(..), BackendOperator2(..), Level)
-
-type Types = Array (Tuple String C.ExprType)
+import PureScript.Backend.Optimizer.Syntax (BackendSyntax(..), BackendAccessor(..), BackendOperator(..), BackendOperator1(..), BackendOperator2(..))
 
 -- Optimization retains function types but can leave their local uses bare.
 -- Recover record annotations before codegen flattens the function binders.
@@ -20,23 +19,23 @@ type Types = Array (Tuple String C.ExprType)
 annotateRecordTypes :: TcoExpr -> TcoExpr
 annotateRecordTypes = annotate [] Nothing
 
-annotate :: Types -> Maybe C.ExprType -> TcoExpr -> TcoExpr
+annotate :: LocalTypes -> Maybe C.ExprType -> TcoExpr -> TcoExpr
 annotate env expected (TcoExpr analysis syntax) = case syntax of
   Typed ty inner -> TcoExpr analysis (Typed ty (annotate env (Just ty) inner))
   Abs args body ->
-    let scope = bindArguments env expected (Array.fromFoldable args)
-    in TcoExpr analysis (Abs args (annotate scope.env scope.result body))
+    let scope = bindArgumentTypes env expected (Array.fromFoldable args)
+    in TcoExpr analysis (Abs args (annotate scope.locals scope.result body))
   UncurriedAbs args body ->
-    let scope = bindArguments env expected args
-    in TcoExpr analysis (UncurriedAbs args (annotate scope.env scope.result body))
+    let scope = bindArgumentTypes env expected args
+    in TcoExpr analysis (UncurriedAbs args (annotate scope.locals scope.result body))
   Let ident level value body ->
     let
       value' = annotate env Nothing value
-      env' = bindType env (localId ident level) (typeOf env value')
+      env' = bindLocalType env (localId ident level) (typeOf env value')
     in TcoExpr analysis (Let ident level value' (annotate env' Nothing body))
   LetRec level bindings body ->
     let
-      env' = foldl (\acc (Tuple ident value) -> bindType acc (localId (Just ident) level) (typeOf env value)) env (Array.fromFoldable bindings)
+      env' = foldl (\acc (Tuple ident value) -> bindLocalType acc (localId (Just ident) level) (typeOf env value)) env (Array.fromFoldable bindings)
       bindings' = map (\(Tuple ident value) -> Tuple ident (annotate env' Nothing value)) bindings
     in TcoExpr analysis (LetRec level bindings' (annotate env' Nothing body))
   -- An instantiation belongs to the use of a polymorphic value, not its binders.
@@ -48,34 +47,11 @@ annotate env expected (TcoExpr analysis syntax) = case syntax of
       Just ty@(C.Record _) -> TcoExpr analysis (Typed ty result)
       _ -> result
 
-bindType :: Types -> String -> Maybe C.ExprType -> Types
-bindType env name ty =
-  let rest = Array.filter (\entry -> fst entry /= name) env
-  in case ty of
-    Just value -> Array.cons (Tuple name value) rest
-    Nothing -> rest
-
-bindArguments :: Types -> Maybe C.ExprType -> Array (Tuple (Maybe C.Ident) Level) -> { env :: Types, result :: Maybe C.ExprType }
-bindArguments env expected args =
-  foldl step { env, result: expected } args
-  where
-  step state (Tuple ident level) = case state.result of
-    Just (C.Func types result) -> case Array.uncons types of
-      Just { head, tail } ->
-        { env: bindType state.env (localId ident level) (Just head)
-        , result: Just (if Array.null tail then result else C.Func tail result)
-        }
-      Nothing -> { env: bindType state.env (localId ident level) Nothing, result: Nothing }
-    -- Constrained functions can have extra dictionary binders. Stay conservative.
-    _ -> { env: bindType state.env (localId ident level) Nothing, result: Nothing }
-
-typeOf :: Types -> TcoExpr -> Maybe C.ExprType
+typeOf :: LocalTypes -> TcoExpr -> Maybe C.ExprType
 typeOf env (TcoExpr _ syntax) = case syntax of
   Typed ty _ -> Just ty
-  Local ident level -> map snd (Array.find (\entry -> fst entry == localId ident level) env)
-  Accessor value (GetProp label) -> case typeOf env value of
-    Just (C.Record (C.Row fields _)) -> map snd (Array.find (\field -> fst field == label) fields)
-    _ -> Nothing
+  Local ident level -> lookupLocalType env (localId ident level)
+  Accessor value (GetProp label) -> typeOf env value >>= recordProperty label
   Update value updates -> case typeOf env value of
     Just (C.Record (C.Row fields tail)) -> do
       replacements <- traverse (\(C.Prop label field) -> do

@@ -20,6 +20,7 @@ import * as Javapurs_Naming from "../Javapurs.Naming/index.js";
 import * as Javapurs_Ownership from "../Javapurs.Ownership/index.js";
 import * as Javapurs_RecordShapes from "../Javapurs.RecordShapes/index.js";
 import * as Javapurs_RecordTypes from "../Javapurs.RecordTypes/index.js";
+import * as Javapurs_Representation from "../Javapurs.Representation/index.js";
 import * as Javapurs_Reuse from "../Javapurs.Reuse/index.js";
 import * as PureScript_Backend_Optimizer_Codegen_Tco from "../PureScript.Backend.Optimizer.Codegen.Tco/index.js";
 import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
@@ -33,12 +34,12 @@ var translateTopLevel = function (env) {
                 if (v1 instanceof Data_Maybe.Just) {
                     var ref = new PureScript_Backend_Optimizer_Codegen_Tco.TcoTopLevel(new PureScript_Backend_Optimizer_CoreFn.Qualified(new Data_Maybe.Just(env.sourceModule), v.value0));
                     var body = Javapurs_CodeGen_Expr.translateLoop(env)(Javapurs_CodeGen_Context.initialContext)(ref)([  ])(javaName)(v1.value0.args)(v1.value0.body);
-                    return new Javapurs_JavaAst.JavaLazyAssign(javaName, new Javapurs_JavaAst.JavaTypedAbs(Data_Array.zip(v1.value0.args)(Javapurs_CodeGen_Syntax.paramKinds(v.value1)(v1.value0.args)), body));
+                    return new Javapurs_JavaAst.JavaLazyAssign(javaName, new Javapurs_JavaAst.JavaTypedAbs(Data_Array.zip(v1.value0.args)(Javapurs_Representation.paramKinds(v.value1)(v1.value0.args)), body));
                 };
                 if (v1 instanceof Data_Maybe.Nothing) {
                     return new Javapurs_JavaAst.JavaLazyAssign(javaName, Javapurs_CodeGen_Expr.translateValue(env)(Javapurs_CodeGen_Context.initialContext)(v.value1));
                 };
-                throw new Error("Failed pattern match at Javapurs.CodeGen (line 109, column 8 - line 115, column 91): " + [ v1.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.CodeGen (line 106, column 8 - line 112, column 91): " + [ v1.constructor.name ]);
             };
             return new Javapurs_JavaAst.JavaAssign(javaName, Javapurs_CodeGen_Expr.translateValue(env)(Javapurs_CodeGen_Context.initialContext)(v.value1));
         };
@@ -98,12 +99,7 @@ var translateWithIntFunctions = function (v) {
                 var name = Javapurs_Naming.safeCtorName(ctor.name);
                 var fields = Data_Array.mapWithIndex(function (index) {
                     return function (fieldType) {
-                        return new Data_Tuple.Tuple("value" + Data_Show.show(Data_Show.showInt)(index), (function () {
-                            if (fieldType instanceof PureScript_Backend_Optimizer_CoreFn.Int) {
-                                return Javapurs_JavaAst.ParamInt.value;
-                            };
-                            return Javapurs_JavaAst.ParamObject.value;
-                        })());
+                        return new Data_Tuple.Tuple("value" + Data_Show.show(Data_Show.showInt)(index), Javapurs_Representation.parameterType(fieldType));
                     };
                 })(ctor.fields);
                 return new Javapurs_JavaAst.JavaClassDecl(name, fields, Data_Array.elem(Data_Eq.eqString)(moduleName + ("." + name))(ownership.mutableClasses));

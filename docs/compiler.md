@@ -2,7 +2,7 @@
 
 État documenté au **2 octobre 2026**. Ce guide décrit le chemin de production
 actuel. Les références des sources et des outils figurent dans le
-[registre de validation](testing.md#validation-m06).
+[registre de validation](testing.md#validation-m08).
 
 ## Se repérer dans le workspace
 
@@ -85,9 +85,9 @@ est le point d'entrée du décodage appelé par `App`.
 Les types d'expression, `dataDecls`, `classDecls` et la table de types appartiennent
 à cette frontière. Après décodage et optimisation, le backend travaille sur les
 types PBO et leurs nœuds `Typed`/`TypeApp`, pas sur le JSON brut. Un argument de
-`TypeApp` n'est pas à lui seul le type du résultat : voir
-[RecordShapes.recordShapeOf](../src/Javapurs/RecordShapes.purs) et
-[IntFunctions.applyFunction](../src/Javapurs/IntFunctions.purs).
+`TypeApp` n'est pas à lui seul le type du résultat : le guide
+[Types, représentations et conventions d'appel](representations.md) relie les
+producteurs de preuves, leur propagation et les types Java effectivement émis.
 
 `Driver.compile` rend visibles les trois phases : chargement/tri, préparation
 des directives et helpers communs, puis optimisation/émission. Il appelle le
@@ -165,6 +165,11 @@ Il assemble la classe avec les membres étrangers produits par `Ffi.renderForeig
 Toutes les écritures Java passent par son helper `writeJava`, qui annote les
 erreurs avec le chemin de destination.
 
+Le [guide du rendu Java](printing.md) détaille le dispatcher, le plan des corps
+dans `Printer.Body`, les déclarations, les frontières `Supplier` et l'échappement
+commun de `Printer.Syntax`. Les renderers de records utilisent les mêmes
+constructions de chaînes et d'enveloppes.
+
 | Fichier généré | Responsabilité actuelle |
 | --- | --- |
 | `__M$App_Main.java` pour `App.Main` | Nom dans `Naming.modulePrefix`, membres étrangers dans `Ffi`, assemblage et écriture dans `Emit.emitModule`. |
@@ -173,8 +178,9 @@ erreurs avec le chemin de destination.
 | `TcoLoop.java` | `Runtime.tcoLoopSource`, écrit une fois par `Emit.emitRuntime` si au moins un module est chargé. |
 | `MainRun.java` | `Runtime.mainRunSource`, écrit par `Emit.emitModule` pour le module sélectionné par `--main`. |
 
-[Runtime](../src/Javapurs/Runtime.purs) possède les trois templates communs et
-n'effectue aucune I/O. `IntFunctions.runtimeSource` reste un alias vers le
+[Runtime](../src/Javapurs/Runtime.purs) possède les trois templates communs et les
+cinq implémentations globales intégrées de `builtinGlobalSource`, sans I/O.
+`IntFunctions.runtimeSource` reste un alias vers le
 template `__IntFn`, utilisé par les fixtures et benchmarks existants. Une entrée
 vide produit seulement `__IntFn.java` dans un dossier de sortie neuf.
 
@@ -231,13 +237,15 @@ et une erreur de décodage est journalisée avant d'écarter le module concerné
 | Où sont analysés les sauts et leurs frontières ? | [ControlFlow](../src/Javapurs/ControlFlow.purs). |
 | Quel texte brut peut être renommé ou considéré sans captures ? | [Raw](../src/Javapurs/Raw.purs). |
 | Comment sont traduits applications, effets, bindings et branches ? | [CodeGen](../src/Javapurs/CodeGen.purs), [Expr](../src/Javapurs/CodeGen/Expr.purs), [Context](../src/Javapurs/CodeGen/Context.purs), [Syntax](../src/Javapurs/CodeGen/Syntax.purs), [guide des expressions](expressions.md). |
-| Quand un paramètre ou une fonction devient-il primitif ? | [IntLoops](../src/Javapurs/IntLoops.purs), [FunctionTypes](../src/Javapurs/FunctionTypes.purs), [IntFunctions](../src/Javapurs/IntFunctions.purs). |
+| Quelle preuve de type peut être projetée ou propagée ? | [TypeEvidence](../src/Javapurs/TypeEvidence.purs), [FunctionTypes](../src/Javapurs/FunctionTypes.purs), [RecordTypes](../src/Javapurs/RecordTypes.purs). |
+| Quand un paramètre ou une fonction devient-il primitif ? | [Representation](../src/Javapurs/Representation.purs), [IntLoops](../src/Javapurs/IntLoops.purs), [IntFunctions](../src/Javapurs/IntFunctions.purs), [guide des représentations](representations.md). |
 | Quels calculs peuvent être mis en cache dans une boucle ? | [PureInvariants](../src/Javapurs/PureInvariants.purs), [LoopInvariants](../src/Javapurs/LoopInvariants.purs). |
 | Quand utilise-t-on un worker statique ou un constructeur existant ? | [DirectCalls](../src/Javapurs/DirectCalls.purs), [Reuse](../src/Javapurs/Reuse.purs). |
 | Quelle preuve autorise la consommation d'un arbre ? | [Ownership](../src/Javapurs/Ownership.purs). |
 | Quels records peuvent avoir une classe spécialisée ? | [RecordTypes](../src/Javapurs/RecordTypes.purs), [RecordShapes](../src/Javapurs/RecordShapes.purs). |
 | Pourquoi une expression est-elle extraite dans un helper ? | [Chunk](../src/Javapurs/Chunk.purs), [Captures](../src/Javapurs/Chunk/Captures.purs), [Extraction](../src/Javapurs/Chunk/Extraction.purs), [guide du chunker](chunking.md). |
-| Comment sont rendus blocs, boucles, classes et records ? | [Printer](../src/Javapurs/Printer.purs), [CountedLoops](../src/Javapurs/CountedLoops.purs), [RecordPrinter](../src/Javapurs/RecordPrinter.purs). |
+| Comment sont rendus blocs, boucles, classes et records ? | [Printer](../src/Javapurs/Printer.purs), [Body](../src/Javapurs/Printer/Body.purs), [Declarations](../src/Javapurs/Printer/Declarations.purs), [RecordPrinter](../src/Javapurs/RecordPrinter.purs), [guide du rendu](printing.md). |
+| Où sont les chaînes Java et les enveloppes Supplier communes ? | [Printer.Syntax](../src/Javapurs/Printer/Syntax.purs). |
 
 `JavaExpr` représente valeurs, statements, déclarations et sélecteurs de méthodes.
 `traverseChildren` définit leurs enfants ; `children`, `mapChildren` et
@@ -247,6 +255,10 @@ et une erreur de décodage est journalisée avant d'écarter le module concerné
 le rendu de `Printer` pour choisir certains workers.
 
 ## Représentations et invariants à conserver
+
+Le [contrat des représentations](representations.md) détaille les frontières
+`Typed`/`TypeApp`, les conversions, les signatures de constructeurs et les
+obligations des callbacks et Maps FFI.
 
 - **Fonctions.** L'ABI publique curryfiée utilise `Function<Object, Object>`.
   `JavaTypedAbs` peut porter une preuve Int tout en gardant un argument Java

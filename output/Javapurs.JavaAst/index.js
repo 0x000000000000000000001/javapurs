@@ -805,7 +805,7 @@ var traverseChildren = function (dictApplicative) {
             if (expression instanceof JavaIf) {
                 return Control_Apply.apply(Apply0)(Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(JavaIf.create)(visit(expression.value0)))(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(visit)(expression.value1)))(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(visit)(expression.value2));
             };
-            throw new Error("Failed pattern match at Javapurs.JavaAst (line 99, column 37 - line 147, column 127): " + [ expression.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.JavaAst (line 101, column 37 - line 149, column 127): " + [ expression.constructor.name ]);
         };
     };
 };

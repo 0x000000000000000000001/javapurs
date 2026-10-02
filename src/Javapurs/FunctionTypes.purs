@@ -1,4 +1,4 @@
-module Javapurs.FunctionTypes (annotateFunctionTypes, intFunction) where
+module Javapurs.FunctionTypes (annotateFunctionTypes, module Evidence) where
 
 import Prelude
 
@@ -9,17 +9,17 @@ import Data.Foldable (all, foldl)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst, snd)
+import Javapurs.TypeEvidence (LocalTypes, applyArguments, argumentType, bindArgumentTypes, bindLocalType, declaredType, lookupLocalType, recordProperty)
+import Javapurs.TypeEvidence (intFunction) as Evidence
 import PureScript.Backend.Optimizer.Codegen.Tco (TcoExpr(..))
 import PureScript.Backend.Optimizer.CoreFn as C
 import PureScript.Backend.Optimizer.FreeVars (localId)
 import PureScript.Backend.Optimizer.Syntax (BackendAccessor(..), BackendSyntax(..), Level, Pair(..))
 
-type Types = Array (Tuple String C.ExprType)
-
 type Context =
   { moduleName :: C.ModuleName
   , globals :: Array (Tuple C.Ident C.ExprType)
-  , locals :: Types
+  , locals :: LocalTypes
   }
 
 -- Recover types from lexical declarations and their residual application types.
@@ -32,16 +32,6 @@ annotateFunctionTypes moduleName bindings = annotate context Nothing
     , globals: Array.mapMaybe (\(Tuple ident value) -> Tuple ident <$> declaredType value) bindings
     , locals: []
     }
-
-intFunction :: C.ExprType -> Boolean
-intFunction = case _ of
-  C.Func [ C.Int ] C.Int -> true
-  _ -> false
-
-declaredType :: TcoExpr -> Maybe C.ExprType
-declaredType (TcoExpr _ syntax) = case syntax of
-  Typed ty _ -> Just ty
-  _ -> Nothing
 
 annotate :: Context -> Maybe C.ExprType -> TcoExpr -> TcoExpr
 annotate context expected expression@(TcoExpr analysis syntax) = case syntax of
@@ -96,43 +86,17 @@ annotateBody context expected (TcoExpr analysis syntax) = TcoExpr analysis $ cas
   _ -> map (annotate context Nothing) syntax
 
 bindType :: Context -> String -> Maybe C.ExprType -> Context
-bindType context name ty = context { locals = case ty of
-  Just value -> Array.cons (Tuple name value) rest
-  Nothing -> rest
-  }
-  where
-  rest = Array.filter (\entry -> fst entry /= name) context.locals
+bindType context name ty = context { locals = bindLocalType context.locals name ty }
 
 bindArguments :: Context -> Maybe C.ExprType -> Array (Tuple (Maybe C.Ident) Level) -> { context :: Context, result :: Maybe C.ExprType }
-bindArguments context expected = foldl step { context, result: expected }
-  where
-  step state (Tuple ident level) =
-    { context: bindType state.context (localId ident level) (state.result >>= argumentType 0)
-    , result: state.result >>= applyArguments 1
-    }
+bindArguments context expected args =
+  let scope = bindArgumentTypes context.locals expected args
+  in { context: context { locals = scope.locals }, result: scope.result }
 
 bindRecursive :: Context -> Level -> Array (Tuple C.Ident TcoExpr) -> Context
 bindRecursive context level = foldl
   (\scope (Tuple ident value) -> bindType scope (localId (Just ident) level) (declaredType value))
   context
-
--- Func's argument array can describe several curried binders. Consuming a prefix
--- leaves the remaining function type; nested Func results work without erasure.
-applyArguments :: Int -> C.ExprType -> Maybe C.ExprType
-applyArguments count ty
-  | count == 0 = Just ty
-  | otherwise = case ty of
-      C.Func args result -> case Array.uncons args of
-        Just { tail } -> applyArguments (count - 1) (if Array.null tail then result else C.Func tail result)
-        Nothing -> Nothing
-      _ -> Nothing
-
-argumentType :: Int -> C.ExprType -> Maybe C.ExprType
-argumentType index ty = do
-  remaining <- applyArguments index ty
-  case remaining of
-    C.Func args _ -> Array.head args
-    _ -> Nothing
 
 effectResult :: C.ExprType -> Maybe C.ExprType
 effectResult = case _ of
@@ -142,7 +106,7 @@ effectResult = case _ of
 typeOf :: Context -> TcoExpr -> Maybe C.ExprType
 typeOf context (TcoExpr _ syntax) = case syntax of
   Typed ty _ -> Just ty
-  Local ident level -> map snd (Array.find (\entry -> fst entry == localId ident level) context.locals)
+  Local ident level -> lookupLocalType context.locals (localId ident level)
   Var (C.Qualified qualifier ident)
     | qualifier == Nothing || qualifier == Just context.moduleName ->
         map snd (Array.find (\entry -> fst entry == ident) context.globals)
@@ -155,9 +119,7 @@ typeOf context (TcoExpr _ syntax) = case syntax of
     ty <- typeOf context def
     alternatives <- traverse (\(Pair _ value) -> typeOf context value) cases
     if all (_ == ty) alternatives then Just ty else Nothing
-  Accessor value (GetProp label) -> case typeOf context value of
-    Just (C.Record (C.Row fields _)) -> map snd (Array.find (\field -> fst field == label) fields)
-    _ -> Nothing
+  Accessor value (GetProp label) -> typeOf context value >>= recordProperty label
   -- ForAll, constraints and TypeApp require their own explicit instantiated
   -- annotation; stripping them would misalign dictionary or polymorphic binders.
   _ -> Nothing

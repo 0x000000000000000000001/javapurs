@@ -13,22 +13,21 @@ import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Javapurs.CodeGen.Context (CodegenEnv, initialContext)
 import Javapurs.CodeGen.Expr (translateLoop, translateValue)
-import Javapurs.CodeGen.Syntax (paramKinds)
 import Javapurs.CodeGen.Syntax (extractUncurriedAbs) as Syntax
 import Javapurs.Config (CodegenOptions)
 import Javapurs.DirectCalls (directCalls)
 import Javapurs.FunctionTypes (annotateFunctionTypes)
-import Javapurs.JavaAst (JavaExpr(..), JavaFile, JavaParamType(..))
+import Javapurs.JavaAst (JavaExpr(..), JavaFile)
 import Javapurs.Naming (modulePrefix, safeCtorName, sanitizeName)
 import Javapurs.Ownership (prepare)
 import Javapurs.RecordShapes (collectRecordShapes)
 import Javapurs.RecordTypes (annotateRecordTypes)
+import Javapurs.Representation (paramKinds, parameterType)
 import Javapurs.Reuse (reuseConstructors)
 import PureScript.Backend.Optimizer.Codegen.Tco (TcoExpr)
 import PureScript.Backend.Optimizer.Codegen.Tco as Tco
 import PureScript.Backend.Optimizer.Convert (BackendModule)
 import PureScript.Backend.Optimizer.CoreFn (Ident(..), Qualified(..))
-import PureScript.Backend.Optimizer.CoreFn as CoreFn
 
 translate :: BackendModule -> JavaFile
 translate = translateWithRecords true
@@ -84,9 +83,7 @@ translateWithIntFunctions options@{ typedRecords, loopInvariants, intFunctions }
       let
         name = safeCtorName ctor.name
         -- Int field evidence selects storage; constructors keep the Object ABI.
-        fields = Array.mapWithIndex (\index fieldType -> Tuple ("value" <> show index) (case fieldType of
-          CoreFn.Int -> ParamInt
-          _ -> ParamObject)) ctor.fields
+        fields = Array.mapWithIndex (\index fieldType -> Tuple ("value" <> show index) (parameterType fieldType)) ctor.fields
       in JavaClassDecl name fields (Array.elem (moduleName <> "." <> name) ownership.mutableClasses)
       ) decl.constructors) mod.dataDecls
     file =

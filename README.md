@@ -8,7 +8,7 @@ An optimizing **PureScript-to-Java compiler**, written in PureScript, bringing p
 
 `javapurs` consumes the enriched **TAST / `tcorefn`** representation produced by our [PureScript compiler fork](https://github.com/0x000000000000000000001/purescript), optimizes it through `purescript-backend-optimizer`, and emits Java source. Node.js runs the compiler; the generated application runs on the JVM.
 
-For maintainers: [compiler guide](docs/compiler.md) · [expression translation](docs/expressions.md) · [Java AST and scope contracts](docs/ast.md) · [focused testing and validation records](docs/testing.md).
+For maintainers: [compiler guide](docs/compiler.md) · [types and calling conventions](docs/representations.md) · [expression translation](docs/expressions.md) · [Java rendering](docs/printing.md) · [Java AST and scope contracts](docs/ast.md) · [focused testing and validation records](docs/testing.md).
 
 ## Features
 

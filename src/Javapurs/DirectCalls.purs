@@ -12,6 +12,7 @@ import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst, snd)
 import Javapurs.JavaAst (JavaExpr(..), JavaParamType(..), JavaFile, traverseChildren)
 import Javapurs.Naming (lazyGetterName)
+import Javapurs.Representation (coerceArgument)
 
 type Candidate = { name :: String, worker :: String, index :: Int, arity :: Int, params :: Array JavaParamType, lazy :: Boolean }
 type Lambdas = { groups :: Array (Array (Tuple String JavaParamType)), args :: Array (Tuple String JavaParamType), body :: JavaExpr }
@@ -100,9 +101,7 @@ lambdaChain minimum = collect [] []
 workerCall :: String -> Candidate -> Array JavaExpr -> JavaExpr
 workerCall moduleName candidate args =
   JavaCall (JavaStaticMethodRef (Just moduleName) candidate.worker)
-    (Array.zipWith (\paramType arg -> case paramType of
-        ParamInt -> JavaCast "int" arg
-        _ -> arg) candidate.params args)
+    (Array.zipWith coerceArgument candidate.params args)
 
 type Rewrite = State (Set Int)
 

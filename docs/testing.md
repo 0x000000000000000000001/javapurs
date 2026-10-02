@@ -85,8 +85,10 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Responsabilité touchée | Suite disponible | Contrats couverts / prérequis particuliers |
 | --- | --- | --- |
 | `IntLoops` | [test/int-loops.mjs](../test/int-loops.mjs) | Classification des paramètres primitifs, types polymorphes et `TypeApp` ; chemin synthétique Node sans `javac`. |
+| Preuves de type, stockage et conventions FFI | [test/representations.mjs](../test/representations.mjs) | 43 contrôles JVM sur chacune des huit combinaisons Int/générique, records typés/Maps et appels directs on/off ; même module, champs d'ADT, instantiation/dictionnaires, flèches résiduelles et callbacks dans les records ; `javac --release 17`. |
 | AST, `Rename`, `ControlFlow`, `Raw` | [test/ast-scopes.mjs](../test/ast-scopes.mjs) | Masquage, branches sœurs, récursion, métadonnées/sélecteurs, cibles de boucle imbriquées et Java brut ; 110 contrôles JVM par mode, avec/sans chunking. |
 | Contextes et traduction `CodeGen.Expr` | [test/codegen.mjs](../test/codegen.mjs) | 48 contrôles JVM par mode, avec/sans chunking : gardes, arguments, effets différés, binds, écritures uniques/identité ST, exceptions, récursion locale et captures échappées. |
+| Rendu, corps, littéraux et templates intégrés | [test/printer.mjs](../test/printer.mjs) | 86 contrôles JVM : méthodes/closures/thunks, boucles directes/différées, builtins, chaînes et labels UTF-16, messages et cibles échappés ; `javac --release 17`. |
 | TCO, captures d'itération, rendu du contrôle | [test/tco.mjs](../test/tco.mjs) | Boucles, cibles, closures et exécution Java. |
 | Boucles comptées | [test/counted-loops.mjs](../test/counted-loops.mjs) | Reconnaissance et génération des boucles, replis et résultats Java. |
 | Nommage, constructeurs nullaires, initialisation | [test/nullary-constructors.mjs](../test/nullary-constructors.mjs) | Singletons, portées, noms des modules/constructeurs et initialisations. |
@@ -294,6 +296,26 @@ l'ordre et le nombre d'exécutions, ainsi que les exceptions et l'identité des
 objets retournés par les écritures ST. Les autres suites couvrent notamment les
 replis génériques/primitifs, gardes d'initialisation et caches de boucle.
 Compléter par les lignes de la matrice correspondant aux workers modifiés.
+
+### Rendu Java
+
+Pour les [plans de corps et frontières Supplier](printing.md) :
+
+```bash
+./bin/build
+node test/printer.mjs
+node test/tco.mjs
+node test/counted-loops.mjs
+node test/typed-records.mjs
+```
+
+La suite `printer.mjs` rend directement des AST. Ses chaînes attendues sont
+construites par codes UTF-16 dans Java pour vérifier l'échappement indépendamment
+du printer. Elle distingue création et forçage des thunks, y compris une boucle
+réexécutée à chaque forçage. Les autres suites couvrent sauts, paramètres et
+représentations. Choisir aussi les suites de déclarations/scopes concernées dans
+la matrice ; un changement de frontière de méthode appelle notamment les tests
+de chunking et de captures.
 
 ### Outillage des tests
 
@@ -832,3 +854,178 @@ notamment `base/`, `versions.json`, `build-final.log`, `before/`, `reviewed/`,
 
 **Conclusion : M06 validé, +10 points ; avancement 55/100, 6 lots sur 11.
 Prochain lot : M07 — impression Java et runtime généré.**
+
+## Validation M07
+
+**2 octobre 2026 — impression Java et runtime généré.**
+
+Base effective : clôture M06, HEAD `17f9b1e3afb000d88d858f54cc8a6a4bd26390ed`
+avec ses changements non committés. `base/` conserve sources/tests/documents,
+empreintes, statut, diff et anciens modules construits Printer/RecordPrinter/Runtime.
+Les commits intermédiaires du workspace sont inclus dans la revue depuis cette
+copie. PBO Java et fork PureScript conservent les révisions de M06. Node 24.8.0,
+Spago 1.0.3, même binaire `purs` TAST et JDK OpenJDK 26.0.2 relevés à nouveau ;
+aucun override JDK/heap initial. Temporaires dans le dossier `opencode` approuvé.
+
+### Livrables et décisions
+
+- `Printer` expose un dispatcher exhaustif avec familles expression, statement
+  et déclaration identifiables ; ses entrées `printExpr`, `printFile` et
+  `escapeJavaString` restent disponibles.
+- `Printer.Body` nomme `BodyMode`, `BodyPlan`, `TailContext` et `Loop`. Les
+  décisions boucle directe, statements terminaux, bloc/retour ou expression/retour
+  précèdent le rendu. Le parcours terminal partage scopes et branches entre
+  méthodes et boucles, avec une capacité de `continue` propre au contexte de boucle.
+- `Printer.Declarations` regroupe champs eager/lazy, méthodes, classes d'ADT,
+  overloads typés/varargs et holders. Initialisation réentrante et conventions
+  `Object`/Int conservent leurs templates et conditions.
+- `Printer.Syntax` possède l'échappement UTF-16 et les constructions partagées.
+  `supplier` crée une action, `forceSupplier` l'exécute. `RecordPrinter` partage
+  ces opérations et sépare déclarations, lecteurs, membres Map et évaluations
+  des champs/mises à jour.
+- `Runtime.builtinGlobalSource` rassemble les cinq implémentations globales
+  intégrées auparavant dans `Printer`. Les trois templates de fichiers communs
+  gardent leur contenu. Les sous-renderers reçoivent un callback `Render`, sans
+  dépendance circulaire sur le dispatcher.
+- [Guide du rendu](printing.md), carte du compilateur, contrat AST, README,
+  matrice, suite `printer.mjs` et modules construits sont actualisés.
+
+### Défaut d'échappement reproduit
+
+Avant refactoring, les **75 contrôles de valeurs/corps** de la nouvelle suite
+passent, puis `javac` rejette `PrinterMessages.java` : les messages de `JavaThrow`
+et les identités de `TcoLoop` étaient insérés sans échappement. Guillemets,
+backslashes, retours à la ligne et séquences textuelles `\u000a` produisaient du
+Java invalide. Les fichiers et le log d'échec sont conservés.
+
+Ces sites passent maintenant par `quote`, comme les littéraux et labels de
+records. Les **11 contrôles supplémentaires** vérifient les messages exacts et
+un saut à travers le repli `TcoLoop` avec une cible contenant des caractères à
+échapper. Les attentes Java sont construites par codes UTF-16, indépendamment
+du renderer, et couvrent aussi Unicode supplémentaire et substituts isolés.
+
+### Commandes et résultats
+
+| Contrôle ciblé | Résultat |
+| --- | --- |
+| `./bin/build` | **0 erreur, 0 avertissement** ; modules du rendu et consommateurs reconstruits. |
+| `node test/printer.mjs` | **86 contrôles JVM** : 75 valeurs/corps et 11 messages/cibles ; Java 17, pile 256 Kio. |
+| `node test/tco.mjs`, `node test/counted-loops.mjs`, `node test/loop-invariants.mjs` | Réussis : contrôle terminal, chemins comptés/génériques, captures et caches. |
+| `node test/direct-calls.mjs`, `node test/int-functions.mjs` | Réussis dans les modes concernés ; **37 contrôles runtime par mode** pour les appels directs. |
+| `node test/nullary-constructors.mjs`, `node test/typed-records.mjs`, `node test/ownership.mjs`, `node test/constructor-reuse.mjs` | Déclarations, ABI, initialisation, records et mutation/réutilisation réussis. |
+| `node test/operators.mjs` | **202 cas numériques** réussis. |
+| `node test/chunk.mjs`, `node test/ast-scopes.mjs`, `node test/codegen.mjs` | **15 fixtures**, **110 contrôles JVM par mode** et **48 contrôles JVM par mode**, respectivement. |
+| `node test/big-function.mjs` | Pipeline isolé réussi, puis **155 contrôles**, dont 26 motifs non vides entièrement réussis. |
+
+### Comparaisons
+
+- Les treize suites existantes ont été exécutées avant/après avec la sonde locale
+  de conservation des sources : **87/87 sources Java identiques**, inventaires inclus.
+- La nouvelle suite Printer produit **6/7 sources identiques** à sa référence
+  initiale ; seul `PrinterMessages.java` change pour la correction décrite ci-dessus.
+- BigFunction conserve ses **210 TAST**, sa source PureScript, sa configuration
+  et son harness par rapport à la clôture M06. Ses **329/329 sources Java**, FFI
+  incluse, sont identiques. Les frontières de corps, de branches et de chunking
+  conservent ainsi les sorties du grand arbre de gardes.
+- Les templates `__IntFn`, `TcoLoop` et `MainRun` sont comparés directement aux
+  exports Runtime sauvegardés ; leur contenu est identique.
+
+Soit **416 sources Java existantes comparées à l'octet près**, plus les sept
+sources de la nouvelle suite, dont une correction explicite. La validation
+finale contrôle également exports/consommateurs, absence de rendu anticipé des
+chemins non choisis, liens et ancres, matrice des 18 suites, sept options CLI,
+exemples Bash, syntaxe Node, score et diff depuis la base effective M06.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m07/`,
+notamment `base/`, `versions.json`, `build.log`, `build-final.log`, `before/`,
+`after/`, `baseline-regression/`, `printer-baseline-result.log`,
+`004-PrinterMessages.java.diff`, `java-comparison.txt`, `big-function-after/`,
+`big-function-inputs.json`, `big-function-comparison.txt`, les logs des suites,
+`runtime-comparison.txt`, `effective-m07.diff` et `final-checks.txt`.
+
+**Conclusion : M07 validé, +10 points ; avancement 65/100, 7 lots sur 11.
+Prochain lot : M08 — types, représentations et conventions d'appel.**
+
+## Validation M08
+
+**2 octobre 2026 — types, représentations et conventions d'appel.**
+
+Base effective : clôture M07, HEAD `7acf2dc4717be7ae7808a1f2958444433af34b8f`
+avec les changements de rendu/documentation encore non committés. `base/`
+conserve les sources, documents et modules construits de cette référence ; le
+statut et le diff initiaux sont enregistrés séparément. La nouvelle fixture
+`representations.mjs` y a également été copiée pour son exécution comparative.
+PBO Java : `0f41544464ec0f42e6cb0dd77b206852813f904f`. Checkout PureScript relevé :
+`13f63fdde1a82cfe91ae1ccf847784d2fbbbfafb` ; binaire `purs` du PATH toujours
+`0.15.16 [development build; commit: 3c8fcfd7a3d440bba487fe9fe059284cffc6e908 DIRTY]`.
+Node 24.8.0, Spago 1.0.3 et OpenJDK 26.0.2 ; aucun override JDK/heap initial.
+Le lien `b8x/output` relevé pointe vers `run/bak/rust/output`.
+
+### Livrables et contrats
+
+- `TypeEvidence` possède les projections de types déclarés, les environnements
+  lexicaux, la consommation de flèches et les propriétés de records. Les trois
+  implémentations de consommation de `Func` sont réunies ; `RecordTypes` et
+  `FunctionTypes` gardent leurs règles de propagation spécifiques.
+- `Representation` possède la sélection du stockage Int/Object des champs et
+  paramètres, l'admission des signatures récursives par arité exacte, les
+  catégories de champs de records et la conversion des arguments de workers.
+  `CodeGen` et `DirectCalls` emploient ce contrat commun. Les réexports existants
+  `FunctionTypes.intFunction` et `CodeGen.Syntax.paramKinds` sont conservés.
+- `IntFunctions` consomme la même preuve résiduelle pour abstraire et appliquer.
+  Les barrières `TypeApp`, `ForAll` et contraintes, le préfixe récursif boxed et
+  l'adaptation des callbacks à l'invocation sont documentés à leurs entrées.
+- `RecordPrinter.fieldStorage` rassemble type Java, conversion depuis Object et
+  test de compatibilité de mise à jour. `Printer.Syntax.unboxInt` est partagé par
+  lecteurs/champs de records et constructeurs ADT génériques. `JavaParamType`
+  distingue explicitement preuve de stockage et type Java effectif d'une closure.
+- [Guide des représentations](representations.md), liens des autres guides,
+  matrice, fixture de conventions et artefacts construits sont livrés ensemble.
+  Le guide relie TAST/PBO/annotations/Java, explique les informations insuffisantes
+  et nomme les obligations des FFI pour wrappers, callbacks, ADT et Maps.
+
+### Commandes et résultats
+
+| Contrôle ciblé | Résultat avant/après |
+| --- | --- |
+| `./bin/build` | **0 erreur, 0 avertissement** ; 30 modules reconstruits après extraction des contrats. |
+| `node test/representations.mjs` | **43 contrôles JVM × 8 modes**, soit **344 par version** ; même `BackendModule`, même harness Java, `javac --release 17`. |
+| `node test/int-functions.mjs` | Modes générique/spécialisé réussis : bridge FFI, valeurs nulles, exceptions, captures, flèches et récursion. |
+| `node test/typed-records.mjs`, puis `node test/typed-records.mjs --records=maps` | **75 / 69 contrôles JVM**, respectivement, sur les mêmes fixtures. |
+| `node test/nullary-constructors.mjs`, `node test/constructor-reuse.mjs` | Singletons, initialisation, champs frais et **7 groupes** de réutilisation réussis. |
+| `node test/direct-calls.mjs`, `node test/ownership.mjs` | **37 contrôles par mode** pour les appels directs ; workers, polymorphisme, groupes locaux et mutations ownership réussis. |
+| `node test/printer.mjs`, `node test/chunk.mjs`, `node test/int-loops.mjs` | **86 contrôles JVM**, **15 fixtures** et **25 cas de classification**, respectivement. |
+| `node test/driver.mjs --record "$REF"`, puis `--compare "$REF"` | **13 variantes CLI**, **12 exécutions JVM**, entrée vide et six erreurs d'I/O attendues réussies ; TAST/FFI figés et vérifiés par SHA-256. |
+
+`REF` désigne ici le dossier local `javapurs-m08/driver-reference`, inexistant
+avant `--record`. Les commandes de la table ont été exécutées une fois avec la
+référence et une fois avec les modules reconstruits, sauf le build lui-même.
+La nouvelle fixture traverse le pipeline traduction/renommage avec chunking
+désactivé ; `chunk.mjs` et le pilote couvrent séparément le transport des types
+effectifs dans les helpers.
+
+### Comparaisons et clôture
+
+- Dix exécutions de suites existantes (neuf scripts, records dans deux modes) :
+  **74/74 sources Java identiques**, inventaires inclus.
+- Nouvelle fixture de conventions, exécutée aussi sur le backend sauvegardé :
+  **28/28 sources identiques**, avec les huit configurations.
+- Pilote sur les quatre modules TAST figés, mêmes options et FFI :
+  **102/102 sources Java identiques**.
+
+Soit **204 sources Java cumulées identiques à l'octet près**, dont 176 issues
+des suites existantes. Aucun changement de comportement n'a été nécessaire
+pour ce lot. La revue finale vérifie exports/consommateurs, liens et ancres,
+matrice des 19 suites, sept options CLI, exemples Bash, syntaxe Node, score et
+diff depuis la base effective M07.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m08/`,
+notamment `base/`, `environment.txt`, `status-before.txt`, `diff-before.patch`,
+`build.log`, `before/`, `after/`, `comparison-existing.json`,
+`comparison-representations.json`, `driver-reference/inputs.json`, les logs des
+suites/pilote, `effective-m08.diff` et `final-checks.txt`.
+
+**Conclusion : M08 validé, +10 points ; avancement 75/100, 8 lots sur 11.
+Prochain lot : M09 — passes spécialisées.**

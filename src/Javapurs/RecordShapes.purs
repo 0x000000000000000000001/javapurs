@@ -11,6 +11,8 @@ import Data.String as String
 import Data.String.CodeUnits as CodeUnits
 import Data.Tuple (Tuple(..), fst)
 import Javapurs.JavaAst (JavaRecordFieldType(..), JavaRecordShape(..))
+import Javapurs.Representation (recordFieldType)
+import Javapurs.TypeEvidence (declaredType)
 import PureScript.Backend.Optimizer.Codegen.Tco (TcoExpr(..))
 import PureScript.Backend.Optimizer.CoreFn as CoreFn
 import PureScript.Backend.Optimizer.Syntax (BackendSyntax(..))
@@ -23,24 +25,15 @@ recordShape = case _ of
   CoreFn.Record (CoreFn.Row fields Nothing)
     | Array.length (Array.nub (map fst fields)) == Array.length fields ->
         let
-          shape = JavaRecordShape $ map (\(Tuple label ty) -> Tuple label (fieldType ty)) $
+          shape = JavaRecordShape $ map (\(Tuple label ty) -> Tuple label (recordFieldType ty)) $
             Array.sortBy (\a b -> compare (fst a) (fst b)) fields
         -- Shape names are collision-free encodings, rather than hashes. Leave
         -- very wide shapes on the Map path to respect filesystem name limits.
         in if String.length (recordClassName shape) <= 180 then Just shape else Nothing
   _ -> Nothing
 
-fieldType :: CoreFn.ExprType -> JavaRecordFieldType
-fieldType = case _ of
-  CoreFn.Int -> RecordInt
-  CoreFn.Record _ -> RecordNested
-  _ -> RecordObject
-
 recordShapeOf :: TcoExpr -> Maybe JavaRecordShape
-recordShapeOf (TcoExpr _ syntax) = case syntax of
-  Typed ty _ -> recordShape ty
-  -- TypeApp instantiates a value; its argument is not that value's result type.
-  _ -> Nothing
+recordShapeOf expression = declaredType expression >>= recordShape
 
 recordClassName :: JavaRecordShape -> String
 recordClassName (JavaRecordShape fields) =

@@ -40,7 +40,8 @@ qu'un local homonyme renomme une méthode ou devienne une capture artificielle.
 marqué `ParamInt` dans `JavaTypedAbs` garde l'ABI publique `Object` ; seul
 `JavaIntAbs` déclare un argument de closure primitif. Le type Java effectif et
 les casts doivent être conservés lors d'une extraction dans un helper retournant
-`Object`.
+`Object`. Les choix de stockage, les conversions et leur provenance sont décrits
+dans [Types, représentations et conventions d'appel](representations.md).
 
 ## Parcours structurels communs
 
@@ -193,11 +194,14 @@ n'entre pas dans ce mécanisme de substitution.
 | Un saut apparaît-il dans le calcul courant, y compris un opérande ou statement ? | `hasAnyContinue` parcourt la structure, notamment conditions et indices ; s'arrête aux fonctions, méthodes, initialisations lazy et boucles imbriquées. |
 | Une cible particulière est-elle atteinte depuis un sous-arbre ? | `hasTargetContinue` traverse aussi closures et boucles imbriquées, ainsi que les arguments d'un saut vers une autre cible. |
 
-`CodeGen.translateLoop` utilise ces questions pour décider de la boucle et des
-spécialisations autorisées. `Printer.printLoopTail` utilise la première, puis
+`CodeGen.Expr.translateLoop` utilise ces questions pour décider de la boucle et des
+spécialisations autorisées. `Printer.Body.printTail` utilise la première en contexte de boucle, puis
 vérifie la cible et l'arité avant d'émettre un `continue`. Un saut vers une
 boucle extérieure ou à travers une frontière de méthode utilise `TcoLoop` ;
 les boucles intermédiaires le relancent jusqu'à sa cible.
+
+Le [guide du rendu](printing.md) distingue ces analyses des décisions de corps,
+de retours et de frontières `Supplier` propres au printer.
 
 ## Ajouter un nœud
 

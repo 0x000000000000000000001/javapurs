@@ -1,6 +1,6 @@
 module Javapurs.CodeGen.Syntax
   ( Application, Abstraction, flattenApp, extractUncurriedAbs, unwrapTcoExpr
-  , isEffectNode, stripEffectDefer, stripEffectAbs, paramKinds
+  , isEffectNode, stripEffectDefer, stripEffectAbs, module Representation
   ) where
 
 import Prelude
@@ -9,10 +9,9 @@ import Data.Array as Array
 import Data.Array.NonEmpty as NEA
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
-import Javapurs.JavaAst (JavaParamType(..))
+import Javapurs.Representation (paramKinds) as Representation
 import PureScript.Backend.Optimizer.Codegen.Tco (TcoExpr(..))
 import PureScript.Backend.Optimizer.CoreFn (Ident(..))
-import PureScript.Backend.Optimizer.CoreFn as CoreFn
 import PureScript.Backend.Optimizer.FreeVars (localId)
 import PureScript.Backend.Optimizer.Syntax (BackendSyntax(..))
 
@@ -93,12 +92,3 @@ stripEffectAbs expr@(TcoExpr analysis syntax) = case syntax of
   Let ident level value body -> TcoExpr analysis (Let ident level value (stripEffectAbs body))
   LetRec level bindings body -> TcoExpr analysis (LetRec level bindings (stripEffectAbs body))
   _ -> expr
-
--- Definition types contribute only when they cover the extracted Abs arity.
-paramKinds :: TcoExpr -> Array String -> Array JavaParamType
-paramKinds (TcoExpr _ syntax) args = case syntax of
-  Typed (CoreFn.Func paramTypes _) _ | Array.length paramTypes == Array.length args ->
-    map (\paramType -> case paramType of
-      CoreFn.Int -> ParamInt
-      _ -> ParamObject) paramTypes
-  _ -> Array.replicate (Array.length args) ParamObject
