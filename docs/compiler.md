@@ -1,8 +1,8 @@
 # Guide du compilateur Javapurs
 
-État documenté au **1er octobre 2026**. Ce guide décrit le chemin de production
+État documenté au **2 octobre 2026**. Ce guide décrit le chemin de production
 actuel. Les références des sources et des outils figurent dans le
-[registre de validation](testing.md#validation-m02).
+[registre de validation](testing.md#validation-m03).
 
 ## Se repérer dans le workspace
 
@@ -14,8 +14,8 @@ htdocs/
 │   ├── todo.md                            plan de maintenabilité du workspace
 │   ├── javapurs/                          dépôt de ce guide
 │   │   ├── bin/                           lancement, build et runners
-│   │   ├── src/Main.purs                   orchestration
-│   │   ├── src/Javapurs/                   traduction, analyses, AST et rendu
+│   │   ├── src/Main.purs                   entrée du processus Node
+│   │   ├── src/Javapurs/                   pilote, traduction, analyses et rendu
 │   │   ├── test/                          régressions directes Node/Java
 │   │   ├── tests/runner/                   workspace des fixtures PureScript
 │   │   └── tools/                         sélection, workspaces et processus de test
@@ -50,10 +50,18 @@ Reconstruire l'outil après modification de ses sources ou de PBO :
 
 [bin/javapurs](../bin/javapurs) démarre Node avec `--expose-gc`, une pile de
 65 536 Kio et un heap maximal de `JAVAPURS_HEAP` Mio, 16 384 par défaut.
-`bin/javapurs.js` appelle ensuite [Main.main](../src/Main.purs).
+Le shell se remplace par Node via `exec`. `bin/javapurs.js` appelle ensuite
+[Main.main](../src/Main.purs).
 
-`Main` lit les arguments avec `Node.Process.argv`. La
-[table des options](../README.md#compiler-options) correspond à ce parseur.
+`Main` lit `Node.Process.argv`, appelle [Config.parseArgs](../src/Javapurs/Config.purs)
+et lance [Driver.compile](../src/Javapurs/Driver.purs) sous la mesure `backend total`.
+La configuration nomme les chemins, le module principal, la limite PBO et les
+options du pipeline. `CodegenOptions` est aussi le type de l'entrée complète de
+`CodeGen` ; `PipelineOptions` lui ajoute le choix du chunking.
+
+La [table des options](../README.md#compiler-options) correspond à `Config`.
+Les arguments inconnus sont ignorés, le premier `--main` prime et un `--main`
+final sans valeur reprend `Main`. Ces règles décrivent la CLI existante.
 Les chemins d'entrée `output` et de sortie `java_output` sont relatifs au dossier
 appelant. L'appelant prépare `java_output` ; les options de sortie et de FFI
 du parseur générique de PBO ne sont pas utilisées par ce pilote.
@@ -81,9 +89,11 @@ types PBO et leurs nœuds `Typed`/`TypeApp`, pas sur le JSON brut. Un argument d
 [RecordShapes.recordShapeOf](../src/Javapurs/RecordShapes.purs) et
 [IntFunctions.applyFunction](../src/Javapurs/IntFunctions.purs).
 
-`Main` charge les directives par défaut et appelle le builder séquentiel
-`buildModules`, avec les sémantiques étrangères communes et une limite de
-réécriture de 10 000. Il fournit les hooks de préparation, cache et émission.
+`Driver.compile` rend visibles les trois phases : chargement/tri, préparation
+des directives et helpers communs, puis optimisation/émission. Il appelle le
+builder séquentiel `buildModules`, avec les sémantiques étrangères communes et
+la limite de réécriture configurée, 10 000 par défaut. Il fournit les hooks de
+préparation, cache et émission.
 Le hook `onSkipModule` renvoie actuellement `Nothing` : la présence de `.purmeta`
 ne constitue pas un cache des fichiers Java émis par Javapurs.
 
@@ -93,8 +103,11 @@ Points d'entrée PBO : [App](../../../purescript-backend-optimizer-javapurs/src/
 
 ### 3. Traduction d'un module
 
-Dans `onCodegenModule`, `Main` résout d'abord la FFI Java, puis appelle
-`CodeGen.translateWithIntFunctions`. Cette entrée coordonne, dans l'ordre :
+Le hook `onCodegenModule` appelle `Driver.compileModule`. Celui-ci lit le fragment
+Java par [Ffi.loadForeign](../src/Javapurs/Ffi.purs), puis abaisse le module via
+[Pipeline.lowerModule](../src/Javapurs/Pipeline.purs). Ce pipeline pur transforme
+un `BackendModule` en `JavaFile` : traduction, renommage, puis chunking optionnel.
+Sa première étape, `CodeGen.translateWithIntFunctions`, coordonne dans l'ordre :
 
 1. `Ownership.prepare`, si activé : sélection des fonctions consommatrices,
    réécriture du module, déclarations de workers et classes rendues mutables.
@@ -109,11 +122,11 @@ Dans `onCodegenModule`, `Main` résout d'abord la FFI Java, puis appelle
 
 Le résultat contient `decls` et `recordShapes`. Les entrées simplifiées comme
 `translate` ou `translateWithRecords` donnent des valeurs par défaut aux
-options supplémentaires. Elles ne réalisent pas les étapes suivantes de `Main`.
+options supplémentaires. Elles ne réalisent pas les étapes suivantes de `Pipeline`.
 
 ### 4. Noms lexicaux puis découpage
 
-`Main` applique `Rename.renameExpr` aux déclarations, puis `Chunk.chunkFile`,
+`Pipeline.lowerModule` applique `Rename.renameExpr` aux déclarations, puis `Chunk.chunkFile`,
 sauf avec `--no-chunk`. **Cet ordre est un contrat de la passe.**
 
 - `Rename` distingue les bindings homonymes par des suffixes `$rN` et restaure
@@ -136,17 +149,24 @@ attribuer. Voir [Chunk](../src/Javapurs/Chunk.purs) et ses
 
 ### 5. Rendu, FFI et écritures
 
-`Printer.printExpr` rend les déclarations du fichier découpé. `RecordPrinter`
-rend les classes de records. `Main` assemble les membres Java avec le fragment
-FFI ou les stubs, puis écrit la classe du module.
+[Emit.emitModule](../src/Javapurs/Emit.purs) appelle `Printer.printExpr` pour les
+déclarations du fichier découpé et `RecordPrinter` pour les classes de records.
+Il assemble la classe avec les membres étrangers produits par `Ffi.renderForeign`.
+Toutes les écritures Java passent par son helper `writeJava`, qui annote les
+erreurs avec le chemin de destination.
 
 | Fichier généré | Responsabilité actuelle |
 | --- | --- |
-| `__M$App_Main.java` pour `App.Main` | `Naming.modulePrefix`, puis assemblage dans `Main`. |
-| `__Record$….java` | Nom structurel dans `RecordShapes`, corps dans `RecordPrinter`. |
-| `__IntFn.java` | `IntFunctions.runtimeSource`, écrit pendant la préparation. |
-| `TcoLoop.java` | Template dans `Main`, écrit dans le callback de chaque module. |
-| `MainRun.java` | Template dans `Main`, émis pour le module sélectionné par `--main`. |
+| `__M$App_Main.java` pour `App.Main` | Nom dans `Naming.modulePrefix`, membres étrangers dans `Ffi`, assemblage et écriture dans `Emit.emitModule`. |
+| `__Record$….java` | Nom structurel dans `RecordShapes`, corps dans `RecordPrinter`, écriture dans `Emit.emitModule`. |
+| `__IntFn.java` | `Runtime.intFunctionSource`, écrit une fois par `Emit.emitRuntime`, pendant la préparation. |
+| `TcoLoop.java` | `Runtime.tcoLoopSource`, écrit une fois par `Emit.emitRuntime` si au moins un module est chargé. |
+| `MainRun.java` | `Runtime.mainRunSource`, écrit par `Emit.emitModule` pour le module sélectionné par `--main`. |
+
+[Runtime](../src/Javapurs/Runtime.purs) possède les trois templates communs et
+n'effectue aucune I/O. `IntFunctions.runtimeSource` reste un alias vers le
+template `__IntFn`, utilisé par les fixtures et benchmarks existants. Une entrée
+vide produit seulement `__IntFn.java` dans un dossier de sortie neuf.
 
 Les classes utilisent le package Java par défaut. `__M$Main` représente le module
 PureScript `Main` ; `MainRun` est l'entrée JVM. Les constructeurs sont des classes
@@ -156,7 +176,8 @@ dans une commande shell, par exemple `'__M$Main.java'`.
 
 `--main` sélectionne le launcher parmi les modules chargés. Le pilote ne filtre
 pas les modules chargés par atteignabilité depuis ce point d'entrée. Il ne retire
-pas non plus les sorties de modules supprimés ou renommés.
+pas non plus les sorties de modules supprimés ou renommés. Si le module demandé
+est absent, aucun nouveau `MainRun.java` n'est écrit.
 
 ### 6. Compilation et exécution Java
 
@@ -170,11 +191,31 @@ Les commandes minimales et le classpath sont dans le
 emploient les records Maps, `javac --release 17` et les JAR de
 `run/bak/java/lib/`. Ce sont des choix d'intégration applicative.
 
+### Diagnostics et durées
+
+[Metrics.measure](../src/Javapurs/Metrics.purs) conserve les libellés `load TAST + sort`,
+`prepare`, `optimize + emit` et `backend total`. Les phases sont incluses dans
+le total, et un échec est marqué `(failed)` avant propagation.
+Depuis M03, l'écriture unique de `TcoLoop` appartient à `prepare`.
+
+[Diagnostics.withContext](../src/Javapurs/Diagnostics.purs) ajoute le contexte aux
+erreurs remontées par le chargement, la lecture FFI et les écritures. Exemples :
+`load TAST from output: ENOENT…`,
+`compile module Missing: read Java FFI src/Missing.java: EISDIR…` ou
+`compile module Main: write Java java_output/MainRun.java: EISDIR…`.
+Ces erreurs atteignent le launcher Node et produisent un code de sortie 1.
+Le chargement reste celui de PBO : un fichier CoreFn absent peut être ignoré,
+et une erreur de décodage est journalisée avant d'écarter le module concerné.
+
 ## Où se trouve une responsabilité ?
 
 | Question | Sources à lire |
 | --- | --- |
-| Comment sont pilotées les phases et les durées ? | [Main](../src/Main.purs), [Metrics](../src/Javapurs/Metrics.purs). |
+| Où sont définies les options et les valeurs par défaut ? | [Main](../src/Main.purs), [Config](../src/Javapurs/Config.purs). |
+| Comment sont pilotées les phases et les durées ? | [Driver](../src/Javapurs/Driver.purs), [Metrics](../src/Javapurs/Metrics.purs), [Diagnostics](../src/Javapurs/Diagnostics.purs). |
+| Quel est l'ordre des passes Java après PBO ? | [Pipeline](../src/Javapurs/Pipeline.purs). |
+| Qui lit les fragments FFI et écrit les fichiers Java ? | [Ffi](../src/Javapurs/Ffi.purs), [Emit](../src/Javapurs/Emit.purs). |
+| Où sont les templates communs et le launcher JVM ? | [Runtime](../src/Javapurs/Runtime.purs). |
 | Comment sont nommés modules, constructeurs et locaux ? | [Naming](../src/Javapurs/Naming.purs), [Rename](../src/Javapurs/Rename.purs). |
 | Quels nœuds Java existent et quels sont leurs enfants ? | [JavaAst](../src/Javapurs/JavaAst.purs). |
 | Comment sont traduits applications, effets, bindings et branches ? | [CodeGen](../src/Javapurs/CodeGen.purs), [Operators](../src/Javapurs/Operators.purs). |
@@ -222,17 +263,20 @@ utilise aussi son rendu : ces dépendances font partie de l'organisation actuell
 
 ### Résolution et forme des fragments
 
-`Main` appelle `findFfiFile ".java" [] Nothing moduleName modulePath` dans PBO.
+`Ffi.loadForeign` appelle `findFfiFile ".java" [] Nothing moduleName modulePath` dans PBO.
 Le [résolveur](../../../purescript-backend-optimizer-javapurs/src/PureScript/Backend/Optimizer/FfiSupport.js)
 essaie le fichier adjacent au `.purs`, puis les racines découvertes dans `.spago`,
 `spago.d` et le dossier appelant. Il cherche les variantes de chemin du module
 sous `src/` ou à la racine. Le pilote Java ne lui transmet pas de dossier FFI CLI.
 
-Un fragment fournit les membres de la classe générée : champs exportés et
-méthodes privées éventuelles, avec noms de types Java qualifiés. `Main` l'insère
-tel quel. En l'absence d'un fragment non vide, il produit des stubs pour les
-imports étrangers. `javac` contrôle ensuite les références Java ; le backend
-n'adapte pas automatiquement une signature Java ordinaire à l'ABI curryfiée.
+`loadForeign` retourne un `Maybe ForeignSource`, contenant le chemin et le texte
+lus. Un fragment fournit les membres de la classe générée : champs exportés et
+méthodes privées éventuelles, avec noms de types Java qualifiés. `renderForeign`
+insère un fragment non vide tel quel, sinon produit des stubs pour les imports
+étrangers. Le champ commun `FFI_STUB` est toujours présent. Une erreur de lecture
+du fichier sélectionné est propagée avec son chemin. `javac` contrôle ensuite
+les références Java ; le backend n'adapte pas automatiquement une signature
+Java ordinaire à l'ABI curryfiée.
 
 La présence d'une FFI JavaScript dans un port est compatible avec la présence
 d'une FFI Java : elles servent les chemins de compilation et d'exécution respectifs.

@@ -18,6 +18,7 @@ import Data.String.CodeUnits as CodeUnits
 import Data.Newtype (unwrap)
 import PureScript.Backend.Optimizer.Codegen.Tco as Tco
 import Javapurs.JavaAst (JavaExpr(..), children, JavaParamType(..), JavaFile)
+import Javapurs.Config (CodegenOptions)
 import Javapurs.IntLoops (intLoopParams)
 import Javapurs.RecordShapes (recordShape, recordShapeOf, collectRecordShapes)
 import Javapurs.RecordTypes (annotateRecordTypes)
@@ -591,7 +592,7 @@ translateWithDirectCalls :: { typedRecords :: Boolean, loopInvariants :: Boolean
 translateWithDirectCalls { typedRecords, loopInvariants, directCalls: enabled } =
   translateWithIntFunctions { typedRecords, loopInvariants, directCalls: enabled, intFunctions: true, ownership: true }
 
-translateWithIntFunctions :: { typedRecords :: Boolean, loopInvariants :: Boolean, directCalls :: Boolean, intFunctions :: Boolean, ownership :: Boolean } -> BackendModule -> JavaFile
+translateWithIntFunctions :: CodegenOptions -> BackendModule -> JavaFile
 translateWithIntFunctions options@{ typedRecords, loopInvariants, intFunctions } mod0 =
   let
     ownership =

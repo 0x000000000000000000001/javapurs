@@ -5,9 +5,10 @@ import * as Data_Maybe from "../Data.Maybe/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Javapurs_FunctionTypes from "../Javapurs.FunctionTypes/index.js";
 import * as Javapurs_JavaAst from "../Javapurs.JavaAst/index.js";
+import * as Javapurs_Runtime from "../Javapurs.Runtime/index.js";
 import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
 import * as PureScript_Backend_Optimizer_Syntax from "../PureScript.Backend.Optimizer.Syntax/index.js";
-var runtimeSource = "\x0a@FunctionalInterface\x0apublic interface __IntFn extends java.util.function.Function<Object, Object>, java.util.function.IntUnaryOperator {\x0a    @Override\x0a    default Object apply(Object value) {\x0a        return applyAsInt((int) value);\x0a    }\x0a\x0a    static java.util.function.IntUnaryOperator from(java.util.function.Function<Object, Object> function) {\x0a        if (function == null) return null;\x0a        if (function instanceof __IntFn specialized) return specialized;\x0a        return value -> (int) function.apply(value);\x0a    }\x0a}\x0a";
+var runtimeSource = Javapurs_Runtime.intFunctionSource;
 var resultType = function (v) {
     if (v instanceof Data_Maybe.Just && v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.Func) {
         var v1 = Data_Array.uncons(v.value0.value0);
@@ -23,7 +24,7 @@ var resultType = function (v) {
         if (v1 instanceof Data_Maybe.Nothing) {
             return Data_Maybe.Nothing.value;
         };
-        throw new Error("Failed pattern match at Javapurs.IntFunctions (line 36, column 32 - line 38, column 23): " + [ v1.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.IntFunctions (line 23, column 32 - line 25, column 23): " + [ v1.constructor.name ]);
     };
     return Data_Maybe.Nothing.value;
 };
@@ -84,7 +85,7 @@ var abstractFunction = function (ty) {
             if (v instanceof Data_Maybe.Nothing) {
                 return body;
             };
-            throw new Error("Failed pattern match at Javapurs.IntFunctions (line 42, column 33 - line 51, column 18): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.IntFunctions (line 29, column 33 - line 38, column 18): " + [ v.constructor.name ]);
         };
     };
 };

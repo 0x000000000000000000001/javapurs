@@ -8,28 +8,15 @@ import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Javapurs.FunctionTypes (intFunction)
 import Javapurs.JavaAst (JavaExpr(..), JavaParamType(..))
+import Javapurs.Runtime as Runtime
 import PureScript.Backend.Optimizer.Codegen.Tco (TcoExpr(..))
 import PureScript.Backend.Optimizer.CoreFn as C
 import PureScript.Backend.Optimizer.Syntax (BackendSyntax(..))
 
--- One object supports both ABIs. Generic callers and FFI values need no eager
--- adapter; the primitive call site falls back to the existing Function ABI.
+-- Compatibility entry for existing fixture/benchmark callers. Runtime owns
+-- the template; this module owns the specialized function representation.
 runtimeSource :: String
-runtimeSource = """
-@FunctionalInterface
-public interface __IntFn extends java.util.function.Function<Object, Object>, java.util.function.IntUnaryOperator {
-    @Override
-    default Object apply(Object value) {
-        return applyAsInt((int) value);
-    }
-
-    static java.util.function.IntUnaryOperator from(java.util.function.Function<Object, Object> function) {
-        if (function == null) return null;
-        if (function instanceof __IntFn specialized) return specialized;
-        return value -> (int) function.apply(value);
-    }
-}
-"""
+runtimeSource = Runtime.intFunctionSource
 
 resultType :: Maybe C.ExprType -> Maybe C.ExprType
 resultType = case _ of

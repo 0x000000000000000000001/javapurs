@@ -124,7 +124,7 @@ The example prints `Hello from javapurs` using its own Java console binding. It 
 
 Create `java_output` before the backend runs: the CLI writes into it without creating it. Spago invokes the configured backend after producing enriched `output/<Module>/corefn.json`. Verify that a generated file includes `dataDecls`, `classDecls`, and, with the current fork, `typeTable`. Missing metadata indicates an incompatible compiler or stale output; select the fork explicitly on `PATH` and rebuild in a fresh output directory.
 
-Each invocation reports monotonic elapsed times in milliseconds to stderr: TAST loading and sorting, preparation, optimization and file emission, and the backend total. The total includes these phases; it excludes the preceding `purs` compilation and subsequent `javac` compilation. A failed phase and its enclosing total are marked `(failed)` before the error is propagated.
+Each invocation reports monotonic elapsed times in milliseconds to stderr: TAST loading and sorting, preparation, optimization and file emission, and the backend total. The total includes these phases; it excludes the preceding `purs` compilation and subsequent `javac` compilation. A failed phase and its enclosing total are marked `(failed)` before the error is propagated. TAST loading, FFI reading and Java writing failures include their operation and path; module emission errors also name the module.
 
 Generated classes use the default Java package and the reserved prefix `__M$`, with module dots replaced by underscores: `App.Main` becomes `__M$App_Main.java`. The PureScript module `Main` becomes `__M$Main.java`; `MainRun.java` is the executable launcher. Record helpers named `__Record$…`, `__IntFn.java`, and `TcoLoop.java` are emitted alongside modules. Use single quotes for literal file names containing `$` in shell commands. Use a fresh `java_output` and class directory when removing or renaming modules, as the backend does not remove old files.
 
@@ -176,7 +176,7 @@ Merge this fragment with the rest of your workspace configuration.
 | `--ownership=off` | Disable consuming workers selected by the ownership analysis. |
 | `--no-chunk` | Disable extraction into `__chunk$N` helpers; useful for focused comparisons of the same input. |
 
-The input directory is fixed to `output`, and Java output to `java_output`, both relative to the application working directory. There is no configurable output path or dedicated `--help` handler; unknown arguments are currently ignored.
+The CLI fixes the input directory to `output`, and Java output to `java_output`, both relative to the application working directory. There is no configurable output path or dedicated `--help` handler; unknown arguments are currently ignored. The first `--main` wins; a trailing `--main` without a value uses `Main`. Selecting a module that is absent from the inputs emits no new launcher. These defaults and parsing rules live in [Config](src/Javapurs/Config.purs).
 
 Loop invariant caches belong to each fully applied function invocation. They evaluate at the first original use, so skipped branches and zero-iteration loops keep their evaluation behavior. The analysis checks known definitions and closures recursively, rejects unknown FFI/effects and local captures, and only caches successful `Int` results.
 
@@ -218,7 +218,7 @@ Names are escaped by [Naming](src/Javapurs/Naming.purs), including Java keywords
 
 Access PureScript records through `java.util.Map<String, Object>` and copy them before mutation. Generated typed record classes are immutable; other record paths use Maps. Do not assume every record is a `LinkedHashMap`. Generic arrays use `Object[]`; primitive values cross the generic function interface as their Java boxed equivalents. A plain `Function<Object, Object>` remains valid when the compiler specializes an `Int -> Int` call.
 
-When no `.java` file is found, the backend emits missing-FFI stubs that throw when called. When a file is found, it is inserted verbatim; the compiler does not validate every foreign binding or adapt ordinary Java method signatures. A successful Java compilation therefore does not prove that all application FFI paths are implemented.
+When no `.java` file is found, or the selected file is empty, the backend emits missing-FFI stubs that throw when called. A selected nonempty file is inserted verbatim; the compiler does not validate every foreign binding or adapt ordinary Java method signatures. Failure to read a selected file stops compilation with its path in the diagnostic. A successful Java compilation therefore does not prove that all application FFI paths are implemented.
 
 ## Development and testing
 
@@ -252,15 +252,17 @@ The shared JDK resolver uses explicit `JAVAC`/`JAVA` first, then `JAVA_HOME`, th
 
 `node test/big-function.mjs` prepares BigFunction in its own temporary Spago workspace, executes the corpus entrypoint and performs 155 branch checks. It can run independently of the last test in `tests/runner`. It caps the fixture's `javac` heap at 4 GiB and the branch-check JVM at 512 MiB.
 
-The [test matrix](docs/testing.md#matrice-des-tests) covers all 14 scripts and identifies optional benchmark-cache inputs. See the [BigFunction recipe](docs/testing.md#chunker-et-bigfunction) and [runner checks](docs/testing.md#outillage-des-tests) for focused commands. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
+`node test/driver.mjs` builds a small, isolated TAST application and exercises the real compiler CLI, entrypoint selection, FFI and I/O diagnostics, then compiles and runs its Java with `--release 17`. It requires the built backend, the TAST-capable `purs` and a JDK. Its recording/comparison modes preserve identical inputs for refactoring checks; see the [driver recipe](docs/testing.md#pilote-de-compilation).
+
+The [test matrix](docs/testing.md#matrice-des-tests) covers all 15 scripts and identifies optional benchmark-cache inputs. See the [BigFunction recipe](docs/testing.md#chunker-et-bigfunction) and [runner checks](docs/testing.md#outillage-des-tests) for focused commands. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
 
 ## Architecture
 
-1. **Loading and optimization:** [Main](src/Main.purs) loads enriched `corefn.json` modules and optimization directives, then calls the optimizer's `buildModules` to obtain optimized `BackendModule` values.
-2. **FFI resolution and Java lowering:** In each module callback, `Main` reads the Java snippet, then [CodeGen](src/Javapurs/CodeGen.purs) prepares ownership workers, analyzes TCO and types, translates expressions and emits constructor classes into [JavaAst](src/Javapurs/JavaAst.purs). It then applies direct calls and constructor reuse.
-3. **Lexical names and chunking:** `Main` runs [Rename](src/Javapurs/Rename.purs) before [Chunk](src/Javapurs/Chunk.purs), so helper extraction can reason about unique bindings and their captures.
-4. **Printing:** [Printer](src/Javapurs/Printer.purs) and [RecordPrinter](src/Javapurs/RecordPrinter.purs) render Java declarations, control flow, and record helpers. [IntFunctions](src/Javapurs/IntFunctions.purs) supplies the primitive-function interface.
-5. **Assembly and output:** `Main` inserts the Java snippet or FFI stubs, writes one class per module and shared helpers into `java_output`, and emits `MainRun` for the selected entrypoint. `javac` and `java` perform the final compilation and execution outside the backend.
+1. **Configuration and orchestration:** [Main](src/Main.purs) passes process arguments through [Config](src/Javapurs/Config.purs) to [Driver](src/Javapurs/Driver.purs). The driver loads enriched `corefn.json` modules and directives, prepares shared helpers, then calls PBO's `buildModules` to obtain optimized `BackendModule` values.
+2. **FFI resolution and Java lowering:** Each module callback reads the Java snippet through [Ffi](src/Javapurs/Ffi.purs) and calls [Pipeline](src/Javapurs/Pipeline.purs). Its [CodeGen](src/Javapurs/CodeGen.purs) step prepares ownership workers, analyzes TCO and types, translates expressions and emits constructor classes into [JavaAst](src/Javapurs/JavaAst.purs), then applies direct calls and constructor reuse.
+3. **Lexical names and chunking:** `Pipeline` runs [Rename](src/Javapurs/Rename.purs) before [Chunk](src/Javapurs/Chunk.purs), so helper extraction can reason about unique bindings and their captures.
+4. **Printing and templates:** [Printer](src/Javapurs/Printer.purs) and [RecordPrinter](src/Javapurs/RecordPrinter.purs) render Java declarations, control flow, and record helpers. [Runtime](src/Javapurs/Runtime.purs) owns the `__IntFn`, `TcoLoop` and `MainRun` templates.
+5. **Assembly and output:** [Emit](src/Javapurs/Emit.purs) assembles modules with the members supplied by `Ffi`, writes module/record classes and the selected launcher, and writes shared runtime files once during preparation. [Diagnostics](src/Javapurs/Diagnostics.purs) adds context to propagated I/O errors. `javac` and `java` perform the final compilation and execution outside the backend.
 
 The [compiler guide](docs/compiler.md) details the pass order, source modules, representation contracts and workspace boundaries.
 

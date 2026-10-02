@@ -1,6 +1,6 @@
 # Tests ciblés et registre de validation
 
-État documenté au **1er octobre 2026**. Les commandes de cette page s'exécutent
+État documenté au **2 octobre 2026**. Les commandes de cette page s'exécutent
 depuis le dépôt du compilateur `htdocs/javapurs/javapurs`, sauf indication contraire.
 
 ## Choisir le bon niveau
@@ -8,6 +8,7 @@ depuis le dépôt du compilateur `htdocs/javapurs/javapurs`, sauf indication con
 | Niveau | Entrée et résultat vérifié |
 | --- | --- |
 | Suites directes `test/*.mjs` | Modules JavaScript construits du compilateur, AST synthétiques et, suivant le script, compilation/exécution de fixtures Java. |
+| Pilote `test/driver.mjs` | Application PureScript minimale, TAST réel, launcher `bin/javapurs`, Java généré, JVM et erreurs d'I/O. |
 | Outillage `test/test-tools.mjs` | Petit corpus et commandes simulés ; sélection, fichiers, processus et interruption. Node suffit. |
 | Fixture PureScript nommée | `bin/test NOM` réalise Spago → Javapurs → `javac` → `MainRun` dans `tests/runner`. |
 | Port Java particulier | Son propre `bin/test` prépare le workspace du port et exécute son `Test.Main`. |
@@ -41,7 +42,7 @@ Pour relever ces versions, exécuter chaque outil avec `--version`.
 
 - **Build du backend :** Spago produit le JavaScript exécuté par Node.
 - **Compilation Java :** `javac --release 17` fixe le langage, les API et le
-  bytecode cible. Cette option est utilisée par b8x et `test/chunk.mjs` ;
+  bytecode cible. Cette option est utilisée par b8x, `test/driver.mjs` et `test/chunk.mjs` ;
   `test/big-function.mjs` l'applique à son harness supplémentaire.
 - **Runner de fixtures :** `bin/test` appelle actuellement `javac` sans
   `--release`. Les classes de `BigFunction` produites par ce runner suivent donc
@@ -95,15 +96,16 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Réutilisation des constructeurs | [test/constructor-reuse.mjs](../test/constructor-reuse.mjs) | Réécriture AST et exécution des cas de partage. |
 | Ownership et workers consommateurs | [test/ownership.mjs](../test/ownership.mjs) | Sélection, fraîcheur, cas polymorphes/locaux, génération et exécution. |
 | Renommage et chunking | [test/chunk.mjs](../test/chunk.mjs) | 11 fixtures : captures imbriquées, portées, types Java, récursion, mutations, ordre des effets, scopes profonds et boucles. |
+| Configuration, pilote, pipeline, FFI et émission | [test/driver.mjs](../test/driver.mjs) | 13 variantes CLI, deux ABI de launcher, entrée vide et six erreurs d'I/O ; TAST-capable `purs`, backend construit et JDK. Modes de comparaison sur entrées figées. |
 | Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | Prépare et exécute BigFunction dans un workspace temporaire isolé, puis réalise 155 contrôles de `f`. |
 | Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 11 tests Node : noms et bornes invalides, absence d'effets de `--list`, préparation/FFI, erreurs par phase, logs, temporaires, timeout et signaux aux descendants. |
 
 Pour une modification de `JavaAst` ou de `Printer`, choisir les lignes qui
 utilisent les nœuds modifiés et vérifier leurs parcours dans les passes
-consommatrices. Pour `Main`, la CLI ou l'insertion FFI, préparer une fixture
-nommée qui emprunte le chemin complet ; les scripts AST seuls ne couvrent pas
-l'orchestration. Les fixtures CLI simulées de M02 couvrent le runner ; les
-fixtures du pilote de compilation relèvent de M03.
+consommatrices. Pour `Main`, la CLI ou l'insertion FFI, utiliser `driver.mjs`,
+éventuellement complété par une fixture nommée pertinente ; les scripts AST seuls
+ne couvrent pas l'orchestration. Les fixtures CLI simulées de `test-tools.mjs`
+couvrent le runner, celles de `driver.mjs` le compilateur réel.
 
 ### Entrées optionnelles de benchmarks
 
@@ -165,6 +167,54 @@ Les exclusions actuelles sont `DerivingClause`,
 `DerivingContravariant`, `DerivingFunctorFromBi`, `DerivingFunctorFromPro`,
 `DerivingProfunctor` et `4179` : fonctionnalités rejetées par le frontend partagé
 ou sémantique JavaScript spécifique.
+
+### Pilote de compilation
+
+Pour une modification de la CLI, de l'orchestration, de la FFI ou des sorties :
+
+```bash
+./bin/build
+node test/driver.mjs
+```
+
+Le script prépare quatre modules n'utilisant que `Prim`, puis appelle le `purs`
+TAST du PATH avec `--codegen corefn`. Il n'a pas besoin des ports ni d'un workspace
+Spago applicatif. Le backend doit être construit ; le JDK est choisi par le
+résolveur commun. Les compilations Java utilisent `--release 17`.
+
+Les 13 variantes exercent les six options de désactivation seules et combinées,
+le choix de `--main`, sa première occurrence, sa valeur manquante, un module
+absent et un argument inconnu. Les douze cas avec launcher sont exécutés sur la
+JVM : ABI `Supplier` pour `Main`, ABI `Function` pour `Chosen`. Les assertions
+contrôlent aussi records, closures Int, chunks, fragments FFI fournis/vides/absents
+et échappement d'un nom étranger réservé en Java.
+
+Une entrée vide vérifie l'inventaire des helpers. Six scénarios d'I/O vérifient
+le code de sortie 1, le contexte et la phase marquée `(failed)` : dossier d'entrée
+absent, dossier de sortie absent, lecture FFI impossible, écritures de module,
+de launcher et de runtime impossibles. Les entrées sont restaurées après ces
+scénarios. Le workspace temporaire est supprimé au succès et conservé à l'échec.
+
+Pour comparer les sources Java lors d'un refactoring :
+
+```bash
+# Avec la version de référence du backend déjà construite :
+BASELINE="$(mktemp -d)/driver"
+node test/driver.mjs --record "$BASELINE"
+
+# Après modification et reconstruction du backend :
+./bin/build
+node test/driver.mjs --compare "$BASELINE"
+```
+
+`--record` exige un chemin inexistant, y prépare les entrées et conserve les
+sorties par variante sous `expected/`. `inputs.json` enregistre les SHA-256 des
+sources PureScript, FFI et TAST. `--compare` réutilise ces entrées sans relancer
+`purs`, vérifie leurs empreintes, puis compare inventaire et contenu exact de
+chaque fichier Java. Ces deux modes gardent leur répertoire et leurs logs même
+au succès. Employer les mêmes versions d'outils et le même environnement entre
+les deux runs. L'enregistrement accepte les anciens diagnostics ; la comparaison
+et le mode normal contrôlent les diagnostics contextualisés du pilote actuel.
 
 ### Chunker et BigFunction
 
@@ -373,3 +423,66 @@ notamment `test-tools-final.log`, `build.log`, `big-function-final.log`,
 
 **Conclusion : M02 validé, +10 points ; avancement 15/100, 2 lots sur 11.
 Prochain lot : M03 — orchestration et configuration.**
+
+## Validation M03
+
+**2 octobre 2026 — orchestration et configuration.**
+
+Base du lot : Javapurs `bd7d1f02891f56a9b0e8468d06a21eb810c18a58`, checkout
+initial propre. PBO Java : `0f41544464ec0f42e6cb0dd77b206852813f904f` ; fork
+PureScript : `3c27d1eeb68d9831e5157eacdae64043c7f45ba8`. Les versions des outils
+ont été relevées à nouveau : Node 24.8.0, Spago 1.0.3, même binaire `purs` TAST
+que l'inventaire M01 et JDK commun OpenJDK 26.0.2. Aucun override de heap ou de
+JDK n'était défini. Les temporaires ont utilisé le dossier `opencode` indiqué
+dans les preuves locales ci-dessous.
+
+### Livrables et décisions
+
+- `Main` contient la frontière `argv`/Aff et la mesure totale ; `Config` nomme
+  les options de traduction, de pipeline et de sortie ainsi que leurs valeurs
+  par défaut. `CodeGen.translateWithIntFunctions` utilise ce type nommé.
+- `Driver.compile` expose chargement, préparation et builder PBO ; son callback
+  appelle `Ffi`, `Pipeline`, puis `Emit`. `Pipeline.lowerModule` rend explicite
+  le contrat traduction → renommage → chunking.
+- `Ffi` possède la lecture et le rendu des membres étrangers ; PBO conserve la
+  découverte des fragments. `Emit` possède toutes les écritures Java.
+- `Runtime` regroupe `__IntFn`, `TcoLoop` et `MainRun`. L'ancien export
+  `IntFunctions.runtimeSource` délègue au template commun. `TcoLoop` est écrit
+  une seule fois pendant `prepare`, au lieu d'une fois par module ; une entrée
+  vide conserve l'inventaire historique avec seulement `__IntFn.java`.
+- `Diagnostics` annote les erreurs propagées avec opération, chemin et contexte
+  de module. Les libellés et la mesure monotone de `Metrics` sont conservés.
+  Les échecs d'écriture de `TcoLoop` appartiennent désormais à `prepare`.
+- `bin/javapurs` se remplace par Node avec `exec` et quote la valeur du heap.
+  `test/driver.mjs` couvre la CLI réelle et fournit une comparaison avant/après
+  à entrées figées. README, guide, matrice et sorties construites sont actualisés.
+
+### Commandes et résultats
+
+| Contrôle ciblé | Résultat |
+| --- | --- |
+| `./bin/build` | **0 erreur**, 5 avertissements déjà présents dans `CodeGen` ; aucun dans les modules extraits. |
+| `node test/driver.mjs --record "$BASELINE"`, avant refactoring | **13 variantes CLI**, entrée vide et six échecs d'I/O attendus ; référence Java enregistrée. |
+| `node test/driver.mjs --compare "$BASELINE"`, après refactoring | Mêmes cas réussis ; **102 fichiers Java cumulés**, inventaires et contenus identiques. Diagnostics contextualisés, phases et codes de sortie 1 vérifiés. |
+| `node test/int-functions.mjs` | Modes désactivé et activé réussis : interopérabilité, portées, ordre d'évaluation, replis et TCO. |
+| `./bin/test DerivingTraversable` | **1 passed, 0 failed** ; **210 modules TAST** inchangés et **331 sources Java** identiques, inventaire inclus. |
+
+La fixture CLI compare chaque variante sur les mêmes TAST et FFI enregistrés
+avant extraction du pilote. Le rejeu de `DerivingTraversable` compare les
+empreintes des TAST et les octets Java aux sorties du runner partagé avant le
+refactoring. Le déplacement de l'écriture de `TcoLoop` modifie sa phase et sa
+fréquence, sans modifier son contenu ni l'inventaire final réussi.
+
+Vérifications de clôture : liens/ancres, matrice des 15 suites, correspondance des
+sept options documentées avec `Config`, syntaxe des exemples Bash et des entrées
+Node/Bash modifiées, score du plan et revue du diff avec `git diff --check`.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m03/`,
+notamment `versions.json`, `build-final.log`, `driver-before.log`,
+`driver-final.log`, `driver/inputs.json`, `driver/expected/`, `driver/logs/`,
+`int-functions.log`, `deriving-traversable.log`, `deriving-comparison.txt`
+et `final-checks.txt`.
+
+**Conclusion : M03 validé, +10 points ; avancement 25/100, 3 lots sur 11.
+Prochain lot : M04 — AST, parcours et portées.**
