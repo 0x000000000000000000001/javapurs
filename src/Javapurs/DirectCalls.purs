@@ -16,6 +16,7 @@ import Javapurs.Representation (coerceArgument)
 
 type Candidate = { name :: String, worker :: String, index :: Int, arity :: Int, params :: Array JavaParamType, lazy :: Boolean }
 type Lambdas = { groups :: Array (Array (Tuple String JavaParamType)), args :: Array (Tuple String JavaParamType), body :: JavaExpr }
+type CallPlan = { candidate :: Candidate, args :: Array JavaExpr, guardField :: Maybe JavaExpr }
 
 -- A definition becomes callable directly only from later declarations. In
 -- particular, neither its own initializer nor an earlier initializer may bypass
@@ -50,22 +51,19 @@ directCalls moduleName file =
           _ -> false) declaration) file.decls)) Set.empty
     emit index declaration = case Array.find (\candidate -> candidate.index == index) candidates of
       Just candidate | Set.member index used -> case declaration of
-        JavaAssign name value -> case lambdaChain 2 value of
-          Just lambdas ->
-            [ JavaAssign name (foldr JavaAbs
-                (workerCall moduleName candidate (map (JavaLocal <<< fst) lambdas.args)) (map (map fst) lambdas.groups))
-            , JavaStaticMethod candidate.worker lambdas.args lambdas.body
-            ]
-          Nothing -> [declaration]
-        JavaLazyAssign name value -> case lambdaChain 1 value of
-          Just lambdas ->
-            [ JavaLazyAssign name (foldr JavaAbs
-                (workerCall moduleName candidate (map (JavaLocal <<< fst) lambdas.args)) (map (map fst) lambdas.groups))
-            , JavaStaticMethod candidate.worker lambdas.args lambdas.body
-            ]
-          Nothing -> [declaration]
+        JavaAssign name value -> emitWorker JavaAssign 2 candidate name value declaration
+        JavaLazyAssign name value -> emitWorker JavaLazyAssign 1 candidate name value declaration
         _ -> [declaration]
       _ -> [declaration]
+    -- Read the rewritten body, not the original candidate body: self calls and
+    -- calls to other workers may already have changed. Public lambdas stay boxed.
+    emitWorker binding minimum candidate name value original = case lambdaChain minimum value of
+      Just lambdas ->
+        [ binding name (foldr JavaAbs
+            (workerCall moduleName candidate (map (JavaLocal <<< fst) lambdas.args)) (map (map fst) lambdas.groups))
+        , JavaStaticMethod candidate.worker lambdas.args lambdas.body
+        ]
+      Nothing -> [original]
   in file { decls = Array.concat (Array.mapWithIndex emit rewritten) }
 
 declarationName :: JavaExpr -> Maybe String
@@ -110,41 +108,43 @@ rewrite moduleName candidates declarationIndex fromLazy expression = do
   -- Rewriting children first allows exactly the saturated prefix of an
   -- overapplication to become a method call. Later arguments remain outside it.
   result <- traverseChildren (rewrite moduleName candidates declarationIndex fromLazy) expression
-  case application result of
+  case admitCall moduleName candidates declarationIndex fromLazy result of
+    Nothing -> pure result
+    Just plan -> do
+      modify_ (Set.insert plan.candidate.index)
+      let direct = workerCall moduleName plan.candidate plan.args
+      pure case plan.guardField of
+        Just field -> JavaTernary (JavaBinaryOp "==" field (JavaRaw "null")) result direct
+        -- Eager-to-eager calls need no fallback. Keeping arguments just once
+        -- avoids exponential output growth for nested saturated calls.
+        Nothing -> direct
+
+-- Admission is pure: initialization order and saturation choose a guarded or
+-- direct call before rewrite records reachability and constructs Java nodes.
+admitCall :: String -> Array Candidate -> Int -> Boolean -> JavaExpr -> Maybe CallPlan
+admitCall moduleName candidates declarationIndex fromLazy expression =
+  case application expression of
     Just { head: JavaGlobalVar qualifier name, args }
       | qualifier == Nothing || qualifier == Just moduleName ->
           case Array.find (\candidate -> candidate.name == name &&
               candidate.index < declarationIndex && candidate.arity == Array.length args) candidates of
-            Just candidate -> do
-              modify_ (Set.insert candidate.index)
-              if candidate.lazy || fromLazy then
-                -- Lazy getters can enter a later declaration while the module
-                -- is still initializing. Preserve the original curried path when
-                -- its public field has not been initialized yet, including the
-                -- point at which a null call stops evaluating later arguments.
-                -- This also applies to an eager callee reached from a later
-                -- lazy getter: textual order does not prove that its field has
-                -- already been assigned on that reentrant path.
-                pure (JavaTernary
-                  (JavaBinaryOp "==" (JavaGlobalVar qualifier name) (JavaRaw "null"))
-                  result (workerCall moduleName candidate args))
-              else
-                -- Between eager declarations, the earlier field is assigned
-                -- before the caller is available. Reusing the rewritten
-                -- arguments only once avoids doubling a saturated call at every
-                -- nesting level, which was exponential before this branch.
-                pure (workerCall moduleName candidate args)
-            Nothing -> pure result
+            Just candidate -> Just
+              { candidate, args
+              -- A lazy caller can run before an earlier eager field is assigned
+              -- through reentrant module initialization. Either lazy endpoint
+              -- therefore preserves the curried fallback and its failure timing.
+              , guardField: if candidate.lazy || fromLazy then Just (JavaGlobalVar qualifier name) else Nothing
+              }
+            Nothing -> Nothing
     Just { head: JavaCall (JavaStaticMethodRef qualifier getterName) [], args }
       | qualifier == Nothing || qualifier == Just moduleName
       , Just candidate <- Array.find (\c -> c.lazy &&
             c.index == declarationIndex && c.arity == Array.length args &&
-            getterName == lazyGetterName c.name) candidates -> do
+             getterName == lazyGetterName c.name) candidates ->
           -- The function calls itself. Its own getter already completed before
           -- any body can run, so the worker needs no initialization guard.
-          modify_ (Set.insert candidate.index)
-          pure (workerCall moduleName candidate args)
-    _ -> pure result
+          Just { candidate, args, guardField: Nothing }
+    _ -> Nothing
 
 application :: JavaExpr -> Maybe { head :: JavaExpr, args :: Array JavaExpr }
 application = collect []

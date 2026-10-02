@@ -1,4 +1,4 @@
-module Javapurs.LoopInvariants (Invariant, prepareLoop) where
+module Javapurs.LoopInvariants (Invariant, LoopPlan, prepareLoop) where
 
 import Prelude
 
@@ -13,10 +13,11 @@ import PureScript.Backend.Optimizer.CoreFn (Ident(..), ModuleName)
 import PureScript.Backend.Optimizer.Syntax (BackendSyntax(..), Level(..), Pair(..))
 
 type Invariant = { local :: Tuple (Maybe Ident) Level, name :: String, value :: TcoExpr }
+type LoopPlan = { body :: TcoExpr, invariants :: Array Invariant }
 
 -- Replace only closed scalar calls. Each occurrence keeps its own first-use
 -- cache: there is no sharing across branches, closures or nested loop scopes.
-prepareLoop :: ModuleName -> Array (Tuple Ident TcoExpr) -> String -> TcoExpr -> { body :: TcoExpr, invariants :: Array Invariant }
+prepareLoop :: ModuleName -> Array (Tuple Ident TcoExpr) -> String -> TcoExpr -> LoopPlan
 prepareLoop moduleName bindings loopName body =
   let Tuple result invariants = runState (visit true body) []
   in { body: result, invariants }

@@ -24,6 +24,7 @@ type LocalRef = Tuple (Maybe Ident) Level
 
 data Path = Path String (Array Int)
 derive instance eqPath :: Eq Path
+derive instance ordPath :: Ord Path
 
 data ScalarType = ScalarInt | ScalarBoolean | ScalarObject
 derive instance eqScalarType :: Eq ScalarType

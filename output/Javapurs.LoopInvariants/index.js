@@ -136,7 +136,7 @@ var prepareLoop = function (moduleName) {
                             };
                             return Data_Functor.map(functorStateT)(PureScript_Backend_Optimizer_Codegen_Tco.TcoExpr.create(v.value0))(Data_Traversable.traverse(PureScript_Backend_Optimizer_Syntax.traversableBackendSyntax)(applicativeStateT)(visit(false))(v.value1));
                         };
-                        throw new Error("Failed pattern match at Javapurs.LoopInvariants (line 24, column 3 - line 24, column 65): " + [ isTail.constructor.name, v.constructor.name ]);
+                        throw new Error("Failed pattern match at Javapurs.LoopInvariants (line 25, column 3 - line 25, column 65): " + [ isTail.constructor.name, v.constructor.name ]);
                     };
                 };
                 var v = Control_Monad_State.runState(visit(true)(body))([  ]);

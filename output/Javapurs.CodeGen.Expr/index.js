@@ -14,7 +14,6 @@ import * as Data_Newtype from "../Data.Newtype/index.js";
 import * as Data_Ord from "../Data.Ord/index.js";
 import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Show from "../Data.Show/index.js";
-import * as Data_String_CodeUnits from "../Data.String.CodeUnits/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
 import * as Javapurs_CodeGen_Context from "../Javapurs.CodeGen.Context/index.js";
@@ -23,6 +22,7 @@ import * as Javapurs_ControlFlow from "../Javapurs.ControlFlow/index.js";
 import * as Javapurs_IntFunctions from "../Javapurs.IntFunctions/index.js";
 import * as Javapurs_IntLoops from "../Javapurs.IntLoops/index.js";
 import * as Javapurs_JavaAst from "../Javapurs.JavaAst/index.js";
+import * as Javapurs_Literals from "../Javapurs.Literals/index.js";
 import * as Javapurs_LoopInvariants from "../Javapurs.LoopInvariants/index.js";
 import * as Javapurs_Naming from "../Javapurs.Naming/index.js";
 import * as Javapurs_Operators from "../Javapurs.Operators/index.js";
@@ -103,31 +103,6 @@ var tailTarget = function (context) {
         throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 131, column 1 - line 131, column 69): " + [ context.constructor.name, flat.constructor.name ]);
     };
 };
-var numberLiteral = function (n) {
-    var positiveInfinity = 1.0 / 0.0;
-    var negativeInfinity = -1.0 / 0.0;
-    var $73 = n !== n;
-    if ($73) {
-        return "Double.NaN";
-    };
-    var $74 = n === positiveInfinity;
-    if ($74) {
-        return "Double.POSITIVE_INFINITY";
-    };
-    var $75 = n === negativeInfinity;
-    if ($75) {
-        return "Double.NEGATIVE_INFINITY";
-    };
-    var $76 = n === 0.0;
-    if ($76) {
-        var $77 = 1.0 / n === negativeInfinity;
-        if ($77) {
-            return "-0.0";
-        };
-        return "0.0";
-    };
-    return Data_Show.show(Data_Show.showNumber)(n);
-};
 var mentionsJavaLocal = function (name) {
     return function (v) {
         if (v instanceof Javapurs_JavaAst.JavaLocal) {
@@ -139,8 +114,8 @@ var mentionsJavaLocal = function (name) {
 var guardedExpression = function (v) {
     return function (rest) {
         var branch = new Javapurs_JavaAst.JavaTernary(v.condition.result, Javapurs_CodeGen_Context.asExpression(v.value), rest);
-        var $82 = Data_Array["null"](v.condition.statements) && Data_Array["null"](v.value.statements);
-        if ($82) {
+        var $77 = Data_Array["null"](v.condition.statements) && Data_Array["null"](v.value.statements);
+        if ($77) {
             return branch;
         };
         return new Javapurs_JavaAst.JavaBlock(v.condition.statements, branch);
@@ -148,8 +123,8 @@ var guardedExpression = function (v) {
 };
 var executeEffect = function (source) {
     return function (value) {
-        var $85 = Javapurs_CodeGen_Syntax.isEffectNode(source);
-        if ($85) {
+        var $80 = Javapurs_CodeGen_Syntax.isEffectNode(source);
+        if ($80) {
             return value;
         };
         return new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaInstanceMethodRef(value, "java.util.function.Supplier", "get"), [  ]);
@@ -175,9 +150,9 @@ var boxedFunctionArity = function (env) {
 };
 var translateValue = function (env) {
     return function (context) {
-        var $269 = translateExpression(env)(Javapurs_CodeGen_Context.valueContext(context));
-        return function ($270) {
-            return Javapurs_CodeGen_Context.asExpression($269($270));
+        var $264 = translateExpression(env)(Javapurs_CodeGen_Context.valueContext(context));
+        return function ($265) {
+            return Javapurs_CodeGen_Context.asExpression($264($265));
         };
     };
 };
@@ -186,8 +161,8 @@ var translateUncurriedFunction = function (env) {
         return function (args) {
             return function (body) {
                 var result = translateExpression(env)(Javapurs_CodeGen_Context.closureContext(context))(body);
-                var $97 = Data_Eq.eq(Javapurs_CodeGen_Context.eqEffectContext)(context.effect)(Javapurs_CodeGen_Context.ExecutingEffect.value) && Data_Array["null"](args);
-                if ($97) {
+                var $92 = Data_Eq.eq(Javapurs_CodeGen_Context.eqEffectContext)(context.effect)(Javapurs_CodeGen_Context.ExecutingEffect.value) && Data_Array["null"](args);
+                if ($92) {
                     return result;
                 };
                 return Data_Function.apply(Javapurs_CodeGen_Context.pureExpression)(new Javapurs_JavaAst.JavaAbs(Data_Functor.map(Data_Functor.functorArray)(function (v) {
@@ -281,8 +256,8 @@ var translateRecursiveBindings = function (env) {
                                 var javaName = PureScript_Backend_Optimizer_FreeVars.localId(new Data_Maybe.Just(bindings[0].value0))(level);
                                 var loop = translateLoop(env)(context)(ref)(role.joins)(javaName)(v.value0.args)(v.value0.body);
                                 var $$function = new Javapurs_JavaAst.JavaAbs(v.value0.args, loop);
-                                var $133 = mentionsJavaLocal(javaName)($$function);
-                                if ($133) {
+                                var $128 = mentionsJavaLocal(javaName)($$function);
+                                if ($128) {
                                     return Data_Function.apply(Javapurs_CodeGen_Context.pureExpression)(new Javapurs_JavaAst.JavaLetRec([ new Data_Tuple.Tuple(javaName, $$function) ], Javapurs_CodeGen_Context.asExpression(continuation)));
                                 };
                                 return Javapurs_CodeGen_Context.prependStatement(new Javapurs_JavaAst.JavaLocalAssign(javaName, $$function))(continuation);
@@ -375,8 +350,8 @@ var translateLoop = function (env) {
                             var expression = Javapurs_CodeGen_Context.asExpression(translateExpression(loopEnv)(loopContext)(plan.body));
                             var hasJump = Javapurs_ControlFlow.hasTargetContinue(name)(expression);
                             var intParams = (function () {
-                                var $144 = Javapurs_ControlFlow.hasDirectContinue(expression);
-                                if ($144) {
+                                var $139 = Javapurs_ControlFlow.hasDirectContinue(expression);
+                                if ($139) {
                                     return Javapurs_IntLoops.intLoopParams(args)(body);
                                 };
                                 return [  ];
@@ -389,12 +364,12 @@ var translateLoop = function (env) {
                             var invariants = Data_Functor.map(Data_Functor.functorArray)(function (item) {
                                 return new Data_Tuple.Tuple(item.name, translateValue(env)(captured)(item.value));
                             })(plan.invariants);
-                            var $145 = Data_Array["null"](invariants) && (!Javapurs_ControlFlow.hasAnyContinue(expression) && !hasJump);
-                            if ($145) {
+                            var $140 = Data_Array["null"](invariants) && (!Javapurs_ControlFlow.hasAnyContinue(expression) && !hasJump);
+                            if ($140) {
                                 return translateValue(loopEnv)(captured)(plan.body);
                             };
-                            var $146 = Data_Array["null"](invariants);
-                            if ($146) {
+                            var $141 = Data_Array["null"](invariants);
+                            if ($141) {
                                 return new Javapurs_JavaAst.JavaWhileTrue(name, args, intParams, expression);
                             };
                             return new Javapurs_JavaAst.JavaMemoizedLoop(name, args, intParams, invariants, expression);
@@ -412,13 +387,13 @@ var translateLiteral = function (env) {
                 return new Javapurs_JavaAst.JavaRaw(Data_Show.show(Data_Show.showInt)(v.value0));
             };
             if (v instanceof PureScript_Backend_Optimizer_CoreFn.LitNumber) {
-                return new Javapurs_JavaAst.JavaRaw(numberLiteral(v.value0));
+                return new Javapurs_JavaAst.JavaRaw(Javapurs_Literals.numberLiteral(v.value0));
             };
             if (v instanceof PureScript_Backend_Optimizer_CoreFn.LitString) {
                 return new Javapurs_JavaAst.JavaString(v.value0);
             };
             if (v instanceof PureScript_Backend_Optimizer_CoreFn.LitChar) {
-                return new Javapurs_JavaAst.JavaString(Data_String_CodeUnits.singleton(v.value0));
+                return Javapurs_Literals.charLiteral(v.value0);
             };
             if (v instanceof PureScript_Backend_Optimizer_CoreFn.LitBoolean) {
                 return new Javapurs_JavaAst.JavaRaw((function () {
@@ -548,8 +523,8 @@ var translateExpression = function (env) {
                         throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 71, column 21 - line 73, column 38): " + [ v.value1.value0.value0.constructor.name ]);
                     })();
                     return Data_Function.apply(Javapurs_CodeGen_Context.pureExpression)((function () {
-                        var $210 = Data_Array["null"](values);
-                        if ($210) {
+                        var $205 = Data_Array["null"](values);
+                        if ($205) {
                             return new Javapurs_JavaAst.JavaCtorSingleton(modPart, Javapurs_Naming.safeCtorName(v.value1.value3));
                         };
                         return new Javapurs_JavaAst.JavaNew(Javapurs_Naming.constructorClassName(modPart)(v.value1.value3), values);
@@ -562,8 +537,8 @@ var translateExpression = function (env) {
                         };
                     })(v.value1.value3);
                     return Data_Function.apply(Javapurs_CodeGen_Context.pureExpression)((function () {
-                        var $218 = Data_Array["null"](args);
-                        if ($218) {
+                        var $213 = Data_Array["null"](args);
+                        if ($213) {
                             return new Javapurs_JavaAst.JavaCtorSingleton(env.moduleName, Javapurs_Naming.safeCtorName(v.value1.value2));
                         };
                         return new Javapurs_JavaAst.JavaAbs(args, new Javapurs_JavaAst.JavaNew(Javapurs_Naming.constructorClassName(env.moduleName)(v.value1.value2), Data_Functor.map(Data_Functor.functorArray)(Javapurs_JavaAst.JavaLocal.create)(args)));
@@ -741,12 +716,12 @@ var ownedCall = function (env) {
                         return new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaStaticMethodRef(Data_Maybe.Nothing.value, worker.javaName), Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Array.zipWith(translateArgument)(worker.params)(flat.args))(extra));
                     };
                     var arity = Data_Array.length(worker.params);
-                    var $264 = supplied === arity;
-                    if ($264) {
+                    var $259 = supplied === arity;
+                    if ($259) {
                         return new Data_Maybe.Just(invoke([  ]));
                     };
-                    var $265 = arity > 0 && supplied === (arity - 1 | 0);
-                    if ($265) {
+                    var $260 = arity > 0 && supplied === (arity - 1 | 0);
+                    if ($260) {
                         return new Data_Maybe.Just(invoke([ new Javapurs_JavaAst.JavaRaw("null") ]));
                     };
                     return Data_Maybe.Nothing.value;

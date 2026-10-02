@@ -17,10 +17,10 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Newtype (unwrap)
 import Data.Set as Set
-import Data.String.CodeUnits as StringCodeUnits
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Javapurs.JavaAst (JavaExpr(..))
+import Javapurs.Literals (charLiteral, numberLiteral)
 import Javapurs.Naming (constructorClassName, modulePrefix, safeCtorName)
 import Javapurs.Operators (translateOperator1, translateOperator2)
 import Javapurs.Ownership.Candidates (adtName, ctorNames, nullaryCtorNames, qualify, scalarJavaType, spine, strip)
@@ -109,9 +109,9 @@ nullaryScalar context ctor = do
 literalScalar :: Literal NeutralExpr -> Maybe Scalar
 literalScalar = case _ of
   LitInt value -> Just { expr: JavaRaw (show value), ty: ScalarInt, reads: [] }
-  LitNumber value -> Just { expr: JavaRaw (show value), ty: ScalarObject, reads: [] }
+  LitNumber value -> Just { expr: JavaRaw (numberLiteral value), ty: ScalarObject, reads: [] }
   LitString value -> Just { expr: JavaString value, ty: ScalarObject, reads: [] }
-  LitChar value -> Just { expr: JavaRaw ("'" <> StringCodeUnits.singleton value <> "'"), ty: ScalarObject, reads: [] }
+  LitChar value -> Just { expr: charLiteral value, ty: ScalarObject, reads: [] }
   LitBoolean value -> Just { expr: JavaRaw (if value then "true" else "false"), ty: ScalarBoolean, reads: [] }
   _ -> Nothing
 

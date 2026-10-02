@@ -8,6 +8,7 @@ import Data.Maybe (Maybe(..), isJust)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Tuple (Tuple(..), fst, snd)
+import Javapurs.TypeEvidence (applyArguments)
 import PureScript.Backend.Optimizer.Codegen.Tco (TcoExpr(..))
 import PureScript.Backend.Optimizer.CoreFn as C
 import PureScript.Backend.Optimizer.FreeVars (freeVars)
@@ -139,15 +140,3 @@ resultType context visited (TcoExpr _ syntax) = case syntax of
     applyArguments (Array.length args) ty
   Lit (C.LitInt _) -> Just C.Int
   _ -> Nothing
-
--- Func can describe more arguments than the explicit lambdas: a function may
--- return another closure. Consume the complete application before accepting Int.
-applyArguments :: Int -> C.ExprType -> Maybe C.ExprType
-applyArguments count ty
-  | count == 0 = Just ty
-  | otherwise = case ty of
-      C.Func args result -> case Array.uncons args of
-        Just { tail } -> applyArguments (count - 1)
-          (if Array.null tail then result else C.Func tail result)
-        Nothing -> Nothing
-      _ -> Nothing

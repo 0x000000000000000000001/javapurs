@@ -12,6 +12,7 @@ import * as Javapurs_JavaAst from "../Javapurs.JavaAst/index.js";
 import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
 import * as PureScript_Backend_Optimizer_Syntax from "../PureScript.Backend.Optimizer.Syntax/index.js";
 var eqArray = /* #__PURE__ */ Data_Eq.eqArray(Data_Eq.eqInt);
+var ordArray = /* #__PURE__ */ Data_Ord.ordArray(Data_Ord.ordInt);
 var eqMaybe = /* #__PURE__ */ Data_Maybe.eqMaybe(PureScript_Backend_Optimizer_CoreFn.eqIdent);
 var ordMaybe = /* #__PURE__ */ Data_Maybe.ordMaybe(PureScript_Backend_Optimizer_CoreFn.ordIdent);
 var TermReturn = /* #__PURE__ */ (function () {
@@ -250,18 +251,18 @@ var termExpr = function (v) {
     if (v instanceof TermStmts) {
         return new Javapurs_JavaAst.JavaBlock(v.value0, termExpr(v.value1));
     };
-    throw new Error("Failed pattern match at Javapurs.Ownership.Model (line 90, column 12 - line 94, column 58): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Ownership.Model (line 91, column 12 - line 95, column 58): " + [ v.constructor.name ]);
 };
 var prefixes = function (v) {
-    var $47 = Data_Array["null"](v.value1);
-    if ($47) {
+    var $55 = Data_Array["null"](v.value1);
+    if ($55) {
         return [  ];
     };
     return Data_Functor.map(Data_Functor.functorArray)((function () {
-        var $95 = Path.create(v.value0);
-        var $96 = Data_Function.flip(Data_Array.take)(v.value1);
-        return function ($97) {
-            return $95($96($97));
+        var $110 = Path.create(v.value0);
+        var $111 = Data_Function.flip(Data_Array.take)(v.value1);
+        return function ($112) {
+            return $110($111($112));
         };
     })())(Data_Array.range(0)(Data_Array.length(v.value1) - 1 | 0));
 };
@@ -306,6 +307,23 @@ var eqPath = {
         return function (y) {
             return x.value0 === y.value0 && Data_Eq.eq(eqArray)(x.value1)(y.value1);
         };
+    }
+};
+var ordPath = {
+    compare: function (x) {
+        return function (y) {
+            var v = Data_Ord.compare(Data_Ord.ordString)(x.value0)(y.value0);
+            if (v instanceof Data_Ordering.LT) {
+                return Data_Ordering.LT.value;
+            };
+            if (v instanceof Data_Ordering.GT) {
+                return Data_Ordering.GT.value;
+            };
+            return Data_Ord.compare(ordArray)(x.value1)(y.value1);
+        };
+    },
+    Eq0: function () {
+        return eqPath;
     }
 };
 var eqFieldType = {
@@ -420,6 +438,7 @@ export {
     prefixes,
     appendField,
     eqPath,
+    ordPath,
     eqScalarType,
     eqFieldType,
     eqArgType,

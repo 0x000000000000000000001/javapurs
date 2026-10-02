@@ -10,6 +10,7 @@ import * as Data_Maybe from "../Data.Maybe/index.js";
 import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Set from "../Data.Set/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
+import * as Javapurs_TypeEvidence from "../Javapurs.TypeEvidence/index.js";
 import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
 import * as PureScript_Backend_Optimizer_FreeVars from "../PureScript.Backend.Optimizer.FreeVars/index.js";
 import * as PureScript_Backend_Optimizer_Syntax from "../PureScript.Backend.Optimizer.Syntax/index.js";
@@ -63,6 +64,41 @@ var definition = function (v) {
             })(v.definitions);
         };
         return Data_Maybe.Nothing.value;
+    };
+};
+var resultType = function (context) {
+    return function (visited) {
+        return function (v) {
+            if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Typed) {
+                return new Data_Maybe.Just(v.value1.value0);
+            };
+            if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.TypeApp) {
+                return resultType(context)(visited)(v.value1.value0);
+            };
+            if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Var) {
+                return Control_Bind.bind(Data_Maybe.bindMaybe)(definition(context)(v.value1.value0))(function (v1) {
+                    var $50 = Data_Set.member(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v1.value0)(visited);
+                    if ($50) {
+                        return Data_Maybe.Nothing.value;
+                    };
+                    return resultType(context)(Data_Set.insert(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v1.value0)(visited))(v1.value1);
+                });
+            };
+            if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.App) {
+                return Control_Bind.bind(Data_Maybe.bindMaybe)(resultType(context)(visited)(v.value1.value0))(function (ty) {
+                    return Javapurs_TypeEvidence.applyArguments(Data_Array.length(Data_Array.fromFoldable(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(v.value1.value1)))(ty);
+                });
+            };
+            if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.UncurriedApp) {
+                return Control_Bind.bind(Data_Maybe.bindMaybe)(resultType(context)(visited)(v.value1.value0))(function (ty) {
+                    return Javapurs_TypeEvidence.applyArguments(Data_Array.length(v.value1.value1))(ty);
+                });
+            };
+            if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Lit && v.value1.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
+                return new Data_Maybe.Just(PureScript_Backend_Optimizer_CoreFn.Int.value);
+            };
+            return Data_Maybe.Nothing.value;
+        };
     };
 };
 var deepPure = function (context) {
@@ -126,20 +162,20 @@ var deepPure = function (context) {
                             };
                             if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Var) {
                                 return Control_Bind.bind(Data_Maybe.bindMaybe)(definition(context)(v.value1.value0))(function (v1) {
-                                    var $65 = isFunction(v1.value1);
-                                    if ($65) {
-                                        var $66 = Data_Set.member(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v1.value0)(functions);
-                                        if ($66) {
-                                            var $67 = Data_Set.isEmpty(values);
-                                            if ($67) {
+                                    var $85 = isFunction(v1.value1);
+                                    if ($85) {
+                                        var $86 = Data_Set.member(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v1.value0)(functions);
+                                        if ($86) {
+                                            var $87 = Data_Set.isEmpty(values);
+                                            if ($87) {
                                                 return new Data_Maybe.Just(remaining);
                                             };
                                             return Data_Maybe.Nothing.value;
                                         };
                                         return deepPure(context)(Data_Set.insert(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v1.value0)(functions))(values)(Data_Set.empty)(v1.value1)(remaining);
                                     };
-                                    var $68 = Data_Set.member(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v1.value0)(values);
-                                    if ($68) {
+                                    var $88 = Data_Set.member(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v1.value0)(values);
+                                    if ($88) {
                                         return Data_Maybe.Nothing.value;
                                     };
                                     return deepPure(context)(functions)(Data_Set.insert(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v1.value0)(values))(Data_Set.empty)(v1.value1)(remaining);
@@ -163,8 +199,8 @@ var deepPure = function (context) {
                                 });
                             };
                             if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.LetRec) {
-                                if (Data_Array.all(function ($142) {
-                                    return isFunction(Data_Tuple.snd($142));
+                                if (Data_Array.all(function ($132) {
+                                    return isFunction(Data_Tuple.snd($132));
                                 })(Data_Array.fromFoldable(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(v.value1.value1))) {
                                     var scope = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (bound) {
                                         return function (v1) {
@@ -212,86 +248,10 @@ var deepPure = function (context) {
                             };
                             return Data_Maybe.Nothing.value;
                         };
-                        throw new Error("Failed pattern match at Javapurs.PureInvariants (line 59, column 1 - line 59, column 97): " + [ context.constructor.name, functions.constructor.name, values.constructor.name, locals.constructor.name, v.constructor.name, fuel.constructor.name ]);
+                        throw new Error("Failed pattern match at Javapurs.PureInvariants (line 60, column 1 - line 60, column 97): " + [ context.constructor.name, functions.constructor.name, values.constructor.name, locals.constructor.name, v.constructor.name, fuel.constructor.name ]);
                     };
                 };
             };
-        };
-    };
-};
-var applyArguments = function ($copy_count) {
-    return function ($copy_ty) {
-        var $tco_var_count = $copy_count;
-        var $tco_done = false;
-        var $tco_result;
-        function $tco_loop(count, ty) {
-            if (count === 0) {
-                $tco_done = true;
-                return new Data_Maybe.Just(ty);
-            };
-            if (Data_Boolean.otherwise) {
-                if (ty instanceof PureScript_Backend_Optimizer_CoreFn.Func) {
-                    var v = Data_Array.uncons(ty.value0);
-                    if (v instanceof Data_Maybe.Just) {
-                        $tco_var_count = count - 1 | 0;
-                        $copy_ty = (function () {
-                            var $116 = Data_Array["null"](v.value0.tail);
-                            if ($116) {
-                                return ty.value1;
-                            };
-                            return new PureScript_Backend_Optimizer_CoreFn.Func(v.value0.tail, ty.value1);
-                        })();
-                        return;
-                    };
-                    if (v instanceof Data_Maybe.Nothing) {
-                        $tco_done = true;
-                        return Data_Maybe.Nothing.value;
-                    };
-                    throw new Error("Failed pattern match at Javapurs.PureInvariants (line 149, column 29 - line 152, column 27): " + [ v.constructor.name ]);
-                };
-                $tco_done = true;
-                return Data_Maybe.Nothing.value;
-            };
-            throw new Error("Failed pattern match at Javapurs.PureInvariants (line 145, column 1 - line 145, column 56): " + [ count.constructor.name, ty.constructor.name ]);
-        };
-        while (!$tco_done) {
-            $tco_result = $tco_loop($tco_var_count, $copy_ty);
-        };
-        return $tco_result;
-    };
-};
-var resultType = function (context) {
-    return function (visited) {
-        return function (v) {
-            if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Typed) {
-                return new Data_Maybe.Just(v.value1.value0);
-            };
-            if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.TypeApp) {
-                return resultType(context)(visited)(v.value1.value0);
-            };
-            if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Var) {
-                return Control_Bind.bind(Data_Maybe.bindMaybe)(definition(context)(v.value1.value0))(function (v1) {
-                    var $130 = Data_Set.member(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v1.value0)(visited);
-                    if ($130) {
-                        return Data_Maybe.Nothing.value;
-                    };
-                    return resultType(context)(Data_Set.insert(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v1.value0)(visited))(v1.value1);
-                });
-            };
-            if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.App) {
-                return Control_Bind.bind(Data_Maybe.bindMaybe)(resultType(context)(visited)(v.value1.value0))(function (ty) {
-                    return applyArguments(Data_Array.length(Data_Array.fromFoldable(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(v.value1.value1)))(ty);
-                });
-            };
-            if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.UncurriedApp) {
-                return Control_Bind.bind(Data_Maybe.bindMaybe)(resultType(context)(visited)(v.value1.value0))(function (ty) {
-                    return applyArguments(Data_Array.length(v.value1.value1))(ty);
-                });
-            };
-            if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.Lit && v.value1.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitInt) {
-                return new Data_Maybe.Just(PureScript_Backend_Optimizer_CoreFn.Int.value);
-            };
-            return Data_Maybe.Nothing.value;
         };
     };
 };

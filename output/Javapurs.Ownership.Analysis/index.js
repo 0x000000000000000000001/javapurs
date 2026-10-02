@@ -17,10 +17,10 @@ import * as Data_Ord from "../Data.Ord/index.js";
 import * as Data_Semigroup from "../Data.Semigroup/index.js";
 import * as Data_Set from "../Data.Set/index.js";
 import * as Data_Show from "../Data.Show/index.js";
-import * as Data_String_CodeUnits from "../Data.String.CodeUnits/index.js";
 import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Javapurs_JavaAst from "../Javapurs.JavaAst/index.js";
+import * as Javapurs_Literals from "../Javapurs.Literals/index.js";
 import * as Javapurs_Naming from "../Javapurs.Naming/index.js";
 import * as Javapurs_Operators from "../Javapurs.Operators/index.js";
 import * as Javapurs_Ownership_Candidates from "../Javapurs.Ownership.Candidates/index.js";
@@ -172,7 +172,7 @@ var literalScalar = function (v) {
     };
     if (v instanceof PureScript_Backend_Optimizer_CoreFn.LitNumber) {
         return new Data_Maybe.Just({
-            expr: new Javapurs_JavaAst.JavaRaw(Data_Show.show(Data_Show.showNumber)(v.value0)),
+            expr: new Javapurs_JavaAst.JavaRaw(Javapurs_Literals.numberLiteral(v.value0)),
             ty: Javapurs_Ownership_Model.ScalarObject.value,
             reads: [  ]
         });
@@ -186,7 +186,7 @@ var literalScalar = function (v) {
     };
     if (v instanceof PureScript_Backend_Optimizer_CoreFn.LitChar) {
         return new Data_Maybe.Just({
-            expr: new Javapurs_JavaAst.JavaRaw("'" + (Data_String_CodeUnits.singleton(v.value0) + "'")),
+            expr: Javapurs_Literals.charLiteral(v.value0),
             ty: Javapurs_Ownership_Model.ScalarObject.value,
             reads: [  ]
         });

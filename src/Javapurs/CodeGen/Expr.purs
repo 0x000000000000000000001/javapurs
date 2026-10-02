@@ -8,7 +8,6 @@ import Data.Foldable (any, foldl, foldr)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.String.CodeUnits as CodeUnits
 import Data.Tuple (Tuple(..))
 import Javapurs.CodeGen.Context (CodegenEnv, EffectContext(..), LoopContext, Position(..), Translation, TranslationContext, asExpression, captureLoops, closureContext, initialContext, prependStatement, pureExpression, tailContext, valueContext)
 import Javapurs.CodeGen.Syntax (Application, extractUncurriedAbs, flattenApp, isEffectNode, stripEffectAbs, stripEffectDefer, unwrapTcoExpr)
@@ -16,6 +15,7 @@ import Javapurs.ControlFlow (hasAnyContinue, hasDirectContinue, hasTargetContinu
 import Javapurs.IntFunctions (abstractFunction, applyFunction)
 import Javapurs.IntLoops (intLoopParams)
 import Javapurs.JavaAst (JavaExpr(..), children)
+import Javapurs.Literals (charLiteral, numberLiteral)
 import Javapurs.LoopInvariants (prepareLoop)
 import Javapurs.Naming (constructorClassName, lazyGetterName, loopSnapshotName, modulePrefix, safeCtorName, sanitizeName)
 import Javapurs.Operators (translateOperator1, translateOperator2)
@@ -344,7 +344,7 @@ translateLiteral env context = case _ of
   LitNumber n -> JavaRaw (numberLiteral n)
   LitString s -> JavaString s
   -- Char shares the one-character String representation used by Java FFI.
-  LitChar c -> JavaString (CodeUnits.singleton c)
+  LitChar c -> charLiteral c
   LitBoolean b -> JavaRaw (if b then "true" else "false")
   LitArray elements -> JavaArray (map (translateValue env context) elements)
   LitRecord fields -> JavaRecord (translateFields env context fields)
@@ -365,16 +365,3 @@ translateAccessor env context value accessor =
             Nothing -> env.moduleName
       in JavaPropertyAccess receiver (constructorClassName modPart name) ("value" <> show index)
     GetIndex index -> JavaArrayIndex receiver (JavaRaw (show index))
-
--- JavaScript show uses names that are not Java expressions for special Number
--- values. Java constants preserve those values; -0.0 must also keep its sign.
-numberLiteral :: Number -> String
-numberLiteral n =
-  let
-    positiveInfinity = 1.0 / 0.0
-    negativeInfinity = -1.0 / 0.0
-  in if n /= n then "Double.NaN"
-     else if n == positiveInfinity then "Double.POSITIVE_INFINITY"
-     else if n == negativeInfinity then "Double.NEGATIVE_INFINITY"
-     else if n == 0.0 then if 1.0 / n == negativeInfinity then "-0.0" else "0.0"
-     else show n
