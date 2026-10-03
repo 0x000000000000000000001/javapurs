@@ -12,7 +12,7 @@ donne les commandes de validation.
 | Découverte | [PBO FfiSupport](../../../purescript-backend-optimizer-javapurs/src/PureScript/Backend/Optimizer/FfiSupport.js) | D'abord le `.java` adjacent au chemin `.purs` du module TAST ; ensuite les racines découvertes sous `.spago`, `spago.d` et le dossier appelant. |
 | Lecture | [Ffi.loadForeign](../src/Javapurs/Ffi.purs) | Retourne `Maybe ForeignSource = { path, source }` ; une absence et une erreur de lecture sont distinctes. |
 | Membres étrangers | `Ffi.renderForeign` | Insère le fragment non vide tel quel ; sinon émet des champs/méthodes de stub pour les imports étrangers. `FFI_STUB` est toujours présent. |
-| Classe et fichiers | [Emit](../src/Javapurs/Emit.purs) | Assemble membres FFI et déclarations imprimées ; contextualise les erreurs d'écriture. |
+| Classe et fichiers | [Emit](../src/Javapurs/Emit.purs), [Output](../src/Javapurs/Output.purs) | `Emit` assemble membres FFI et déclarations imprimées ; `Output` possède staging, inventaire et publication. |
 | Signatures et dépendances | `javac`, puis la JVM | Vérifient types/références et exécutent les conventions fournies par les ports. |
 
 Dans chaque racine de repli, PBO essaie `src/A/B.java`, `src/A.B.java`, puis

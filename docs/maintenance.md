@@ -1,6 +1,6 @@
 # Reprise et entretien du dépôt
 
-État documenté au **3 octobre 2026**, à la clôture du plan M01–M11.
+État documenté au **3 octobre 2026**, complété pendant le plan v2 M12–M16.
 Cette page donne le parcours de reprise, le statut des artefacts et les points
 encore ouverts. Les [preuves par lot](testing.md#consigner-une-validation)
 conservent leurs dates, versions et périmètres d'origine.
@@ -8,7 +8,7 @@ conservent leurs dates, versions et périmètres d'origine.
 ## Parcours de reprise
 
 1. Lire le [guide du compilateur](compiler.md#suivre-une-compilation) pour suivre
-   `Main` → `Config` → `Driver` → PBO → `Pipeline` → `Emit`.
+   `Main` → `Config` → `Driver` → PBO → `Pipeline` → `Emit` → `Output`.
 2. Choisir le contrat correspondant à la modification :
 
    | Sujet | Référence canonique |
@@ -19,7 +19,8 @@ conservent leurs dates, versions et périmètres d'origine.
    | Types, stockage, ABI | [Représentations](representations.md) |
    | Admission/refus des optimisations | [Passes spécialisées](specialized-passes.md) |
    | Corps Java et frontières Supplier | [Rendu](printing.md) |
-   | Callbacks, fibres, références, promesses | [FFI et runtimes](ffi-runtime.md) |
+    | Callbacks, fibres, références, promesses | [FFI et runtimes](ffi-runtime.md) |
+    | CLI, inventaire Java et récupération | [Pilote et sorties](compiler.md#cycle-de-vie-des-sorties-java) |
 
 3. Sélectionner les lignes pertinentes de la [matrice](testing.md#matrice-des-tests).
    Reconstruire après modification des sources du backend/PBO. Pour une modification
@@ -41,7 +42,7 @@ exemples et n'a pas besoin du backend construit ni d'un JDK.
 
 ## Interfaces et replis relus
 
-Les **46 modules** de `src/` exposent des listes explicites. Les façades ci-dessous
+Les **47 modules** de `src/` exposent des listes explicites. Les façades ci-dessous
 conservent des consommateurs et délèguent à une définition unique :
 
 | Interface | Propriétaire / consommateur |
@@ -78,6 +79,7 @@ Il ne signale pas un dispatcher manquant à remplacer par une spécialisation.
 | `.DS_Store` | Métadonnées Finder retirées et ignorées dans le dépôt du compilateur. |
 | `tests/runner/src`, `output`, `java_output`, `classes`, `.purmeta` | État remplaçable d'une fixture, ignoré par le `.gitignore` du runner. Son `spago.yaml` et ses sources d'origine restent persistants. |
 | `output`/`java_output` dans un port ou une application | Entrées TAST/sorties Java propres à ce projet. Certains ports versionnent leurs sorties ; examiner leur statut local avant nettoyage. |
+| `.javapurs-manifest.json`, `.javapurs-work/` dans une sortie Java | Propriété et SHA-256 des sources générées ; staging, verrou PID et journal de récupération. Voir le [cycle de vie](compiler.md#cycle-de-vie-des-sorties-java) avant d'intervenir sur une génération interrompue. |
 | `logs/` | Journaux locaux ignorés par `logs/.gitignore`, recréés par les runners. Les anciens journaux ont été archivés puis retirés lors du nettoyage M13. |
 | Anciens `.purs.bak`, `output.bak/` | Retirés de l'arbre de travail après comparaison/restauration depuis Git ; références exactes ci-dessous. Le `.gitignore` du compilateur prévient leur réintroduction accidentelle. |
 
@@ -135,7 +137,7 @@ historique, avec ses propres dépendances et son format d'entrée.
 - **`logs/modtest/PORT.log`** : sortie du runner historique des ports, écrasée au
   prochain run de ce port. Les campagnes agrégées restent hors du protocole du plan.
 - **Temporaires des suites** : supprimés au succès et conservés à l'échec. Les
-  captures avant/après et dossiers `javapurs-m01` à `javapurs-m11` cités dans le
+   captures avant/après et dossiers `javapurs-m01` à `javapurs-m13` cités dans le
   registre sont des preuves **locales**, pas des artefacts distribués avec le dépôt.
   Leur durée de conservation dépend du disque temporaire ; pour transmettre un
   incident, joindre sources/empreintes, configuration, commande et logs utiles.

@@ -9,6 +9,7 @@ depuis le dépôt du compilateur `htdocs/javapurs/javapurs`, sauf indication con
 | --- | --- |
 | Suites directes `test/*.mjs` | Modules JavaScript construits du compilateur, AST synthétiques et, suivant le script, compilation/exécution de fixtures Java. |
 | Pilote `test/driver.mjs` | Application PureScript minimale, TAST réel, launcher `bin/javapurs`, Java généré, JVM et erreurs d'I/O. |
+| Sorties `test/output-files.mjs` | Transactions filesystem réelles : inventaire, conflits, retour arrière et récupération après `SIGKILL`. Node suffit. |
 | Outillage `test/test-tools.mjs` | Petit corpus et commandes simulés ; sélection, fichiers, processus et interruption. Node suffit. |
 | Fixture PureScript nommée | `bin/test NOM` réalise Spago → Javapurs → `javac` → `MainRun` dans `tests/runner`. |
 | Protocoles des ports Java | `test/ffi-runtimes.mjs` compile les vrais fragments ; `test/ffi-ports.mjs` attend l'intégration PureScript réelle dans deux modes de records. Les quatre ports proposent `bin/test-runtime`. |
@@ -104,7 +105,8 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Admission ownership, alias, cellules et littéraux | [test/ownership-admission.mjs](../test/ownership-admission.mjs) | 11 admissions/refus, 28 contrôles JVM en mode persistant et 31 avec ownership : snapshots, identité des cellules, Char/String et nombres IEEE ; `--simple-scalars` isole le cas Char sans erreur d'échappement. |
 | Cibles des boucles ownership | [test/ownership-loops.mjs](../test/ownership-loops.mjs) | 9 contrôles JVM par mode : alias arbre/scalaire et scope récursif, 0/1/100 000 itérations avec `-Xss256k`. |
 | `Chunk`, `Chunk.Captures`, `Chunk.Extraction` | [test/chunk.mjs](../test/chunk.mjs) | 15 fixtures : captures imbriquées, portées, types Java, récursion, mutations, ordre des effets, scopes profonds, boucles et frontières 256/257 unités, 64/65 captures. |
-| Configuration, pilote, pipeline, FFI et émission | [test/driver.mjs](../test/driver.mjs) | 13 variantes CLI, deux ABI de launcher, entrée vide et six erreurs d'I/O ; TAST-capable `purs`, backend construit et JDK. Modes de comparaison sur entrées figées. |
+| Configuration, pilote, pipeline, FFI et émission | [test/driver.mjs](../test/driver.mjs) | 11 variantes CLI, aide, 25 échecs attendus, deux ABI de launcher, bibliothèque/entrée vide, générations successives et deux builds Spago réels ; `purs` TAST, Spago, backend construit et JDK. Comparaison du Java sur entrées figées. |
+| Propriété, publication et récupération Java | [test/output-files.mjs](../test/output-files.mjs) | 9 groupes Node : fichiers étrangers/modifiés, adoption, staging, six erreurs de renommage, ordre du launcher, `SIGKILL` à trois étapes, conflits de reprise, métadonnées et symlinks ; pas de build ni JDK. |
 | Ref, Promise et Aff Java | [test/ffi-runtimes.mjs](../test/ffi-runtimes.mjs) | 36 contrôles directs : effets différés, écritures concurrentes, règlement/adoption, exceptions, désabonnement, annulation, bracket, supervision et parallèle ; vrais fragments, shim Either, Node/JDK et trois ports voisins. |
 | API PureScript des ports et pont Promise/Aff | [test/ffi-ports.mjs](../test/ffi-ports.mjs) | 17 assertions dans chacun des modes records typés/Maps, mêmes TAST ; attente de la fibre et échec JVM vérifiés. Backend construit, Spago, `purs` TAST et ports locaux, y compris `foreign`. |
 | Complétion des suites asynchrones des ports | [test/port-runners.mjs](../test/port-runners.mjs) | Sélection `--port=aff\|promise\|promise-aff` ; 45/13/7 contrôles de suite, marqueur final et quatre sondes négatives par port. Workspaces isolés, backend construit, Spago/`purs` TAST, ports locaux et JDK ; Java 17. |
@@ -187,25 +189,50 @@ Pour une modification de la CLI, de l'orchestration, de la FFI ou des sorties :
 ```bash
 ./bin/build
 node test/driver.mjs
+node --test test/output-files.mjs
 ```
 
-Le script prépare quatre modules n'utilisant que `Prim`, puis appelle le `purs`
-TAST du PATH avec `--codegen corefn`. Il n'a pas besoin des ports ni d'un workspace
-Spago applicatif. Le backend doit être construit ; le JDK est choisi par le
-résolveur commun. Les compilations Java utilisent `--release 17`.
+Le pilote prépare quatre modules n'utilisant que `Prim`, puis appelle le `purs`
+TAST du PATH avec `--codegen corefn`. Il crée aussi son propre workspace Spago
+sans dépendances applicatives ; Spago et son package set `77.10.1` doivent être
+disponibles. Le backend doit être construit ; le JDK est choisi par le résolveur
+commun. Les compilations Java utilisent `--release 17`.
 
-Les 13 variantes exercent les six options de désactivation seules et combinées,
-le choix de `--main`, sa première occurrence, sa valeur manquante, un module
-absent et un argument inconnu. Les douze cas avec launcher sont exécutés sur la
-JVM : ABI `Supplier` pour `Main`, ABI `Function` pour `Chosen`. Les assertions
+Les 11 variantes exercent les valeurs par défaut, les six options de désactivation
+seules et combinées, `--main Chosen`, `--main=Chosen` et `--no-main`. Les dix cas
+avec launcher sont exécutés sur la JVM : ABI `Supplier` pour `Main`, ABI `Function`
+pour `Chosen` ; la bibliothèque est compilée avec `javac`. Les assertions
 contrôlent aussi records, closures Int, chunks, fragments FFI fournis/vides/absents
 et échappement d'un nom étranger réservé en Java.
 
-Une entrée vide vérifie l'inventaire des helpers. Six scénarios d'I/O vérifient
-le code de sortie 1, le contexte et la phase marquée `(failed)` : dossier d'entrée
-absent, dossier de sortie absent, lecture FFI impossible, écritures de module,
-de launcher et de runtime impossibles. Les entrées sont restaurées après ces
-scénarios. Le workspace temporaire est supprimé au succès et conservé à l'échec.
+L'aide et **12 erreurs d'arguments** sont exercées sans entrée TAST : code 0 ou 2
+attendu et aucune écriture. Les **13 échecs de compilation/I/O** vérifient code 1,
+diagnostic, total marqué `(failed)` et conservation de la génération précédente :
+entrypoints absents, sans main, non exportés ou réexportés, entrée vide en mode
+application, chevauchement des chemins, entrée absente, lecture FFI impossible,
+destination bloquée et collisions avec un répertoire aux noms module/launcher/runtime.
+
+Les générations successives vérifient changement de main, passage en bibliothèque
+et Maps, retrait des records et du launcher obsolètes, suppression/renommage de
+modules, empreintes du manifeste et conservation de Java/texte étrangers. Des
+chemins TAST/Java avec espaces, destination imbriquée créée automatiquement et
+alias `--output` sont utilisés. L'entrée vide en mode bibliothèque conserve
+seulement `__IntFn.java` et le manifeste.
+
+Deux vrais `spago build` exécutent un backend espion qui enregistre les arguments
+puis lance Javapurs : configuration par défaut, puis `--output "TAST cache"`.
+L'assertion vérifie les `backend.args` et l'ajout réel du chemin TAST absolu ; la
+destination Java `Java sources` est configurée séparément. Chaque résultat est
+compilé puis exécuté sur la JVM. Le workspace temporaire est supprimé au succès
+et conservé à l'échec.
+
+`output-files.mjs` importe directement le FFI filesystem de `Output`. Il injecte
+une erreur à chacun des six renommages de publication et arrête un processus
+enfant avec `SIGKILL` après un module, le manifeste ou le marqueur `committed`.
+Les comparaisons portent sur l'inventaire et les octets de l'ancienne/nouvelle
+génération, le fichier étranger conservé et l'ordre du launcher, même identique.
+Les conflits, métadonnées invalides et alias symlinks vérifient les
+chemins de refus et la conservation des preuves de reprise.
 
 Pour comparer les sources Java lors d'un refactoring :
 
@@ -222,11 +249,14 @@ node test/driver.mjs --compare "$BASELINE"
 `--record` exige un chemin inexistant, y prépare les entrées et conserve les
 sorties par variante sous `expected/`. `inputs.json` enregistre les SHA-256 des
 sources PureScript, FFI et TAST. `--compare` réutilise ces entrées sans relancer
-`purs`, vérifie leurs empreintes, puis compare inventaire et contenu exact de
-chaque fichier Java. Ces deux modes gardent leur répertoire et leurs logs même
+`purs` pour cette application figée, vérifie leurs empreintes, puis compare
+inventaire et contenu exact de chaque fichier Java. Les fixtures de renommage et
+Spago sont construites séparément. Ces deux modes gardent leur répertoire et leurs logs même
 au succès. Employer les mêmes versions d'outils et le même environnement entre
-les deux runs. L'enregistrement accepte les anciens diagnostics ; la comparaison
-et le mode normal contrôlent les diagnostics contextualisés du pilote actuel.
+les deux runs. Une référence pré-M13 reste comparable : `main-equals` utilise la
+référence `chosen`, et la bibliothèque explicite utilise l'ancienne référence
+`absent-main`. Le Java d'entrée vide est comparé avec `--no-main`. Les anciens
+arguments tolérés sont désormais contrôlés comme des échecs, hors des snapshots.
 
 ### Chunker et BigFunction
 
@@ -1555,3 +1585,114 @@ notamment `before.json`, `base/`, `aff-first.log`, `aff-second.log`, `aff/`,
 
 **Conclusion : M12 validé, +20 points ; plan v2 à 20/100, 1 lot sur 5.
 Prochain lot : M13 — CLI explicite et sorties Java maîtrisées.**
+
+## Validation M13
+
+**3 octobre 2026 — CLI explicite et sorties Java maîtrisées.**
+
+### Références et périmètre
+
+Référence initiale Javapurs : `29f3205c056df32e8de55a43f11e9c6a952f3d2d`, avec les
+changements M11/M12 déjà présents. `before.json` conserve **4 230 empreintes** des
+fichiers présents suivis ; `base/` conserve le pilote précédent. Une référence
+Java a été enregistrée avec ce pilote avant modification. Au relevé final, le
+commit intermédiaire `56dd969f0ad3e97b81aa8992415afe58fe890236` intègre le nettoyage
+et l'implémentation M13 ; les validations incluent les correctifs de fixture et
+la documentation de clôture.
+
+Références relevées pour le build final :
+
+| Composant | Révision |
+| --- | --- |
+| PBO Java, checkout propre | `c9386b4d572503bb7b6d1ce9547ec30dcded2920` |
+| Fork PureScript, checkout propre | `b4a7fb1ca78eeb10b847558af0fcbeab06fa5c16` |
+| Aff | `80a861b1c096eba941f4b6186a74f4ccacb47765` |
+| Ref | `228bb557d2ade1f978146361dc40e3d775d53fd3` |
+| Promise | `ed5900a79a05da1c83c9ecb57f5a708e29aba466` |
+| Promise/Aff | `06ae9a304e3434a303fd9f18d877055b856d4672` |
+
+Node **24.8.0**, Spago **1.0.3**, binaire `~/.local/bin/purs` annoncé
+`0.15.16 [development build; commit: 3c8fcfd7a3d440bba487fe9fe059284cffc6e908 DIRTY]` ;
+`javac` et JVM Homebrew **26.0.2**, compilation Java en **`--release 17`**.
+`references.json` distingue les binaires effectivement exécutés et les checkouts.
+
+### Changements livrés
+
+- `Config` expose `Either String Command`, aide, valeurs séparées/avec `=`, options
+  uniques et erreurs précoces. `Main` possède la frontière des codes 0/2/1.
+  `--input`/`--output` désignent le TAST ; `--java-output` la destination Java.
+  L'espion d'intégration confirme que Spago ajoute un chemin TAST **absolu** à
+  ses `backend.args`, sans argument `build`.
+- `Driver.validateMain` distingue application et bibliothèque (`--no-main`) et
+  refuse avant préparation des sorties un module absent, sans main, non exporté
+  ou simplement réexporté. Validation des chemins disjoints, y compris symlinks.
+- `Output.purs`/`Output.js` possèdent staging, manifeste SHA-256, verrou PID,
+  publication et récupération ; `Emit` conserve l'assemblage du texte Java.
+  Retrait limité à l'inventaire, préservation des fichiers étrangers/modifiés,
+  adoption des anciens fichiers identiques, et diagnostic du launcher non géré.
+- Le launcher est masqué pendant le remplacement des modules, même quand ses
+  octets ne changent pas ; il est publié/restauré après ses modules. Le journal
+  permet le retour à la génération précédente sur erreur/interruption ; un état
+  `committed` conserve la nouvelle génération. Une reprise en conflit conserve
+  les fichiers et ses preuves. La phase `publish Java` rend cette frontière visible.
+- README, carte du compilateur, guides rendu/FFI/entretien, matrice et recette du
+  pilote documentent la CLI, les codes, la migration et le cycle de vie.
+
+### Vérifications ciblées
+
+Les commandes suivantes ont été exécutées depuis le dépôt du compilateur ;
+`BASELINE` désigne le dossier local `javapurs-m13/driver-baseline`.
+
+| Contrôle | Résultat |
+| --- | --- |
+| `node test/driver.mjs --record "$BASELINE"` avec l'ancien pilote | Référence enregistrée avec succès : 13 anciennes variantes, entrée vide et six erreurs d'I/O attendues. |
+| `./bin/build` | **0 erreur, 0 avertissement** ; nouveau module `Output` et FFI reconstruits. |
+| `node test/driver.mjs --compare "$BASELINE"` | **11 variantes**, aide, **25 échecs attendus**, cycle de vie, chemins avec espaces et **deux builds Spago réels** réussis ; **86 fichiers Java identiques** aux références. |
+| `node test/driver.mjs` | Même couverture dans un workspace neuf et supprimé au succès : **13 compilations Java**, dont la bibliothèque, et **12 exécutions JVM**. |
+| `node --test test/output-files.mjs` | **9/9 groupes** ; six points de panne de renommage, trois étapes de `SIGKILL`, propriété/adoption, conflits et récupération vérifiés. |
+| `node test/ffi-ports.mjs` | **17 assertions × 2 modes**, records typés puis Maps dans la même destination Java, pont Promise/Aff et attente de la fibre réussis. |
+| Contrôle des sources/artefacts | **43 sources du compilateur** hors orchestration identiques aux empreintes initiales ; sources runtime des quatre ports identiques à leurs références pré-M13 ; FFI construite `Output` identique à sa source. |
+| Documentation, syntaxe et diff | Liens/ancres, exemples Bash, **25 suites**, **12 options**, score **45/100**, syntaxe Node et `git diff --check` validés. |
+
+Les neuf variantes CLI conservées sont comparées sur les mêmes TAST/FFI/options.
+Les autres comparaisons vérifient les équivalences `--main=Chosen`/`--main Chosen`,
+bibliothèque explicite/ancien main absent, et entrée vide avec `--no-main`.
+Les anciens arguments permissifs deviennent les sondes négatives du nouveau
+contrat. Les différences d'artefacts attendues sont le manifeste et le staging ;
+aucun changement de texte Java n'a été constaté dans ces références.
+
+La reconstruction a aussi actualisé les modules construits PBO `Builder` et
+`Cache` depuis le checkout courant : inlining privé du builder parallèle et
+instrumentation/portée du cache `.purmeta`. Le pilote utilise le builder
+séquentiel. Ces sources PBO n'ont pas été éditées pour M13 ; les comparaisons et
+l'intégration ci-dessus portent sur le build effectivement obtenu.
+
+### Nettoyage demandé pendant le lot
+
+Retrait de **3 641 fichiers / 80 859 191 octets** : ancien build REPL, journaux,
+métadonnées Finder et ancien état généré de `tests/runner`. L'archive a été relue
+et vérifiée par tailles/SHA-256 avant suppression ; les **907 retraits de fichiers
+suivis** depuis le relevé initial sont tous couverts par cet inventaire. Le runner
+contenait une copie exacte de la fixture `DerivingTraversable.purs` du fork.
+La [fiche d'entretien](maintenance.md#nettoyage-demandé-pendant-m13) donne les
+chemins de l'archive et les règles d'exclusion ajoutées.
+
+### Preuves et limites
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m13/`,
+notamment `before.json`, `base/`, `driver-baseline/`, `driver-before.log`,
+`driver-after.log`, `driver-final.log`, `driver-isolated.log`, `build-final.log`,
+`output-files-final.log`, `ffi-ports.log`, `references.json`, `artifact-checks.json`,
+`final-source-hashes.json` et `cleanup/`.
+
+La reprise teste la mort du processus et les erreurs filesystem, avec publication
+fichier par fichier ; la durabilité après coupure machine n'est pas garantie par
+`fsync`. Le contrat d'entrypoint vérifie présence/localité/export, sans nouvelle
+preuve de type pour l'ABI. Le chargement tolérant de PBO et le cycle des caches
+`.purmeta` restent décrits dans le guide. La compatibilité de génération est
+étayée par les entrées nommées ci-dessus ; les références b8x/BigFunction gardent
+leurs validations historiques. Le périmètre est resté ciblé conformément au plan.
+
+**Conclusion : M13 validé, +25 points ; plan v2 à 45/100, 2 lots sur 5.
+Prochain lot : M14 — FFI sélectionnée et manquante observable.**

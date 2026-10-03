@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveJavaTools } from "../tools/java-tools.mjs";
@@ -245,7 +245,7 @@ foreign import main :: Action Unit
 visible :: Int
 visible = 0
 `);
-  writeFileSync(join(renamed, "src/ReExport.purs"), "module ReExport (main) where\nimport Main (main)\n");
+  writeFileSync(join(renamed, "src/ReExport.purs"), "module ReExport (module Imported) where\nimport Main (main) as Imported\n");
   await processes.run("driver: renamed TAST", "purs", ["compile", join(renamed, "src/*.purs"), "--codegen", "corefn", "--output", renamedInputs],
     { cwd: directory, env: tools.env, log: join(directory, "logs/renamed-purs.log"), timeout: 60_000 });
   await expectFailure("old-entrypoint", ["--input", renamedInputs, "--main", "Chosen"], /Entrypoint module Chosen not found/);
@@ -285,7 +285,7 @@ process.exitCode = result.status ?? 1;
     await processes.run(`driver: Spago ${name}`, "spago", ["build", "-q", ...outputArgs],
       { cwd: workspace, env: tools.env, log: join(directory, `logs/spago-${name}.log`), timeout: 120_000 });
     // Spago 1.x resolves its output option before appending it to backend.args.
-    const forwarded = outputArgs.length ? ["--output", join(workspace, "TAST cache")] : [];
+    const forwarded = outputArgs.length ? ["--output", join(realpathSync(workspace), "TAST cache")] : [];
     assert.deepEqual(JSON.parse(readFileSync(join(workspace, "backend-args.json"))), [...backendArgs, ...forwarded]);
     const java = join(workspace, "Java sources"); checkManifest(java);
     await processes.run(`driver: Spago ${name} javac`, tools.javac, ["--release", "17", "-d", "classes", "-sourcepath", java, join(java, "MainRun.java")],

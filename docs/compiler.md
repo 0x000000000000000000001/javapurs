@@ -2,7 +2,7 @@
 
 État documenté au **3 octobre 2026**. Ce guide décrit le chemin de production
 actuel. Les références des sources et des outils figurent dans le
-[registre de validation](testing.md#validation-m11). Le
+[registre de validation](testing.md#validation-m13). Le
 [guide de reprise et d'entretien](maintenance.md) complète cette carte par les
 interfaces de compatibilité, le statut des artefacts et les points ouverts.
 
@@ -38,7 +38,7 @@ dans la configuration Spago de chaque application. Le
 | Compilateur : `output/Main/index.js` et `output/Javapurs.*/` | `./bin/build` exécute `spago build` ; ces modules JavaScript font fonctionner l'outil sous Node. |
 | Application : `output/<Module>/corefn.json` | Le fork PureScript produit l'entrée enrichie lue par PBO. |
 | Application : `.purmeta/<Module>.purmeta` | PBO conserve des implémentations optimisées pour les dépendances ; certaines suites peuvent examiner ces caches. |
-| Application : `java_output/` | Javapurs écrit les classes de modules, helpers, FFI insérée et launcher. |
+| Application : `java_output/` (ou `--java-output`) | Javapurs publie les classes de modules, helpers, FFI insérée, launcher et manifeste de propriété. |
 | Répertoire passé à `javac -d` | `javac` produit les `.class` exécutés par la JVM ; le backend ne choisit pas cette destination. |
 
 Le nom `output/` désigne donc le build de l'outil quand on travaille dans son
@@ -59,18 +59,35 @@ et les sauvegardes historiques retirées avec leur procédure de restauration.
 Le shell se remplace par Node via `exec`. `bin/javapurs.js` appelle ensuite
 [Main.main](../src/Main.purs).
 
-`Main` lit `Node.Process.argv`, appelle [Config.parseArgs](../src/Javapurs/Config.purs)
-et lance [Driver.compile](../src/Javapurs/Driver.purs) sous la mesure `backend total`.
+`Main` lit `Node.Process.argv`, retire les deux arguments Node/script, appelle
+[Config.parseArgs](../src/Javapurs/Config.purs) et traite son résultat
+`Either String Command` : diagnostic/code 2, aide/code 0, ou compilation.
+Il lance [Driver.compile](../src/Javapurs/Driver.purs) sous la mesure `backend total`
+et convertit les erreurs de compilation/I/O en code 1.
 La configuration nomme les chemins, le module principal, la limite PBO et les
 options du pipeline. `CodegenOptions` est aussi le type de l'entrée complète de
 `CodeGen` ; `PipelineOptions` lui ajoute le choix du chunking.
 
 La [table des options](../README.md#compiler-options) correspond à `Config`.
-Les arguments inconnus sont ignorés, le premier `--main` prime et un `--main`
-final sans valeur reprend `Main`. Ces règles décrivent la CLI existante.
-Les chemins d'entrée `output` et de sortie `java_output` sont relatifs au dossier
-appelant. L'appelant prépare `java_output` ; les options de sortie et de FFI
-du parseur générique de PBO ne sont pas utilisées par ce pilote.
+Les arguments inconnus, valeurs manquantes/vides, répétitions et conflits échouent
+avant compilation. Les options à valeur acceptent `--nom valeur` et `--nom=valeur`.
+`--main` vaut `Main` par défaut ; `--no-main` sélectionne explicitement une
+bibliothèque. Les deux options sont exclusives.
+
+`--input` configure l'entrée TAST (`output` par défaut) et `--java-output` la
+destination (`java_output` par défaut), relativement au dossier appelant. Le
+backend crée la destination et ses parents. `--output` est un **alias d'entrée** :
+Spago 1.0.3 passe les `backend.args`, puis ajoute `--output` et le chemin TAST
+absolu lorsque son option de sortie est renseignée. Aucun argument positionnel
+`build` n'est transmis. La paire d'alias `--input`/`--output` compte comme une seule
+option ; le parseur générique et les options FFI de PBO ne sont pas utilisés ici.
+
+Les chemins TAST/Java doivent être disjoints : même chemin ou inclusion dans
+l'autre rejetés, y compris à travers les ancêtres symlinks. Après chargement,
+`Driver.validateMain` exige un module présent, avec un `main` exporté défini
+localement (binding PureScript ou foreign). Un simple réexport est refusé. Ces
+contrôles précèdent la création du dossier de sortie ; l'ABI de `main` reste
+celle du runtime décrit ci-dessous.
 
 ### 2. Chargement TAST et optimisation PBO
 
@@ -95,8 +112,9 @@ types PBO et leurs nœuds `Typed`/`TypeApp`, pas sur le JSON brut. Un argument d
 [Types, représentations et conventions d'appel](representations.md) relie les
 producteurs de preuves, leur propagation et les types Java effectivement émis.
 
-`Driver.compile` rend visibles les trois phases : chargement/tri, préparation
-des directives et helpers communs, puis optimisation/émission. Il appelle le
+`Driver.compile` rend visibles le chargement/tri, la préparation des directives
+et helpers communs, puis l'optimisation/émission vers le staging. `Output` ajoute
+la phase finale de publication. Le pilote appelle le
 builder séquentiel `buildModules`, avec les sémantiques étrangères communes et
 la limite de réécriture configurée, 10 000 par défaut. Il fournit les hooks de
 préparation, cache et émission.
@@ -172,8 +190,8 @@ sont détaillés dans [AST Java, parcours et portées](ast.md).
 [Emit.emitModule](../src/Javapurs/Emit.purs) appelle `Printer.printExpr` pour les
 déclarations du fichier découpé et `RecordPrinter` pour les classes de records.
 Il assemble la classe avec les membres étrangers produits par `Ffi.renderForeign`.
-Toutes les écritures Java passent par son helper `writeJava`, qui annote les
-erreurs avec le chemin de destination.
+Son helper `writeJava` annote les erreurs avec le nom Java, puis délègue à
+[Output](../src/Javapurs/Output.purs), propriétaire du staging et de la publication.
 
 Le [guide du rendu Java](printing.md) détaille le dispatcher, le plan des corps
 dans `Printer.Body`, les déclarations, les frontières `Supplier` et l'échappement
@@ -182,17 +200,18 @@ constructions de chaînes et d'enveloppes.
 
 | Fichier généré | Responsabilité actuelle |
 | --- | --- |
-| `__M$App_Main.java` pour `App.Main` | Nom dans `Naming.modulePrefix`, membres étrangers dans `Ffi`, assemblage et écriture dans `Emit.emitModule`. |
-| `__Record$….java` | Nom structurel dans `RecordShapes`, corps dans `RecordPrinter`, écriture dans `Emit.emitModule`. |
-| `__IntFn.java` | `Runtime.intFunctionSource`, écrit une fois par `Emit.emitRuntime`, pendant la préparation. |
-| `TcoLoop.java` | `Runtime.tcoLoopSource`, écrit une fois par `Emit.emitRuntime` si au moins un module est chargé. |
-| `MainRun.java` | `Runtime.mainRunSource`, écrit par `Emit.emitModule` pour le module sélectionné par `--main`. |
+| `__M$App_Main.java` pour `App.Main` | Nom dans `Naming.modulePrefix`, membres étrangers dans `Ffi`, assemblage et staging dans `Emit.emitModule`. |
+| `__Record$….java` | Nom structurel dans `RecordShapes`, corps dans `RecordPrinter`, staging dans `Emit.emitModule`. |
+| `__IntFn.java` | `Runtime.intFunctionSource`, préparé une fois par `Emit.emitRuntime`. |
+| `TcoLoop.java` | `Runtime.tcoLoopSource`, préparé une fois par `Emit.emitRuntime` si au moins un module est chargé. |
+| `MainRun.java` | `Runtime.mainRunSource`, préparé par `Emit.emitModule` pour le module sélectionné par `--main`. |
+| `.javapurs-manifest.json` | Inventaire version 1 et SHA-256 des fichiers Java, publié par `Output` après les sources. |
 
 [Runtime](../src/Javapurs/Runtime.purs) possède les trois templates communs et les
 cinq implémentations globales intégrées de `builtinGlobalSource`, sans I/O.
 `IntFunctions.runtimeSource` reste un alias vers le
 template `__IntFn`, utilisé par les fixtures et benchmarks existants. Une entrée
-vide produit seulement `__IntFn.java` dans un dossier de sortie neuf.
+vide est admise avec `--no-main` et produit seulement `__IntFn.java` et le manifeste.
 
 Les classes utilisent le package Java par défaut. `__M$Main` représente le module
 PureScript `Main` ; `MainRun` est l'entrée JVM. Les constructeurs sont des classes
@@ -201,9 +220,60 @@ doivent être entourés de quotes simples lorsqu'ils apparaissent littéralement
 dans une commande shell, par exemple `'__M$Main.java'`.
 
 `--main` sélectionne le launcher parmi les modules chargés. Le pilote ne filtre
-pas les modules chargés par atteignabilité depuis ce point d'entrée. Il ne retire
-pas non plus les sorties de modules supprimés ou renommés. Si le module demandé
-est absent, aucun nouveau `MainRun.java` n'est écrit.
+pas les modules chargés par atteignabilité depuis ce point d'entrée. Les sorties
+inventoriées de modules supprimés/renommés sont retirées lors de la publication.
+Une sélection invalide échoue en conservant la génération précédente ; un succès
+`--no-main` retire son ancien launcher inventorié.
+
+### Cycle de vie des sorties Java
+
+[Output.purs](../src/Javapurs/Output.purs) encadre l'action du pilote avec `bracket` :
+acquisition, émission, publication mesurée, libération. Son
+[FFI Node](../src/Javapurs/Output.js) possède les opérations filesystem :
+
+1. Création de la destination et acquisition exclusive de `.javapurs-work/` par
+   `mkdir`. `owner.json` enregistre le PID ; un propriétaire vivant produit
+   `Java output is busy`. Lecture du manifeste de la génération précédente.
+2. Émission sous `stage/`. L'inventaire accepte les noms Java simples ; deux
+   productions de même nom sont permises seulement si leurs octets coïncident.
+   Un échec à cette étape conserve les sources publiées.
+3. Avant publication, contrôle de tous les fichiers concernés et du manifeste.
+   Chaque fichier géré doit encore correspondre à son SHA-256 enregistré. Un
+   fichier étranger portant un nom émis est adopté seulement s'il est identique.
+   Répertoires, symlinks, fichiers modifiés et collisions sont préservés avec
+   diagnostic. Les fichiers gérés devenus inutiles sont inclus dans les retraits.
+4. Sauvegarde des fichiers remplacés/retirés sous `backup/`, puis écriture atomique
+   du journal `publishing`. Retrait de l'ancien `MainRun.java`, publication des
+   modules/helpers, puis du nouveau launcher, même si celui-ci est identique.
+   Le manifeste `{ "version": 1, "files": { "Nom.java": "sha256" } }` est écrit
+   ensuite, puis le journal passe à `committed` et le dossier de travail est retiré.
+5. Sur erreur de publication, restauration de la génération et du manifeste
+   précédents. La restauration valide d'abord toutes les empreintes et sauvegardes,
+   puis restaure le launcher après ses modules. Un conflit externe ou une erreur
+   de restauration conserve le journal pour une reprise explicite.
+
+À la prochaine acquisition, si le PID précédent est mort, un journal `publishing`
+entraîne cette restauration ; `committed` conserve les nouveaux fichiers ; sans
+journal, seul le staging est abandonné. Un message signale la récupération. Des
+métadonnées de reprise incomplètes/invalides arrêtent l'opération sans supprimer
+ce dossier. Pour diagnostiquer une reprise refusée, conserver `.javapurs-work`,
+examiner le chemin signalé, son entrée dans `journal.json` et sa sauvegarde avant
+de rétablir les octets attendus ou de choisir une destination neuve.
+
+La publication est journalisée **fichier par fichier**. Le succès du processus
+signale la fin de la génération ; `.javapurs-work` indique une opération active
+ou une récupération à terminer. Les tests couvrent erreurs filesystem et mort
+du processus ; il n'y a pas de protocole `fsync` garantissant la durabilité après
+une coupure machine.
+L'inventaire concerne les sources Java, tandis que les caches PBO `.purmeta` et
+les classes produites par `javac` ont leur propre cycle de vie.
+
+**Migration des sorties anciennes :** sans manifeste, seuls les fichiers
+identiques à la génération courante sont adoptés. Les autres fichiers étrangers
+restent en place ; un ancien launcher non inventorié fait échouer `--no-main`
+pour rendre explicite le conflit. Utiliser une destination neuve via
+`--java-output`, ou archiver les anciennes sources générées identifiées avant
+de les régénérer, permet d'établir le premier inventaire.
 
 ### 6. Compilation et exécution Java
 
@@ -220,7 +290,7 @@ emploient les records Maps, `javac --release 17` et les JAR de
 ### Diagnostics et durées
 
 [Metrics.measure](../src/Javapurs/Metrics.purs) conserve les libellés `load TAST + sort`,
-`prepare`, `optimize + emit` et `backend total`. Les phases sont incluses dans
+`prepare`, `optimize + emit`, `publish Java` et `backend total`. Les phases sont incluses dans
 le total, et un échec est marqué `(failed)` avant propagation.
 Depuis M03, l'écriture unique de `TcoLoop` appartient à `prepare`.
 
@@ -228,8 +298,8 @@ Depuis M03, l'écriture unique de `TcoLoop` appartient à `prepare`.
 erreurs remontées par le chargement, la lecture FFI et les écritures. Exemples :
 `load TAST from output: ENOENT…`,
 `compile module Missing: read Java FFI src/Missing.java: EISDIR…` ou
-`compile module Main: write Java java_output/MainRun.java: EISDIR…`.
-Ces erreurs atteignent le launcher Node et produisent un code de sortie 1.
+`publish Java to java_output: Java output conflict; preserving …`.
+La frontière `Main` produit un code de sortie 1 pour ces erreurs.
 Le chargement reste celui de PBO : un fichier CoreFn absent peut être ignoré,
 et une erreur de décodage est journalisée avant d'écarter le module concerné.
 
@@ -240,7 +310,8 @@ et une erreur de décodage est journalisée avant d'écarter le module concerné
 | Où sont définies les options et les valeurs par défaut ? | [Main](../src/Main.purs), [Config](../src/Javapurs/Config.purs). |
 | Comment sont pilotées les phases et les durées ? | [Driver](../src/Javapurs/Driver.purs), [Metrics](../src/Javapurs/Metrics.purs), [Diagnostics](../src/Javapurs/Diagnostics.purs). |
 | Quel est l'ordre des passes Java après PBO ? | [Pipeline](../src/Javapurs/Pipeline.purs). |
-| Qui lit les fragments FFI et écrit les fichiers Java ? | [Ffi](../src/Javapurs/Ffi.purs), [Emit](../src/Javapurs/Emit.purs). |
+| Qui lit les fragments FFI et assemble les fichiers Java ? | [Ffi](../src/Javapurs/Ffi.purs), [Emit](../src/Javapurs/Emit.purs). |
+| Qui possède inventaire, publication et récupération ? | [Output](../src/Javapurs/Output.purs), [FFI filesystem](../src/Javapurs/Output.js). |
 | Où sont les templates communs et le launcher JVM ? | [Runtime](../src/Javapurs/Runtime.purs). |
 | Comment sont nommés modules, constructeurs et locaux ? | [Naming](../src/Javapurs/Naming.purs), [Rename](../src/Javapurs/Rename.purs). |
 | Quels nœuds Java existent et quels sont leurs enfants/portées ? | [JavaAst](../src/Javapurs/JavaAst.purs), [contrats de l'IR](ast.md). |

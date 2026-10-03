@@ -15,7 +15,7 @@ et sélecteurs qui ne peuvent pas être employés comme des valeurs ordinaires.
 | [Printer.Declarations](../src/Javapurs/Printer/Declarations.purs) | Initialisations eager/lazy, méthodes statiques, classes d'ADT et holders des singletons. |
 | [RecordPrinter](../src/Javapurs/RecordPrinter.purs) | Déclarations des records, lecteurs, vue Map, construction et mise à jour avec repli. |
 | [Runtime](../src/Javapurs/Runtime.purs) | Templates des trois fichiers communs et des cinq implémentations globales intégrées. |
-| [Emit](../src/Javapurs/Emit.purs) | Assemblage du module avec sa FFI, choix des noms de fichiers et écritures. |
+| [Emit](../src/Javapurs/Emit.purs) | Assemblage du module avec sa FFI et choix des noms ; staging/publication délégués à [Output](../src/Javapurs/Output.purs). |
 
 Les sous-renderers reçoivent `Render = JavaExpr -> String` en argument. Ils
 rendent leurs enfants par ce callback, sans importer le dispatcher et sans
