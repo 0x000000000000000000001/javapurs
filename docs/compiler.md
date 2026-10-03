@@ -1,8 +1,8 @@
 # Guide du compilateur Javapurs
 
-État documenté au **2 octobre 2026**. Ce guide décrit le chemin de production
+État documenté au **3 octobre 2026**. Ce guide décrit le chemin de production
 actuel. Les références des sources et des outils figurent dans le
-[registre de validation](testing.md#validation-m09).
+[registre de validation](testing.md#validation-m10).
 
 ## Se repérer dans le workspace
 
@@ -252,6 +252,7 @@ et une erreur de décodage est journalisée avant d'écarter le module concerné
 | Comment sont rendus blocs, boucles, classes et records ? | [Printer](../src/Javapurs/Printer.purs), [Body](../src/Javapurs/Printer/Body.purs), [Declarations](../src/Javapurs/Printer/Declarations.purs), [RecordPrinter](../src/Javapurs/RecordPrinter.purs), [guide du rendu](printing.md). |
 | Où sont les chaînes Java et les enveloppes Supplier communes ? | [Printer.Syntax](../src/Javapurs/Printer/Syntax.purs). |
 | Où sont fixées les représentations des littéraux Char/Number ? | [Literals](../src/Javapurs/Literals.purs), partagé par la traduction ordinaire et ownership. |
+| Qui possède annulation, callbacks, références et promesses ? | [Contrats FFI et runtimes](ffi-runtime.md), fragments Java des ports et pont PureScript Promise/Aff. |
 
 `JavaExpr` représente valeurs, statements, déclarations et sélecteurs de méthodes.
 `traverseChildren` définit leurs enfants ; `children`, `mapChildren` et
@@ -294,6 +295,10 @@ obligations des callbacks et Maps FFI.
 
 ## Runtime et FFI des ports
 
+Le [guide FFI/runtime](ffi-runtime.md) détaille enveloppes curryfiées/Effect,
+propriétaires des états, transitions de fibres, synchronisation, durée de vie
+des callbacks, conversions d'erreurs et dépendances externes.
+
 ### Résolution et forme des fragments
 
 `Ffi.loadForeign` appelle `findFfiFile ".java" [] Nothing moduleName modulePath` dans PBO.
@@ -321,14 +326,20 @@ d'une FFI Java : elles servent les chemins de compilation et d'exécution respec
 | `Effect a` | [Effect.java](../../javapurs-effect/src/Effect.java) : fonctions curryfiées et actions `Supplier`. Certaines primitives ont aussi un rendu intégré au compilateur. |
 | Console | [Console.java](../../javapurs-console/src/Effect/Console.java) : bindings Java du port. |
 | `Ref a` | [Ref.java](../../javapurs-refs/src/Effect/Ref.java) : cellule `Object[]` d'un élément ; lecture, écriture et modification sont synchronisées sur la cellule. |
-| `Aff a` | [Aff.java](../../javapurs-aff/src/Effect/Aff.java) : `AffRun`, `RunContext`, pile de binds trampolinée et `NativeFiber` sur thread Java daemon. Annulation vérifiée par le contexte ; délais découpés en tranches. |
-| `Promise a` | [Promise/Internal.java](../../javapurs-js-promise/src/Promise/Internal.java) : `PromiseValue` avec état, résultat ou rejet. Les combinateurs traitent les valeurs résolues de manière eager, sans file de microtasks JS. |
+| `Aff a` | [Aff.java](../../javapurs-aff/src/Effect/Aff.java) : interpréteur bind/map, annulation à cause unique, inscriptions retirables, fibres daemon, bracket masqué, supervision du sous-arbre et coordination parallèle. |
+| `Promise a` | [Promise/Internal.java](../../javapurs-js-promise/src/Promise/Internal.java) : états pending/réglé, adoption et abonnements ; réactions eager trampolinées hors verrous, sans microtasks JS. |
 | Pont Promise/Aff | [Promise/Aff.purs](../../javapurs-js-promise-aff/src/Promise/Aff.purs) : pont PureScript vers les deux runtimes précédents. |
 
 Pour une FFI `Effect (Promise a)`, l'effet retourne un objet `PromiseValue` du
 module généré `__M$Promise_Internal`. Un Aff suit les opérations de son port et
 ne se réduit pas à un `Supplier` arbitraire. Les callbacks, erreurs et annulations
 doivent respecter les enveloppes prévues par ces runtimes.
+
+La JVM n'attend pas spontanément les fibres daemon. Les
+[suites FFI ciblées](testing.md#runtimes-ffi-et-interopérabilité) attendent la
+complétion, propagent les erreurs au processus et exercent le pont réel en
+records typés et Maps. Elles couvrent aussi la sélection transitive du port
+`javapurs-foreign`, nécessaire à la conversion des rejets.
 
 La couverture Java se vérifie par port et par application. Les JAR et les FFI
 applicatives appartiennent à l'application ; le nom d'un dépôt ou la seule

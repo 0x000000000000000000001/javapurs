@@ -1,6 +1,6 @@
 # Tests ciblés et registre de validation
 
-État documenté au **2 octobre 2026**. Les commandes de cette page s'exécutent
+État documenté au **3 octobre 2026**. Les commandes de cette page s'exécutent
 depuis le dépôt du compilateur `htdocs/javapurs/javapurs`, sauf indication contraire.
 
 ## Choisir le bon niveau
@@ -11,7 +11,8 @@ depuis le dépôt du compilateur `htdocs/javapurs/javapurs`, sauf indication con
 | Pilote `test/driver.mjs` | Application PureScript minimale, TAST réel, launcher `bin/javapurs`, Java généré, JVM et erreurs d'I/O. |
 | Outillage `test/test-tools.mjs` | Petit corpus et commandes simulés ; sélection, fichiers, processus et interruption. Node suffit. |
 | Fixture PureScript nommée | `bin/test NOM` réalise Spago → Javapurs → `javac` → `MainRun` dans `tests/runner`. |
-| Port Java particulier | Son propre `bin/test` prépare le workspace du port et exécute son `Test.Main`. |
+| Protocoles des ports Java | `test/ffi-runtimes.mjs` compile les vrais fragments ; `test/ffi-ports.mjs` attend l'intégration PureScript réelle dans deux modes de records. Les quatre ports proposent `bin/test-runtime`. |
+| Suite historique d'un port | Son `bin/test` prépare le workspace du port et lance `Test.Main` ; l'attente de la fin asynchrone dépend de son entrypoint. |
 | Documentation/outillage | Contrôle des chemins, options, sélections, syntaxe des exemples et contrats des sous-processus effectivement modifiés. |
 
 La règle du [chantier de maintenabilité](../../todo.md) est une **validation
@@ -103,6 +104,8 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Cibles des boucles ownership | [test/ownership-loops.mjs](../test/ownership-loops.mjs) | 9 contrôles JVM par mode : alias arbre/scalaire et scope récursif, 0/1/100 000 itérations avec `-Xss256k`. |
 | `Chunk`, `Chunk.Captures`, `Chunk.Extraction` | [test/chunk.mjs](../test/chunk.mjs) | 15 fixtures : captures imbriquées, portées, types Java, récursion, mutations, ordre des effets, scopes profonds, boucles et frontières 256/257 unités, 64/65 captures. |
 | Configuration, pilote, pipeline, FFI et émission | [test/driver.mjs](../test/driver.mjs) | 13 variantes CLI, deux ABI de launcher, entrée vide et six erreurs d'I/O ; TAST-capable `purs`, backend construit et JDK. Modes de comparaison sur entrées figées. |
+| Ref, Promise et Aff Java | [test/ffi-runtimes.mjs](../test/ffi-runtimes.mjs) | 36 contrôles directs : effets différés, écritures concurrentes, règlement/adoption, exceptions, désabonnement, annulation, bracket, supervision et parallèle ; vrais fragments, shim Either, Node/JDK et trois ports voisins. |
+| API PureScript des ports et pont Promise/Aff | [test/ffi-ports.mjs](../test/ffi-ports.mjs) | 17 assertions dans chacun des modes records typés/Maps, mêmes TAST ; attente de la fibre et échec JVM vérifiés. Backend construit, Spago, `purs` TAST et ports locaux, y compris `foreign`. |
 | Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | Prépare et exécute BigFunction dans un workspace temporaire isolé, puis réalise 155 contrôles de `f`. |
 | Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 11 tests Node : noms et bornes invalides, absence d'effets de `--list`, préparation/FFI, erreurs par phase, logs, temporaires, timeout et signaux aux descendants. |
 
@@ -384,6 +387,50 @@ leurs sorties et peuvent sélectionner `spago.java.yaml` via le lien `spago.yaml
 Ils utilisent le compilateur frère puis exécutent `Test.Main` sur la JVM avec
 `-Xss8m`. Consulter le script du port pour ses prérequis ; le runner agrégé
 `tools/modtest-runner.mjs` est un autre niveau d'orchestration.
+
+### Runtimes FFI et interopérabilité
+
+Pour les [contrats runtime](ffi-runtime.md), depuis ce dépôt :
+
+```bash
+node test/ffi-runtimes.mjs
+node test/ffi-runtimes.mjs --port=aff
+node test/ffi-ports.mjs
+```
+
+Le premier script compile un harness partagé et les fragments réels Aff, Ref,
+Promise avec `javac --release 17`, puis choisit les protocoles à exécuter.
+`--port=refs|promise|aff` sélectionne un groupe ; `--ports-root CHEMIN` sélectionne
+le dossier contenant les trois checkouts, utile pour une comparaison sauvegardée.
+Il utilise **4** contrôles Ref (dont 2 000 mises à jour entre quatre threads),
+**14** Promise et **18** Aff. Les barrières imposent les interleavings, avec des
+timeouts d'échec. Deux chaînes de 20 000 étapes vérifient les trampolines avec
+`-Xss512k`. Il ne dépend pas du build JavaScript du backend.
+
+`ffi-ports.mjs` prépare un workspace isolé depuis le template du runner et ajoute
+les ports Aff, Promise, Promise/Aff et Foreign. Ref et les dépendances communes
+viennent du template. Il exécute les vrais modules PureScript/ADT avec **17**
+assertions : Ref, joins réutilisés, bracket, annulation, supervision, course Unit,
+pont et erreurs, `all`, `race`, `finally`, exception de handler et Promise.Lazy.
+La seconde génération réutilise les mêmes TAST avec `--records=maps` ; les deux
+compilations ciblent Java 17. Le helper `Main.awaitAff` attend la fibre racine,
+propage son erreur et borne une absence de complétion ; le script exige aussi
+le marqueur final. Aucune option CLI n'est acceptée.
+
+Les launchers `../javapurs-{refs,aff,js-promise}/bin/test-runtime` délèguent au
+groupe direct correspondant ; `../javapurs-js-promise-aff/bin/test-runtime`
+lance l'intégration. Ils retrouvent les scripts depuis leur propre chemin et
+acceptent les mêmes arguments que leur cible. Les temporaires sont supprimés
+au succès, conservés à l'échec ; l'intégration garde alors ses logs par phase.
+
+**Statut des anciens tests relevé en M10.** Les anciens `bin/test` Aff et
+Promise/Aff peuvent quitter avec 0 avant leurs fibres daemon : ce code seul
+n'atteste pas l'exécution de leurs assertions. La FFI de timers de l'ancien
+test Promise retourne des valeurs déjà réglées ; elle n'établit pas les courses
+pending et ses Promises enfants ne sont pas toutes observées. Ces suites
+historiques restent des entrées distinctes ; les preuves M10 reposent sur les
+protocoles directs et l'intégration attendue ci-dessus. Les tests synchrones
+Ref restent exécutables par leur entrypoint historique.
 
 ## Consigner une validation
 
@@ -1169,3 +1216,126 @@ les diffs des deux nouvelles fixtures, `comparison-existing.json`,
 
 **Conclusion : M09 validé, +10 points ; avancement 85/100, 9 lots sur 11.
 Prochain lot : M10 — contrats FFI et runtimes des ports.**
+
+## Validation M10
+
+**3 octobre 2026 — contrats FFI et runtimes des ports.**
+
+Références initiales, après vérification des empreintes de clôture M09 ; les cinq
+checkouts étaient propres et leurs sources ont été sauvegardées dans `base/` :
+
+| Dépôt | Révision de départ |
+| --- | --- |
+| Javapurs | `eba169d42727ec1a9065235262c20b74c665f781` |
+| Aff | `6965604bb7a26cd3836a30cf538bdd8b3ff058d5` |
+| Refs | `753153553468d12c415590af69bf9b935bc77147` |
+| Promise | `3af76a1273a16cb5e08dfd7dd6593fdc6f51cc8a` |
+| Promise/Aff | `26930357ef0d7dcbe0bab466612e67406081f0ed` |
+
+Outils relevés : Node 24.8.0, Spago 1.0.3, binaire `purs` TAST de l'inventaire
+M09, OpenJDK 26.0.2. Aucun override JDK/heap initial ; les nouvelles suites
+ciblent **Java 17**. Les temporaires utilisent le dossier `opencode` approuvé.
+
+### Responsabilités et livrables
+
+- Revue de `Ffi`/`Emit` et du résolveur PBO : leur découpage existant suffit.
+  Le [guide FFI/runtime](ffi-runtime.md) décrit découverte, insertion/stubs,
+  noms, wrappers curryfiés, effets différés, conversions, JAR et durées de vie.
+- `Effect/Aff.java` sépare interprétation, inscriptions, réservation/achèvement
+  de l'annulation, résultat/observateurs des fibres, bracket et coordination
+  parallèle. Les wrappers FFI utilisent ces propriétaires nommés. Les moniteurs
+  protègent les transitions ; les callbacks/cancelers s'exécutent hors verrou.
+- `Promise/Internal.java` sépare règlement/adoption, distribution trampolinée,
+  coordination `all`/`race` et wrappers. Les réactions restent eager ; les états
+  pending/réglé, la première décision et les erreurs de callbacks sont explicites.
+  La vue publique `PromiseValue` utilisée par la FFI applicative est conservée.
+- Ref conserve son implémentation courte et synchronisée ; ses commentaires
+  précisent atomicité et compatibilité Map. Le commentaire de `Promise.Rejection`
+  distingue rejet arbitraire et reconnaissance d'un Throwable. Le pont reste
+  porté par son module PureScript, dont le guide précise les limites d'annulation.
+- Deux suites ciblées, harness Java, fixture PureScript/FFI et quatre launchers
+  `bin/test-runtime` rendent ces contrats rejouables. README du compilateur et des
+  ports, carte, matrice et suivi sont actualisés ensemble.
+
+### Défauts reproduits et corrections
+
+La première série de protocoles a été exécutée avant la réorganisation :
+**Ref 4 réussites**, **Promise 9 échecs/1 réussite**, **Aff 10 échecs/0 réussite**.
+Les logs isolent les règles rompues : lecture de Promise pending comme un succès,
+absence d'adoption et de capture des exceptions, course ignorant un premier
+rejet, finalisation sans attente ; joins tardifs perdus, désabonnement bloquant,
+isSuspended incorrect, cancelers conservés ou mal appliqués, map récursif,
+nettoyage multiple et confusion entre succès Unit et absence de gagnant.
+
+Les contrôles supplémentaires couvrent annulation pendant inscription/acquisition,
+appels concurrents, nettoyages avant publication, propagation aux deux branches,
+supervision des petits-enfants et des forks à la fermeture, abonnements concurrents
+et chaînes profondes. La revue finale a reproduit une publication incohérente de
+la cause sur une fibre suspendue (**1 échec/17 réussites**), puis séparé réservation
+de la cause et exécution des cancelers sous le verrou de cycle de vie de la fibre.
+
+L'intégration est d'abord restée suspendue à la conversion du rejet Promise/Aff.
+Les traces de phases et une sonde de `Promise.Aff.coerce` ont montré un stub
+`Foreign` : le workspace sélectionnait le package du registre plutôt que son
+port Java. L'ajout explicite de `javapurs-foreign` à cette fixture corrige sa
+configuration transitive. Les succès et rejets passent ensuite dans les deux
+représentations de records.
+
+Les quatre anciens `bin/test` avaient retourné 0, mais Aff/Promise-Aff quittaient
+avant leurs assertions daemon. Le test Promise utilisait des timers déjà réglés
+et ne propageait pas tous les rejets de ses assertions. Ces codes initiaux sont
+conservés comme constat, pas comme preuve asynchrone. Les nouvelles suites
+attendent la complétion et contrôlent le résultat de chaque contrat.
+
+### Commandes et résultats
+
+| Contrôle ciblé | Résultat final |
+| --- | --- |
+| `node test/ffi-runtimes.mjs` | **36 contrôles** : Ref 4, Promise 14, Aff 18 ; compilation Java 17 et exécution avec pile 512 Kio. |
+| `bin/test-runtime` de Refs, Promise et Aff, depuis chaque port | Respectivement **4**, **14** et **18** ; résolution du script/JDK et groupes vérifiés. |
+| `../javapurs-js-promise-aff/bin/test-runtime` | Appelle `ffi-ports.mjs` : **17 assertions × 2 modes**, records typés puis Maps sur le même TAST ; phases PureScript/génération/javac/JVM réussies. |
+| Sonde de la vraie FFI `Main.awaitAff` avec un Aff défaillant | **Code JVM 1 attendu**, message d'échec asynchrone retrouvé ; aucun retour réussi prématuré. |
+| `node test/driver.mjs` | **13 variantes CLI**, **12 exécutions JVM**, entrée vide et six échecs d'I/O attendus ; fragments fournis, vides et absents contrôlés. |
+| Régénération des quatre ports depuis leurs TAST initiaux, puis `javac --release 17` | Quatre compilations réussies ; entrée historique synchrone Ref également exécutée avec code 0. |
+
+Les changements de runtime sont compilés directement à partir des fragments.
+Les sources du backend conservent le build validé de M09 ; les comparaisons
+utilisent ce même compilateur et les mêmes options `--main Test.Main`.
+
+### Comparaison Java et clôture
+
+Les sorties des quatre runs initiaux ont été capturées dans `generated-before/`.
+Leur TAST conservé a été copié dans des workspaces de comparaison ; les empreintes
+de **931 modules TAST cumulés** sont vérifiées avant/après génération, sans relancer
+Spago. Les dépendances et chemins de résolution restent ceux des runs initiaux.
+
+| Port | Sources Java | Identiques | Différences limitées aux fragments FFI |
+| --- | ---: | ---: | --- |
+| Refs | 269 | 268 | Commentaires de `Effect.Ref`. |
+| Promise | 401 | 398 | `Promise.Internal`, commentaires de `Promise.Rejection` et `Effect.Ref`. |
+| Aff | 373 | 371 | `Effect.Aff`, commentaires de `Effect.Ref`. |
+| Promise/Aff | 437 | 433 | Les quatre fragments précédents. |
+| **Total** | **1 480** | **1 470** | **10 fichiers**. |
+
+Pour chacun des dix fichiers, remplacer uniquement le nouveau fragment par sa
+copie initiale restitue exactement les octets de la référence. Inventaires,
+déclarations PureScript générées, helpers, chunking et conventions d'appel sont
+donc identiques sur ces entrées. Les sorties suivies d'Aff modifiées par le run
+historique initial ont été sauvegardées puis remises dans leur état d'entrée.
+
+La clôture vérifie liens/ancres, matrice des **23 suites**, exemples Bash,
+syntaxe des nouvelles entrées Node/Bash, caractère exécutable des launchers,
+recalcul du score et revue des diffs des cinq dépôts. Les preuves comprennent
+les empreintes finales des sources concernées et `git diff --check`.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m10/`,
+notamment `base/`, `versions.json`, `*-protocol-before.log`,
+`fiber-cause-before.log`, `protocol-final.log`, `*-launcher-final.log`,
+`coercion-baseline.log`, `integration-phases.log`, `integration-final.log`,
+`integration-failure-propagation.log`, `driver-final.log`, `generated-before/`,
+`generation-workspace/`, `compare-java.py`, `java-comparison.json`,
+`*-tast.json`, `*-javac-after.log`, `final-source-hashes.json` et `final-checks.txt`.
+
+**Conclusion : M10 validé, +10 points ; avancement 95/100, 10 lots sur 11.
+Prochain lot : M11 — consolidation et entretien du dépôt.**

@@ -8,7 +8,7 @@ An optimizing **PureScript-to-Java compiler**, written in PureScript, bringing p
 
 `javapurs` consumes the enriched **TAST / `tcorefn`** representation produced by our [PureScript compiler fork](https://github.com/0x000000000000000000001/purescript), optimizes it through `purescript-backend-optimizer`, and emits Java source. Node.js runs the compiler; the generated application runs on the JVM.
 
-For maintainers: [compiler guide](docs/compiler.md) · [types and calling conventions](docs/representations.md) · [expression translation](docs/expressions.md) · [specialized passes](docs/specialized-passes.md) · [Java rendering](docs/printing.md) · [Java AST and scope contracts](docs/ast.md) · [focused testing and validation records](docs/testing.md).
+For maintainers: [compiler guide](docs/compiler.md) · [types and calling conventions](docs/representations.md) · [FFI and runtime contracts](docs/ffi-runtime.md) · [expression translation](docs/expressions.md) · [specialized passes](docs/specialized-passes.md) · [Java rendering](docs/printing.md) · [Java AST and scope contracts](docs/ast.md) · [focused testing and validation records](docs/testing.md).
 
 ## Features
 
@@ -20,7 +20,7 @@ For maintainers: [compiler guide](docs/compiler.md) · [types and calling conven
 - **Java effects and Aff.** The library ports provide effect thunks, synchronized reference operations, and an Aff runtime with trampolined binds, platform-thread fibers, cancellation checks, supervision and parallel combinators.
 - **Java interoperability.** Foreign imports are implemented by Java snippets inserted into generated classes. Compile the resulting sources with `javac` and supply any application JAR dependencies through the classpath.
 
-Java library FFI coverage remains package-specific. The current Aff runtime uses ordinary Java threads; Promise ports use eager settlement rather than a JavaScript microtask queue. See the [runtime and FFI contracts](docs/compiler.md#runtime-et-ffi-des-ports) for the implemented representations. Virtual-thread scheduling and Valhalla value types remain future work.
+Java library FFI coverage remains package-specific. Aff uses ordinary daemon threads with cooperative cancellation. Promise supports pending settlement and adoption, with eager reactions rather than a JavaScript microtask queue. The [runtime and FFI contracts](docs/ffi-runtime.md) describe callback lifetimes, synchronization and process completion. Virtual-thread scheduling and Valhalla value types remain future work.
 
 ## Benchmarks
 
@@ -216,7 +216,7 @@ public static final Object logLine =
 
 Export a static value with the foreign import's generated Java name. Functions use one `Function<Object, Object>` per curried argument; an `Effect a` returns a `Supplier` so effects run only when forced. Use fully qualified Java class names in snippets. Private helper methods can hold ordinary Java implementation code behind these bindings.
 
-Names are escaped by [Naming](src/Javapurs/Naming.purs), including Java keywords. An `Effect (Promise a)` returns a thunk whose result uses the Promise port's `PromiseValue`; Aff values use the Aff port's `AffRun`. The [compiler guide](docs/compiler.md#runtime-et-ffi-des-ports) maps these contracts to their implementations.
+Names are escaped by [Naming](src/Javapurs/Naming.purs), including Java keywords. An `Effect (Promise a)` returns a thunk whose result uses the Promise port's `PromiseValue`; Aff values use the Aff port's `AffRun`. The [runtime guide](docs/ffi-runtime.md) maps calling conventions, state ownership and error conversion to their implementations. Select transitive Java ports as well, including `javapurs-foreign` for Promise/Aff rejection conversion.
 
 Access PureScript records through `java.util.Map<String, Object>` and copy them before mutation. Generated typed record classes are immutable; other record paths use Maps. Do not assume every record is a `LinkedHashMap`. Generic arrays use `Object[]`; primitive values cross the generic function interface as their Java boxed equivalents. A plain `Function<Object, Object>` remains valid when the compiler specializes an `Int -> Int` call.
 
@@ -228,7 +228,7 @@ Use the same checkout layout as the source build instructions and select tests b
 
 - **`./bin/test`** compiles and runs the PureScript passing tests (`purescript/tests/purs/passing`) through the Java backend, like the other backend checkouts do.
 - **`test/*.mjs`** are the backend's own regression suites, run after `./bin/build`. The Node-only `test/test-tools.mjs` checks the runners with simulated commands and requires no backend build or JDK.
-- **Each port's `bin/test`** checks that individual library through its own Spago workspace and Java runner.
+- **Each port's `bin/test`** runs its historical Spago workspace. For Aff/Ref/Promise protocols, the four ports also provide **`bin/test-runtime`**, with explicit asynchronous completion and failure checks; see the [runtime recipe](docs/testing.md#runtimes-ffi-et-interopérabilité).
 
 ```bash
 # Inspect an explicit selection before running it:
@@ -258,7 +258,9 @@ The shared JDK resolver uses explicit `JAVAC`/`JAVA` first, then `JAVA_HOME`, th
 
 `node test/ast-scopes.mjs` checks local shadowing, sibling branches, recursive captures, method selectors, nested loop targets and the raw-Java boundary. It compiles and executes the same fixtures after renaming, with and without chunking, targeting Java 17.
 
-The [test matrix](docs/testing.md#matrice-des-tests) covers all 21 scripts and identifies optional benchmark-cache inputs. The [specialized-pass recipe](docs/testing.md#passes-spécialisées) includes ownership admission and deep-recursion checks in both modes. See the [BigFunction recipe](docs/testing.md#chunker-et-bigfunction) and [runner checks](docs/testing.md#outillage-des-tests) for focused commands. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
+`node test/ffi-runtimes.mjs` compiles the actual Ref/Promise/Aff Java fragments and runs 36 deterministic protocol checks; it needs Node, a JDK and the sibling ports. `node test/ffi-ports.mjs` additionally uses Spago, the TAST frontend and the built backend for 17 PureScript integration assertions per record mode, including the real Promise/Aff bridge. Both target Java 17.
+
+The [test matrix](docs/testing.md#matrice-des-tests) covers all 23 scripts and identifies optional benchmark-cache inputs. The [specialized-pass recipe](docs/testing.md#passes-spécialisées) includes ownership admission and deep-recursion checks in both modes. See the [BigFunction recipe](docs/testing.md#chunker-et-bigfunction) and [runner checks](docs/testing.md#outillage-des-tests) for focused commands. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
 
 ## Architecture
 
