@@ -250,4 +250,5 @@ chacun des modes records typés et Maps sur le même TAST. Il attend la fibre
 racine et propage son échec au processus ; le marqueur final est vérifié.
 Les quatre ports exposent un `bin/test-runtime` vers ces suites. La
 [recette de test](testing.md#runtimes-ffi-et-interopérabilité) précise les options,
-les preuves et le statut des anciens launchers.
+les preuves et les [suites de ports attendues](testing.md#suites-asynchrones-des-ports)
+livrées en M12, avec leurs sondes de fin de processus.

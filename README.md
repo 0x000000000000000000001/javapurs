@@ -8,7 +8,7 @@ An optimizing **PureScript-to-Java compiler**, written in PureScript, bringing p
 
 `javapurs` consumes the enriched **TAST / `tcorefn`** representation produced by our [PureScript compiler fork](https://github.com/0x000000000000000000001/purescript), optimizes it through `purescript-backend-optimizer`, and emits Java source. Node.js runs the compiler; the generated application runs on the JVM.
 
-For maintainers: [compiler guide](docs/compiler.md) · [types and calling conventions](docs/representations.md) · [FFI and runtime contracts](docs/ffi-runtime.md) · [expression translation](docs/expressions.md) · [specialized passes](docs/specialized-passes.md) · [Java rendering](docs/printing.md) · [Java AST and scope contracts](docs/ast.md) · [focused testing and validation records](docs/testing.md).
+For maintainers: [handoff and repository maintenance](docs/maintenance.md) · [compiler guide](docs/compiler.md) · [types and calling conventions](docs/representations.md) · [FFI and runtime contracts](docs/ffi-runtime.md) · [expression translation](docs/expressions.md) · [specialized passes](docs/specialized-passes.md) · [Java rendering](docs/printing.md) · [Java AST and scope contracts](docs/ast.md) · [focused testing and validation records](docs/testing.md).
 
 ## Features
 
@@ -228,7 +228,7 @@ Use the same checkout layout as the source build instructions and select tests b
 
 - **`./bin/test`** compiles and runs the PureScript passing tests (`purescript/tests/purs/passing`) through the Java backend, like the other backend checkouts do.
 - **`test/*.mjs`** are the backend's own regression suites, run after `./bin/build`. The Node-only `test/test-tools.mjs` checks the runners with simulated commands and requires no backend build or JDK.
-- **Each port's `bin/test`** runs its historical Spago workspace. For Aff/Ref/Promise protocols, the four ports also provide **`bin/test-runtime`**, with explicit asynchronous completion and failure checks; see the [runtime recipe](docs/testing.md#runtimes-ffi-et-interopérabilité).
+- **Each port's `bin/test`** selects its suite. Aff, Promise and Promise/Aff use isolated workspaces and await all assertions and cleanup, with explicit failure/timeout checks. For Aff/Ref/Promise protocols, the four ports also provide **`bin/test-runtime`**; see the [runtime recipe](docs/testing.md#runtimes-ffi-et-interopérabilité).
 
 ```bash
 # Inspect an explicit selection before running it:
@@ -260,7 +260,13 @@ The shared JDK resolver uses explicit `JAVAC`/`JAVA` first, then `JAVA_HOME`, th
 
 `node test/ffi-runtimes.mjs` compiles the actual Ref/Promise/Aff Java fragments and runs 36 deterministic protocol checks; it needs Node, a JDK and the sibling ports. `node test/ffi-ports.mjs` additionally uses Spago, the TAST frontend and the built backend for 17 PureScript integration assertions per record mode, including the real Promise/Aff bridge. Both target Java 17.
 
-The [test matrix](docs/testing.md#matrice-des-tests) covers all 23 scripts and identifies optional benchmark-cache inputs. The [specialized-pass recipe](docs/testing.md#passes-spécialisées) includes ownership admission and deep-recursion checks in both modes. See the [BigFunction recipe](docs/testing.md#chunker-et-bigfunction) and [runner checks](docs/testing.md#outillage-des-tests) for focused commands. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
+`node test/port-runners.mjs --port=aff` runs the Aff suite through the same isolated runner as its `bin/test`; `--port=promise` and `--port=promise-aff` select the other two suites. The runner requires a completion marker and the expected check count, and probes delayed assertions, rejections, timeouts and premature process exit. See the [port-suite recipe](docs/testing.md#suites-asynchrones-des-ports).
+
+The [test matrix](docs/testing.md#matrice-des-tests) covers all 24 scripts and identifies optional benchmark-cache inputs. The [specialized-pass recipe](docs/testing.md#passes-spécialisées) includes ownership admission and deep-recursion checks in both modes. See the [BigFunction recipe](docs/testing.md#chunker-et-bigfunction) and [runner checks](docs/testing.md#outillage-des-tests) for focused commands. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
+
+`node tools/check-docs.mjs` checks local documentation links/anchors, shell-example syntax, the suite inventory, CLI options and plan progress using Node and Bash. The [maintenance guide](docs/maintenance.md#statut-des-fichiers-et-des-sorties) records which artifacts are active, generated or historical, including Git recovery instructions for the retired `.bak` snapshots.
+
+The maintainability plan v1 is complete: **11/11 milestones, 100/100 points**, with its history in the [M11 validation record](docs/testing.md#validation-m11). The [active plan v2](../todo.md) tracks five follow-up milestones (M12–M16): reliable asynchronous test runners, CLI/output handling, FFI diagnostics, reproducible source setup and measured JDK compatibility.
 
 ## Architecture
 

@@ -1,0 +1,7 @@
+# Historical snapshots are recoverable from Git; see docs/maintenance.md.
+/output.bak/
+*.purs.bak
+
+# Disposable REPL build and Finder metadata.
+/.psci_modules/
+.DS_Store

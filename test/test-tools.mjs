@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import { after, test } from "node:test";
-import { chmodSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { compilerRoot, prepareWorkspace } from "../tools/fixture-runner.mjs";
@@ -12,7 +12,7 @@ import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 
 // Test the runner with fake commands and a tiny corpus: no compiler build,
 // application workspace, aggregate port runner, or installed JDK is required.
-const temp = mkdtempSync(join(tmpdir(), "javapurs-test-tools-"));
+const temp = realpathSync(mkdtempSync(join(tmpdir(), "javapurs-test-tools-")));
 after(() => rmSync(temp, { recursive: true, force: true }));
 const root = join(temp, "workspace/javapurs/javapurs");
 const fork = resolve(root, "../../purescript/tests/purs/passing");
@@ -188,8 +188,9 @@ test("process helpers report launch errors, exit status, output and timeout", as
     assert.match(readFileSync(log, "utf8"), /stderr/);
     await assert.rejects(processes.run("launch", "/missing/executable", [], { log }),
       error => error instanceof ProcessFailure && /launch failed.*ENOENT/.test(error.message));
-    await assert.rejects(processes.run("exit", process.execPath, ["-e", "process.exit(9)"], { log }),
+    await assert.rejects(processes.run("exit", process.execPath, ["-e", "console.error('expected failure'); process.exit(9)"], { log, reportFailure: false }),
       error => error instanceof ProcessFailure && error.code === 9 && error.log === log);
+    assert.match(readFileSync(log, "utf8"), /expected failure/);
     await assert.rejects(processes.run("failed parent", process.execPath, ["-e", `
       const { spawn } = require('node:child_process');
       const leaf = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'inherit' });

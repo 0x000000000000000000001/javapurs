@@ -12,10 +12,10 @@ depuis le dépôt du compilateur `htdocs/javapurs/javapurs`, sauf indication con
 | Outillage `test/test-tools.mjs` | Petit corpus et commandes simulés ; sélection, fichiers, processus et interruption. Node suffit. |
 | Fixture PureScript nommée | `bin/test NOM` réalise Spago → Javapurs → `javac` → `MainRun` dans `tests/runner`. |
 | Protocoles des ports Java | `test/ffi-runtimes.mjs` compile les vrais fragments ; `test/ffi-ports.mjs` attend l'intégration PureScript réelle dans deux modes de records. Les quatre ports proposent `bin/test-runtime`. |
-| Suite historique d'un port | Son `bin/test` prépare le workspace du port et lance `Test.Main` ; l'attente de la fin asynchrone dépend de son entrypoint. |
-| Documentation/outillage | Contrôle des chemins, options, sélections, syntaxe des exemples et contrats des sous-processus effectivement modifiés. |
+| Suite d'un port | Les `bin/test` Aff/Promise/Promise-Aff délèguent à `test/port-runners.mjs` : workspace isolé, suite attendue et sondes d'échec. Les autres ports gardent leur runner propre. |
+| Documentation/outillage | `tools/check-docs.mjs` contrôle liens/ancres, exemples shell, matrice/options et score ; les suites d'outillage vérifient les contrats des processus modifiés. |
 
-La règle du [chantier de maintenabilité](../../todo.md) est une **validation
+La règle du [plan de travail actif](../../todo.md) est une **validation
 ciblée sur les changements** : build du composant modifié et contrôles de ses
 responsabilités. `t -c`, le corpus entier et `modtest` sont hors de ce protocole.
 
@@ -70,8 +70,9 @@ suites Java et aux runners :
 
 Un exécutable absent ou deux dossiers JDK différents produisent une erreur.
 Le support d'agrégation des ports transmet aussi le dossier du JDK sur le PATH,
-pour les scripts qui appellent directement `javac` et `java`. Appelés seuls,
-les scripts Aff/Refs conservent leur sélection sur le PATH.
+pour les scripts qui appellent directement `javac` et `java`. Le script Ref
+historique conserve sa sélection sur le PATH ; Aff/Promise/Promise-Aff utilisent
+le résolveur commun, y compris lorsqu'ils sont appelés seuls.
 
 `JAVAPURS_HEAP` règle le heap Node du compilateur. Les options de heap Java,
 comme `JAVA_TOOL_OPTIONS=-Xmx4g`, concernent les processus JVM. La cible
@@ -106,8 +107,10 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Configuration, pilote, pipeline, FFI et émission | [test/driver.mjs](../test/driver.mjs) | 13 variantes CLI, deux ABI de launcher, entrée vide et six erreurs d'I/O ; TAST-capable `purs`, backend construit et JDK. Modes de comparaison sur entrées figées. |
 | Ref, Promise et Aff Java | [test/ffi-runtimes.mjs](../test/ffi-runtimes.mjs) | 36 contrôles directs : effets différés, écritures concurrentes, règlement/adoption, exceptions, désabonnement, annulation, bracket, supervision et parallèle ; vrais fragments, shim Either, Node/JDK et trois ports voisins. |
 | API PureScript des ports et pont Promise/Aff | [test/ffi-ports.mjs](../test/ffi-ports.mjs) | 17 assertions dans chacun des modes records typés/Maps, mêmes TAST ; attente de la fibre et échec JVM vérifiés. Backend construit, Spago, `purs` TAST et ports locaux, y compris `foreign`. |
+| Complétion des suites asynchrones des ports | [test/port-runners.mjs](../test/port-runners.mjs) | Sélection `--port=aff\|promise\|promise-aff` ; 45/13/7 contrôles de suite, marqueur final et quatre sondes négatives par port. Workspaces isolés, backend construit, Spago/`purs` TAST, ports locaux et JDK ; Java 17. |
 | Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | Prépare et exécute BigFunction dans un workspace temporaire isolé, puis réalise 155 contrôles de `f`. |
 | Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 11 tests Node : noms et bornes invalides, absence d'effets de `--list`, préparation/FFI, erreurs par phase, logs, temporaires, timeout et signaux aux descendants. |
+| Documentation et suivi | [tools/check-docs.mjs](../tools/check-docs.mjs) | Liens/ancres locaux, syntaxe des exemples Bash, inventaire des suites, options de `Config`, score du TODO et présence des preuves des lots cochés ; Node et Bash. |
 
 Pour une modification de `JavaAst` ou de `Printer`, choisir les lignes qui
 utilisent les nœuds modifiés et vérifier leurs parcours dans les passes
@@ -365,6 +368,7 @@ des fichiers en échec.
 | --- | --- |
 | [test-selection](../tools/test-selection.mjs) | Options et résolution complète de la sélection avant les opérations de fichiers. |
 | [fixture-runner](../tools/fixture-runner.mjs) | Template Spago, préparation de la fixture/FFI et phases jusqu'à la JVM. |
+| [port-test-runner](../tools/port-test-runner.mjs) | Copie des suites des trois ports, entrypoint attendu, inventaire d'assertions et sondes de fin de processus. |
 | [java-tools](../tools/java-tools.mjs) | Paire cohérente `javac`/`java` et environnement des ports. |
 | [test-workspace](../tools/test-workspace.mjs) | Cycle de vie des répertoires temporaires. |
 | [test-process](../tools/test-process.mjs) | Commandes synchrones des suites AST et processus asynchrones des runners. |
@@ -382,11 +386,55 @@ Choisir le script du port touché, par exemple :
 ../javapurs-refs/bin/test
 ```
 
-Le script se place dans son propre dépôt. Les runners Aff/Refs reconstruisent
-leurs sorties et peuvent sélectionner `spago.java.yaml` via le lien `spago.yaml`.
-Ils utilisent le compilateur frère puis exécutent `Test.Main` sur la JVM avec
+Le script Ref se place dans son propre dépôt, reconstruit ses sorties et peut
+sélectionner `spago.java.yaml` via le lien `spago.yaml`.
+Il utilise le compilateur frère puis exécute `Test.Main` sur la JVM avec
 `-Xss8m`. Consulter le script du port pour ses prérequis ; le runner agrégé
 `tools/modtest-runner.mjs` est un autre niveau d'orchestration.
+
+### Suites asynchrones des ports
+
+Depuis le compilateur, sélectionner la suite du port modifié :
+
+```bash
+../javapurs-aff/bin/test
+../javapurs-js-promise/bin/test
+../javapurs-js-promise-aff/bin/test
+```
+
+Ces launchers délèguent à `node test/port-runners.mjs --port=NOM`, avec
+`NOM=aff|promise|promise-aff`. Sans option, le script direct sélectionne ces trois
+suites. Les options historiques `-c`/`--clean` reconstruisent le backend avant la
+sélection exécutée ; chaque suite utilise ensuite un workspace temporaire neuf.
+Les arguments inconnus ou une seconde sélection de port échouent avant le build.
+
+Le support copie les sources `test/` du port (hors `Test.Bench`) et un entrypoint
+`Test.PortRunner`. Il utilise le template des dépendances du compilateur avec les
+ports Aff, Promise, Promise/Aff et Foreign explicitement sélectionnés. Il requiert
+le backend construit, Spago, le frontend TAST, les ports locaux et un JDK complet.
+Compilation en `--release 17`, exécution en `-Xss8m` ; les configurations et sorties
+des checkouts de ports sont préservées.
+
+L'entrypoint attend la fibre supervisée ou la Promise de la suite, puis imprime
+`PORT SUITE COMPLETED`. Le runner exige ce marqueur unique et **45 contrôles Aff,
+13 Promise ou 7 Promise/Aff**. Les nettoyages font partie de la suite attendue.
+Les courses Aff utilisent des rendez-vous et acceptent les ordres indépendants
+du scheduler ; le test parallèle est borné à **64 branches** pour les threads
+ordinaires. Les chaînes profondes restent couvertes par `ffi-runtimes.mjs`.
+Promise utilise des valeurs pending à règlement contrôlé et de vrais timers ;
+les assertions et rejets passent par une chaîne observée, y compris le perdant
+de la course et les finalizers.
+
+Chaque commande vérifie ensuite quatre contre-exemples sur le même entrypoint
+compilé : assertion après suspension, rejet tardif, absence de complétion et
+sortie prématurée avec code 0. Les trois premiers doivent sortir en **1** avec le
+diagnostic attendu ; le dernier doit être rejeté faute de marqueur. Le watchdog
+normal est de **30 s** (processus JVM : **45 s**) ; la sonde de timeout le ramène
+à **200 ms**, les deux sondes d'erreur à **5 s**. Chaque phase de build est bornée
+à **120 s**. `purescript.log`, `generation.log`, `javac.log`, `execution.log` et
+`probe-*.log` sont dans le sous-dossier `logs/` du temporaire, conservé à l'échec.
+Les erreurs attendues des sondes restent dans leurs logs ; toute discordance
+fait échouer la commande. Les temporaires réussis sont supprimés.
 
 ### Runtimes FFI et interopérabilité
 
@@ -423,16 +471,28 @@ lance l'intégration. Ils retrouvent les scripts depuis leur propre chemin et
 acceptent les mêmes arguments que leur cible. Les temporaires sont supprimés
 au succès, conservés à l'échec ; l'intégration garde alors ses logs par phase.
 
-**Statut des anciens tests relevé en M10.** Les anciens `bin/test` Aff et
-Promise/Aff peuvent quitter avec 0 avant leurs fibres daemon : ce code seul
-n'atteste pas l'exécution de leurs assertions. La FFI de timers de l'ancien
-test Promise retourne des valeurs déjà réglées ; elle n'établit pas les courses
-pending et ses Promises enfants ne sont pas toutes observées. Ces suites
-historiques restent des entrées distinctes ; les preuves M10 reposent sur les
-protocoles directs et l'intégration attendue ci-dessus. Les tests synchrones
-Ref restent exécutables par leur entrypoint historique.
+**Constat historique M10, traité par M12.** Les anciens `bin/test` Aff et
+Promise/Aff pouvaient quitter avec 0 avant leurs fibres daemon. Les timers
+Promise retournaient des valeurs déjà réglées et les Promises enfants n'étaient
+pas toutes observées. Les preuves M10 reposent sur les protocoles directs et
+l'intégration attendue ci-dessus ; les nouvelles
+[suites de ports](#suites-asynchrones-des-ports) apportent leur propre validation.
+Les tests synchrones Ref restent exécutables par leur entrypoint historique.
 
 ## Consigner une validation
+
+Le [guide d'entretien](maintenance.md) donne le parcours de reprise, le statut
+des sorties/sauvegardes et la politique de conservation des journaux. La cohérence
+documentaire se vérifie depuis n'importe quel dossier en appelant le script par
+son chemin, ou depuis ce dépôt :
+
+```bash
+node tools/check-docs.mjs
+```
+
+Ce contrôle lit les guides du compilateur, le TODO parent et les README des quatre
+ports M10. Il suppose le layout local documenté ; les liens distants ne sont pas
+interrogés. Les exemples shell passent par `bash -n` sans être exécutés.
 
 Pour le lot traité, conserver :
 
@@ -1339,3 +1399,159 @@ notamment `base/`, `versions.json`, `*-protocol-before.log`,
 
 **Conclusion : M10 validé, +10 points ; avancement 95/100, 10 lots sur 11.
 Prochain lot : M11 — consolidation et entretien du dépôt.**
+
+## Validation M11
+
+**3 octobre 2026 — consolidation et entretien du dépôt.**
+
+Référence effective : clôture M10, **138 empreintes** de sources/documents/outils
+vérifiées avant sauvegarde dans `base/`. Les cinq dépôts avaient encore les
+changements M10 sur les HEAD indiqués dans ce lot. Pendant la revue, les commits
+du workspace ont intégré ces changements ; les 138 empreintes ont été vérifiées
+à nouveau sans différence :
+
+| Dépôt | Révision après intégration de M10 |
+| --- | --- |
+| Javapurs | `29f3205c056df32e8de55a43f11e9c6a952f3d2d` |
+| Aff | `f3138ad666d4761a9f1a3517a5980266916ec860` |
+| Refs | `228bb557d2ade1f978146361dc40e3d775d53fd3` |
+| Promise | `ee51b43d708f52375fa83c9d51bc659e4774213b` |
+| Promise/Aff | `a48f268639ac300ac21afc0e096c6171819bdfe1` |
+
+Les contrôles emploient Node 24.8.0, Bash, Git et, pour le pilote ciblé, le même
+`purs` TAST/OpenJDK 26.0.2 que M10, avec `javac --release 17`. Les preuves et
+restaurations isolées sont dans le dossier temporaire `opencode` approuvé.
+
+### Revue et décisions
+
+- Les **46 modules actifs** ont des exports explicites, des imports internes
+  résolus et un graphe de dépendances acyclique. Les façades de `CodeGen`,
+  `Printer`, `IntFunctions`, `FunctionTypes` et `CodeGen.Syntax` ont été reliées
+  à leurs propriétaires/consommateurs. Les replis de portée, Maps/Object,
+  appels curryfiés, TcoLoop et refus d'optimisation ont un contrat identifié.
+- Le [guide de reprise et d'entretien](maintenance.md) rassemble ce parcours,
+  le statut des sources/sorties/caches, la politique des journaux, les références
+  de restauration et les points techniques ouverts après le plan. README,
+  carte du compilateur, matrice et TODO y renvoient.
+- `tools/check-docs.mjs` transforme le contrôle documentaire ponctuel des lots
+  précédents en commande versionnée : liens/ancres locaux, exemples Bash,
+  inventaire des suites, options de `Config`, score et présence des preuves.
+  Il retrouve le dépôt depuis son URL et utilise Node/Bash sans build préalable.
+- Les `.purs.bak` d'août et `output.bak` ont été examinés dans les sources,
+  configurations, launchers et outils. Leur ancien schéma/build 0.15.15 ne
+  participe pas au chemin courant. Les copies propres et intégralement suivies
+  ont été retirées après restauration vérifiée depuis Git : **2 154 fichiers**,
+  **57 649 356 octets**. Le nouveau `.gitignore` cible seulement ces formes de
+  sauvegarde. Le commit de récupération et les trois objets Git sont documentés.
+- Les **118 journaux** locaux ont un inventaire et des empreintes conservés ;
+  leurs résultats historiques sont distingués des validations datées du registre.
+  Les artefacts `output`, Spago, REPL et runner ont leur producteur et leur statut
+  de versionnement documentés.
+
+### Vérifications ciblées
+
+| Contrôle | Résultat |
+| --- | --- |
+| `node tools/check-docs.mjs` | **16 documents**, **23 suites**, **7 options CLI**, score **100/100**, liens/ancres et syntaxe des exemples shell contrôlés. |
+| Six contre-exemples dans une copie isolée des documents | Lien absent, ancre absente, syntaxe Bash invalide, suite omise, option omise et score erroné : **six codes 1 attendus**, chacun avec le diagnostic correspondant. Appel depuis un autre dossier également réussi. |
+| `node --check tools/check-docs.mjs` | Syntaxe valide. |
+| `node test/driver.mjs`, après retrait des sauvegardes | **13 variantes CLI**, **12 exécutions JVM**, entrée vide et six erreurs d'I/O attendues réussies ; le chemin de compilation courant s'exécute après nettoyage. |
+| Archive/restauration des sauvegardes depuis `eba169d…` | **2 154/2 154** chemins, tailles et SHA-256 identiques, y compris les externs binaires. |
+| Revue des interfaces et empreintes actives | **46/46** sources PureScript identiques à la clôture M10 ; exports/imports contrôlés. Les sorties construites et les fichiers suivis Spago/REPL/runner n'ont pas de diff. |
+| Règles Git et journaux | Les formes `.purs.bak`/`output.bak` sont ignorées, les sources/builds actifs restent sélectionnables ; **118 journaux** conservés à l'identique. |
+| Score, changements et espaces | 11 cases, somme des poids 100, revue des suppressions/restaurations et `git diff --check` réussis. |
+
+Cette clôture valide l'organisation, la reprise et l'entretien du plan v1.
+Les acquis d'exécution et comparaisons Java de M01–M10 gardent leurs preuves
+datées ; les sujets futurs sont indexés dans les
+[points ouverts](maintenance.md#points-ouverts-après-le-plan).
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m11/`,
+notamment `base/`, `m10-input-verification.json`, `intermediate-revisions.json`,
+`module-interfaces.json`, `archive-verification.log`, `legacy-snapshots.json`,
+`legacy-snapshots.tar.gz`, `restored-snapshots/`, `logs-before.json`,
+`source-artifact-review.log`, `check-docs-probes.log`, `check-docs-final.log`,
+`driver-final.log`, `final-source-hashes.json` et `final-checks.txt`.
+
+**Conclusion : M11 validé, +5 points ; avancement 100/100, 11 lots sur 11.
+Plan v1 terminé — entretien courant guidé par les contrats et la matrice ciblée.**
+
+## Validation M12
+
+**3 octobre 2026 — suites asynchrones avec résultat de processus fiable.**
+
+Premier lot du plan v2. Références de départ : Javapurs
+`29f3205c056df32e8de55a43f11e9c6a952f3d2d`, Aff
+`f3138ad666d4761a9f1a3517a5980266916ec860`, Promise
+`ee51b43d708f52375fa83c9d51bc659e4774213b` et Promise/Aff
+`a48f268639ac300ac21afc0e096c6171819bdfe1`. Le workspace comportait déjà les
+changements documentaires/nettoyages M11 et le nouveau TODO v2. `before.json`
+et `base/` conservent les références effectives et les fichiers examinés.
+
+### Changements et défauts exposés
+
+- Les trois `bin/test` délèguent à `test/port-runners.mjs` et
+  `tools/port-test-runner.mjs`. Préparation depuis le template Spago commun,
+  sélection explicite des ports transitifs dont `foreign`, copie des tests dans
+  un temporaire, logs et timeout par phase, paire JDK commune. `Test.Bench` reste
+  une entrée de benchmark distincte.
+- `tests/port-suites/` possède les entrypoints `Test.PortRunner` : attente bornée
+  d'une fibre supervisée ou de la Promise retournée par la suite. Le succès
+  demande le code 0, un marqueur final unique et le nombre prévu de contrôles.
+  Les sondes réutilisent ce même code compilé et la même frontière d'attente.
+- L'attente des tests Aff a exposé **`kill/supervise`**, puis **`parallel/mixed`** :
+  leurs attentes supposaient des forks eager et un ordre stable entre petits
+  timers. Des rendez-vous, joins et comparaisons d'événements indépendants de
+  l'ordre remplacent ces hypothèses dans les cas concernés ; les finalizers sont
+  attendus. Les cinq premières assertions font désormais partie de la même
+  suite Aff. Le parallèle est borné à **64 branches**, en accord avec les threads
+  ordinaires ; l'ancien test de scheduler à 100 000 forks reste désactivé et les
+  contrôles de trampoline profonds restent dans la suite directe M10.
+- Promise retourne une chaîne unique qui observe toutes les assertions,
+  les rejets et les nettoyages. Les issues attendues sont converties avant les
+  assertions : un `catch` ne peut plus absorber son propre échec d'assertion.
+  `all`/`race` s'abonnent à des valeurs pending réglées explicitement ; le perdant
+  de la course est observé. Les FFI de timers Java et JS règlent réellement leurs
+  Promises plus tard, avec le même résultat ou message d'erreur.
+- Promise/Aff expose sa suite attendue et dispose enfin du fragment de test
+  `test/Main.java` pour ses quatre imports foreign. Les contrôles de round-trip
+  ont une borne de 5 s adaptée à la création de threads JVM.
+- `TestProcesses` peut conserver silencieusement les diagnostics des échecs
+  attendus (`reportFailure: false`) tout en rejetant la commande. Sa suite vérifie
+  code et log. Un échec préalable de son contrôle JDK, dû à l'alias macOS
+  `/var` → `/private/var`, a été corrigé en canonicalisant le temporaire du test.
+
+### Vérifications ciblées
+
+Backend construit de M10, Node **24.8.0**, Spago **1.0.3**, frontend TAST du fork
+et OpenJDK **26.0.2** ; compilation Java des suites en **`--release 17`**.
+Les sources de tests des ports sont recompilées dans chaque workspace isolé.
+
+| Contrôle | Résultat |
+| --- | --- |
+| `../javapurs-aff/bin/test` | **45 contrôles** et quatre sondes de runner réussis. |
+| `../javapurs-js-promise/bin/test` | **13 contrôles** et quatre sondes de runner réussis, dont rejet issu d'une assertion après un vrai timer. |
+| `../javapurs-js-promise-aff/bin/test` | **7 contrôles** et quatre sondes de runner réussis, avec FFI Java et port `foreign` locaux. |
+| Cinq rejeux JVM des mêmes classes Aff après correction des hypothèses de scheduling | **225 contrôles**, cinq marqueurs finaux ; les classes et les entrées sont conservées dans `aff/`. |
+| Sondes de fin de processus, sur les trois suites | **9 codes JVM 1 attendus** : assertion tardive, rejet et timeout ; **3 sorties prématurées 0** correctement rejetées par le contrôle du marqueur. |
+| `node test/ffi-ports.mjs` | **17 assertions × 2 modes**, records typés puis Maps sur les mêmes TAST ; pont réel, nettoyage et attente de la fibre réussis. |
+| `node --test test/test-tools.mjs` | **11/11**, y compris logs d'échec silencieux, sélection JDK, timeout et propagation des signaux aux descendants. |
+| Deux sélections invalides des launchers avec JDK/TMPDIR volontairement absents | **Codes 1 attendus** avant toute phase de build ou préparation de workspace. |
+| Empreintes des artefacts actifs | **3 825 fichiers** de sources runtime/backend, sorties, dépendances suivies et configurations identiques à l'entrée M12 ; changements des ports limités aux tests/launchers/README. |
+| Syntaxe et documentation | Syntaxe Node/Bash, liens/ancres, inventaire de **24 suites**, sept options CLI, score **20/100** et `git diff --check` validés. |
+
+Les tentatives initiales conservent les échecs détectés et leurs temporaires ; les
+preuves de clôture reposent sur les trois `*-launcher-final.log`. Les commandes
+finales ont été exécutées depuis les ports avec `TMPDIR` dans le dossier
+`opencode` approuvé. Les anciens résultats M10/M11 gardent leurs périmètres datés.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m12/`,
+notamment `before.json`, `base/`, `aff-first.log`, `aff-second.log`, `aff/`,
+`aff-replays.log`, `aff-launcher-final.log`, `promise-launcher-final.log`,
+`bridge-launcher-final.log`, `ffi-ports.log`, `test-tools-final.log`,
+`selection-checks.json`, `artifact-checks.json` et `final-source-hashes.json`.
+
+**Conclusion : M12 validé, +20 points ; plan v2 à 20/100, 1 lot sur 5.
+Prochain lot : M13 — CLI explicite et sorties Java maîtrisées.**

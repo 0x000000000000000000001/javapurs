@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveJavaTools } from "../tools/java-tools.mjs";
@@ -18,10 +18,8 @@ const variants = [
   ...flags.map((flag, index) => ({ name: `option-${index}`, args: [flag], expected: "42" })),
   { name: "all-off", args: flags, expected: "42" },
   { name: "chosen", args: ["--main", "Chosen"], expected: "99" },
-  { name: "first-main", args: ["--main", "Chosen", "--main", "Main"], expected: "99" },
-  { name: "missing-main-value", args: ["--main"], expected: "42" },
-  { name: "unknown-option", args: ["--unknown-option"], expected: "42" },
-  { name: "absent-main", args: ["--main", "Absent"], expected: null },
+  { name: "main-equals", args: ["--main=Chosen"], expected: "99", baseline: "chosen" },
+  { name: "library", args: ["--no-main"], expected: null, baseline: "absent-main" },
 ];
 
 function inputs(directory) {
@@ -37,6 +35,22 @@ function inputs(directory) {
 function javaSources(directory) {
   return Object.fromEntries(readdirSync(directory).filter(name => name.endsWith(".java")).sort()
     .map(name => [name, readFileSync(join(directory, name), "utf8")]));
+}
+
+function outputState(directory) {
+  if (!existsSync(directory)) return null;
+  return Object.fromEntries(readdirSync(directory).sort().map(name => [name,
+    lstatSync(join(directory, name)).isFile() ? readFileSync(join(directory, name)).toString("hex") : "directory"]));
+}
+
+function checkManifest(directory) {
+  const manifest = JSON.parse(readFileSync(join(directory, ".javapurs-manifest.json"), "utf8"));
+  assert.equal(manifest.version, 1);
+  for (const [name, digest] of Object.entries(manifest.files)) {
+    assert.equal(createHash("sha256").update(readFileSync(join(directory, name))).digest("hex"), digest, `manifest: ${name}`);
+  }
+  assert.ok(!existsSync(join(directory, ".javapurs-work")), "completed generation released its work directory");
+  return Object.keys(manifest.files).sort();
 }
 
 async function prepare(directory, processes, tools) {
@@ -95,16 +109,18 @@ async function check(directory, mode, processes, tools) {
   const frozen = JSON.parse(readFileSync(join(directory, "inputs.json"), "utf8"));
   assert.deepEqual(inputs(directory), frozen, "TAST and FFI inputs must match the recorded run");
   const output = join(directory, "java_output");
+  const runBackend = (name, args = [], cwd = directory) => processes.run(`driver: ${name}`, join(root, "bin/javapurs"), args,
+    { cwd, env: tools.env, log: join(directory, `logs/${name}.log`), timeout: 60_000 });
   const compile = async (name, args = []) => {
     rmSync(output, { recursive: true, force: true });
-    mkdirSync(output);
-    await processes.run(`driver: ${name}`, join(root, "bin/javapurs"), args,
-      { cwd: directory, env: tools.env, log: join(directory, `logs/${name}.log`), timeout: 60_000 });
-    return javaSources(output);
+    await runBackend(name, args);
+    const sources = javaSources(output);
+    assert.deepEqual(checkManifest(output), Object.keys(sources));
+    return sources;
   };
   let compared = 0;
-  const snapshot = (name, sources) => {
-    const expected = join(directory, "expected", name);
+  const snapshot = (name, sources, legacyName = name) => {
+    const expected = join(directory, "expected", mode === "compare" && !existsSync(join(directory, "expected", name)) ? legacyName : name);
     if (mode === "record") {
       mkdirSync(expected, { recursive: true });
       for (const [file, source] of Object.entries(sources)) writeFileSync(join(expected, file), source);
@@ -119,7 +135,7 @@ async function check(directory, mode, processes, tools) {
 
   for (const variant of variants) {
     const sources = await compile(variant.name, variant.args);
-    snapshot(variant.name, sources);
+    snapshot(variant.name, sources, variant.baseline);
     assert.ok(sources["__IntFn.java"] && sources["TcoLoop.java"]);
     assert.match(sources["__M$Main.java"], /driver fixture: provided verbatim/);
     assert.match(sources["__M$Missing.java"], /Object \$void = FFI_STUB/);
@@ -129,62 +145,155 @@ async function check(directory, mode, processes, tools) {
     assert.equal(sources["__M$Main.java"].includes("__chunk$"), !variant.args.includes("--no-chunk"));
     assert.equal(sources["__M$Main.java"].includes("(__IntFn)"), !variant.args.includes("--int-functions=off"));
     if (variant.expected === null) {
-      assert.ok(!sources["MainRun.java"], "an absent entrypoint does not emit a launcher");
-      continue;
-    }
-    assert.match(sources["MainRun.java"], variant.expected === "99" ? /__M\$Chosen.main/ : /__M\$Main.main/);
+      assert.ok(!sources["MainRun.java"], "library mode does not emit a launcher");
+    } else assert.match(sources["MainRun.java"], variant.expected === "99" ? /__M\$Chosen.main/ : /__M\$Main.main/);
     const classes = join(directory, "classes");
     rmSync(classes, { recursive: true, force: true });
     mkdirSync(classes);
     await processes.run(`driver: ${variant.name} javac`, tools.javac,
       ["--release", "17", "-d", classes, ...Object.keys(sources).map(name => join(output, name))],
-      { log: join(directory, `logs/${variant.name}-javac.log`), timeout: 60_000 });
+       { log: join(directory, `logs/${variant.name}-javac.log`), timeout: 60_000 });
+    if (variant.expected === null) continue;
     const result = await processes.run(`driver: ${variant.name} JVM`, tools.java, ["-cp", classes, "MainRun"],
       { log: join(directory, `logs/${variant.name}-java.log`), capture: true, timeout: 30_000 });
     assert.equal(result.trim(), variant.expected);
   }
 
-  async function expectFailure(name, pattern, phase, context) {
+  let failures = 0;
+  async function expectFailure(name, args, pattern, code = 1, cwd = directory) {
     const log = join(directory, `logs/${name}.log`);
-    await assert.rejects(processes.run(`driver: expected ${name}`, join(root, "bin/javapurs"), [],
-      { cwd: directory, env: tools.env, log, timeout: 60_000 }), error => error instanceof ProcessFailure && error.code === 1);
+    const before = outputState(output);
+    await assert.rejects(processes.run(`driver: expected ${name}`, join(root, "bin/javapurs"), args,
+      { cwd, env: tools.env, log, timeout: 60_000, reportFailure: false }), error => error instanceof ProcessFailure && error.code === code);
     const contents = readFileSync(log, "utf8");
-    assert.match(contents, /backend total: \d+ ms \(failed\)/);
     assert.match(contents, pattern);
-    // Recording also works against the pre-refactoring driver. Normal runs
-    // and comparisons verify the new contextual diagnostics and phase owner.
-    if (mode !== "record") {
-      assert.ok(contents.includes(context), `${name}: missing context ${context}`);
-      assert.ok(contents.split("\n").some(line => line.startsWith(`[javapurs] ${phase}:`) && line.endsWith(" (failed)")),
-        `${name}: failed phase ${phase}`);
-    }
+    if (code === 1) assert.match(contents, /backend total: \d+ ms \(failed\)/);
+    else assert.doesNotMatch(contents, /Loading corefn|backend total/);
+    assert.deepEqual(outputState(output), before, `${name}: failed generation preserves prior output`);
+    failures++;
   }
+
+  // Help and all syntax errors are handled without a TAST directory or writes.
+  const noInputs = join(directory, "no inputs"); mkdirSync(noInputs, { recursive: true });
+  await runBackend("help", ["--help"], noInputs);
+  assert.match(readFileSync(join(directory, "logs/help.log"), "utf8"), /Usage: javapurs/);
+  const invalid = [
+    ["unknown", ["--unknown-option"], /Unknown argument/],
+    ["option-value", ["--records=typed"], /Unknown argument/],
+    ["missing-main", ["--main"], /Missing value/],
+    ["flag-as-value", ["--main", "--no-main"], /Missing or invalid value/],
+    ["empty-input-value", ["--input="], /Missing or invalid value/],
+    ["missing-output-value", ["--java-output"], /Missing value/],
+    ["duplicate-main", ["--main=Chosen", "--main=Main"], /Repeated or conflicting/],
+    ["conflicting-main", ["--main", "Main", "--no-main"], /Repeated or conflicting/],
+    ["input-alias-conflict", ["--input=output", "--output=output"], /Repeated or conflicting/],
+    ["duplicate-switch", ["--no-chunk", "--no-chunk"], /Repeated or conflicting/],
+    ["positional", ["build"], /Unknown argument/],
+    ["invalid-help", ["--help", "--bogus"], /Unknown argument/],
+  ];
+  for (const [name, args, diagnostic] of invalid) await expectFailure(name, args, diagnostic, 2, noInputs);
+  assert.deepEqual(readdirSync(noInputs), []);
+  await expectFailure("absent-main", ["--main", "Absent"], /Entrypoint module Absent not found/);
+  await expectFailure("no-local-main", ["--main", "Missing"], /must define and export a local main/);
+  await expectFailure("overlapping-paths", ["--java-output", "output/nested"], /must not overlap/);
 
   renameSync(join(directory, "output"), join(directory, "saved-output"));
   try {
-    await expectFailure("missing-input", /ENOENT.*output/, "load TAST + sort", "load TAST from output:");
+    await expectFailure("missing-input", [], /load TAST from output:.*ENOENT/);
     mkdirSync(join(directory, "output"));
-    const empty = await compile("empty-input");
+    await expectFailure("empty-application", [], /Entrypoint module Main not found/);
+    const empty = await compile("empty-input", ["--no-main"]);
     assert.deepEqual(Object.keys(empty), ["__IntFn.java"]);
     snapshot("empty-input", empty);
   } finally {
     rmSync(join(directory, "output"), { recursive: true, force: true });
     renameSync(join(directory, "saved-output"), join(directory, "output"));
   }
-  rmSync(output, { recursive: true });
-  await expectFailure("missing-output", /ENOENT.*java_output/, "prepare", "write Java java_output/__IntFn.java:");
-  mkdirSync(output);
+  await compile("before-ffi-failure");
   mkdirSync(join(directory, "src/Missing.java"));
-  try { await expectFailure("ffi-read", /EISDIR/, "optimize + emit", "compile module Missing: read Java FFI src/Missing.java:"); }
+  try { await expectFailure("ffi-read", [], /compile module Missing: read Java FFI src\/Missing.java:.*EISDIR/); }
   finally { rmSync(join(directory, "src/Missing.java"), { recursive: true }); }
-  for (const [name, file, phase] of [["module-write", "__M$Chosen.java", "optimize + emit"],
-    ["launcher-write", "MainRun.java", "optimize + emit"], ["runtime-write", "TcoLoop.java", "prepare"]]) {
+  writeFileSync(join(directory, "blocked-output"), "keep");
+  await expectFailure("blocked-output", ["--java-output=blocked-output"], /prepare Java output blocked-output/);
+  assert.equal(readFileSync(join(directory, "blocked-output"), "utf8"), "keep");
+  for (const [name, file] of [["module-write", "__M$Chosen.java"], ["launcher-write", "MainRun.java"], ["runtime-write", "TcoLoop.java"]]) {
     rmSync(output, { recursive: true });
     mkdirSync(join(output, file), { recursive: true });
-    await expectFailure(name, /EISDIR/, phase, `write Java java_output/${file}:`);
+    await expectFailure(name, [], /publish Java to java_output: Expected a regular file, preserving/);
   }
+
+  // Exercise real consecutive generations in one destination: records, launcher,
+  // module deletion/rename, and foreign files outside the managed inventory.
+  await compile("lifecycle-start", ["--main=Chosen"]);
+  writeFileSync(join(output, "User.java"), "public class User {}\n");
+  writeFileSync(join(output, "notes.txt"), "keep");
+  await runBackend("lifecycle-library", ["--no-main", "--records=maps"]);
+  assert.ok(!existsSync(join(output, "MainRun.java")));
+  assert.ok(!readdirSync(output).some(name => name.startsWith("__Record$")));
+  assert.ok(!checkManifest(output).includes("User.java"));
+  await runBackend("lifecycle-application");
+  assert.match(readFileSync(join(output, "MainRun.java"), "utf8"), /__M\$Main.main/);
+
+  const renamed = join(directory, "renamed fixture"), renamedInputs = join(renamed, "TAST cache");
+  mkdirSync(join(renamed, "src"), { recursive: true });
+  for (const name of ["Main.purs", "Main.java", "Empty.purs", "Empty.java"]) cpSync(join(directory, "src", name), join(renamed, "src", name));
+  writeFileSync(join(renamed, "src/Renamed.purs"), readFileSync(join(directory, "src/Chosen.purs"), "utf8").replace("module Chosen", "module Renamed"));
+  cpSync(join(directory, "src/Chosen.java"), join(renamed, "src/Renamed.java"));
+  writeFileSync(join(renamed, "src/Hidden.purs"), `module Hidden (visible) where
+import Main (Action, Unit)
+foreign import main :: Action Unit
+visible :: Int
+visible = 0
+`);
+  writeFileSync(join(renamed, "src/ReExport.purs"), "module ReExport (main) where\nimport Main (main)\n");
+  await processes.run("driver: renamed TAST", "purs", ["compile", join(renamed, "src/*.purs"), "--codegen", "corefn", "--output", renamedInputs],
+    { cwd: directory, env: tools.env, log: join(directory, "logs/renamed-purs.log"), timeout: 60_000 });
+  await expectFailure("old-entrypoint", ["--input", renamedInputs, "--main", "Chosen"], /Entrypoint module Chosen not found/);
+  for (const name of ["Hidden", "ReExport"]) {
+    await expectFailure(`invalid-entrypoint-${name}`, ["--input", renamedInputs, "--main", name], /must define and export a local main/);
+  }
+  await runBackend("renamed-modules", ["--input", renamedInputs, "--main", "Renamed"]);
+  assert.ok(!existsSync(join(output, "__M$Chosen.java")) && !existsSync(join(output, "__M$Missing.java")));
+  assert.ok(checkManifest(output).includes("__M$Renamed.java"));
+  assert.match(readFileSync(join(output, "MainRun.java"), "utf8"), /__M\$Renamed.main/);
+  assert.equal(readFileSync(join(output, "User.java"), "utf8"), "public class User {}\n");
+  assert.equal(readFileSync(join(output, "notes.txt"), "utf8"), "keep");
+
+  const customOutput = join(directory, "custom Java", "nested");
+  await runBackend("explicit-paths", ["--output=" + renamedInputs, "--java-output", customOutput, "--main=Renamed"]);
+  assert.deepEqual(javaSources(customOutput), Object.fromEntries(Object.entries(javaSources(output)).filter(([name]) => name !== "User.java")));
+  checkManifest(customOutput);
+  await checkSpago(directory, processes, tools);
   assert.deepEqual(inputs(directory), frozen, "error fixtures restore the original inputs");
-  console.log(`Driver: ${variants.length} CLI variants, empty input and 6 I/O failures passed${mode === "compare" ? `; ${compared} Java files identical` : ""}`);
+  console.log(`Driver: ${variants.length} CLI variants, help, ${failures} expected failures, output lifecycle and 2 real Spago invocations passed${mode === "compare" ? `; ${compared} Java files identical` : ""}`);
+}
+
+async function checkSpago(directory, processes, tools) {
+  const workspace = join(directory, "Spago project"); mkdirSync(workspace, { recursive: true });
+  cpSync(join(directory, "src"), join(workspace, "src"), { recursive: true });
+  const spy = join(workspace, "backend.mjs");
+  writeFileSync(spy, `import { writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+writeFileSync('backend-args.json', JSON.stringify(process.argv.slice(2)));
+const result = spawnSync(${JSON.stringify(join(root, "bin/javapurs"))}, process.argv.slice(2), { stdio: 'inherit' });
+if (result.error) throw result.error;
+process.exitCode = result.status ?? 1;
+`);
+  const backendArgs = ["--main", "Chosen", "--java-output", "Java sources"];
+  writeFileSync(join(workspace, "spago.yaml"), `package:\n  name: driver-spago\n  dependencies: []\nworkspace:\n  packageSet:\n    registry: 77.10.1\n  backend:\n    cmd: ${JSON.stringify(process.execPath)}\n    args: ${JSON.stringify([spy, ...backendArgs])}\n`);
+  for (const [name, outputArgs] of [["default", []], ["custom", ["--output", "TAST cache"]]]) {
+    await processes.run(`driver: Spago ${name}`, "spago", ["build", "-q", ...outputArgs],
+      { cwd: workspace, env: tools.env, log: join(directory, `logs/spago-${name}.log`), timeout: 120_000 });
+    // Spago 1.x resolves its output option before appending it to backend.args.
+    const forwarded = outputArgs.length ? ["--output", join(workspace, "TAST cache")] : [];
+    assert.deepEqual(JSON.parse(readFileSync(join(workspace, "backend-args.json"))), [...backendArgs, ...forwarded]);
+    const java = join(workspace, "Java sources"); checkManifest(java);
+    await processes.run(`driver: Spago ${name} javac`, tools.javac, ["--release", "17", "-d", "classes", "-sourcepath", java, join(java, "MainRun.java")],
+      { cwd: workspace, log: join(directory, `logs/spago-${name}-javac.log`), timeout: 60_000 });
+    const result = await processes.run(`driver: Spago ${name} JVM`, tools.java, ["-cp", "classes", "MainRun"],
+      { cwd: workspace, capture: true, log: join(directory, `logs/spago-${name}-java.log`), timeout: 30_000 });
+    assert.equal(result.trim(), "99");
+  }
 }
 
 const processes = new TestProcesses();

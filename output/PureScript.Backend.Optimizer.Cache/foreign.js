@@ -14,6 +14,9 @@ import * as DataEither from '../Data.Either/index.js';
 import * as DataList from '../Data.List.Types/index.js';
 import * as DataNonEmptyArray from '../Data.Array.NonEmpty.Internal/index.js';
 
+// Private, unversioned V8 scratch payloads for the current build only.
+// Directory, codec and invalidation contract: docs/purmeta-cache.md.
+
 // Global registry of all PureScript constructors used in the AST
 const registry = {};
 
@@ -128,10 +131,71 @@ function deserialize(buffer) {
 
 // The byte budget describes serialized payloads, not decoded JavaScript heap.
 // Trim only between modules, preserving reuse throughout one module's work.
-const maxRamCacheBytes = 64 * 1024 * 1024;
+let maxRamCacheBytes = 64 * 1024 * 1024;
 const ramCache = new Map();
 let ramCacheBytes = 0;
-let currentBuildModules = null;
+// Start with an empty scope: a direct lookup before the first builder call
+// must not treat files left by another process as validated implementations.
+let currentBuildModules = new Set();
+let purmetaStats = null;
+
+// A caller can scope an override using the returned previous budget. Changing
+// the limit never evicts mid-module; trimPurmetaCache applies it at a boundary.
+export const setPurmetaCacheBudgetBytes = bytes => () => {
+  if (!Number.isSafeInteger(bytes) || bytes < 0) {
+    throw new RangeError('PBO purmeta cache budget must be a non-negative safe integer byte count');
+  }
+  const previous = maxRamCacheBytes;
+  maxRamCacheBytes = bytes;
+  return previous;
+};
+
+function newPurmetaStats() {
+  return {
+    reads: {
+      requests: 0, blocked: 0, ramHits: 0, ramMisses: 0,
+      diskHits: 0, diskMissing: 0, errors: 0,
+      ioAttempts: 0, files: 0, bytes: 0, ioMs: 0,
+      deserializations: 0, deserializeMs: 0,
+    },
+    writes: { attempts: 0, files: 0, bytes: 0, errors: 0, ioMs: 0, serializations: 0, serializeMs: 0 },
+    ram: {
+      peakEntries: ramCache.size, peakSerializedBytes: ramCacheBytes,
+      boundaryPeakEntries: 0, boundaryPeakSerializedBytes: 0,
+      trimCalls: 0, evictions: 0, evictedBytes: 0,
+      clearCalls: 0, clearedEntries: 0, clearedBytes: 0,
+    },
+    rssBytesAtStart: process.memoryUsage().rss,
+  };
+}
+
+// Called only while profiling, including on failure. Serialization timings
+// include the constructor graph walks, not just v8.serialize/deserialize.
+function timed(stats, field, action) {
+  const start = performance.now();
+  try { return action(); }
+  finally { stats[field] += performance.now() - start; }
+}
+
+export const setPurmetaStatsEnabled = enabled => () => {
+  purmetaStats = enabled ? newPurmetaStats() : null;
+};
+
+export const readPurmetaStatsJson = () => {
+  if (purmetaStats === null) return 'null';
+  const { rssBytesAtStart, ...stats } = purmetaStats;
+  return JSON.stringify({
+    schema: 1,
+    policy: { kind: 'lru-module-boundary', maxSerializedBytes: maxRamCacheBytes },
+    ...stats,
+    ram: { ...stats.ram, entries: ramCache.size, serializedBytes: ramCacheBytes },
+    memory: {
+      rssBytesAtStart, rssBytesAtSnapshot: process.memoryUsage().rss,
+      // OS high-water mark for the entire process, including earlier phases.
+      processPeakRSSKiB: process.resourceUsage().maxRSS,
+    },
+  });
+};
 
 function rememberModule(moduleName, data, bytes) {
   const previous = ramCache.get(moduleName);
@@ -141,6 +205,10 @@ function rememberModule(moduleName, data, bytes) {
   }
   ramCache.set(moduleName, { data, bytes });
   ramCacheBytes += bytes;
+  if (purmetaStats !== null) {
+    purmetaStats.ram.peakEntries = Math.max(purmetaStats.ram.peakEntries, ramCache.size);
+    purmetaStats.ram.peakSerializedBytes = Math.max(purmetaStats.ram.peakSerializedBytes, ramCacheBytes);
+  }
 }
 
 // Specialized implementations are valid only for the build that emitted them.
@@ -149,21 +217,35 @@ export const beginPurmetaBuild = function() {
   ramCache.clear();
   ramCacheBytes = 0;
   currentBuildModules = new Set();
+  if (purmetaStats !== null) purmetaStats = newPurmetaStats();
 };
 
 export const writePurmetaSyncImpl = function(moduleName) {
   return function(data) {
     return function() {
-      const dir = '.purmeta';
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+      const stats = purmetaStats;
+      if (stats !== null) stats.writes.attempts++;
+      try {
+        const dir = '.purmeta';
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        const filePath = path.join(dir, moduleName + '.purmeta');
+        if (stats !== null) stats.writes.serializations++;
+        const buffer = stats === null ? serialize(data) : timed(stats.writes, 'serializeMs', () => serialize(data));
+        if (stats === null) fs.writeFileSync(filePath, buffer);
+        else {
+          timed(stats.writes, 'ioMs', () => fs.writeFileSync(filePath, buffer));
+          stats.writes.files++;
+          stats.writes.bytes += buffer.byteLength;
+        }
+        currentBuildModules.add(moduleName);
+
+        rememberModule(moduleName, data, buffer.byteLength);
+      } catch (error) {
+        if (stats !== null) stats.writes.errors++;
+        throw error;
       }
-      const filePath = path.join(dir, moduleName + '.purmeta');
-      const buffer = serialize(data);
-      fs.writeFileSync(filePath, buffer);
-      if (currentBuildModules !== null) currentBuildModules.add(moduleName);
-      
-      rememberModule(moduleName, data, buffer.byteLength);
     };
   };
 };
@@ -172,27 +254,41 @@ export const readPurmetaSyncImpl = function(moduleName) {
   return function(just) {
     return function(nothing) {
       return function() {
-        if (currentBuildModules !== null && !currentBuildModules.has(moduleName)) {
+        const stats = purmetaStats;
+        if (stats !== null) stats.reads.requests++;
+        if (!currentBuildModules.has(moduleName)) {
+          if (stats !== null) stats.reads.blocked++;
           return nothing;
         }
         const cached = ramCache.get(moduleName);
         if (cached !== undefined) {
+          if (stats !== null) stats.reads.ramHits++;
           ramCache.delete(moduleName);
           ramCache.set(moduleName, cached);
           return just(cached.data);
         }
+        if (stats !== null) stats.reads.ramMisses++;
         
         const filePath = path.join('.purmeta', moduleName + '.purmeta');
         if (!fs.existsSync(filePath)) {
+          if (stats !== null) stats.reads.diskMissing++;
           return nothing;
         }
         
         try {
-          const buffer = fs.readFileSync(filePath);
-          const data = deserialize(buffer);
+          if (stats !== null) stats.reads.ioAttempts++;
+          const buffer = stats === null ? fs.readFileSync(filePath) : timed(stats.reads, 'ioMs', () => fs.readFileSync(filePath));
+          if (stats !== null) {
+            stats.reads.files++;
+            stats.reads.bytes += buffer.byteLength;
+            stats.reads.deserializations++;
+          }
+          const data = stats === null ? deserialize(buffer) : timed(stats.reads, 'deserializeMs', () => deserialize(buffer));
           rememberModule(moduleName, data, buffer.byteLength);
+          if (stats !== null) stats.reads.diskHits++;
           return just(data);
         } catch (e) {
+          if (stats !== null) stats.reads.errors++;
           console.error("Failed to read purmeta for " + moduleName + ": " + e.message);
           return nothing;
         }
@@ -228,16 +324,30 @@ export const writeAllocProfileImpl = function(path) {
 };
 
 export const clearPurmetaCacheImpl = function() {
+  if (purmetaStats !== null) {
+    purmetaStats.ram.clearCalls++;
+    purmetaStats.ram.clearedEntries += ramCache.size;
+    purmetaStats.ram.clearedBytes += ramCacheBytes;
+  }
   ramCache.clear();
   ramCacheBytes = 0;
   maybeCollectGarbage();
 };
 
 export const trimPurmetaCacheImpl = function() {
+  if (purmetaStats !== null) purmetaStats.ram.trimCalls++;
   while (ramCacheBytes > maxRamCacheBytes && ramCache.size !== 0) {
     const oldest = ramCache.keys().next().value;
+    if (purmetaStats !== null) {
+      purmetaStats.ram.evictions++;
+      purmetaStats.ram.evictedBytes += ramCache.get(oldest).bytes;
+    }
     ramCacheBytes -= ramCache.get(oldest).bytes;
     ramCache.delete(oldest);
+  }
+  if (purmetaStats !== null) {
+    purmetaStats.ram.boundaryPeakEntries = Math.max(purmetaStats.ram.boundaryPeakEntries, ramCache.size);
+    purmetaStats.ram.boundaryPeakSerializedBytes = Math.max(purmetaStats.ram.boundaryPeakSerializedBytes, ramCacheBytes);
   }
   maybeCollectGarbage();
 };

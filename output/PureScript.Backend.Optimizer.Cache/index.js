@@ -14,7 +14,10 @@ var logMemory = $foreign.logMemoryImpl;
 var clearPurmetaCache = $foreign.clearPurmetaCacheImpl;
 export {
     nowMillis,
-    beginPurmetaBuild
+    beginPurmetaBuild,
+    setPurmetaCacheBudgetBytes,
+    setPurmetaStatsEnabled,
+    readPurmetaStatsJson
 } from "./foreign.js";
 export {
     writePurmetaSync,

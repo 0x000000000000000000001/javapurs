@@ -70,7 +70,7 @@ export class TestProcesses {
     if (this.signal) throw new Interrupted(this.signal);
   }
 
-  async run(label, command, args, { cwd, log, display = !log, capture = false, env, timeout } = {}) {
+  async run(label, command, args, { cwd, log, display = !log, reportFailure = true, capture = false, env, timeout } = {}) {
     this.checkInterrupted();
     if (this.active) throw new Error("TestProcesses runs one phase at a time.");
     console.log(`   [${label}] ${command} ${args.join(" ")}`);
@@ -118,7 +118,7 @@ export class TestProcesses {
     }
     this.checkInterrupted();
     if (timedOut || status.code !== 0) {
-      if (log && !display) console.error(readFileSync(log, "utf8").trimEnd().split("\n").slice(-40).join("\n"));
+      if (log && !display && reportFailure) console.error(readFileSync(log, "utf8").trimEnd().split("\n").slice(-40).join("\n"));
       throw new ProcessFailure(label, { ...status, timeout: timedOut ? timeout : null, log });
     }
     return output;

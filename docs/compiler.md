@@ -2,7 +2,9 @@
 
 État documenté au **3 octobre 2026**. Ce guide décrit le chemin de production
 actuel. Les références des sources et des outils figurent dans le
-[registre de validation](testing.md#validation-m10).
+[registre de validation](testing.md#validation-m11). Le
+[guide de reprise et d'entretien](maintenance.md) complète cette carte par les
+interfaces de compatibilité, le statut des artefacts et les points ouverts.
 
 ## Se repérer dans le workspace
 
@@ -11,7 +13,7 @@ htdocs/
 ├── purescript/                             fork du frontend et du TAST
 ├── purescript-backend-optimizer-javapurs/   dépendance locale PBO
 ├── javapurs/
-│   ├── todo.md                            plan de maintenabilité du workspace
+│   ├── todo.md                            plan de travail actif du workspace
 │   ├── javapurs/                          dépôt de ce guide
 │   │   ├── bin/                           lancement, build et runners
 │   │   ├── src/Main.purs                   entrée du processus Node
@@ -43,6 +45,10 @@ Le nom `output/` désigne donc le build de l'outil quand on travaille dans son
 dépôt, et l'entrée TAST quand on lance cet outil depuis une application.
 Reconstruire l'outil après modification de ses sources ou de PBO :
 [bin/javapurs.js](../bin/javapurs.js) importe directement le `Main` déjà construit.
+
+Le [statut des fichiers](maintenance.md#statut-des-fichiers-et-des-sorties)
+précise les sorties actuellement suivies dans Git, les workspaces temporaires
+et les sauvegardes historiques retirées avec leur procédure de restauration.
 
 ## Suivre une compilation
 
@@ -356,6 +362,7 @@ compilation d'une classe ne décrit pas sa couverture fonctionnelle.
    versions et FFI lors de la comparaison des sources Java.
 5. Mettre à jour le contrat et consigner les preuves ciblées dans le registre.
 
-Le [plan de maintenabilité](../../todo.md) donne les lots et leurs critères de
-fin. La matrice décrit les vérifications par responsabilité ; elle sert à
+Le [plan de travail actif](../../todo.md) donne les lots et leurs critères de
+fin. Les [preuves M01–M11](testing.md#validation-m11) clôturent le plan v1 de
+maintenabilité. La matrice décrit les vérifications par responsabilité ; elle sert à
 sélectionner les contrôles adaptés à chaque changement.
