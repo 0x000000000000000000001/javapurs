@@ -1,1 +1,1 @@
-{"file":"index.js","mappings":";;;;;;;;;;AAkBA,iBAAA;WAAA;uFAGkB,yBAA0B,2DAAgC,cACvE;wEAAwB,uBAAwB,4DAAgC;WAChF;sFACC,OAAO,SAAP;gDACgB,gBAAe;gFAChB,qBAAsB,6DAAiC","names":[],"sources":["../../src/Javapurs/Output.purs"],"version":3}
+{"file":"index.js","mappings":";;;;;;;;;;AAqBA,iBAAA;WAAA;0JAGkB,yBAA0B,2DAAgC,cACvE;wEAAwB,uBAAwB,4DAAgC;WAChF;sFACC,OAAO,SAAP;gDACgB,gBAAe;gFAChB,qBAAsB,6DAAiC;;;YAN1E;2EAO2B","names":[],"sources":["../../src/Javapurs/Output.purs"],"version":3}

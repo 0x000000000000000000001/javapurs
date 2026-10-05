@@ -30,6 +30,9 @@ export const lookupStringImpl = (_compare) => (key) => (map) =>
 export const insertStringImpl = (_compare) => (key) => (value) => (map) =>
     DataMapInternal.insert(DataOrd.ordString)(key)(value)(map);
 
+export const insertWithStringImpl = (_compare) => (combine) => (key) => (value) => (map) =>
+    DataMapInternal.insertWith(DataOrd.ordString)(combine)(key)(value)(map);
+
 export const unionStringImpl = (_compare) => (m1) => (m2) =>
     DataMapInternal.union(DataOrd.ordString)(m1)(m2);
 

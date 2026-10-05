@@ -15,7 +15,7 @@ import Effect.Exception (error)
 import Javapurs.Config (Config)
 import Javapurs.Diagnostics (withContext)
 import Javapurs.Emit (emitModule, emitRuntime)
-import Javapurs.Ffi (loadForeign, renderForeign)
+import Javapurs.Ffi (describeForeign, loadForeign, renderForeign)
 import Javapurs.Metrics as Metrics
 import Javapurs.Output (Output)
 import Javapurs.Output as Output
@@ -77,7 +77,10 @@ compileModule config output (Module source) optimized =
   withContext ("compile module " <> unwrap source.name) do
     liftEffect $ log $ "Building module " <> unwrap source.name
     foreignSource <- loadForeign source.name source.path
+    let emitted = Array.fromFoldable (Map.keys optimized.foreign)
+    report <- describeForeign source.name source.path (Array.fromFoldable (Map.keys source.foreign)) emitted foreignSource
+    liftEffect $ Output.recordForeign output report
     let
       javaFile = lowerModule config.pipeline optimized
-      foreignMembers = renderForeign source.name (Array.fromFoldable (Map.keys optimized.foreign)) foreignSource
+      foreignMembers = renderForeign source.name emitted foreignSource
     emitModule config.output output source.name foreignMembers javaFile

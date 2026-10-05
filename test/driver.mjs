@@ -46,6 +46,7 @@ function outputState(directory) {
 function checkManifest(directory) {
   const manifest = JSON.parse(readFileSync(join(directory, ".javapurs-manifest.json"), "utf8"));
   assert.equal(manifest.version, 1);
+  assert.equal(manifest.ffi.version, 1);
   for (const [name, digest] of Object.entries(manifest.files)) {
     assert.equal(createHash("sha256").update(readFileSync(join(directory, name))).digest("hex"), digest, `manifest: ${name}`);
   }
@@ -138,7 +139,7 @@ async function check(directory, mode, processes, tools) {
     snapshot(variant.name, sources, variant.baseline);
     assert.ok(sources["__IntFn.java"] && sources["TcoLoop.java"]);
     assert.match(sources["__M$Main.java"], /driver fixture: provided verbatim/);
-    assert.match(sources["__M$Missing.java"], /Object \$void = FFI_STUB/);
+    assert.match(sources["__M$Missing.java"], /Object \$void = new __MissingFFI\("Missing Java FFI: Missing.void"\)/);
     assert.match(sources["__M$Empty.java"], /Missing Java FFI: Empty.void/);
     const maps = variant.args.includes("--records=maps");
     assert.equal(Object.keys(sources).some(name => name.startsWith("__Record$")), !maps);

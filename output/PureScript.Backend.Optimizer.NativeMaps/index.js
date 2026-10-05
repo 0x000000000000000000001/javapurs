@@ -8,6 +8,7 @@ export {
     stringCompare,
     lookupStringImpl,
     insertStringImpl,
+    insertWithStringImpl,
     unionStringImpl,
     unionWithStringImpl,
     intCompare,

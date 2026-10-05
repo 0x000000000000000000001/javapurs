@@ -132,7 +132,7 @@ export const begin = directory => () => {
   // mkdir is the exclusive writer lock. Incomplete owner/journal metadata is
   // diagnosed rather than guessing ownership of an existing directory.
   fs.mkdirSync(work);
-  const session = { directory, work, files: new Map(), closed: false };
+  const session = { directory, work, files: new Map(), foreign: new Map(), closed: false };
   try {
     fs.writeFileSync(path.join(work, "owner.json"), json({ pid: process.pid }));
     session.previous = readManifest(path.join(directory, manifestName));
@@ -150,10 +150,21 @@ export const writeJava = session => name => source => () => {
   session.files.set(name, digest);
 };
 
+export const recordForeign = session => report => () => {
+  if (session.closed) throw new Error("Java output is closed");
+  session.foreign.set(report.moduleName, report);
+};
+
+export const reportWritten = directory => () => {
+  console.error(`[javapurs] FFI report: ${path.join(directory, manifestName)} (ffi; binding coverage not checked)`);
+};
+
 export const commit = session => () => {
   if (session.closed) throw new Error("Java output is closed");
   const files = Object.fromEntries([...session.files].sort(([a], [b]) => a.localeCompare(b)));
-  const manifest = Buffer.from(json({ version: 1, files }));
+  // The report and Java inventory share one publication/rollback boundary.
+  const ffi = { version: 1, modules: [...session.foreign.values()].sort((a, b) => a.moduleName.localeCompare(b.moduleName)) };
+  const manifest = Buffer.from(json({ version: 1, files, ffi }));
   const changes = [];
   const names = new Set([...Object.keys(session.previous.files), ...Object.keys(files)]);
   // MainRun is reserved: a successful library build must not leave an old,

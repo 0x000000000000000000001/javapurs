@@ -69,9 +69,14 @@ var compileModule = function (config) {
             return function (optimized) {
                 return Javapurs_Diagnostics.withContext("compile module " + Data_Newtype.unwrap()(v.name))(Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(Data_Function.apply(liftEffect)(Data_Function.apply(Effect_Console.log)("Building module " + Data_Newtype.unwrap()(v.name))))(function () {
                     return Control_Bind.bind(Effect_Aff.bindAff)(Javapurs_Ffi.loadForeign(v.name)(v.path))(function (foreignSource) {
-                        var javaFile = Javapurs_Pipeline.lowerModule(config.pipeline)(optimized);
-                        var foreignMembers = Javapurs_Ffi.renderForeign(v.name)(Data_Array.fromFoldable(Data_Set.foldableSet)(Data_Map.keys(optimized.foreign)))(foreignSource);
-                        return Javapurs_Emit.emitModule(config.output)(output)(v.name)(foreignMembers)(javaFile);
+                        var emitted = Data_Array.fromFoldable(Data_Set.foldableSet)(Data_Map.keys(optimized.foreign));
+                        return Control_Bind.bind(Effect_Aff.bindAff)(Javapurs_Ffi.describeForeign(v.name)(v.path)(Data_Array.fromFoldable(Data_Set.foldableSet)(Data_Map.keys(v.foreign)))(emitted)(foreignSource))(function (report) {
+                            return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(Data_Function.apply(liftEffect)(Javapurs_Output.recordForeign(output)(report)))(function () {
+                                var javaFile = Javapurs_Pipeline.lowerModule(config.pipeline)(optimized);
+                                var foreignMembers = Javapurs_Ffi.renderForeign(v.name)(emitted)(foreignSource);
+                                return Javapurs_Emit.emitModule(config.output)(output)(v.name)(foreignMembers)(javaFile);
+                            });
+                        });
                     });
                 }));
             };

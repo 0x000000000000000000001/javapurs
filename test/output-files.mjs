@@ -13,10 +13,11 @@ after(() => fs.rmSync(root, { recursive: true, force: true }));
 let next = 0;
 const fresh = () => join(root, String(next++), "Java output");
 const manifest = ".javapurs-manifest.json", work = ".javapurs-work";
-function publish(directory, files) {
+function publish(directory, files, report) {
   const session = Output.begin(directory)();
   try {
     for (const [name, source] of Object.entries(files)) Output.writeJava(session)(name)(source)();
+    if (report) Output.recordForeign(session)(report)();
     Output.commit(session)();
   } finally { Output.close(session)(); }
 }
@@ -25,7 +26,8 @@ function snapshot(directory) {
     .map(name => [name, fs.readFileSync(join(directory, name), "utf8")]));
 }
 function seed(directory) {
-  publish(directory, { "MainRun.java": "main A", "__M$A.java": "old A", "__Record$Old.java": "old record" });
+  publish(directory, { "MainRun.java": "main A", "__M$A.java": "old A", "__Record$Old.java": "old record" },
+    { moduleName: "A", status: "provided", verification: "not-checked" });
   fs.writeFileSync(join(directory, "User.java"), "foreign Java");
   return snapshot(directory);
 }
@@ -35,12 +37,14 @@ test("staging preserves the last generation; publication prunes only owned files
   const directory = fresh(), before = seed(directory);
   const session = Output.begin(directory)();
   Output.writeJava(session)("__M$B.java")("B")();
+  Output.recordForeign(session)({ moduleName: "B", status: "missing", verification: "not-checked" })();
   assert.deepEqual(snapshot(directory), before);
   assert.throws(() => Output.begin(directory)(), /busy/);
   Output.commit(session)(); Output.close(session)(); Output.close(session)();
   assert.deepEqual(Object.keys(snapshot(directory)), [manifest, "User.java", "__M$B.java"]);
   assert.equal(fs.readFileSync(join(directory, "User.java"), "utf8"), "foreign Java");
   assert.deepEqual(Object.keys(JSON.parse(fs.readFileSync(join(directory, manifest))).files), ["__M$B.java"]);
+  assert.deepEqual(JSON.parse(fs.readFileSync(join(directory, manifest))).ffi.modules.map(report => report.moduleName), ["B"]);
   assert.ok(!fs.existsSync(join(directory, work)));
 });
 
@@ -79,6 +83,7 @@ test("every publication rename failure rolls back Java, stale-file removal and m
   for (let failAt = 1; failAt <= 6; failAt++) {
     const directory = fresh(), before = seed(directory), session = Output.begin(directory)();
     for (const [name, source] of Object.entries(changed)) Output.writeJava(session)(name)(source)();
+    Output.recordForeign(session)({ moduleName: "B", status: "missing", verification: "not-checked" })();
     const rename = fs.renameSync; let calls = 0, failed = false;
     fs.renameSync = (...args) => {
       if (++calls === failAt) { failed = true; throw new Error("injected publication I/O failure"); }
@@ -123,6 +128,7 @@ function crash(directory, point) {
     const directory = ${JSON.stringify(directory)};
     const session = Output.begin(directory)();
     for (const [name, source] of Object.entries(${JSON.stringify(changed)})) Output.writeJava(session)(name)(source)();
+    Output.recordForeign(session)({ moduleName: 'B', status: 'missing', verification: 'not-checked' })();
     const rename = fs.renameSync;
     fs.renameSync = (from, to) => {
       rename(from, to);
@@ -151,6 +157,7 @@ test("SIGKILL during publication restores the prior generation; committed recove
         assert.equal(fs.readFileSync(join(directory, "__M$A.java"), "utf8"), "new A");
         assert.equal(fs.readFileSync(join(directory, "MainRun.java"), "utf8"), "main B");
         assert.ok(!fs.existsSync(join(directory, "__Record$Old.java")));
+        assert.equal(JSON.parse(fs.readFileSync(join(directory, manifest))).ffi.modules[0].moduleName, "B");
       } else assert.deepEqual(snapshot(directory), before);
     } finally { Output.close(session)(); }
   }

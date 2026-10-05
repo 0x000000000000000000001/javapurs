@@ -947,7 +947,7 @@ var collectExpr = function (globalAstMap) {
                         throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Monomorphize (line 272, column 25 - line 274, column 28): " + [ v.constructor.name ]);
                     })();
                     if (trueGenericType instanceof Data_Maybe.Just) {
-                        return Data_Map_Internal.insertWith(Data_Ord.ordString)(function ($$new) {
+                        return PureScript_Backend_Optimizer_NativeMaps.insertWithStringImpl(PureScript_Backend_Optimizer_NativeMaps.stringCompare)(function ($$new) {
                             return function (old) {
                                 return PureScript_Backend_Optimizer_NativeMaps.unionWithStringImpl(PureScript_Backend_Optimizer_NativeMaps.stringCompare)(mergeInstantiation)($$new)(old);
                             };
@@ -1073,7 +1073,7 @@ var collectExpr = function (globalAstMap) {
                             return acc2;
                         };
                         var specKey = specializationKey(instType)(v1.dictArgs)(v1.normalArgs);
-                        return Data_Map_Internal.insertWith(Data_Ord.ordString)(function ($$new) {
+                        return PureScript_Backend_Optimizer_NativeMaps.insertWithStringImpl(PureScript_Backend_Optimizer_NativeMaps.stringCompare)(function ($$new) {
                             return function (old) {
                                 return PureScript_Backend_Optimizer_NativeMaps.unionWithStringImpl(PureScript_Backend_Optimizer_NativeMaps.stringCompare)(mergeInstantiation)($$new)(old);
                             };

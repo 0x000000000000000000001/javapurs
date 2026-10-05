@@ -10,7 +10,7 @@ var liftEffect = /* #__PURE__ */ Effect_Class.liftEffect(Effect_Aff.monadEffectA
 var liftEffect1 = /* #__PURE__ */ Effect_Class.liftEffect(Effect_Aff.monadEffectAff);
 var withOutput = function (directory) {
     return function (action) {
-        return Effect_Aff.bracket(Data_Function.apply(Javapurs_Diagnostics.withContext("prepare Java output " + directory))(Data_Function.apply(liftEffect)($foreign.begin(directory))))(function (output) {
+        return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(Effect_Aff.bracket(Data_Function.apply(Javapurs_Diagnostics.withContext("prepare Java output " + directory))(Data_Function.apply(liftEffect)($foreign.begin(directory))))(function (output) {
             return Data_Function.apply(Javapurs_Diagnostics.withContext("close Java output " + directory))(Data_Function.apply(liftEffect1)($foreign.close(output)));
         })(function (output) {
             return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(action(output))(function () {
@@ -18,12 +18,15 @@ var withOutput = function (directory) {
                     return Data_Function.apply(Javapurs_Diagnostics.withContext("publish Java to " + directory))(Data_Function.apply(liftEffect1)($foreign.commit(output)));
                 });
             });
+        }))(function () {
+            return Data_Function.apply(liftEffect1)($foreign.reportWritten(directory));
         });
     };
 };
 export {
     validatePaths,
-    writeJava
+    writeJava,
+    recordForeign
 } from "./foreign.js";
 export {
     withOutput
