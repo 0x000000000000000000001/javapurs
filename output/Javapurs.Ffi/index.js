@@ -70,7 +70,7 @@ var describeForeign = function (moduleName) {
                         return {
                             name: Data_Newtype.unwrap()(ident),
                             javaName: Javapurs_Naming.sanitizeName(Data_Newtype.unwrap()(ident)),
-                            emitted: Data_Array.elem(PureScript_Backend_Optimizer_CoreFn.eqIdent)(ident)(emitted)
+                            retained: Data_Array.elem(PureScript_Backend_Optimizer_CoreFn.eqIdent)(ident)(emitted)
                         };
                     })(Data_Array.sort(PureScript_Backend_Optimizer_CoreFn.ordIdent)(Data_Array.nub(PureScript_Backend_Optimizer_CoreFn.ordIdent)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(declared)(emitted))));
                     var status = (function () {

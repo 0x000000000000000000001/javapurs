@@ -1,6 +1,6 @@
 # Tests ciblés et registre de validation
 
-État documenté au **3 octobre 2026**. Les commandes de cette page s'exécutent
+État documenté au **5 octobre 2026**. Les commandes de cette page s'exécutent
 depuis le dépôt du compilateur `htdocs/javapurs/javapurs`, sauf indication contraire.
 
 ## Choisir le bon niveau
@@ -9,8 +9,11 @@ depuis le dépôt du compilateur `htdocs/javapurs/javapurs`, sauf indication con
 | --- | --- |
 | Suites directes `test/*.mjs` | Modules JavaScript construits du compilateur, AST synthétiques et, suivant le script, compilation/exécution de fixtures Java. |
 | Pilote `test/driver.mjs` | Application PureScript minimale, TAST réel, launcher `bin/javapurs`, Java généré, JVM et erreurs d'I/O. |
+| Entrée `test/input.mjs` | TAST réels puis altérés, refus avant préparation Java, conservation de l'ancienne génération et des caches ; frontend TAST et backend construit. |
+| Entrée JVM `test/entrypoint.mjs` | Dix modules principaux réels : appel des deux ABI, refus des valeurs non exécutables et propagation des erreurs, en classes et JAR autonomes. |
 | Sorties `test/output-files.mjs` | Transactions filesystem réelles : inventaire, conflits, retour arrière et récupération après `SIGKILL`. Node suffit. |
 | Outillage `test/test-tools.mjs` | Petit corpus et commandes simulés ; sélection, fichiers, processus et interruption. Node suffit. |
+| Installation source | `test/source-install.mjs` vérifie les frontières de build/installateur ; `tools/install-source.mjs` reconstruit le fork et le backend puis exécute Hello/Refs en classes et JAR dans un workspace neuf. |
 | Fixture PureScript nommée | `bin/test NOM` réalise Spago → Javapurs → `javac` → `MainRun` dans `tests/runner`. |
 | Protocoles des ports Java | `test/ffi-runtimes.mjs` compile les vrais fragments ; `test/ffi-ports.mjs` attend l'intégration PureScript réelle dans deux modes de records. Les quatre ports proposent `bin/test-runtime`. |
 | Suite d'un port | Les `bin/test` Aff/Promise/Promise-Aff délèguent à `test/port-runners.mjs` : workspace isolé, suite attendue et sondes d'échec. Les autres ports gardent leur runner propre. |
@@ -40,18 +43,27 @@ Le chemin du binaire `purs` relevé est `~/.local/bin/purs` ; son étiquette de
 construction et la révision du checkout du fork sont enregistrées séparément.
 Pour relever ces versions, exécuter chaque outil avec `--version`.
 
+M15 ajoute un `purs` **reconstruit depuis le fork épinglé**, dont la version annonce
+`b4a7fb1ca78eeb10b847558af0fcbeab06fa5c16` sans marqueur `DIRTY`. La référence
+historique ci-dessus et ce nouveau binaire sont distincts ; voir les chemins,
+GHC et empreintes dans la [validation M15](#validation-m15).
+
 ### Build JDK, cible et JVM
 
 - **Build du backend :** Spago produit le JavaScript exécuté par Node.
-- **Compilation Java :** `javac --release 17` fixe le langage, les API et le
-  bytecode cible. Cette option est utilisée par b8x, `test/driver.mjs` et `test/chunk.mjs` ;
-  `test/big-function.mjs` l'applique à son harness supplémentaire.
-- **Runner de fixtures :** `bin/test` appelle actuellement `javac` sans
-  `--release`. Les classes de `BigFunction` produites par ce runner suivent donc
-  son JDK, même si le harness ajouté ensuite cible Java 17.
-- **Exécution :** la JVM doit accepter le bytecode produit. Les régressions
-  locales de référence ont utilisé le JDK 26.0.2 pour compiler et exécuter.
-  L'inventaire ne constitue pas une matrice exhaustive des versions supportées.
+- **Compilation Java :** `javac --release N` fixe le langage, les API et le
+  bytecode cible. `JAVAPURS_JAVA_RELEASE` sélectionne **17 par défaut** dans le
+  résolveur commun ; la valeur doit être un entier décimal sans zéro initial,
+  au moins 17 et pas supérieur à la version majeure de `javac`.
+- **Périmètre commun :** toutes les compilations des suites Node `test/*.mjs`,
+  `fixture-runner`/`bin/test`, `port-test-runner` (Aff/Promise/Promise-Aff) et les
+  exemples de l'installation source. BigFunction et son harness ont la même cible.
+  Les mentions Java 17 dans les recettes courantes désignent ce défaut ; les
+  registres datés conservent leurs options réellement exécutées.
+- **Exécution :** `JAVAPURS_JAVA_RUNTIME` sélectionne un exécutable `java` distinct
+  si nécessaire ; sinon, le runtime voisin de `javac` est utilisé. La cible doit
+  être au plus la version majeure de cette JVM. Compiler en release 17 et exécuter
+  sur JVM 26 ne remplace pas une exécution sur JVM 17.
 
 Après avoir sélectionné un même JDK sur le PATH :
 
@@ -69,15 +81,55 @@ suites Java et aux runners :
 3. Sinon, `javac` sur le PATH et son voisin `java`, avec un dernier repli
    vers `/opt/homebrew/opt/openjdk/bin/javac`.
 
-Un exécutable absent ou deux dossiers JDK différents produisent une erreur.
-Le support d'agrégation des ports transmet aussi le dossier du JDK sur le PATH,
-pour les scripts qui appellent directement `javac` et `java`. Le script Ref
-historique conserve sa sélection sur le PATH ; Aff/Promise/Promise-Aff utilisent
-le résolveur commun, y compris lorsqu'ils sont appelés seuls.
+Un exécutable absent, une version illisible, deux dossiers différents dans la
+paire de build, une cible invalide ou supérieure au compilateur/runtime produisent
+une erreur. La JVM croisée passe par `JAVAPURS_JAVA_RUNTIME`, pas par une paire
+`JAVAC`/`JAVA` dépareillée. Les enfants gardent cette paire de build et l'override
+séparé ; le dossier du JDK de build reste sur `PATH`. Les anciens scripts de ports
+qui appellent directement `javac`/`java` ne lisent pas les variables `JAVAPURS_*`.
+Les launchers Node Aff/Promise/Promise-Aff et les quatre `test-runtime` les prennent
+en compte par leurs suites déléguées.
+
+`javaCompileArgs` rejette les options concurrentes `--release`, `--source`/
+`-source`, `--target`/`-target` et `--enable-preview` du paramètre de fixture avant
+son nettoyage. Les options de heap, comme `-J-Xmx4g` de BigFunction, restent admises.
 
 `JAVAPURS_HEAP` règle le heap Node du compilateur. Les options de heap Java,
 comme `JAVA_TOOL_OPTIONS=-Xmx4g`, concernent les processus JVM. La cible
 `--release 17` ne règle ni l'un ni l'autre.
+
+Pour relever ou exercer une configuration précise, définir les deux chemins de
+JDK puis lancer depuis le dépôt :
+
+```bash
+unset JAVAC JAVA
+export JAVA_HOME="$JDK_RECENT_HOME"
+export JAVAPURS_JAVA_RELEASE=17
+export JAVAPURS_JAVA_RUNTIME="$JDK17_HOME/bin/java"
+node tools/java-tools.mjs
+node test/chunk.mjs
+```
+
+[tools/check-jdk.mjs](../tools/check-jdk.mjs) fixe une petite sélection de six
+suites : pilote, représentations, chunker, BigFunction, protocoles des runtimes
+et intégration FFI. Il impose release 17 et exécute les trois configurations
+JDK17/JVM17, JDKrécent/JVMrécente et JDKrécent/JVM17. Un petit programme témoin
+vérifie la version majeure **61** de la classe et la version réelle de la JVM.
+Les suites compilent ensuite leurs propres fixtures neuves avec les mêmes outils.
+
+```bash
+node tools/check-jdk.mjs --jdk17 "$JDK17_HOME" \
+  --recent-jdk "$JDK_RECENT_HOME" --output "$PWD/jdk-results"
+```
+
+La destination doit être absente. `matrix.json` conserve la sélection, les chemins,
+versions et résultats ; les logs sont séparés par configuration/suite. Les
+processus sont bornés à dix minutes par suite. Les workspaces des suites suivent
+leur politique habituelle de conservation à l'échec.
+
+La [validation M16](#validation-m16) a exécuté ces trois lignes avec **Temurin
+17.0.20.1+1** et **Homebrew OpenJDK 26.0.2**, sur macOS arm64. Le
+[README](../README.md#java-target-and-runtime) en donne la matrice synthétique.
 
 ## Matrice des tests
 
@@ -106,12 +158,18 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Cibles des boucles ownership | [test/ownership-loops.mjs](../test/ownership-loops.mjs) | 9 contrôles JVM par mode : alias arbre/scalaire et scope récursif, 0/1/100 000 itérations avec `-Xss256k`. |
 | `Chunk`, `Chunk.Captures`, `Chunk.Extraction` | [test/chunk.mjs](../test/chunk.mjs) | 15 fixtures : captures imbriquées, portées, types Java, récursion, mutations, ordre des effets, scopes profonds, boucles et frontières 256/257 unités, 64/65 captures. |
 | Configuration, pilote, pipeline, FFI et émission | [test/driver.mjs](../test/driver.mjs) | 11 variantes CLI, aide, 25 échecs attendus, deux ABI de launcher, bibliothèque/entrée vide, générations successives et deux builds Spago réels ; `purs` TAST, Spago, backend construit et JDK. Comparaison du Java sur entrées figées. |
+| Entrée TAST stricte et graphe des imports | [test/input.mjs](../test/input.mjs) | Erreurs filesystem/JSON/décodage/métadonnées, doublons et imports manquants ; sorties/caches préservés, destination neuve absente, lecture séquentielle/parallèle, tableaux vides, symlinks et docs Prim ; backend construit et `purs` TAST. |
+| Launcher JVM et résultat du processus | [test/entrypoint.mjs](../test/entrypoint.mjs) | 10 variantes × classes/JAR : 6 succès et 14 échecs JVM attendus ; entier/null/objet non callable, priorité Supplier, argument null, appel unique, erreurs d'action/initialisation/stub ; backend construit, `purs` TAST et JDK avec `jar`. |
 | Propriété, publication et récupération Java | [test/output-files.mjs](../test/output-files.mjs) | 9 groupes Node : fichiers étrangers/modifiés, adoption, staging, six erreurs de renommage, ordre du launcher, `SIGKILL` à trois étapes, conflits de reprise, métadonnées et symlinks ; pas de build ni JDK. |
+| Résolution, relevé et diagnostics FFI | [test/ffi-diagnostics.mjs](../test/ffi-diagnostics.mjs) | Huit modules, trois sélections adjacente/replis, huit erreurs JVM par binding, fragments incomplets/espaces et erreur de lecture ; backend construit, `purs` TAST, JDK, cible Java 17. |
 | Ref, Promise et Aff Java | [test/ffi-runtimes.mjs](../test/ffi-runtimes.mjs) | 36 contrôles directs : effets différés, écritures concurrentes, règlement/adoption, exceptions, désabonnement, annulation, bracket, supervision et parallèle ; vrais fragments, shim Either, Node/JDK et trois ports voisins. |
-| API PureScript des ports et pont Promise/Aff | [test/ffi-ports.mjs](../test/ffi-ports.mjs) | 17 assertions dans chacun des modes records typés/Maps, mêmes TAST ; attente de la fibre et échec JVM vérifiés. Backend construit, Spago, `purs` TAST et ports locaux, y compris `foreign`. |
+| API PureScript des ports et pont Promise/Aff | [test/ffi-ports.mjs](../test/ffi-ports.mjs) | 17 assertions dans chacun des modes records typés/Maps, mêmes TAST ; attente de la fibre et échec JVM vérifiés. Relevé identique entre modes, fragments locaux identifiés, troisième génération avec `foreign` du registre pour diagnostiquer l'absence Java. Backend construit, Spago, `purs` TAST et ports locaux. |
 | Complétion des suites asynchrones des ports | [test/port-runners.mjs](../test/port-runners.mjs) | Sélection `--port=aff\|promise\|promise-aff` ; 45/13/7 contrôles de suite, marqueur final et quatre sondes négatives par port. Workspaces isolés, backend construit, Spago/`purs` TAST, ports locaux et JDK ; Java 17. |
 | Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | Prépare et exécute BigFunction dans un workspace temporaire isolé, puis réalise 155 contrôles de `f`. |
-| Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 11 tests Node : noms et bornes invalides, absence d'effets de `--list`, préparation/FFI, erreurs par phase, logs, temporaires, timeout et signaux aux descendants. |
+| Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 13 tests Node : sélection et absence d'effets, JDK/cible/runtime séparés, combinaisons invalides, conflit de cible avant nettoyage, préparation/FFI, logs, timeout et signaux aux descendants. |
+| Prérequis, build et lancement source | [test/source-install.mjs](../test/source-install.mjs) | Six groupes Node/Bash avec commandes contrôlées : bon répertoire de build, dépendances/outils absents, neuf TAST incompatibles malgré version correcte, backend absent/incomplet, destination existante et prérequis d'installation ; aucun réseau ni build réel. |
+| Installation complète et application autonome | [tools/install-source.mjs](../tools/install-source.mjs) | Sept références fetchées, fork GHC/Stack et backend reconstruits, Hello/Refs en Java 17 et JAR exécutés depuis un dossier JAR seul ; Spago 1.0.3, Stack, Git, Node, Bash, JDK complet et dépendances réseau/cache. |
+| Compatibilité Java ciblée | [tools/check-jdk.mjs](../tools/check-jdk.mjs) | Six suites × trois configurations de compilation/exécution, avec chemins/versions, cible 17, sondes bytecode/JVM et logs ; backend construit, deux JDK, `purs` TAST, Spago et ports locaux. |
 | Documentation et suivi | [tools/check-docs.mjs](../tools/check-docs.mjs) | Liens/ancres locaux, syntaxe des exemples Bash, inventaire des suites, options de `Config`, score du TODO et présence des preuves des lots cochés ; Node et Bash. |
 
 Pour une modification de `JavaAst` ou de `Printer`, choisir les lignes qui
@@ -182,6 +240,66 @@ Les exclusions actuelles sont `DerivingClause`,
 `DerivingProfunctor` et `4179` : fonctionnalités rejetées par le frontend partagé
 ou sémantique JavaScript spécifique.
 
+### Entrée TAST stricte
+
+Pour une modification du chargement ou de son contrat :
+
+```bash
+./bin/build
+node test/input.mjs
+```
+
+La suite compile quatre modules avec `purs --codegen corefn,docs` dans un
+workspace isolé : dépendances ordonnées, déclarations enrichies non vides,
+module vide inutilisé, documentation de `Prim` et de ses sous-modules. Node,
+le fork TAST et le backend construit suffisent.
+
+Les entrées altérées couvrent JSON cassé/non-objet, métadonnées absentes/nulles/
+non-tableaux, erreurs du décodeur PBO, CoreFn absent/répertoire/illisible, liens
+cassés, répertoire parasite, doublon et dépendance manquante. `PrimMissing` ne
+bénéficie pas de l'exemption `Prim.*`. Un CoreFn présent sous `Prim` est contrôlé.
+Le test de permissions est omis si le processus est root.
+
+Chaque refus est exercé avec `GOPURS_JOBS=1` puis `2`, en application avec une
+sortie préexistante, puis en bibliothèque avec une destination neuve imbriquée.
+Les assertions vérifient code 1, chemin/module du diagnostic, phase de chargement
+échouée, absence de phase ultérieure, octets/inventaire Java/manifeste/caches
+inchangés et absence de création de la destination. Les mutations sont restaurées
+avant une dernière compilation valide.
+
+Les cas valides confrontent sources et manifeste entre lectures à 1, 2 et 64,
+replis de configuration invalide, symlinks de module/fichier, imports Prim et
+fichiers ordinaires à la racine. Le [pilote ci-dessous](#pilote-de-compilation)
+complète ces contrôles par une comparaison sur TAST figé, Spago et la JVM.
+
+### Entrée JVM et JAR
+
+Pour une modification de `Runtime.mainRunSource` ou de l'ABI du launcher :
+
+```bash
+./bin/build
+node test/entrypoint.mjs
+```
+
+La suite prépare dix modules principaux et un module de types, avec TAST réels
+issus du fork, puis utilise la CLI, `javac` et `jar`. Le `Main` par défaut est
+l'entier `42`. Deux FFI invalides fournissent `null` et un objet dont `toString()`
+lève une exception : le diagnostic doit nommer le champ et son type sans
+déclencher cette méthode. Ces trois cas doivent produire **code JVM 1**.
+
+Trois valeurs exécutables vérifient `Supplier.get()`, `Function.apply(null)` et
+la priorité du premier pour un objet implémentant les deux interfaces. Les
+compteurs et stdout vérifient l'appel unique ; un résultat `null` reste admis et
+la valeur de retour est ignorée. Quatre autres cas vérifient la propagation des
+exceptions Supplier, Function, initialisation statique et stub FFI manquant.
+
+Chaque cas est lancé en classes, puis sous forme de `app.jar` dans un dossier
+ne contenant que ce JAR, avec le dossier de la JVM seul sur `PATH`. Chaque phase
+a son log distinct. Le résultat attendu est **6 succès et 14 échecs JVM** par
+configuration Java. Le résolveur commun fournit la cible et la JVM ; `jar` vient
+du même JDK que `javac`. La [validation M18](#validation-m18) couvre JVM 26 et 17
+pour des classes compilées par JDK 26 en release 17.
+
 ### Pilote de compilation
 
 Pour une modification de la CLI, de l'orchestration, de la FFI ou des sorties :
@@ -233,6 +351,8 @@ Les comparaisons portent sur l'inventaire et les octets de l'ancienne/nouvelle
 génération, le fichier étranger conservé et l'ordre du launcher, même identique.
 Les conflits, métadonnées invalides et alias symlinks vérifient les
 chemins de refus et la conservation des preuves de reprise.
+Depuis M14, les snapshots de publication/restauration incluent un relevé FFI
+différent pour les deux générations, afin de vérifier leur cohérence avec le Java.
 
 Pour comparer les sources Java lors d'un refactoring :
 
@@ -471,12 +591,22 @@ fait échouer la commande. Les temporaires réussis sont supprimés.
 Pour les [contrats runtime](ffi-runtime.md), depuis ce dépôt :
 
 ```bash
+node test/ffi-diagnostics.mjs
 node test/ffi-runtimes.mjs
 node test/ffi-runtimes.mjs --port=aff
 node test/ffi-ports.mjs
 ```
 
-Le premier script compile un harness partagé et les fragments réels Aff, Ref,
+`ffi-diagnostics.mjs` prépare huit modules Prim-only et utilise le vrai résolveur
+PBO via le pilote. Une FFI adjacente prime sur une copie concurrente dans `.spago` ;
+deux autres modules exercent les replis package et workspace. Le relevé vérifie
+chemins, origines, noms échappés, états et SHA-256. Huit appels JVM vérifient
+`Module.binding` sur `Function.apply`, `Supplier.get` et méthodes varargs, pour
+un fichier absent puis vide. Un fragment incomplet et un fragment d'espaces sont
+`provided`/`not-checked` : leur compilation seule réussit, celle d'un consommateur
+du binding omis échoue. Une erreur de lecture laisse le précédent rapport intact.
+
+`ffi-runtimes.mjs` compile un harness partagé et les fragments réels Aff, Ref,
 Promise avec `javac --release 17`, puis choisit les protocoles à exécuter.
 `--port=refs|promise|aff` sélectionne un groupe ; `--ports-root CHEMIN` sélectionne
 le dossier contenant les trois checkouts, utile pour une comparaison sauvegardée.
@@ -495,6 +625,14 @@ compilations ciblent Java 17. Le helper `Main.awaitAff` attend la fibre racine,
 propage son erreur et borne une absence de complétion ; le script exige aussi
 le marqueur final. Aucune option CLI n'est acceptée.
 
+Le relevé `ffi` des deux modes est identique et nomme les vrais fragments locaux
+Aff/Ref/Promise/Foreign. Une troisième préparation Spago retire l'override
+`foreign` et génère dans `java-registry` : son entrée `Foreign` doit être `missing`
+et nommer `.spago/p/foreign-…/src/Foreign.purs`. Cette sonde de sélection ne lance
+pas une fibre susceptible d'attendre une conversion absente. Les dépendances et
+labels de couverture sont détaillés dans la
+[table des quatre ports](ffi-runtime.md#couverture-exécutée-et-dépendances-des-quatre-ports).
+
 Les launchers `../javapurs-{refs,aff,js-promise}/bin/test-runtime` délèguent au
 groupe direct correspondant ; `../javapurs-js-promise-aff/bin/test-runtime`
 lance l'intégration. Ils retrouvent les scripts depuis leur propre chemin et
@@ -508,6 +646,28 @@ pas toutes observées. Les preuves M10 reposent sur les protocoles directs et
 l'intégration attendue ci-dessus ; les nouvelles
 [suites de ports](#suites-asynchrones-des-ports) apportent leur propre validation.
 Les tests synchrones Ref restent exécutables par leur entrypoint historique.
+
+### Installation source
+
+Pour les frontières de prérequis et de lancement, sans télécharger de dépendances :
+
+```bash
+node --test test/source-install.mjs
+```
+
+Pour reconstruire les références de [source-lock.json](../tools/source-lock.json)
+et vérifier l'ensemble du parcours jusqu'aux deux JAR :
+
+```bash
+node tools/install-source.mjs /chemin/vers/un-workspace-neuf
+```
+
+Le dossier doit être absent. Le backend est exporté depuis le checkout appelant,
+sans son build suivi dans Git. Les versions/empreintes, commandes et résultats
+figurent dans `installation.json`, les logs par phase sous `logs/` et `apps/`.
+Le smoke d'application se rejoue séparément avec
+[source-smoke.mjs](../tools/source-smoke.mjs) ; voir le
+[contrat d'installation](installation.md#parcours-exécuté).
 
 ## Consigner une validation
 
@@ -1696,3 +1856,493 @@ leurs validations historiques. Le périmètre est resté ciblé conformément au
 
 **Conclusion : M13 validé, +25 points ; plan v2 à 45/100, 2 lots sur 5.
 Prochain lot : M14 — FFI sélectionnée et manquante observable.**
+
+## Validation M14
+
+**5 octobre 2026 — FFI sélectionnée et manquante observable.**
+
+### Références et périmètre
+
+Javapurs au départ : **`df12d7f0138b967a09ec28b02bd6f5e6adb59b05`**, checkout propre.
+`before.json` conserve **3 341 empreintes**, les références voisines et leurs états ;
+`base/` conserve les sources concernées. Le commit intermédiaire
+`23e56373989146cfb4a0db1aa6532e660ca80548` a intégré l'implémentation pendant le lot ;
+les validations de clôture incluent le champ final `retained` et la documentation.
+
+| Dépôt voisin | Révision relevée, sources inchangées pendant M14 |
+| --- | --- |
+| PBO Java | `8f97f1dc83bca51cb697cb01b66868d3abb61938` |
+| Fork PureScript | `b4a7fb1ca78eeb10b847558af0fcbeab06fa5c16` |
+| Aff | `80a861b1c096eba941f4b6186a74f4ccacb47765` |
+| Refs | `228bb557d2ade1f978146361dc40e3d775d53fd3` |
+| Promise | `ed5900a79a05da1c83c9ecb57f5a708e29aba466` |
+| Promise/Aff | `06ae9a304e3434a303fd9f18d877055b856d4672` |
+
+Node **24.8.0**, Spago **1.0.3**, binaire `~/.local/bin/purs` annoncé
+`0.15.16 [development build; commit: 3c8fcfd7a3d440bba487fe9fe059284cffc6e908 DIRTY]` ;
+compilation et exécution avec OpenJDK Homebrew **26.0.2**, cible **Java 17** pour
+les fixtures JVM. `references.json` enregistre chemins des binaires et checkouts.
+
+### Livrables et contrat
+
+- `Ffi.describeForeign` et son FFI Node décrivent le résultat réel de PBO, sans
+  modifier sa priorité ni refaire la recherche. Module source, candidat adjacent,
+  Java retenu, chemins absolus/réels et origine d'emplacement, empreinte du texte,
+  états fourni/vide/absent/sans besoin, noms PureScript/Java et présence dans
+  l'inventaire foreign optimisé sont explicités. `verification: "not-checked"`
+  distingue sélection et couverture.
+- `Driver` enregistre les descriptions dans `Output`. Le champ `ffi` version 1
+  du manifeste version 1 est publié et restauré avec les sources Java ; il
+  remplace l'inventaire précédent à chaque succès, y compris pour une bibliothèque
+  vide. Les diagnostics stderr de chaque module et le chemin du relevé final
+  permettent de retrouver cette sélection.
+- Pour une FFI absente/vide, les champs de bindings utilisent `__MissingFFI`,
+  implémentant `Function` et `Supplier`. Appels curryfiés, forçages d'effets et
+  méthodes varargs identifient le **nom PureScript complet** du binding dans
+  `UnsupportedOperationException`. Le sentinel historique `FFI_STUB` reste présent.
+- Un fragment non vide reste inséré tel quel. Le cas partiel et le fichier
+  d'espaces sont volontairement `provided`/`not-checked` : les fixtures montrent
+  que le binding omis est rejeté par `javac` lorsqu'un consommateur le référence.
+- La [table de couverture](ffi-runtime.md#couverture-exécutée-et-dépendances-des-quatre-ports)
+  nomme les groupes et assertions des quatre ports, leurs dépendances et le
+  parcours transitif `Promise.Aff` → `Promise.Rejection`/`Foreign` des rejets.
+
+### Vérifications ciblées
+
+Commandes depuis le dépôt du compilateur ; `BASELINE` correspond au dossier local
+`javapurs-m14/driver-baseline` créé avant modification.
+
+| Contrôle | Résultat |
+| --- | --- |
+| `node test/driver.mjs --record "$BASELINE"`, avant modification | Référence M13 enregistrée : 11 variantes, 25 échecs attendus, deux builds Spago, TAST/FFI figés. |
+| `./bin/build` | Build final **sans erreur ni avertissement**. La première reconstruction des sources PBO courantes signalait trois warnings de code/imports inutilisés dans `Semantics`, consignés dans `build-first.log`. |
+| `node test/driver.mjs` | **11 variantes**, aide, **25 échecs attendus**, cycle des sorties, chemins avec espaces et **deux builds Spago** réussis. |
+| `node test/ffi-diagnostics.mjs` | **8 rapports de modules**, **3 choix de fragments** confirmés sur JVM, **8 erreurs de stub** nommant le binding, **2 erreurs `javac`** pour membres omis et **1 erreur de lecture** attendues ; ancien rapport conservé. |
+| `node test/ffi-ports.mjs` | **17 assertions × 2 modes** ; rapport identique entre modes, fragments Aff/Ref/Promise/Foreign locaux identifiés et pont réel exécuté. Troisième build Spago avec `Foreign` du registre : absence de Java et source `.spago/p/foreign-…` correctement relevées. |
+| `node --test test/output-files.mjs` | **9/9 groupes**, avec métadonnées FFI différentes entre générations : les six pannes de renommage et les trois étapes de `SIGKILL` conservent/restaurent le relevé avec les sources correspondantes. |
+| Comparaison ciblée `compare-java.mjs` | Sur les **86 fichiers** des variantes figées et de l'entrée vide : **64 identiques**, **22 changements limités aux stubs** `Missing`/`Empty`, mêmes inventaires et empreintes TAST/FFI. |
+| Empreintes | **45 sources du compilateur** hors fichiers modifiés identiques au relevé initial ; sources des voisins/PBO inchangées ; FFI construites `Ffi`/`Output` identiques aux sources. |
+| Documentation et syntaxe | Matrice de **26 suites**, **12 options CLI**, score **65/100**, liens/ancres et exemples shell, syntaxe Node et `git diff --check` validés. |
+
+La comparaison conserve exactement les options, TAST et fragments de départ.
+Pour les seuls modules `Missing`/`Empty`, elle retire le helper `__MissingFFI` et
+remplace les deux formes de champ connues afin de vérifier que le reste du Java
+est identique ; les huit assertions JVM vérifient le comportement de ces nouvelles
+formes. Les fragments fournis, helpers communs, records, chunks et launchers des
+références gardent leurs octets. Le manifeste ajoute les métadonnées `ffi`.
+
+Le build a aussi actualisé sept fichiers JS construits de PBO depuis sa référence
+courante (`Builder`, `CoreFn`, `Directives`, `FreeVars`, `Monomorphize`,
+`NativeMaps`/FFI). Ces actualisations sont inventoriées dans `artifact-checks.json` ;
+les comparaisons et l'intégration portent sur ce build effectif. Les passes Java
+et les runtimes des ports conservent leurs sources.
+
+### Preuves et limites
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m14/`,
+notamment `before.json`, `base/`, `driver-baseline/`, `driver-before.log`,
+`driver-after.log`, `build-first.log`, `build-final.log`, `ffi-diagnostics-final.log`,
+`ffi-ports-final.log`, `output-files.log`, `compare-java.mjs`, `comparison.log`,
+`java-after/`, `java-comparison.json`, `references.json`, `artifact-checks.json`
+et `final-source-hashes.json`.
+
+Le relevé décrit les modules émis et les choix du résolveur ; il ne prouve pas
+l'atteignabilité/exécution des imports ni la couverture des fragments fournis.
+Le diagnostic précis des stubs concerne les frontières d'appel/forçage : une
+valeur scalaire absente peut être rejetée à son cast/unboxing. Les labels `origin`
+qualifient les chemins, pas un graphe de packages reconstruit. Les preuves directes
+des runtimes M10 et les suites complètes de ports M12 restent datées ; M14 valide
+la frontière FFI et l'intégration nommée, conformément au périmètre ciblé du plan.
+
+**Conclusion : M14 validé, +20 points ; plan v2 à 65/100, 3 lots sur 5.
+Prochain lot : M15 — installation source reproductible.**
+
+## Validation M15
+
+**5 octobre 2026 — installation source reproductible.**
+
+### Sources et outils effectivement employés
+
+Le checkout Javapurs part de **`23e56373989146cfb4a0db1aa6532e660ca80548`**,
+avec les changements de clôture M14 encore présents, dont `retained` dans le relevé
+FFI. L'export inclut cet arbre courant et les outils M15 ; `backend.dirty` et les
+empreintes par fichier distinguent ce snapshot de son commit de base.
+
+Les sept sources ont été fetchées depuis GitHub par SHA, sans utiliser les
+checkouts voisins du poste de développement :
+
+| Dépôt | Révision fixée par le manifeste source |
+| --- | --- |
+| Fork PureScript | `b4a7fb1ca78eeb10b847558af0fcbeab06fa5c16` |
+| PBO Java | `8f97f1dc83bca51cb697cb01b66868d3abb61938` |
+| `foreign-object` | `8296fd5d84f6a4e84bd4e3229a5beb214d9922f3` |
+| `prelude` | `67e8590b0478e82b835e7f4c5eac848d283674b0` |
+| `effect` | `e244794fc4beeda5d3283199fe90813c38d9695a` |
+| `console` | `a1fa3d4dfe882a70067f56bf41ea1c4e6e63b834` |
+| `refs` | `228bb557d2ade1f978146361dc40e3d775d53fd3` |
+
+Outils : Node **24.8.0**, Spago **1.0.3**, Stack **3.11.1**, Git **2.50.1**,
+Bash **3.2.57**, GHC **9.8.4** choisi par Stack, OpenJDK Homebrew **26.0.2**
+pour `javac`, `java` et `jar`. Le `purs` reconstruit annonce exactement :
+
+```text
+0.15.16 [development build; commit: b4a7fb1ca78eeb10b847558af0fcbeab06fa5c16]
+```
+
+Il provient du nouveau `workspace/bin/purs`, avec chemin et SHA-256 consignés,
+et non du `~/.local/bin/purs` historique étiqueté `3c8fcfd7… DIRTY`.
+Pour le rejeu final, son SHA-256 est
+`b0cbba14f64305d70ddfa111a8d9b8907df88cdb4d57159a4805574c5637b549`.
+La sonde du nouveau binaire produit `builtWith: "0.15.16"`, **1 `dataDecls`,
+1 `classDecls`, 15 entrées `typeTable`**. Le build local depuis un autre dossier
+a aussi vérifié cette capacité sur le binaire historique, en affichant son
+étiquette distincte.
+
+### Livrables
+
+- [Manifeste source](../tools/source-lock.json),
+  [installateur](../tools/install-source.mjs) et inventaire `installation.json` :
+  références, sources exportées, binaires/versions, empreinte du `purs`, commandes,
+  état final et résultats applicatifs. Fork et backend ont des builds de projet
+  neufs ; aucun `output/` ou `.spago/` du checkout du backend n'est exporté.
+- `bin/build` → [build.mjs](../tools/build.mjs) : localisation du checkout,
+  prérequis et sonde du format avant Spago. Les launchers nomment Node absent ou
+  un build manquant/incomplet avec le chemin de reconstruction.
+- [Hello](../examples/hello/src/Main.purs) reproduit les trois fichiers du README ;
+  [Refs](../examples/refs/src/Main.purs) exerce lecture/modification et affichage
+  avec ports locaux et FFI transitive. [source-smoke.mjs](../tools/source-smoke.mjs)
+  construit/exécute les classes, empaquette les JAR et vérifie leur autonomie.
+- [Guide d'installation](installation.md), README, carte du compilateur, matrice,
+  maintenance et plan de suivi actualisés.
+
+### Vérifications ciblées
+
+Les preuves résident sous
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m15/`.
+Les destinations contiennent volontairement une espace. La première installation
+complète (`source workspace`) a réussi : **182 modules de bibliothèque Haskell**
+et l'exécutable `purs` reconstruits, puis **459 modules PureScript** incluant
+Javapurs/PBO et leurs dépendances. Les sept checkouts fetchés sont propres, et le
+lockfile du backend conserve son empreinte. Le build neuf affiche les trois
+avertissements PBO préexistants de `Semantics` déjà relevés en M14, sans erreur.
+Le **second parcours complet** (`final workspace`), avec les scripts finalisés,
+reconstruit les mêmes composants et réussit les contrôles supplémentaires :
+lockfile Stack en lecture stricte, lockfile Spago inchangé, chemin réel des trois
+fragments FFI et bytecode du launcher de version majeure **61**.
+
+| Contrôle | Résultat |
+| --- | --- |
+| `node tools/install-source.mjs "$PROOF/source workspace"` | Installation complète réussie depuis les sources fetchées et le snapshot du backend. |
+| `node tools/install-source.mjs "$PROOF/final workspace"` | **Second succès complet**, **78 fichiers exportés**, sept révisions fetchées propres ; inventaire final avec capacités TAST, commandes et deux applications. Les **77 sources/configurations hors README** correspondent encore aux fichiers courants après clôture documentaire. |
+| `bin/build` appelé depuis `$PROOF` | Sonde TAST puis build du bon checkout ; **0 erreur, 0 avertissement** sur cette reconstruction incrémentale. |
+| `node --test test/source-install.mjs` | **6/6 groupes, 29 échecs attendus** : bon répertoire, deux packages/Node/Spago/purs absents, neuf métadonnées TAST manquantes/vides/mal formées, launcher incomplet, destination existante, arguments et huit cas de prérequis/version d'installation. |
+| `node test/driver.mjs --compare "$PROOF/driver-compare"` | **11 variantes**, **25 échecs attendus**, deux builds Spago et cycle des sorties ; **86 fichiers Java identiques** à la clôture M14 sur ses entrées figées. |
+| `node "$PROOF/compare-installed.mjs"` | Même comparaison avec le **backend reconstruit par le nouveau fork** : **86/86 fichiers Java identiques**, inventaires et empreintes TAST/FFI vérifiés. |
+| Launcher installé `--help` depuis `htdocs/` | Aide complète et code 0 ; wrapper du workspace et import du build validés hors du dossier du backend. |
+| Empreintes et sources voisines | **50 fichiers `src/` identiques** à la clôture M14 ; sept checkouts voisins d'origine toujours propres et aux références annoncées. |
+
+`driver-compare/expected` reprend `javapurs-m14/java-after` ; TAST et fragments
+viennent du baseline M14 avec vérification SHA-256. Le smoke Hello produit
+**114 fichiers Java**, Refs **118**. Les deux sorties attendues sont contrôlées en
+classes puis en JAR depuis des dossiers ne contenant qu'`app.jar`, avec le dossier
+JDK seul sur `PATH` et aucun classpath externe.
+
+La revue finale vérifie aussi l'identité des trois fichiers Hello avec les blocs
+du README, **six syntaxes Node**, **deux launchers Bash**, les liens/ancres et
+exemples shell, les **27 suites**, **12 options CLI**, le score du plan et
+`git diff --check`.
+
+Preuves : `install.log`, `install-final.log`, les deux `installation.json`,
+`logs/{purs-build,backend-build,applications}.log`, `apps/smoke.json`, les logs et
+JAR de chaque exemple, `build-local.log`, `source-tests.log`, `driver.log`,
+`compare-installed.mjs`, `compare-installed.log`, `installed-java-comparison.json`,
+`source-compatibility.json` et `checks.json`. Les dossiers de preuve sont locaux ;
+les références et la recette rejouable sont versionnées dans le dépôt.
+
+### Limites de la preuve
+
+La reconstruction est isolée par répertoire, sur **macOS arm64** avec caches
+utilisateur Stack/Spago disponibles. Les dépendances Haskell du snapshot peuvent
+venir du cache ; le fork lui-même et les 459 modules du backend sont reconstruits.
+La reproductibilité porte sur les références, le parcours et les résultats,
+pas sur une image système hermétique ou l'identité des timestamps des JAR.
+
+La sonde de build contrôle le `purs` sélectionné, pas des TAST applicatifs anciens.
+Les cas incompatibles de la suite Node utilisent des commandes contrôlées annonçant
+la même version et produisant des métadonnées invalides ; le parcours positif
+utilise réellement le fork recompilé. L'exemple Refs prouve les opérations
+exécutées et les fragments sélectionnés, sans étendre la couverture à tous les
+bindings des ports. Les classes ciblent **Java 17**, exécutées ici sur **JVM 26.0.2**.
+
+**Conclusion : M15 validé, +20 points ; plan v2 à 85/100, 4 lots sur 5.
+Prochain lot : M16 — compatibilité JDK mesurée et cible cohérente.**
+
+## Validation M16
+
+**5 octobre 2026 — compatibilité JDK mesurée et cible cohérente ; clôture du plan v2.**
+
+### Références et outils
+
+Le dépôt Javapurs part de **`23e56373989146cfb4a0db1aa6532e660ca80548`**, avec
+les changements M14/M15 encore présents. Le dossier de preuves `javapurs-m16/base/`
+et `before.json` conservent **104 fichiers**, leurs SHA-256 et l'état Git initial.
+Le backend construit est celui validé en M15 ; les **50 fichiers de génération
+`src/`** gardent leurs empreintes. Les modifications portent sur les outils Node,
+leurs consommateurs de flags Java et la documentation.
+
+Node **24.8.0**, Spago **1.0.3**, `purs` **0.15.16** reconstruit en M15 depuis
+**`b4a7fb1ca78eeb10b847558af0fcbeab06fa5c16`**, sans marqueur `DIRTY` ; PBO Java
+**`8f97f1dc83bca51cb697cb01b66868d3abb61938`**. La matrice prend ce `purs` via
+le `bin/` du workspace final M15. Les chemins effectifs et versions complètes
+figurent dans `matrix/matrix.json`.
+Les quatre ports Aff/Refs/Promise/Promise-Aff conservent les révisions relevées en
+[M14](#validation-m14) ; `references-final.json` confirme ces SHA et leurs
+checkouts propres à la clôture M16.
+
+| Outil Java | Distribution et référence |
+| --- | --- |
+| JDK 17 | **Eclipse Temurin 17.0.20.1+1**, macOS aarch64 HotSpot ; `javac 17.0.20.1`, JVM `17.0.20.1`, build `17.0.20.1+1`. |
+| JDK récent | **OpenJDK Homebrew 26.0.2**, macOS arm64 ; `javac 26.0.2`, JVM/build `26.0.2`. |
+
+Le JDK 17 a été téléchargé et extrait uniquement dans le dossier de preuves,
+depuis la [release Temurin épinglée](https://github.com/adoptium/temurin17-binaries/releases/tag/jdk-17.0.20.1%2B1).
+Archive `OpenJDK17U-jdk_aarch64_mac_hotspot_17.0.20.1_1.tar.gz`,
+**185 851 019 octets**, SHA-256 vérifié avant extraction :
+`196d13ba5f10414bef7f6a05a9b3f00edacb18ebacef2b99485db9e2ee18f0e8`.
+`jdk17.json` conserve URL exacte, empreinte, chemin Home et version exécutée.
+
+### Contrat livré
+
+- [java-tools.mjs](../tools/java-tools.mjs) possède le défaut **17**, les arguments
+  `--release`, les versions et la distinction paire de build / JVM d'exécution.
+  `JAVAPURS_JAVA_RELEASE` est strict ; `JAVAPURS_JAVA_RUNTIME` est le seul override
+  autorisant une JVM d'un autre dossier. Les outils sont résolus en chemins réels.
+- Le résolveur rejette outils absents, version illisible, cible mal formée ou
+  supérieure au compilateur/runtime. `javaCompileArgs` refuse les flags de cible
+  concurrents avant la préparation destructive d'une fixture.
+- Toutes les invocations `javac` des suites Node reprennent les mêmes arguments,
+  de même que `fixture-runner`, le runner des trois ports asynchrones et le smoke
+  de l'installation source. BigFunction et son harness supplémentaire partagent
+  enfin la même cible ; les flags de heap restent indépendants.
+- [check-jdk.mjs](../tools/check-jdk.mjs) exécute une sélection fixe de **six suites**
+  dans **trois configurations**. Il garde un rapport global, les logs par suite,
+  une sonde de bytecode et une sonde de version JVM ; une destination existante
+  est refusée. La matrice impose cible 17 et relève séparément ses trois dimensions.
+
+### Commandes et résultats
+
+Depuis `javapurs/javapurs`, avec `JDK17_HOME` égal au Home extrait et
+`JDK_RECENT_HOME` égal à `/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home` :
+
+```bash
+export PATH="$M15_WORKSPACE/bin:$PATH"
+node tools/check-jdk.mjs --jdk17 "$JDK17_HOME" \
+  --recent-jdk "$JDK_RECENT_HOME" --output "$PROOF/matrix"
+node --test test/test-tools.mjs test/source-install.mjs
+```
+
+| JDK de compilation | Cible | JVM d'exécution | Résultat |
+| --- | --- | --- | --- |
+| Temurin 17.0.20.1+1 | 17, classe majeure 61 | Temurin 17.0.20.1+1 | **6/6 suites** |
+| Homebrew 26.0.2 | 17, classe majeure 61 | Homebrew 26.0.2 | **6/6 suites** |
+| Homebrew 26.0.2 | 17, classe majeure 61 | Temurin 17.0.20.1+1 | **6/6 suites** |
+
+Dans **chacune** des trois lignes :
+
+| Suite | Résultat ciblé |
+| --- | --- |
+| `driver.mjs` | **11 variantes**, aide, **25 échecs attendus**, cycle des sorties et **deux invocations Spago** réelles. |
+| `representations.mjs` | **43 assertions JVM × 8 modes = 344** : records typés/Maps, Int/générique, appels directs on/off et ABI FFI. |
+| `chunk.mjs` | **15 fixtures**, dont captures, tailles/profondeurs et frontières d'extraction. |
+| `big-function.mjs` | Entrypoint réel réussi et **155 contrôles de branches**, dont 26 patterns non vides réussis. |
+| `ffi-runtimes.mjs` | **36 contrôles de protocoles** : Refs 4, Promise 14, Aff 18. |
+| `ffi-ports.mjs` | **17 assertions × 2 modes**, pont Promise/Aff réel attendu, fragments locaux et sélection `foreign` du registre diagnostiqués. |
+
+Les suites créent de nouvelles classes dans leurs workspaces. La ligne croisée
+exécute réellement sur JVM 17 les classes que `javac 26.0.2 --release 17` vient
+de produire ; elle ne déduit pas cette compatibilité du seul flag de compilation.
+
+Contrôles complémentaires des consommateurs modifiés :
+
+| Commande/configuration | Résultat |
+| --- | --- |
+| `node --test test/test-tools.mjs test/source-install.mjs` | **19/19 groupes** : 13 d'outillage, 6 d'installation. Nouveaux cas : neuf valeurs de cible invalides, compilateur/runtime trop anciens, runtime absent/version illisible, override croisé propagé et sept conflits de flags refusés avant nettoyage. |
+| `../javapurs-js-promise-aff/bin/test` avec `JAVA_HOME="$JDK17_HOME"` | **7 assertions de suite + 4 sondes négatives**, via le vrai launcher et le runner partagé. |
+| `node test/ffi-diagnostics.mjs` avec JDK 17 | **8 rapports, 3 sélections, 8 contrôles JVM de stubs**, deux échecs `javac` et un échec de lecture attendus. |
+| `node tools/source-smoke.mjs "$M15_WORKSPACE" "$PROOF/source-smoke-cross"` avec build JDK 26 et `JAVAPURS_JAVA_RUNTIME="$JDK17_HOME/bin/java"` | Hello et Refs réussis en classes et **deux JAR autonomes sur JVM 17**, bytecode majeur 61 et fragments locaux vérifiés. |
+
+Les environnements complémentaires fixent `JAVAPURS_JAVA_RELEASE=17` et retirent
+les éventuels overrides `JAVAC`/`JAVA` avant de choisir `JAVA_HOME`. Le smoke croisé
+utilise le backend et les ports épinglés installés en M15, avec le runner courant.
+
+### Preuves, revue et limites
+
+Preuves locales sous
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m16/` :
+`before.json`, `base/`, `jdk17.json`, archive/JDK extrait, `matrix.log`,
+`matrix/matrix.json`, les dix-huit logs de suites et sondes JVM/bytecode,
+`tool-tests.log`, `port-promise-aff-jdk17.log`, `ffi-diagnostics-jdk17.log`,
+`source-smoke-cross.log`, `source-smoke-cross/smoke.json`, `references-final.json`
+et `checks.json`.
+
+La revue confirme **18 migrations de suites strictement mécaniques**, **29
+vérifications de syntaxe Node**, les **50 empreintes de sources de génération**,
+les liens/ancres et exemples shell, la matrice/options/score et `git diff --check`.
+La matrice documente **ces deux distributions sur macOS arm64**, avec **cible 17**
+et ces six suites. Les autres versions/vendors/OS, les autres cibles et l'ensemble
+des API des ports ne sont pas extrapolés. Les anciennes validations restent
+datées ; les anciens runners purement shell conservent leurs réglages propres.
+
+**Conclusion : M16 validé, +15 points ; plan v2 terminé à 100/100, 5 lots sur 5.**
+
+## Validation M17
+
+**5 octobre 2026 — chargement TAST strict avant publication ; lot complémentaire.**
+
+### Constat et références
+
+Javapurs part de **`23e56373989146cfb4a0db1aa6532e660ca80548`**, avec les
+changements M14–M16 présents. `before.json` et `base/` conservent **66 fichiers**
+et leurs empreintes initiales. Sur la fixture figée du pilote, un
+`Missing/corefn.json` remplacé par `{`, puis un fichier supprimé, donnaient tous
+deux **code 0** en bibliothèque : `__M$Missing.java` était retiré. La suppression
+des trois tableaux enrichis donnait aussi code 0. `reproduction.json` et les
+logs `before-*` consignent ces comportements du lecteur générique PBO.
+
+Références PBO **`8f97f1dc83bca51cb697cb01b66868d3abb61938`**, frontend
+**`b4a7fb1ca78eeb10b847558af0fcbeab06fa5c16`** ; mêmes ports que M16.
+Node **24.8.0**, Spago **1.0.3**, `purs` reconstruit en M15 sans `DIRTY`,
+SHA-256 **`b0cbba14f64305d70ddfa111a8d9b8907df88cdb4d57159a4805574c5637b549`**.
+Les runs Java utilisent Homebrew **26.0.2**, compilation **`--release 17`** et
+exécution sur JVM **26.0.2**, sur macOS arm64.
+
+### Livrables
+
+- [Input.purs](../src/Javapurs/Input.purs) possède lecture stricte, parsing JSON
+  unique, exigence des trois tableaux, décodage PBO, détection des doublons et
+  contrôle des dépendances avant le tri PBO. [Input.js](../src/Javapurs/Input.js)
+  reprend le réglage borné `GOPURS_JOBS`. `Driver` appelle cette frontière dans
+  `load TAST + sort`, avant `validateMain` et `Output.withOutput`.
+- L'intégration Spago a exposé les dossiers `Prim`/`Prim.*` contenant seulement
+  `docs.json` : ils sont admis sans CoreFn. Un CoreFn présent dans ces dossiers
+  est contrôlé. Les autres sous-dossiers exigent un fichier lisible.
+- `spago.yaml` déclare `argonaut-codecs` ; le lockfile régénéré enregistre aussi
+  les dépendances actuelles du package PBO local épinglé. Leurs versions ne
+  changent pas. Les sorties construites incluent `Javapurs.Input` et le pilote.
+- [test/input.mjs](../test/input.mjs), contrat d'entrée, README, matrice et suivi
+  sont livrés. Le vérificateur documentaire exige aussi une preuve pour chaque
+  lot complémentaire coché, en conservant le score du plan pondéré.
+
+### Vérifications ciblées
+
+`PROOF` désigne le dossier local `javapurs-m17` ci-dessous. Les commandes utilisent
+`TMPDIR` sous `opencode` et le `bin/` du workspace final M15 en tête du `PATH`.
+
+| Commande/contrôle | Résultat |
+| --- | --- |
+| `./bin/build`, checkout courant | Sonde TAST et reconstruction du lecteur/pilote ; **0 erreur, 0 avertissement**. |
+| `./bin/build`, export sous `clean workspace/javapurs/javapurs` | **460 modules reconstruits**, sans `output/` ni `.spago/` initial. Les packages locaux sont exportés aux références épinglées ; le binaire `purs` M15 est réutilisé. **0 erreur**, trois avertissements PBO `Semantics` préexistants ; lockfile conservé octet pour octet. |
+| `node test/input.mjs`, depuis cet export reconstruit | **28 entrées invalides × 2 réglages de lecture × 2 modes de destination = 112 refus attendus**. Code 1, diagnostic, phase de chargement échouée, Java/manifeste/caches préservés et destination neuve absente. Le cas permissions a bien été exécuté. |
+| Cas valides de la même suite | Modules/déclarations vides et non vides, docs Prim, imports primitifs, fichiers ordinaires, symlinks ; sources et manifeste identiques avec lectures à **1/2/64**, replis des réglages invalides et après restauration des entrées. |
+| `node test/driver.mjs --compare "$PROOF/driver-compare"` | **11 variantes**, aide, **25 échecs attendus**, cycle des sorties et deux invocations Spago réelles ; **86 fichiers Java identiques** sur les TAST/FFI figés issus du baseline M14/M15. |
+| `node test/ffi-ports.mjs` | **17 assertions × 2 modes**, records typés puis Maps ; pont Promise/Aff attendu, fragments locaux et sélection `foreign` du registre diagnostiqués. |
+| Empreintes de sources | **49 des 50 fichiers `src/` initiaux identiques** ; seul `Driver.purs` change pour appeler les deux nouveaux fichiers `Input`. Les 52 sources courantes correspondent à l'export reconstruit. |
+
+La revue finale contrôle la syntaxe des entrées JavaScript ajoutées/modifiées,
+liens/ancres, exemples Bash, matrice des **28 suites**, **12 options CLI**, score
+du plan et présence de la preuve M17, puis `git diff --check`.
+
+### Preuves et portée
+
+Preuves locales sous
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m17/` :
+`before.json`, `base/`, `reproduce.mjs`, `reproduction.json`, `before-*.log`,
+`build-final.log`, `clean-export.json`, `clean-build.log`, `clean workspace/`,
+`input-final.log`, `driver.log`, `driver-compare/`, `ffi-ports.log`,
+`source-checks.json`, `references-final.json` et `checks.json`.
+
+Les premiers essais ont identifié l'exemption des docs Prim et corrigé la
+restauration des symlinks dans la suite ; leurs logs restent distincts des
+preuves finales. Les suites couvrent le lecteur réel et la génération sur ces
+entrées ciblées. Le contrat des trois tableaux reste minimal : pas de nouveau
+versionnement de schéma, ni de preuve exhaustive sur les annotations facultatives
+de PBO. Un module entièrement retiré et non importé correspond toujours à un
+retrait légitime lors d'une génération réussie. Les validations Java plus larges
+et la matrice JDK conservent leurs dates et périmètres précédents.
+
+**Conclusion : M17 validé ; complément clôturé. Plans v1 et v2 toujours à 100/100.**
+
+## Validation M18
+
+**5 octobre 2026 — entrée JVM invalide sans faux succès ; lot complémentaire.**
+
+### Constat, références et correction
+
+Sur trois petits modules réels compilés avec le fork, le backend puis `javac`,
+`main = 42`, une FFI `main = null` et une FFI `main = new Object()` donnaient tous
+**code JVM 0, sans stdout ni stderr**. Le template n'avait pas de branche pour
+les valeurs qui n'implémentent aucune des deux ABI du launcher. `reproduce.mjs`,
+`reproduction.json` et les logs `before-*` conservent le constat.
+
+Référence Javapurs **`23e56373989146cfb4a0db1aa6532e660ca80548`**, changements
+M14–M17 présents ; **67 fichiers initiaux** sauvegardés avec leurs empreintes.
+PBO **`8f97f1dc83bca51cb697cb01b66868d3abb61938`** et frontend
+**`b4a7fb1ca78eeb10b847558af0fcbeab06fa5c16`**, checkouts propres.
+Node **24.8.0**, Spago **1.0.3** et binaire `purs` reconstruit en M15,
+SHA-256 **`b0cbba14f64305d70ddfa111a8d9b8907df88cdb4d57159a4805574c5637b549`**.
+
+Le changement de production est limité à
+[Runtime.mainRunSource](../src/Javapurs/Runtime.purs) : une branche `else` lève
+`IllegalStateException` avec `ClasseJava.main` et la classe effective, ou `null`.
+Le diagnostic n'appelle pas `toString()` sur l'objet FFI. Le chemin `Supplier`
+reste prioritaire ; `Function` reçoit `null`. La signature du template reste
+`String -> String`. Le [contrat du launcher](compiler.md#6-compilation-et-exécution-java),
+la nouvelle [suite](../test/entrypoint.mjs), le README, la matrice et le TODO sont
+mis à jour ensemble.
+
+### Vérifications ciblées
+
+Les commandes sont lancées depuis le dépôt, avec le `purs` M15 sur `PATH` et
+`TMPDIR` dans le dossier `opencode`. La compilation Java et l'outil `jar` viennent
+du JDK Homebrew **26.0.2**, avec **`--release 17`**, sur macOS arm64.
+
+| Configuration de `node test/entrypoint.mjs` | Résultat |
+| --- | --- |
+| JVM Homebrew **26.0.2** | **10 variantes × classes/JAR**, 6 succès et 14 échecs JVM attendus. |
+| Même JDK de build, `JAVAPURS_JAVA_RUNTIME` vers Temurin **17.0.20.1+1** | **10 variantes × classes/JAR**, mêmes 6 succès et 14 échecs attendus, exécutés réellement sur JVM 17. |
+
+Pour chaque configuration, les six succès sont les deux livraisons de Supplier,
+Function et de l'objet à double ABI. Six échecs correspondent à l'entier, au
+`null` et à l'objet opaque ; les huit autres aux exceptions Supplier, Function,
+initialisation statique et stub FFI. Les assertions contrôlent codes, diagnostics,
+argument `null`, priorité, appel unique et stdout. Les JAR sont lancés depuis un
+dossier contenant seulement `app.jar`, avec le dossier de la JVM seul sur `PATH`.
+
+| Autre contrôle | Résultat |
+| --- | --- |
+| `./bin/build` | Sonde TAST et reconstruction des 11 modules dépendants du template : **0 erreur, 0 avertissement**. |
+| `node test/driver.mjs` | **11 variantes**, aide, **25 échecs attendus**, cycle des sorties et deux invocations Spago réelles ; ABI Supplier et Function exécutées. |
+| `node "$PROOF/compare-java.mjs"` | Inventaires des **86 fichiers Java** vérifiés : **76 identiques**, **10 `MainRun.java`** différents uniquement par les trois lignes de la branche de rejet. |
+| Empreintes des sources | **51 des 52 fichiers `src/` identiques** à l'entrée M18. Dans `Runtime.purs`, les templates `__IntFn`, `TcoLoop` et les builtins gardent leurs octets. |
+
+La comparaison reprend les TAST/FFI et les 86 références M17, issus du baseline
+M14/M15. Leurs SHA-256 sont contrôlés avant et après les douze générations
+(onze variantes et entrée vide). La branche autorisée est reconstruite
+explicitement par le script ; toute autre différence échoue.
+
+La clôture contrôle syntaxe Node de la nouvelle suite, liens/ancres, exemples
+Bash, matrice des **29 suites**, **12 options CLI**, preuves des lots cochés et
+`git diff --check`. Les changements de production portent sur le launcher ; le
+contrôle d'existence/export au build et le contrôle de valeur effective sur la
+JVM gardent leurs phases respectives. L'attente des tâches asynchrones reste à
+la charge de l'effet principal suivant le contrat des runtimes.
+
+Preuves locales sous
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m18/` :
+`before.json`, `base/`, `reproduce.mjs`, `reproduction.json`, `before-*.log`,
+`build-final.log`, `entrypoint-final.log`, `entrypoint-jvm17.log`, `driver.log`,
+`compare-java.mjs`, `compare-java.log`, `java-comparison.json`, `driver-compare/`,
+`source-checks.json`, `references-final.json` et `checks.json`.
+
+**Conclusion : M18 validé ; complément clôturé. Plans v1 et v2 toujours à 100/100.**

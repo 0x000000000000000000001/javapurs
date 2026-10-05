@@ -1,0 +1,10 @@
+package:
+  name: hello-java
+  dependencies:
+    - prelude
+    - effect
+workspace:
+  packageSet:
+    registry: 77.10.1
+  backend:
+    cmd: javapurs

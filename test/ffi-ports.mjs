@@ -20,7 +20,7 @@ try {
       config += `    ${name}:\n      path: ${JSON.stringify(resolve(compilerRoot, "..", port))}\n`;
     }
     writeFileSync(configPath, config);
-    await runFixture({ directory, tools, processes, javacArgs: ["--release", "17"],
+    await runFixture({ directory, tools, processes,
       fixture: { name: "FfiPorts", source: join(compilerRoot, "tests/ffi-ports/Main.purs") } });
     assert.match(readFileSync(join(directory, "logs/FfiPorts/execution.log"), "utf8"), /FFI ports: 17 PureScript contract checks passed/);
     const report = destination => JSON.parse(readFileSync(join(directory, destination, ".javapurs-manifest.json"))).ffi.modules;
@@ -43,7 +43,7 @@ try {
       { cwd: directory, env: tools.env, log: join(logs, `${phase}.log`) });
     await run("generation", join(compilerRoot, "bin/javapurs"), ["--records=maps"]);
     assert.deepEqual(report("java_output"), typed, "FFI selection and declarations do not depend on record representation");
-    await run("javac", tools.javac, ["--release", "17", "-d", "classes-maps", "-sourcepath", "java_output", "java_output/MainRun.java"]);
+    await run("javac", tools.javac, [...tools.javacArgs, "-d", "classes-maps", "-sourcepath", "java_output", "java_output/MainRun.java"]);
     await run("execution", tools.java, ["-cp", "classes-maps", "MainRun"]);
     assert.match(readFileSync(join(logs, "execution.log"), "utf8"), /FFI ports: 17 PureScript contract checks passed/);
     // Reproduce the transitive-selection mistake with a real registry package.

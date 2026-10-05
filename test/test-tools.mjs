@@ -4,8 +4,8 @@ import { after, test } from "node:test";
 import { chmodSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { compilerRoot, prepareWorkspace } from "../tools/fixture-runner.mjs";
-import { resolveJavaTools } from "../tools/java-tools.mjs";
+import { compilerRoot, prepareWorkspace, runFixture } from "../tools/fixture-runner.mjs";
+import { javaCompileArgs, resolveJavaTools } from "../tools/java-tools.mjs";
 import { Interrupted, ProcessFailure, runCommandSync, TestProcesses } from "../tools/test-process.mjs";
 import { parseOptions, selectFixtures, selectModules, UsageError } from "../tools/test-selection.mjs";
 import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
@@ -39,6 +39,7 @@ chmodSync(join(root, "bin/test"), 0o755);
 
 function fakeCommand(path, phase, output = "") {
   script(path, `const fs = require('node:fs');
+    if (process.argv.includes('--version')) { console.log('${phase}' === 'javac' ? 'javac 26.0.2' : 'openjdk 26.0.2'); process.exit(0); }
     fs.appendFileSync(process.env.TRACE, '${phase}\\n');
     console.log('${phase}: stdout'); console.error('${phase}: stderr');
     const input = fs.existsSync('src/Main.purs') ? fs.readFileSync('src/Main.purs', 'utf8') : '';
@@ -51,7 +52,8 @@ fakeCommand(join(bin, "java"), "execution");
 fakeCommand(join(root, "bin/build"), "build");
 fakeCommand(join(root, "bin/javapurs"), "generation",
   "if (!process.env.NO_LAUNCHER) fs.writeFileSync('java_output/MainRun.java', '// generated launcher');");
-const env = { ...process.env, PATH: bin, JAVA_HOME: dirname(bin), JAVAC: "", JAVA: "", TRACE: trace };
+const env = { ...process.env, PATH: bin, JAVA_HOME: dirname(bin), JAVAC: "", JAVA: "", TRACE: trace,
+  JAVAPURS_JAVA_RELEASE: "17", JAVAPURS_JAVA_RUNTIME: "" };
 function cli(args, extraEnv = {}) {
   writeFileSync(trace, "");
   // Use Bash explicitly so the controlled PATH can omit system tools entirely.
@@ -155,6 +157,39 @@ test("JDK overrides, JAVA_HOME and PATH always select a complete sibling pair", 
   assert.throws(() => resolveJavaTools({ JAVAC: temp }), /not executable/);
   assert.throws(() => resolveJavaTools({ JAVA_HOME: "/missing" }), /complete JDK/);
   assert.throws(() => resolveJavaTools({ JAVAC: "/missing" }), /not executable/);
+});
+
+test("release and explicit execution JVM are validated independently of the build pair", () => {
+  const jdk17 = join(temp, "jdk17/bin");
+  script(join(jdk17, "java"), "console.log('openjdk 17.0.20.1')");
+  script(join(jdk17, "javac"), "console.log('javac 17.0.20.1')");
+  const base = { JAVA_HOME: dirname(bin), TRACE: trace };
+  const tools = resolveJavaTools({ ...base, JAVAPURS_JAVA_RUNTIME: join(jdk17, "java") });
+  assert.equal(tools.release, 17); assert.equal(tools.versions.javac.major, 26); assert.equal(tools.versions.java.major, 17);
+  assert.equal(tools.java, join(jdk17, "java")); assert.equal(tools.env.JAVA, join(bin, "java"));
+  assert.equal(resolveJavaTools(tools.env).java, tools.java, "nested resolution keeps the explicit runtime");
+  assert.deepEqual(javaCompileArgs(tools, ["-J-Xmx4g"]), ["--release", "17", "-J-Xmx4g"]);
+  assert.deepEqual(resolveJavaTools({ ...base, JAVAPURS_JAVA_RELEASE: "26" }).javacArgs, ["--release", "26"]);
+  for (const value of ["", "0", "16", "17.0", "017", "17x", "NaN", " 17", "9007199254740992"]) {
+    assert.throws(() => resolveJavaTools({ ...base, JAVAPURS_JAVA_RELEASE: value }), /JAVAPURS_JAVA_RELEASE must be an integer/);
+  }
+  assert.throws(() => resolveJavaTools({ ...base, JAVAPURS_JAVA_RELEASE: "27" }), /requires javac >= 27/);
+  assert.throws(() => resolveJavaTools({ JAVA_HOME: dirname(jdk17), JAVAPURS_JAVA_RELEASE: "26" }), /requires javac >= 26/);
+  assert.throws(() => resolveJavaTools({ ...base, JAVAPURS_JAVA_RELEASE: "26", JAVAPURS_JAVA_RUNTIME: join(jdk17, "java") }), /requires a runtime >= 26/);
+  assert.throws(() => resolveJavaTools({ ...base, JAVAPURS_JAVA_RUNTIME: "/missing/java" }), /JAVAPURS_JAVA_RUNTIME is not executable/);
+  const unknown = join(temp, "unknown-version/java"); script(unknown, "console.log('unrecognized version')");
+  assert.throws(() => resolveJavaTools({ ...base, JAVAPURS_JAVA_RUNTIME: unknown }), /Unrecognized Java version/);
+});
+
+test("a conflicting fixture target fails before cleanup or any build phase", async () => {
+  const tools = resolveJavaTools(env);
+  for (const flag of ["--release", "--release=17", "--source", "-source", "--target", "-target", "--enable-preview"]) {
+    const marker = join(runner, "src/keep.txt"); write(marker, "keep");
+    writeFileSync(trace, "");
+    await assert.rejects(runFixture({ fixture: { name: "A", source: join(local, "A.purs") }, root,
+      directory: runner, tools, javacArgs: [flag], processes: null }), /JAVAPURS_JAVA_RELEASE/);
+    assert.equal(readFileSync(marker, "utf8"), "keep"); assert.equal(readFileSync(trace, "utf8"), "");
+  }
 });
 
 test("isolated workspaces rebase package paths and retain failed inputs", async () => {

@@ -1,0 +1,6 @@
+**/.spago/
+**/output/
+**/java_output/
+**/classes/
+**/app.jar
+**/*.log

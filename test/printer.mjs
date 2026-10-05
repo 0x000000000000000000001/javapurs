@@ -14,7 +14,7 @@ import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 
 // Direct printer contracts; run after ./bin/build. Expected text is constructed
 // from UTF-16 code units in Java, independently of the printer's escaping rules.
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const raw = value => new A.JavaRaw(String(value));
 const local = name => new A.JavaLocal(name);
 const call = (name, ...args) => new A.JavaCall(new A.JavaStaticMethodRef(Nothing.value, name), args);
@@ -131,7 +131,7 @@ for (const [name, contents, extras] of [
   await withTemporaryDirectory("javapurs-printer-", directory => {
     const files = new Map([[`${name}.java`, contents], ["__IntFn.java", intFunctionSource], ["TcoLoop.java", tcoLoopSource], ...extras]);
     for (const [file, text] of files) writeFileSync(join(directory, file), text);
-    runCommandSync(javac, ["--release", "17", "-nowarn", ...files.keys()], { cwd: directory, stdio: "pipe" });
+    runCommandSync(javac, [...javacArgs, "-nowarn", ...files.keys()], { cwd: directory, stdio: "pipe" });
     const output = runCommandSync(java, ["-Xss256k", "-cp", directory, name], { cwd: directory, encoding: "utf8", stdio: "pipe" });
     console.log(output.trim());
   });

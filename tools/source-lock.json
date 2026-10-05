@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "tools": {
+    "node": "24.8.0",
+    "spago": "1.0.3",
+    "stack": "3.11.1",
+    "ghc": "9.8.4"
+  },
+  "packageSet": "77.10.1",
+  "repositories": [
+    {
+      "path": "purescript",
+      "url": "https://github.com/0x000000000000000000001/purescript.git",
+      "ref": "b4a7fb1ca78eeb10b847558af0fcbeab06fa5c16"
+    },
+    {
+      "path": "purescript-backend-optimizer-javapurs",
+      "url": "https://github.com/0x000000000000000000001/purescript-backend-optimizer.git",
+      "ref": "8f97f1dc83bca51cb697cb01b66868d3abb61938"
+    },
+    {
+      "path": "javapurs/javapurs-foreign-object",
+      "url": "https://github.com/0x000000000000000000001/javapurs-foreign-object.git",
+      "ref": "8296fd5d84f6a4e84bd4e3229a5beb214d9922f3"
+    },
+    {
+      "path": "javapurs/javapurs-prelude",
+      "url": "https://github.com/0x000000000000000000001/javapurs-prelude.git",
+      "ref": "67e8590b0478e82b835e7f4c5eac848d283674b0"
+    },
+    {
+      "path": "javapurs/javapurs-effect",
+      "url": "https://github.com/0x000000000000000000001/javapurs-effect.git",
+      "ref": "e244794fc4beeda5d3283199fe90813c38d9695a"
+    },
+    {
+      "path": "javapurs/javapurs-console",
+      "url": "https://github.com/0x000000000000000000001/javapurs-console.git",
+      "ref": "a1fa3d4dfe882a70067f56bf41ea1c4e6e63b834"
+    },
+    {
+      "path": "javapurs/javapurs-refs",
+      "url": "https://github.com/0x000000000000000000001/javapurs-refs.git",
+      "ref": "228bb557d2ade1f978146361dc40e3d775d53fd3"
+    }
+  ]
+}

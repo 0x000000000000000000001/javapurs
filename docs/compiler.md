@@ -1,8 +1,8 @@
 # Guide du compilateur Javapurs
 
-État documenté au **3 octobre 2026**. Ce guide décrit le chemin de production
+État documenté au **5 octobre 2026**. Ce guide décrit le chemin de production
 actuel. Les références des sources et des outils figurent dans le
-[registre de validation](testing.md#validation-m13). Le
+[registre de validation](testing.md#validation-m18). Le
 [guide de reprise et d'entretien](maintenance.md) complète cette carte par les
 interfaces de compatibilité, le statut des artefacts et les points ouverts.
 
@@ -35,7 +35,7 @@ dans la configuration Spago de chaque application. Le
 
 | Emplacement | Producteur et rôle |
 | --- | --- |
-| Compilateur : `output/Main/index.js` et `output/Javapurs.*/` | `./bin/build` exécute `spago build` ; ces modules JavaScript font fonctionner l'outil sous Node. |
+| Compilateur : `output/Main/index.js` et `output/Javapurs.*/` | `./bin/build` vérifie les packages/outils et une sonde TAST, puis exécute `spago build` dans son propre checkout ; ces modules JavaScript font fonctionner l'outil sous Node. |
 | Application : `output/<Module>/corefn.json` | Le fork PureScript produit l'entrée enrichie lue par PBO. |
 | Application : `.purmeta/<Module>.purmeta` | PBO conserve des implémentations optimisées pour les dépendances ; certaines suites peuvent examiner ces caches. |
 | Application : `java_output/` (ou `--java-output`) | Javapurs publie les classes de modules, helpers, FFI insérée, launcher et manifeste de propriété. |
@@ -43,8 +43,17 @@ dans la configuration Spago de chaque application. Le
 
 Le nom `output/` désigne donc le build de l'outil quand on travaille dans son
 dépôt, et l'entrée TAST quand on lance cet outil depuis une application.
+Les runners Node choisissent séparément JDK de compilation, cible Java (17 par
+défaut) et JVM d'exécution ; la [configuration et matrice](testing.md#build-jdk-cible-et-jvm)
+documente les variables et les parcours réellement mesurés.
 Reconstruire l'outil après modification de ses sources ou de PBO :
 [bin/javapurs.js](../bin/javapurs.js) importe directement le `Main` déjà construit.
+
+Le [parcours d'installation source](installation.md) reconstruit aussi le fork
+PureScript épinglé, exporte les sources du backend sans son `output/` suivi,
+et relève binaires, versions et SHA-256. `bin/build` compile une sonde de capacités
+avant le build : un numéro `purs --version` identique ne suffit pas à reconnaître
+le TAST attendu. Ce contrôle ne valide pas rétroactivement les caches applicatifs.
 
 Le [statut des fichiers](maintenance.md#statut-des-fichiers-et-des-sorties)
 précise les sorties actuellement suivies dans Git, les workspaces temporaires
@@ -57,7 +66,8 @@ et les sauvegardes historiques retirées avec leur procédure de restauration.
 [bin/javapurs](../bin/javapurs) démarre Node avec `--expose-gc`, une pile de
 65 536 Kio et un heap maximal de `JAVAPURS_HEAP` Mio, 16 384 par défaut.
 Le shell se remplace par Node via `exec`. `bin/javapurs.js` appelle ensuite
-[Main.main](../src/Main.purs).
+[Main.main](../src/Main.purs). Un Node absent ou un module construit introuvable
+produit un diagnostic ; dans ce dernier cas, le chemin de `bin/build` est indiqué.
 
 `Main` lit `Node.Process.argv`, retire les deux arguments Node/script, appelle
 [Config.parseArgs](../src/Javapurs/Config.purs) et traite son résultat
@@ -91,9 +101,33 @@ celle du runtime décrit ci-dessous.
 
 ### 2. Chargement TAST et optimisation PBO
 
-`App.coreFnModulesFromOutput` lit les `corefn.json` puis trie les modules par
-dépendances. Le vocabulaire TAST/`tcorefn` désigne le format enrichi du fork ; le
-chemin consommé ici reste `output/<Module>/corefn.json`.
+[Input.readModules](../src/Javapurs/Input.purs) est la frontière stricte de
+Javapurs. Le vocabulaire TAST/`tcorefn` désigne le format enrichi du fork ; le
+chemin consommé reste `output/<Module>/corefn.json` :
+
+1. Lecture des entrées immédiates du dossier ; les fichiers à la racine, notamment
+   `cache-db.json`, ne sont pas des modules. Chaque sous-dossier exige un
+   `corefn.json` régulier et lisible. Les symlinks de dossiers/fichiers sont suivis ;
+   les liens cassés échouent. Exception : le frontend produit des dossiers `Prim`
+   et `Prim.*` avec seulement `docs.json`. L'absence de CoreFn y est normale ; un
+   CoreFn présent dans ces dossiers est tout de même contrôlé.
+2. Un seul parsing JSON, puis présence obligatoire des tableaux `dataDecls`,
+   `classDecls` et `typeTable`. Ils peuvent être vides. Leur absence ou une valeur
+   non-tableau nomme le champ et demande le fork TAST avec une reconstruction
+   dans un output neuf. Le décodage structurel reste celui de PBO, y compris sa
+   validation des annotations d'usage.
+3. Index par nom de module décodé : tout doublon nomme les deux fichiers. Chaque
+   import hors `Prim`/`Prim.*` doit avoir un module chargé ; sinon le diagnostic
+   identifie la dépendance, l'importeur et son fichier. Le tri PBO par dépendances
+   s'applique ensuite, avec le même ordre d'entrée.
+
+Le [réglage de lecture](../src/Javapurs/Input.js) conserve `GOPURS_JOBS` : chaîne
+décimale de 1 à 64, repli à 1 sinon. Les lectures parallèles se font par lots
+bornés en conservant l'ordre des résultats. Une erreur de lecture, parsing,
+décodage ou graphe est fatale, même pour un module inutilisé par `main` ou avec
+`--no-main`. Elle précède `Output.withOutput`, donc la préparation/publication
+Java et l'optimisation. La génération précédente, son manifeste et les caches
+PBO restent intacts ; une nouvelle destination n'est pas créée.
 
 Dans le fork Haskell, [Make](../../../purescript/src/Language/PureScript/Make.hs)
 enchaîne typage, conversion CoreFn, optimisation et renommage.
@@ -102,8 +136,11 @@ réalise la conversion ; [CoreFn.ToJSON.moduleToJSON](../../../purescript/src/La
 sérialise notamment `dataDecls`, `classDecls` et `typeTable`.
 [Make.Actions](../../../purescript/src/Language/PureScript/Make/Actions.hs) écrit
 le JSON pour la cible CoreFn. Côté PBO,
-[CoreFn.Json.Text](../../../purescript-backend-optimizer-javapurs/src/PureScript/Backend/Optimizer/CoreFn/Json/Text.purs)
-est le point d'entrée du décodage appelé par `App`.
+[CoreFn.Json.decodeModule](../../../purescript-backend-optimizer-javapurs/src/PureScript/Backend/Optimizer/CoreFn/Json.purs)
+est le décodeur consommé par `Input`, et
+[CoreFn.Sort.sortModules](../../../purescript-backend-optimizer-javapurs/src/PureScript/Backend/Optimizer/CoreFn/Sort.purs)
+ordonne les modules. Le lecteur générique `App.coreFnModulesFromOutput`, plus
+tolérant envers les fichiers absents ou invalides, n'est plus appelé par Javapurs.
 
 Les types d'expression, `dataDecls`, `classDecls` et la table de types appartiennent
 à cette frontière. Après décodage et optimisation, le backend travaille sur les
@@ -111,6 +148,9 @@ types PBO et leurs nœuds `Typed`/`TypeApp`, pas sur le JSON brut. Un argument d
 `TypeApp` n'est pas à lui seul le type du résultat : le guide
 [Types, représentations et conventions d'appel](representations.md) relie les
 producteurs de preuves, leur propagation et les types Java effectivement émis.
+La présence des trois tableaux est un contrat d'entrée minimal, pas un numéro de
+schéma ni une preuve que toutes les annotations de types sont complètes. Les
+replis du décodeur PBO et les barrières de preuve des passes gardent leur rôle.
 
 `Driver.compile` rend visibles le chargement/tri, la préparation des directives
 et helpers communs, puis l'optimisation/émission vers le staging. `Output` ajoute
@@ -128,7 +168,8 @@ Points d'entrée PBO : [App](../../../purescript-backend-optimizer-javapurs/src/
 ### 3. Traduction d'un module
 
 Le hook `onCodegenModule` appelle `Driver.compileModule`. Celui-ci lit le fragment
-Java par [Ffi.loadForeign](../src/Javapurs/Ffi.purs), puis abaisse le module via
+Java par [Ffi.loadForeign](../src/Javapurs/Ffi.purs), décrit cette sélection et les
+bindings déclarés/conservés avec `Ffi.describeForeign`, puis abaisse le module via
 [Pipeline.lowerModule](../src/Javapurs/Pipeline.purs). Ce pipeline pur transforme
 un `BackendModule` en `JavaFile` : traduction, renommage, puis chunking optionnel.
 Sa première étape, `CodeGen.translateWithIntFunctions`, coordonne dans l'ordre :
@@ -205,7 +246,7 @@ constructions de chaînes et d'enveloppes.
 | `__IntFn.java` | `Runtime.intFunctionSource`, préparé une fois par `Emit.emitRuntime`. |
 | `TcoLoop.java` | `Runtime.tcoLoopSource`, préparé une fois par `Emit.emitRuntime` si au moins un module est chargé. |
 | `MainRun.java` | `Runtime.mainRunSource`, préparé par `Emit.emitModule` pour le module sélectionné par `--main`. |
-| `.javapurs-manifest.json` | Inventaire version 1 et SHA-256 des fichiers Java, publié par `Output` après les sources. |
+| `.javapurs-manifest.json` | Inventaire version 1 et SHA-256 des fichiers Java, avec relevé `ffi` version 1 ; publié par `Output` après les sources. |
 
 [Runtime](../src/Javapurs/Runtime.purs) possède les trois templates communs et les
 cinq implémentations globales intégrées de `builtinGlobalSource`, sans I/O.
@@ -245,8 +286,10 @@ acquisition, émission, publication mesurée, libération. Son
 4. Sauvegarde des fichiers remplacés/retirés sous `backup/`, puis écriture atomique
    du journal `publishing`. Retrait de l'ancien `MainRun.java`, publication des
    modules/helpers, puis du nouveau launcher, même si celui-ci est identique.
-   Le manifeste `{ "version": 1, "files": { "Nom.java": "sha256" } }` est écrit
-   ensuite, puis le journal passe à `committed` et le dossier de travail est retiré.
+   Le manifeste conserve `version: 1`, l'inventaire `files` (`Nom.java` → SHA-256)
+   et le relevé `ffi` (`version: 1`, `modules`). Il est écrit ensuite, puis le
+   journal passe à `committed` et le dossier de travail est retiré. Le rapport FFI
+   appartient ainsi à la même génération que les fichiers et suit leur retour arrière.
 5. Sur erreur de publication, restauration de la génération et du manifeste
    précédents. La restauration valide d'abord toutes les empreintes et sauvegardes,
    puis restaure le launcher après ses modules. Un conflit externe ou une erreur
@@ -279,7 +322,19 @@ de les régénérer, permet d'établir le premier inventaire.
 
 L'appelant lance `javac`, fournit les JAR éventuels et choisit la cible de
 bytecode. `MainRun` lit le champ `main` du module et exécute un `Supplier` par
-`get()` ou une `Function` par `apply(null)`.
+`get()` ou une `Function` par `apply(null)`. L'appel est unique et le `Supplier`
+est prioritaire si l'objet implémente les deux interfaces. La valeur retournée
+est ignorée. Une autre valeur, y compris `null`, lève `IllegalStateException`
+avec le champ Java et la classe effective, au lieu d'un retour réussi sans action.
+Le diagnostic utilise `getClass().getName()`, sans appeler `toString()` sur la
+valeur étrangère. Les exceptions d'initialisation et d'exécution gardent leur
+propagation JVM ordinaire ; les stubs FFI restent appelés via leur ABI.
+
+Le contrôle d'existence/export de `Driver` a lieu à la génération ; celui de la
+valeur effective a lieu sur la JVM, après initialisation du module. La
+[suite d'entrée JVM](testing.md#entrée-jvm-et-jar) vérifie codes et diagnostics
+en classes et JAR. Les effets asynchrones doivent eux-mêmes organiser leur
+attente, selon le [contrat de durée de vie](ffi-runtime.md#supervision-parallèle-et-processus).
 
 Les commandes minimales et le classpath sont dans le
 [README](../README.md#compile-and-run-an-application). Pour b8x, les scripts
@@ -297,11 +352,12 @@ Depuis M03, l'écriture unique de `TcoLoop` appartient à `prepare`.
 [Diagnostics.withContext](../src/Javapurs/Diagnostics.purs) ajoute le contexte aux
 erreurs remontées par le chargement, la lecture FFI et les écritures. Exemples :
 `load TAST from output: ENOENT…`,
+`load TAST from output: read TAST output/Unused/corefn.json: Incompatible TAST: typeTable must be an array…`,
 `compile module Missing: read Java FFI src/Missing.java: EISDIR…` ou
 `publish Java to java_output: Java output conflict; preserving …`.
 La frontière `Main` produit un code de sortie 1 pour ces erreurs.
-Le chargement reste celui de PBO : un fichier CoreFn absent peut être ignoré,
-et une erreur de décodage est journalisée avant d'écarter le module concerné.
+Un échec de chargement marque `load TAST + sort` et `backend total` comme échoués,
+sans atteindre les phases de préparation ou de publication.
 
 ## Où se trouve une responsabilité ?
 
@@ -309,6 +365,7 @@ et une erreur de décodage est journalisée avant d'écarter le module concerné
 | --- | --- |
 | Où sont définies les options et les valeurs par défaut ? | [Main](../src/Main.purs), [Config](../src/Javapurs/Config.purs). |
 | Comment sont pilotées les phases et les durées ? | [Driver](../src/Javapurs/Driver.purs), [Metrics](../src/Javapurs/Metrics.purs), [Diagnostics](../src/Javapurs/Diagnostics.purs). |
+| Qui exige le TAST enrichi et un graphe complet avant émission ? | [Input](../src/Javapurs/Input.purs), [lecture bornée](../src/Javapurs/Input.js), décodeur et tri PBO. |
 | Quel est l'ordre des passes Java après PBO ? | [Pipeline](../src/Javapurs/Pipeline.purs). |
 | Qui lit les fragments FFI et assemble les fichiers Java ? | [Ffi](../src/Javapurs/Ffi.purs), [Emit](../src/Javapurs/Emit.purs). |
 | Qui possède inventaire, publication et récupération ? | [Output](../src/Javapurs/Output.purs), [FFI filesystem](../src/Javapurs/Output.js). |
@@ -388,10 +445,20 @@ sous `src/` ou à la racine. Le pilote Java ne lui transmet pas de dossier FFI C
 lus. Un fragment fournit les membres de la classe générée : champs exportés et
 méthodes privées éventuelles, avec noms de types Java qualifiés. `renderForeign`
 insère un fragment non vide tel quel, sinon produit des stubs pour les imports
-étrangers. Le champ commun `FFI_STUB` est toujours présent. Une erreur de lecture
+étrangers. Chaque stub de binding est `Function` et `Supplier` et identifie
+`Module.binding` à l'appel/forçage, comme sa méthode varargs. Le champ commun
+historique `FFI_STUB` est toujours présent. Une erreur de lecture
 du fichier sélectionné est propagée avec son chemin. `javac` contrôle ensuite
 les références Java ; le backend n'adapte pas automatiquement une signature
 Java ordinaire à l'ABI curryfiée.
+
+`describeForeign` enregistre les chemins absolus/réels, leur origine, le fragment
+retenu et son SHA-256, les bindings et leur présence dans l'inventaire optimisé.
+Le champ `ffi` du manifeste distingue fourni/vide/absent et garde
+`verification: "not-checked"`. Le [schéma du relevé](ffi-runtime.md#relevé-de-la-génération)
+précise cette frontière et la correction d'une dépendance locale/registre mal
+sélectionnée ; la [table de couverture](ffi-runtime.md#couverture-exécutée-et-dépendances-des-quatre-ports)
+relie les assertions aux fixtures et dépendances transitives.
 
 La présence d'une FFI JavaScript dans un port est compatible avec la présence
 d'une FFI Java : elles servent les chemins de compilation et d'exécution respectifs.

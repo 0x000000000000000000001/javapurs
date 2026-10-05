@@ -18,7 +18,7 @@ import { moduleClass } from "./support/module-classes.mjs";
 // --simple-scalars isolates the Character/String runtime regression. The full
 // fixture also checks escaping and non-finite Number Java source generation.
 const simple = process.argv.includes("--simple-scalars");
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const name = "Ownership.Admission";
 const javaName = moduleClass("Ownership_Admission");
 const tree = new C.ADT(`${name}.Tree`, ["Ownership", "Admission", "Tree"], []);
@@ -155,7 +155,7 @@ public final class OwnershipAdmissionChecks {
       ["__IntFn.java", intFunctionSource], ["TcoLoop.java", tcoLoopSource],
     ]);
     for (const [file, source] of sources) writeFileSync(join(directory, file), source);
-    runCommandSync(javac, ["--release", "17", "-nowarn", ...sources.keys()], { cwd: directory, stdio: "pipe" });
+    runCommandSync(javac, [...javacArgs, "-nowarn", ...sources.keys()], { cwd: directory, stdio: "pipe" });
     console.log(runCommandSync(java, ["-cp", directory, "OwnershipAdmissionChecks", String(ownership)],
       { cwd: directory, encoding: "utf8", stdio: "pipe", timeout: 30000 }).trim());
   });

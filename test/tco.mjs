@@ -9,7 +9,7 @@ import { printExpr } from "../output/Javapurs.Printer/index.js";
 import { Tuple } from "../output/Data.Tuple/index.js";
 
 // Run after rebuilding the backend: node test/tco.mjs
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const raw = code => new A.JavaRaw(code);
 const local = name => new A.JavaLocal(name);
 const snapshot = name => `__final_${name}`;
@@ -389,6 +389,6 @@ final class TcoLoop extends RuntimeException {
 await withTemporaryDirectory("javapurs-tco-test-", directory => {
   const javaFile = join(directory, "TcoPrinterRegression.java");
   writeFileSync(javaFile, source);
-  runCommandSync(javac, ["-nowarn", javaFile], { stdio: "inherit", timeout: 60000 });
+  runCommandSync(javac, [...javacArgs, "-nowarn", javaFile], { stdio: "inherit", timeout: 60000 });
   runCommandSync(java, ["-Xss2m", "-cp", directory, "TcoPrinterRegression"], { stdio: "inherit", timeout: 60000 });
 });

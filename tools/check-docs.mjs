@@ -90,7 +90,11 @@ const completed = lots.filter(lot => lot.done);
 const score = completed.reduce((sum, lot) => sum + lot.weight, 0);
 const completionLabel = completed.length === 1 ? "lot terminé" : "lots terminés";
 assert.ok(plan.includes(`**${score} / 100 points validés — ${score} % — ${completed.length} ${completionLabel} sur ${lots.length}.**`), "Plan summary is stale");
-for (const lot of completed) assert.ok(testing.includes(`## Validation ${lot.name}\n`), `Missing validation record: ${lot.name}`);
+// Supplementary unweighted milestones keep the closed plan's score, but their
+// checked boxes still require the same dated validation record.
+for (const [, name] of plan.matchAll(/^- \[[xX]\] \*\*(M\d{2}) — /gm)) {
+  assert.ok(testing.includes(`## Validation ${name}\n`), `Missing validation record: ${name}`);
+}
 
 console.log(`${links} local links/anchors and ${examples} Bash examples checked across ${documents.length} documents`);
 console.log(`${scripts.length} suites, ${flags.length} CLI options; progress ${score}/100 (${completed.length}/${lots.length} milestones)`);

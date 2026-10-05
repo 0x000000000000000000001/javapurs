@@ -18,7 +18,7 @@ import { moduleClass, moduleText } from "./support/module-classes.mjs";
 
 // The same BackendModule/FFI crosses all eight combinations. Assertions concern
 // observable JVM values, layouts and public ABIs, not the shared type helpers.
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const moduleName = "Representation.Contracts";
 const className = moduleClass(moduleName.replaceAll(".", "_"));
 const int = C.Int.value;
@@ -174,7 +174,7 @@ for (const intFunctions of [false, true]) for (const typedRecords of [false, tru
   for (const shape of file.recordShapes) sources.set(`${recordClassName(shape)}.java`, printRecordShape(shape));
   await withTemporaryDirectory("javapurs-representations-", directory => {
     for (const [name, source] of sources) writeFileSync(join(directory, name), source);
-    runCommandSync(javac, ["--release", "17", "-nowarn", ...sources.keys()], { cwd: directory, stdio: "pipe" });
+    runCommandSync(javac, [...javacArgs, "-nowarn", ...sources.keys()], { cwd: directory, stdio: "pipe" });
     const output = runCommandSync(java, ["-cp", directory, "RepresentationChecks", String(intFunctions), String(typedRecords)],
       { cwd: directory, encoding: "utf8", stdio: "pipe", timeout: 30000 }).trim();
     outputs.push(output);

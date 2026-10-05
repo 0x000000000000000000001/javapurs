@@ -42,7 +42,7 @@ export async function runPortSuite(port, directory, tools, processes) {
     { cwd: directory, env: tools.env, timeout, log: join(directory, "logs", `${phase}.log`) });
   await run("purescript", "spago", ["build", "-q"]);
   await run("generation", join(compilerRoot, "bin/javapurs"), ["--main", "Test.PortRunner"]);
-  await run("javac", tools.javac, ["--release", "17", "-d", "classes", "-sourcepath", "java_output", "java_output/MainRun.java"]);
+  await run("javac", tools.javac, [...tools.javacArgs, "-d", "classes", "-sourcepath", "java_output", "java_output/MainRun.java"]);
   await run("execution", tools.java, ["-Xss8m", "-cp", "classes", "MainRun"], 45000);
   const output = readFileSync(join(directory, "logs/execution.log"), "utf8");
   assertCompleted(output);

@@ -18,7 +18,7 @@ while (args.length) {
   else if (arg.startsWith("--port=")) { selection = [arg.slice(7)]; assert.ok(["refs", "promise", "aff"].includes(selection[0]), "unknown port"); }
   else throw new Error(`Unknown option: ${arg}`);
 }
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 await withTemporaryDirectory("javapurs-ffi-runtimes-", directory => {
   const sources = new Map([
     ["__M$Effect_Aff.java", `public class __M$Effect_Aff {\n${readFileSync(join(ports, "javapurs-aff/src/Effect/Aff.java"), "utf8")}\npublic static Object testRun(Object aff, RunContext ctx) { return runAffSync((AffRun) aff, ctx); }\n}`],
@@ -28,7 +28,7 @@ await withTemporaryDirectory("javapurs-ffi-runtimes-", directory => {
     ["FfiRuntimeChecks.java", readFileSync(join(here, "support/FfiRuntimeChecks.java"), "utf8")],
   ]);
   for (const [name, source] of sources) writeFileSync(join(directory, name), source);
-  runCommandSync(javac, ["--release", "17", "-nowarn", ...sources.keys()], { cwd: directory, stdio: "pipe" });
+  runCommandSync(javac, [...javacArgs, "-nowarn", ...sources.keys()], { cwd: directory, stdio: "pipe" });
   for (const port of selection) {
     console.log(runCommandSync(java, ["-Xss512k", "-cp", directory, "FfiRuntimeChecks", port],
       { cwd: directory, stdio: "pipe", encoding: "utf8", timeout: 30000 }).trim());

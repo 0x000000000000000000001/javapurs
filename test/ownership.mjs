@@ -16,7 +16,7 @@ import { printFile } from "../output/Javapurs.Printer/index.js";
 import { moduleClass, moduleText } from "./support/module-classes.mjs";
 
 // Run after building the backend: node test/ownership.mjs
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const moduleName = "Ownership_Fixtures";
 const treeType = new C.ADT(`${moduleName}.Tree`, [moduleName, "Tree"], []);
 const treeFunctionType = new C.Func([C.Int.value, treeType], treeType);
@@ -257,7 +257,7 @@ await withTemporaryDirectory("javapurs-ownership-", directory => {
         System.out.println(owned.equals(shared) + " " + owned + " " + appended + " " + duplicated);
     }
 }`, [moduleName, listName, localName]));
-  runCommandSync(javac, ["-d", directory, join(directory, `${moduleClass(moduleName)}.java`), join(directory, `${moduleClass(listName)}.java`), join(directory, `${moduleClass(localName)}.java`), join(directory, "TcoLoop.java"), join(directory, "OwnershipRun.java")], { stdio: "pipe" });
+  runCommandSync(javac, [...javacArgs, "-d", directory, join(directory, `${moduleClass(moduleName)}.java`), join(directory, `${moduleClass(listName)}.java`), join(directory, `${moduleClass(localName)}.java`), join(directory, "TcoLoop.java"), join(directory, "OwnershipRun.java")], { stdio: "pipe" });
   const output = runCommandSync(java, ["-cp", directory, "OwnershipRun"], { encoding: "utf8" }).trim();
   assert.equal(output, "true [1, 2, 3, 4, 5, 6, 7, 8] [1, 2, 3] [1, 7, 2, 7]",
     "the consuming builds must match the persistent tree, list and local group");

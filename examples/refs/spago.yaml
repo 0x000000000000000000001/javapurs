@@ -1,0 +1,21 @@
+package:
+  name: refs-java
+  dependencies:
+    - console
+    - effect
+    - prelude
+    - refs
+workspace:
+  packageSet:
+    registry: 77.10.1
+  backend:
+    cmd: javapurs
+  extraPackages:
+    prelude:
+      path: ../../javapurs/javapurs-prelude
+    effect:
+      path: ../../javapurs/javapurs-effect
+    console:
+      path: ../../javapurs/javapurs-console
+    refs:
+      path: ../../javapurs/javapurs-refs

@@ -11,7 +11,7 @@ import { reuseConstructors } from "../output/Javapurs.Reuse/index.js";
 import { printFile } from "../output/Javapurs.Printer/index.js";
 
 // Run after building the backend: node test/constructor-reuse.mjs
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const moduleName = "Reuse_Fixtures";
 const tuple = (a, b) => new Tuple(a, b);
 const objectField = name => tuple(name, A.ParamObject.value);
@@ -141,7 +141,7 @@ let checked = 0;
         System.out.println(((Reuse_Fixtures.T) copy.apply(black)).value0 == Reuse_Fixtures.__singleton$B.value);
     }
 }`);
-    runCommandSync(javac, ["-d", directory, join(directory, `${moduleName}.java`), join(directory, "ReuseRun.java")], { stdio: "pipe" });
+    runCommandSync(javac, [...javacArgs, "-d", directory, join(directory, `${moduleName}.java`), join(directory, "ReuseRun.java")], { stdio: "pipe" });
     const output = runCommandSync(java, ["-cp", directory, "ReuseRun"], { encoding: "utf8" }).trim().split("\n");
     assert.deepEqual(output, ["true", "true", "true", "7", "true", "true"], "the rewritten program must keep its behavior");
     checked += 1;

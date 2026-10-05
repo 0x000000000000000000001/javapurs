@@ -1,6 +1,7 @@
 import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { javaCompileArgs } from "./java-tools.mjs";
 
 export const compilerRoot = fileURLToPath(new URL("../", import.meta.url));
 
@@ -27,6 +28,7 @@ function copyIfPresent(source, destination) {
 }
 
 export async function runFixture({ root = compilerRoot, fixture, directory, processes, tools, javacArgs = [], logs = join(directory, "logs", fixture.name) }) {
+  const compileArgs = javaCompileArgs(tools, javacArgs);
   const { name, source } = fixture;
   console.log(`=> Testing ${name}`);
   // These four directories are owned by the fixture runner, not by the ports.
@@ -50,7 +52,7 @@ export async function runFixture({ root = compilerRoot, fixture, directory, proc
   if (!existsSync(join(directory, "java_output/MainRun.java"))) {
     throw new Error(`${name}: generation did not produce MainRun.java; log: ${join(logs, "generation.log")}`);
   }
-  await run("javac", tools.javac, [...javacArgs, "-d", "classes", "-sourcepath", "java_output", "java_output/MainRun.java"]);
+  await run("javac", tools.javac, [...compileArgs, "-d", "classes", "-sourcepath", "java_output", "java_output/MainRun.java"]);
   await run("execution", tools.java, ["-cp", "classes", "MainRun"]);
   console.log(`   ${name}: OK`);
 }

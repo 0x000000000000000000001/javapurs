@@ -17,7 +17,7 @@ import { moduleClass } from "./support/module-classes.mjs";
 
 // A self-tail-call target is a syntactic fact. A let-bound argument need not be
 // recognized until worker validation; it must not hide the need for a loop.
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const name = "Ownership.Loops";
 const className = moduleClass("Ownership_Loops");
 const tree = new C.ADT(`${name}.Tree`, ["Ownership", "Loops", "Tree"], []);
@@ -86,7 +86,7 @@ public final class OwnershipLoopChecks {
       ["__IntFn.java", intFunctionSource], ["TcoLoop.java", tcoLoopSource],
     ]);
     for (const [filename, source] of sources) writeFileSync(join(directory, filename), source);
-    runCommandSync(javac, ["--release", "17", "-nowarn", ...sources.keys()], { cwd: directory, stdio: "pipe" });
+    runCommandSync(javac, [...javacArgs, "-nowarn", ...sources.keys()], { cwd: directory, stdio: "pipe" });
     console.log(runCommandSync(java, ["-Xss256k", "-cp", directory, "OwnershipLoopChecks", String(ownership)],
       { cwd: directory, encoding: "utf8", stdio: "pipe", timeout: 30000 }).trim());
   });

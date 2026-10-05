@@ -21,7 +21,7 @@ import { moduleClass, moduleText } from "./support/module-classes.mjs";
 import { translateOperator1, translateOperator2 } from "../output/Javapurs.Operators/index.js";
 
 // Run after the project backend build: node test/loop-invariants.mjs
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const raw = value => new A.JavaRaw(value);
 const local = name => new A.JavaLocal(name);
 const integer = expression => new A.JavaCast("int", expression);
@@ -420,6 +420,6 @@ await withTemporaryDirectory("javapurs-loop-invariants-test-", directory => {
   writeFileSync(join(directory, "TcoLoop.java"), tcoLoopSource);
   writeFileSync(join(directory, "__IntFn.java"), runtimeSource);
   writeFileSync(join(directory, `${moduleClass("Invariant_Fixtures")}.java`), unaryModuleSource);
-  runCommandSync(javac, ["-nowarn", "LoopInvariantChecks.java", "TcoLoop.java", `${moduleClass("Invariant_Fixtures")}.java`], { cwd: directory, stdio: "inherit", timeout: 60000 });
+  runCommandSync(javac, [...javacArgs, "-nowarn", "LoopInvariantChecks.java", "TcoLoop.java", `${moduleClass("Invariant_Fixtures")}.java`], { cwd: directory, stdio: "inherit", timeout: 60000 });
   runCommandSync(java, ["-cp", directory, "LoopInvariantChecks"], { stdio: "inherit", timeout: 60000 });
 });

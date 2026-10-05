@@ -16,11 +16,12 @@ import Javapurs.Config (Config)
 import Javapurs.Diagnostics (withContext)
 import Javapurs.Emit (emitModule, emitRuntime)
 import Javapurs.Ffi (describeForeign, loadForeign, renderForeign)
+import Javapurs.Input (readModules)
 import Javapurs.Metrics as Metrics
 import Javapurs.Output (Output)
 import Javapurs.Output as Output
 import Javapurs.Pipeline (lowerModule)
-import PureScript.Backend.Optimizer.App (coreFnModulesFromOutput, loadDirectives)
+import PureScript.Backend.Optimizer.App (loadDirectives)
 import PureScript.Backend.Optimizer.Builder (buildModules)
 import PureScript.Backend.Optimizer.Convert (BackendModule)
 import PureScript.Backend.Optimizer.CoreFn (Ann, Bind(..), Binding(..), Ident(..), Module(..))
@@ -34,7 +35,7 @@ compile config = do
   liftEffect $ log "Loading corefn.json files..."
   modules <- Metrics.measure "load TAST + sort" \_ ->
     withContext ("load TAST from " <> config.inputDirectory) $
-      coreFnModulesFromOutput config.inputDirectory
+      readModules config.inputDirectory
   liftEffect $ log $ "Successfully loaded " <> show (List.length modules) <> " modules."
 
   validateMain config (List.toUnfoldable modules)

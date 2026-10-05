@@ -22,6 +22,7 @@ import * as Effect_Exception from "../Effect.Exception/index.js";
 import * as Javapurs_Diagnostics from "../Javapurs.Diagnostics/index.js";
 import * as Javapurs_Emit from "../Javapurs.Emit/index.js";
 import * as Javapurs_Ffi from "../Javapurs.Ffi/index.js";
+import * as Javapurs_Input from "../Javapurs.Input/index.js";
 import * as Javapurs_Metrics from "../Javapurs.Metrics/index.js";
 import * as Javapurs_Output from "../Javapurs.Output/index.js";
 import * as Javapurs_Pipeline from "../Javapurs.Pipeline/index.js";
@@ -43,7 +44,7 @@ var validateMain = function (config) {
             if (v instanceof PureScript_Backend_Optimizer_CoreFn.Rec) {
                 return Data_Array.any(mainBinding)(v.value0);
             };
-            throw new Error("Failed pattern match at Javapurs.Driver (line 71, column 3 - line 71, column 49): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Driver (line 72, column 3 - line 72, column 49): " + [ v.constructor.name ]);
         };
         if (config.output.mainModule instanceof Data_Maybe.Nothing) {
             return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Unit.unit);
@@ -58,9 +59,9 @@ var validateMain = function (config) {
             if (v instanceof Data_Maybe.Just) {
                 return Data_Function.apply(Control_Applicative.unless(Effect_Aff.applicativeAff)(Data_Array.elem(PureScript_Backend_Optimizer_CoreFn.eqIdent)("main")(v.value0.exports) && (Data_Map_Internal.member(PureScript_Backend_Optimizer_CoreFn.ordIdent)("main")(v.value0.foreign) || Data_Array.any(hasMain)(v.value0.decls))))(Data_Function.apply(throwError)(Effect_Exception.error("Entrypoint " + (config.output.mainModule.value0 + " must define and export a local main; use --no-main for a library"))));
             };
-            throw new Error("Failed pattern match at Javapurs.Driver (line 64, column 16 - line 69, column 120): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Driver (line 65, column 16 - line 70, column 120): " + [ v.constructor.name ]);
         };
-        throw new Error("Failed pattern match at Javapurs.Driver (line 62, column 31 - line 69, column 120): " + [ config.output.mainModule.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.Driver (line 63, column 31 - line 70, column 120): " + [ config.output.mainModule.constructor.name ]);
     };
 };
 var compileModule = function (config) {
@@ -87,7 +88,7 @@ var compile = function (config) {
     return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(Data_Function.apply(liftEffect)(Javapurs_Output.validatePaths(config.inputDirectory)(config.output.directory)))(function () {
         return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(Data_Function.apply(liftEffect)(Effect_Console.log("Loading corefn.json files...")))(function () {
             return Control_Bind.bind(Effect_Aff.bindAff)(Javapurs_Metrics.measure("load TAST + sort")(function (v) {
-                return Data_Function.apply(Javapurs_Diagnostics.withContext("load TAST from " + config.inputDirectory))(PureScript_Backend_Optimizer_App.coreFnModulesFromOutput(config.inputDirectory));
+                return Data_Function.apply(Javapurs_Diagnostics.withContext("load TAST from " + config.inputDirectory))(Javapurs_Input.readModules(config.inputDirectory));
             }))(function (modules) {
                 return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(Data_Function.apply(liftEffect)(Data_Function.apply(Effect_Console.log)("Successfully loaded " + (Data_Show.show(Data_Show.showInt)(Data_List.length(modules)) + " modules."))))(function () {
                     return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(validateMain(config)(Data_List.toUnfoldable(Data_Unfoldable.unfoldableArray)(modules)))(function () {

@@ -9,6 +9,7 @@ package:
     - node-buffer
     - exceptions
     - argonaut-core
+    - argonaut-codecs
     - arrays
     - node-process
     - strings

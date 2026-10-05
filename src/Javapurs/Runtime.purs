@@ -54,7 +54,8 @@ builtinGlobalSource moduleName name = case moduleName, name of
   _, _ -> Nothing
 
 -- The argument is the already-escaped Java module class name, not a source
--- module name. Both entrypoint ABIs are accepted by the existing launcher.
+-- module name. Prefer Supplier when both ABIs are implemented; reject values
+-- which cannot execute an action instead of silently returning success.
 mainRunSource :: String -> String
 mainRunSource moduleClass =
   "public class MainRun {\n" <>
@@ -65,6 +66,9 @@ mainRunSource moduleClass =
   "            ((java.util.function.Supplier<Object>) main).get();\n" <>
   "        } else if (main instanceof java.util.function.Function<?, ?>) {\n" <>
   "            ((java.util.function.Function<Object, Object>) main).apply(null);\n" <>
+  "        } else {\n" <>
+  "            throw new IllegalStateException(\"Invalid Java entrypoint " <> moduleClass <> ".main: expected Supplier or Function, got \"\n" <>
+  "                + (main == null ? \"null\" : main.getClass().getName()));\n" <>
   "        }\n" <>
   "    }\n" <>
   "}\n"

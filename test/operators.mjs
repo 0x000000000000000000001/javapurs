@@ -10,7 +10,7 @@ import { translateOperator2 } from "../output/Javapurs.Operators/index.js";
 import { printExpr } from "../output/Javapurs.Printer/index.js";
 
 // Run after building the backend: node test/operators.mjs
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const raw = code => new A.JavaRaw(code);
 const int2 = (op, left, right) => printExpr(translateOperator2("IntegerOperators")(new S.OpIntNum(op))(raw(left))(raw(right)));
 const number2 = (op, left, right) => printExpr(translateOperator2("NumberOperators")(new S.OpNumberOrd(op))(raw(left))(raw(right)));
@@ -65,7 +65,7 @@ await withTemporaryDirectory("javapurs-operators-", directory => {
         }
     }
 }`);
-  runCommandSync(javac, ["-d", directory, join(directory, "IntegerOperators.java")], { stdio: "pipe" });
+  runCommandSync(javac, [...javacArgs, "-d", directory, join(directory, "IntegerOperators.java")], { stdio: "pipe" });
   const lines = runCommandSync(java, ["-cp", directory, "IntegerOperators"], { encoding: "utf8" }).trim().split("\n");
   assert.equal(lines.length, intCases.length + numberCases.length, "every case must produce one line");
   let checked = 0;

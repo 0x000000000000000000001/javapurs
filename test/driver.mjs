@@ -152,7 +152,7 @@ async function check(directory, mode, processes, tools) {
     rmSync(classes, { recursive: true, force: true });
     mkdirSync(classes);
     await processes.run(`driver: ${variant.name} javac`, tools.javac,
-      ["--release", "17", "-d", classes, ...Object.keys(sources).map(name => join(output, name))],
+      [...tools.javacArgs, "-d", classes, ...Object.keys(sources).map(name => join(output, name))],
        { log: join(directory, `logs/${variant.name}-javac.log`), timeout: 60_000 });
     if (variant.expected === null) continue;
     const result = await processes.run(`driver: ${variant.name} JVM`, tools.java, ["-cp", classes, "MainRun"],
@@ -289,7 +289,7 @@ process.exitCode = result.status ?? 1;
     const forwarded = outputArgs.length ? ["--output", join(realpathSync(workspace), "TAST cache")] : [];
     assert.deepEqual(JSON.parse(readFileSync(join(workspace, "backend-args.json"))), [...backendArgs, ...forwarded]);
     const java = join(workspace, "Java sources"); checkManifest(java);
-    await processes.run(`driver: Spago ${name} javac`, tools.javac, ["--release", "17", "-d", "classes", "-sourcepath", java, join(java, "MainRun.java")],
+    await processes.run(`driver: Spago ${name} javac`, tools.javac, [...tools.javacArgs, "-d", "classes", "-sourcepath", java, join(java, "MainRun.java")],
       { cwd: workspace, log: join(directory, `logs/spago-${name}-javac.log`), timeout: 60_000 });
     const result = await processes.run(`driver: Spago ${name} JVM`, tools.java, ["-cp", "classes", "MainRun"],
       { cwd: workspace, capture: true, log: join(directory, `logs/spago-${name}-java.log`), timeout: 30_000 });

@@ -14,7 +14,7 @@ import { renameExpr } from "../output/Javapurs.Rename/index.js";
 // Build the backend first, then run: node test/chunk.mjs
 // These fixtures force extraction and execute the resulting Java, including
 // nested captures, typed call sites, evaluation order and recursive closures.
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const raw = value => new A.JavaRaw(String(value));
 const local = name => new A.JavaLocal(name);
 const int = expr => new A.JavaCast("int", expr);
@@ -225,7 +225,7 @@ class TcoLoop extends RuntimeException {
   TcoLoop(String loopId, Object[] args) { this.loopId = loopId; this.args = args; }
 }
 `);
-  runCommandSync(javac, ["--release", "17", "-d", directory, ...Object.keys(fixtures).map(name => join(directory, `${name}.java`)),
+  runCommandSync(javac, [...javacArgs, "-d", directory, ...Object.keys(fixtures).map(name => join(directory, `${name}.java`)),
     join(directory, "ChunkRuntime.java")], { stdio: "pipe", timeout: 120_000 });
   const output = runCommandSync(java, ["-cp", directory, "ChunkRuntime"], { encoding: "utf8", timeout: 30_000 });
   assert.equal(output.trim(), "Chunk: 15 fixtures passed");

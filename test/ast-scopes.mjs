@@ -217,13 +217,13 @@ const harness = `public class AstScopeRegression {
   }
 }`;
 
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 for (const [mode, file] of [["renamed", renamed], ["chunked", chunked]]) {
   await withTemporaryDirectory("javapurs-ast-scopes-", directory => {
     const sources = { "ScopeFixtures.java": printFile("ScopeFixtures")(file), "AstScopeRegression.java": harness,
       "__IntFn.java": runtimeSource, "TcoLoop.java": tcoLoopSource };
     for (const [name, source] of Object.entries(sources)) writeFileSync(join(directory, name), source);
-    runCommandSync(javac, ["--release", "17", "-d", directory, ...Object.keys(sources).map(name => join(directory, name))],
+    runCommandSync(javac, [...javacArgs, "-d", directory, ...Object.keys(sources).map(name => join(directory, name))],
       { stdio: "pipe", timeout: 60_000 });
     const output = runCommandSync(java, ["-cp", directory, "AstScopeRegression"], { encoding: "utf8", timeout: 30_000 });
     console.log(`${mode}: ${output.trim()}`);

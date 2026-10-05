@@ -20,7 +20,7 @@ import { moduleClass, moduleText } from "./support/module-classes.mjs";
 
 // Build the backend first. Optional real optimized input:
 // node test/direct-calls.mjs --rbtree-project ../../altbak.pub-javapurs
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const moduleName = "Direct_Fixtures";
 const raw = value => new A.JavaRaw(String(value));
 const local = name => new A.JavaLocal(name);
@@ -348,7 +348,7 @@ for (const enabled of [false, true]) {
   files.set("DirectChecks.java", moduleText(checksSource, fixtureModules));
   await withTemporaryDirectory(`javapurs-direct-${enabled ? "on" : "off"}-`, directory => {
     for (const [name, source] of files) writeFileSync(join(directory, name), source);
-    runCommandSync(javac, ["-nowarn", ...files.keys()], { cwd: directory, encoding: "utf8", stdio: "pipe" });
+    runCommandSync(javac, [...javacArgs, "-nowarn", ...files.keys()], { cwd: directory, encoding: "utf8", stdio: "pipe" });
     const output = runCommandSync(java, ["-cp", directory, "DirectChecks"], { cwd: directory, encoding: "utf8", stdio: "pipe" }).trim();
     outputs.push(output);
     console.log(`${enabled ? "enabled" : "disabled"}: ${output}`);

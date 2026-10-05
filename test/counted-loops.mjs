@@ -10,7 +10,7 @@ import { countedLoop } from "../output/Javapurs.CountedLoops/index.js";
 import { printExpr } from "../output/Javapurs.Printer/index.js";
 
 // Run after rebuilding the backend: node test/counted-loops.mjs
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const raw = value => new A.JavaRaw(String(value));
 const local = name => new A.JavaLocal(name);
 const snapshot = name => local(`__final_${name}`);
@@ -213,6 +213,6 @@ console.log(`Counted loop classification: ${selections} selection and rejection 
 await withTemporaryDirectory("javapurs-counted-loop-test-", directory => {
   const file = join(directory, "CountedLoopRegression.java");
   writeFileSync(file, source);
-  runCommandSync(javac, ["-nowarn", file], { stdio: "inherit", timeout: 60000 });
+  runCommandSync(javac, [...javacArgs, "-nowarn", file], { stdio: "inherit", timeout: 60000 });
   runCommandSync(java, ["-cp", directory, "CountedLoopRegression"], { stdio: "inherit", timeout: 30000 });
 });

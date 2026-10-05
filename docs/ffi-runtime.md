@@ -1,6 +1,6 @@
 # Contrats FFI et runtimes Java
 
-État documenté au **3 octobre 2026**. Ce guide relie les conventions d'appel aux
+État documenté au **5 octobre 2026**. Ce guide relie les conventions d'appel aux
 propriétaires des états et des callbacks. Le [guide des représentations](representations.md)
 décrit les preuves de type et le stockage ; la [matrice de tests](testing.md#matrice-des-tests)
 donne les commandes de validation.
@@ -11,6 +11,7 @@ donne les commandes de validation.
 | --- | --- | --- |
 | Découverte | [PBO FfiSupport](../../../purescript-backend-optimizer-javapurs/src/PureScript/Backend/Optimizer/FfiSupport.js) | D'abord le `.java` adjacent au chemin `.purs` du module TAST ; ensuite les racines découvertes sous `.spago`, `spago.d` et le dossier appelant. |
 | Lecture | [Ffi.loadForeign](../src/Javapurs/Ffi.purs) | Retourne `Maybe ForeignSource = { path, source }` ; une absence et une erreur de lecture sont distinctes. |
+| Relevé | `Ffi.describeForeign`, [FFI Node](../src/Javapurs/Ffi.js) | Décrit cette sélection effective, le chemin du module TAST et les bindings ; aucun second choix de fragment. |
 | Membres étrangers | `Ffi.renderForeign` | Insère le fragment non vide tel quel ; sinon émet des champs/méthodes de stub pour les imports étrangers. `FFI_STUB` est toujours présent. |
 | Classe et fichiers | [Emit](../src/Javapurs/Emit.purs), [Output](../src/Javapurs/Output.purs) | `Emit` assemble membres FFI et déclarations imprimées ; `Output` possède staging, inventaire et publication. |
 | Signatures et dépendances | `javac`, puis la JVM | Vérifient types/références et exécutent les conventions fournies par les ports. |
@@ -28,11 +29,89 @@ types Java sont qualifiés. Les noms exportés suivent
 [Naming.sanitizeName](../src/Javapurs/Naming.purs), par exemple `$new` et `$catch`
 dans `Promise.Internal`. Un fichier composé seulement d'espaces reste non vide :
 aucun binding manquant n'est ajouté automatiquement à un fragment fourni.
-Un stub échoue à son invocation, ce qui explique qu'un Java compilable puisse
-encore manquer une implémentation FFI sur un chemin particulier.
+Chaque binding stub possède un objet `__MissingFFI` compatible avec `Function`
+et `Supplier`. Son `apply` ou `get`, ainsi que la méthode varargs de compatibilité,
+lève `UnsupportedOperationException("Missing Java FFI: Module.binding")` avec
+le nom PureScript original, même si le nom Java est échappé (`void` → `$void`).
+L'appel curryfié échoue dès la première application ; l'effet sans argument échoue
+au forçage. Le champ historique `FFI_STUB` reste présent comme sentinel de module.
+Un Java compilable peut encore manquer une implémentation FFI sur un chemin
+particulier : pour une valeur scalaire absente, un cast/unboxing peut aussi révéler
+une représentation manquante avant tout appel du stub.
 
 Cette frontière, déjà isolée en M03, conserve son organisation. Les protocoles
 ci-dessous appartiennent aux ports et n'ajoutent aucune règle au résolveur.
+
+### Relevé de la génération
+
+Chaque génération réussie publie un champ **`ffi`** dans
+`<java-output>/.javapurs-manifest.json`, avec `version: 1` et `modules`, triés par
+nom. Ce relevé suit exactement la même publication/restauration que les sources
+Java. Une génération échouée laisse le relevé de la dernière génération réussie ;
+les diagnostics de l'essai courant restent dans stderr. Un message final indique
+le chemin du manifeste. Les anciens manifestes M13 sans champ `ffi` sont acceptés
+et complétés au prochain succès ; `files` reste l'inventaire de propriété Java.
+
+| Champ d'une entrée `ffi.modules` | Sens |
+| --- | --- |
+| `moduleName` | Nom PureScript, y compris les modules sans déclaration foreign. |
+| `moduleSource` | Source `.purs` indiquée par le TAST, sous forme `{ path, realPath, origin }`. `path` est absolu ; `realPath` résout les symlinks s'il existe, sinon vaut `null`. |
+| `adjacentJava` | Chemin absolu du candidat `.java` adjacent, utile quand la dépendance sélectionnée n'en contient pas. |
+| `selectedJava` | Même forme de localisation pour le fragment effectivement retenu, ou `null`. |
+| `fragmentSha256` | SHA-256 UTF-8 du texte lu et utilisé pour l'insertion, y compris le texte vide ; `null` si absent. |
+| `resolution` | `adjacent`, `search` (repli PBO), ou `not-found`. |
+| `status` | `provided` pour un texte non vide, `empty` pour zéro caractère, `missing` pour une absence avec bindings, `not-required` pour une absence sans binding. |
+| `bindings` | Noms foreign déclarés ou conservés par PBO : `{ name, javaName, retained }`, triés. `retained` signale la présence dans l'inventaire foreign optimisé, pas la présence d'un membre dans un fragment fourni ni son exécution. |
+| `verification` | Toujours `not-checked` : le backend ne prouve pas la couverture du fragment. Les preuves `javac`/JVM appartiennent aux fixtures nommées ci-dessous. |
+
+`origin` qualifie **l'emplacement du chemin** : `workspace` sous le dossier
+appelant, `spago` sous ses `.spago`/`spago.d`, `external` ailleurs. Ce n'est pas
+une déduction du nom/version de package. Les chemins visible et réel permettent
+de distinguer cache du registre, source applicative et checkout local, même en
+présence de symlinks. Un module purement PureScript comme `Promise.Aff` est
+`not-required` tout en dépendant transitivement de modules à FFI.
+
+Pour chaque module avec bindings ou fragment, stderr donne état, source/origine,
+Java retenu ou candidat adjacent, mode de résolution et noms foreign. Exemple de
+lecture ciblée du relevé, depuis l'application :
+
+```bash
+node -e 'const {ffi} = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")); console.log(JSON.stringify(ffi.modules.filter(m => m.status === "missing" || m.status === "empty"), null, 2))' java_output/.javapurs-manifest.json
+```
+
+Pour corriger une sélection, partir de `moduleSource.path` : si `Foreign` vient
+de `.spago/p/foreign-…/src/Foreign.purs` sans Java adjacent, sélectionner le port
+`javapurs-foreign` dans `workspace.extraPackages`, reconstruire les TAST puis le
+Java et vérifier le nouveau `selectedJava.realPath`. `ffi-ports.mjs` réalise ces
+deux sélections avec Spago réel. Un fragment `provided` conserve ce statut même
+si un de ses bindings est omis ; `ffi-diagnostics.mjs` démontre l'échec `javac`
+lorsqu'un consommateur référence ce membre, y compris pour un fichier d'espaces.
+
+### Couverture exécutée et dépendances des quatre ports
+
+La table relie les chemins exercés à des fixtures, sans assimiler l'inventaire des
+bindings à une couverture complète. Les contrôles directs M10 compilent les vrais
+fragments avec un shim Either ; l'intégration M14 utilise les ADT et API PureScript
+réels. Les [suites attendues M12](testing.md#suites-asynchrones-des-ports) apportent
+des preuves supplémentaires, datées séparément.
+
+| Port | Chemins exécutés / preuve nommée | Dépendances pour ces chemins |
+| --- | --- | --- |
+| Refs | Groupe `refs` de [FfiRuntimeChecks.java](../test/support/FfiRuntimeChecks.java) : allocation différée/identité, `read`, `write`, `modifyImpl` concurrent et exceptionnel, `newWithSelf` (4 contrôles). [FfiPorts](../tests/ffi-ports/Main.purs) : `Ref.modify result/state`, références utilisées par les rendez-vous. | `effect`, `prelude`. Le fragment Java n'appelle que le JDK ; les enveloppes/dictionnaires viennent des modules compilés. |
+| Aff | Groupe `aff` du même harness (18 contrôles) : bind/map, fibres, joins, callbacks/désabonnement, annulation, exceptions, bracket, parallèle et supervision. FfiPorts : `repeated join`, `bracket cleanup`, `cancellation cause`, `supervised cleanup`, `Unit race`. | API Effect, Exceptions, fonctions non curryfiées et ADT Either ; transitivement ST/Partial/Unsafe.Coerce et les bibliothèques de classes/transformers. Le [spago.yaml Aff](../../javapurs-aff/spago.yaml) donne les dépendances ; le template de test sélectionne leurs ports Java nécessaires. |
+| Promise | Groupe `promise` (14 contrôles) : pending/adoption, premier règlement, callbacks, erreurs, `all`, `race`, `finally`, auto-résolution et chaîne profonde. FfiPorts : `Promise.all order`, `Promise.race rejection`, `Promise.finally pending cleanup`, `Promise handler exception`, `Promise.Lazy`. | `effect` et ses wrappers `EffectFn`, `functions` (`Fn3`), `exceptions`, Maybe ; les wrappers Lazy emploient aussi Newtype/Traversable. Fragments `Promise.Internal` et `Promise.Rejection`, pas uniquement le premier. |
+| Promise/Aff | FfiPorts : `pending Aff-Promise roundtrip`, `Aff-Promise rejection`, `string rejection coercion`, `toAffE`, `custom rejection coercion` ; réussite et attente dans les deux modes records. Le pont lui-même n'a pas de fragment Java. | `aff`, `js-promise`, `effect`, `exceptions` et **`foreign`** via `readString`/`unsafeToForeign`, ainsi que Either/Maybe/Except. Les conversions appellent `Promise.Rejection` puis `Foreign.tagOf` pour une chaîne ; un aller-retour réussi seul ne teste pas ce chemin de rejet. |
+
+Le workspace de cette intégration est défini par le
+[template du runner](../tests/runner/spago.yaml), complété dans
+[ffi-ports.mjs](../test/ffi-ports.mjs) par `aff`, `js-promise`, `js-promise-aff` et
+`foreign`. Le template sélectionne déjà `refs`, `effect`, `prelude`, `exceptions`,
+`functions`, `st`, `partial`, `unsafe-coerce` et les ports de collections/records
+utilisés par les fixtures ; Assert et Console fournissent leurs contrôles/logs.
+Les bibliothèques de classes et ADT restantes viennent du package set **77.10.1**.
+Les quatre `bin/test-runtime` pointent vers ces fixtures ; ce layout et ces chemins
+sont la référence de sélection, plutôt que la longue liste d'extraPackages des
+workspaces historiques de chaque port.
 
 ## Conventions d'appel et données
 
@@ -234,20 +313,28 @@ propriétaire du pont, sans fragment Java supplémentaire :
 Depuis le dépôt du compilateur :
 
 ```bash
+node test/ffi-diagnostics.mjs
 node test/ffi-runtimes.mjs
 node test/ffi-ports.mjs
 ```
 
-Le premier compile les vrais fragments avec un shim Either minimal : **4**
+`ffi-diagnostics.mjs` construit huit modules Prim-only et vérifie sélection
+adjacente/replis, états/empreintes du relevé, huit erreurs JVM nommant le binding,
+deux bindings omis rejetés par `javac` et une erreur de lecture conservant l'ancien
+manifeste. Backend construit, `purs` TAST et JDK sont nécessaires.
+
+`ffi-runtimes.mjs` compile les vrais fragments avec un shim Either minimal : **4**
 contrôles Ref, **14** Promise et **18** Aff. Il ne demande que Node, un JDK et les
 trois ports voisins. Les barrières imposent les ordres de concurrence ; les
 timeouts bornent un protocole bloqué. Les chaînes de 20 000 étapes s'exécutent
 avec une pile de 512 Kio.
 
-Le second demande aussi le backend construit, Spago et `purs` TAST. Il compile
+`ffi-ports.mjs` demande aussi le backend construit, Spago et `purs` TAST. Il compile
 les vraies API PureScript et leurs ADT, puis exécute **17 assertions** dans
 chacun des modes records typés et Maps sur le même TAST. Il attend la fibre
-racine et propage son échec au processus ; le marqueur final est vérifié.
+racine et propage son échec au processus ; le marqueur final est vérifié. Il
+contrôle les chemins des fragments des ports, l'égalité du relevé entre les modes,
+puis reconstruit avec `foreign` du registre pour constater son absence de Java.
 Les quatre ports exposent un `bin/test-runtime` vers ces suites. La
 [recette de test](testing.md#runtimes-ffi-et-interopérabilité) précise les options,
 les preuves et les [suites de ports attendues](testing.md#suites-asynchrones-des-ports)

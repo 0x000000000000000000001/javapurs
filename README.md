@@ -32,46 +32,57 @@ Use those documented baselines and their methodology when evaluating changes. Th
 
 ### Prerequisites
 
-- A **TAST-capable `purs`** from the compiler fork on `PATH`, kept compatible with the optimizer checkout. An upstream binary with the same version number does not provide the same enriched format.
-- **Spago** with YAML configuration support. The compiler pins registry package set `77.10.1` in [spago.yaml](spago.yaml).
-- **Node.js** to run the compiler and its ES module launcher. The local tool inventory on 1 October 2026 reports Node.js `24.8.0`, Spago `1.0.3`, and a development build of the TAST fork reporting PureScript `0.15.16`. Exact binary and checkout references are recorded in [testing.md](docs/testing.md#outils-et-versions-java).
-- A **JDK** with both `javac` and `java` available. The local compiler/runtime is OpenJDK `26.0.2`; b8x and the chunk fixtures target Java 17 through `javac --release 17`. Build JDK, bytecode target and execution JVM are separate choices. The examples below use that bytecode target; the project has no exhaustive minimum-JDK compatibility matrix. Select the same JDK for compilation and execution.
-- Git and Bash for the checkout and launcher commands below.
+- **Node.js** to run the compiler and its ES module launcher; the source recipe is exercised with **24.8.0**.
+- **Spago 1.0.3** on `PATH` (for example, `npm install --global spago@1.0.3`). The compiler pins registry package set `77.10.1` and its [lockfile](spago.lock).
+- **Git**, **Bash**, and **Stack** for the source installation. The pinned fork uses `lts-23.18` / **GHC 9.8.4**; Stack selects/downloads that compiler independently of `ghc` on `PATH`. Native Haskell prerequisites and network/cache requirements are detailed in the [source installation guide](docs/installation.md).
+- A complete **JDK 17 or newer** with `javac`, `java` and `jar`. Automated runners select the build JDK through `JAVA_HOME` or `JAVAC`/`JAVA` and default to `--release 17`. For the manual shell commands below, also put the selected JDK's `bin` directory on `PATH`. Build JDK, bytecode target and execution JVM are separate choices; see [Java target and runtime](#java-target-and-runtime).
+- A **TAST-capable `purs`** for subsequent builds. The installer below builds the pinned fork itself. An upstream binary with the same version number does not provide the same enriched format.
 
 ### Build the backend
 
-The current repository has no `package.json`, npm installation hook, or bundled release artifact. Build the checkout with Spago. Its two local package paths require this layout:
+The source installer fetches the exact fork, optimizer and five port revisions in [tools/source-lock.json](tools/source-lock.json), builds `purs`, exports this Javapurs checkout's sources, then rebuilds the backend and runs two applications through standalone JARs. Start from the Javapurs revision you want to install:
+
+```bash
+git clone https://github.com/0x000000000000000000001/javapurs.git javapurs-source
+cd javapurs-source
+export JAVAPURS_WORKSPACE="$(dirname "$PWD")/javapurs-workspace"
+node tools/install-source.mjs "$JAVAPURS_WORKSPACE"
+export PATH="$JAVAPURS_WORKSPACE/bin:$PATH"
+javapurs --help
+```
+
+The destination must be **new**. The installer preserves logs and partial work on failure; replay into another new directory. It uses shared Stack/Spago dependency caches, but creates fresh project build directories and excludes this repository's tracked `output/` and `.spago/`. There is no npm hook or bundled Javapurs release artifact.
 
 ```text
 workspace/
+├── bin/                         # rebuilt purs and javapurs launcher
+├── installation.json            # revisions, source hashes, tools, commands, results
+├── purescript/
 ├── purescript-backend-optimizer-javapurs/
+├── apps/                        # hello, refs, and two JAR-only delivery folders
 └── javapurs/
-    ├── javapurs/                 # this repository
+    ├── javapurs/                # source export + rebuilt backend
     ├── javapurs-foreign-object/
-    ├── javapurs-prelude/         # application library ports, as needed
-    └── ...
+    ├── javapurs-prelude/
+    ├── javapurs-effect/
+    ├── javapurs-console/
+    └── javapurs-refs/
 ```
 
-For a fresh workspace, after installing the prerequisites:
+For an existing checkout with the two local package paths from [spago.yaml](spago.yaml) present, select the compatible `purs` on `PATH`, then rebuild:
 
 ```bash
-mkdir javapurs-workspace
-cd javapurs-workspace
-git clone --branch edge-javapurs https://github.com/0x000000000000000000001/purescript-backend-optimizer.git purescript-backend-optimizer-javapurs
-mkdir javapurs
-cd javapurs
-git clone https://github.com/0x000000000000000000001/javapurs.git
-git clone https://github.com/0x000000000000000000001/javapurs-foreign-object.git
-cd javapurs
 ./bin/build
 export PATH="$PWD/bin:$PATH"
 ```
 
-`bin/build` runs `spago build`. The launcher `bin/javapurs` runs `bin/javapurs.js`, which imports `output/Main/index.js`; rebuild after changing compiler sources or the optimizer dependency. The launcher defaults to a 16,384 MiB Node heap, configurable through `JAVAPURS_HEAP`. This is separate from the heap of `javac` or the generated application. The `PATH` command above applies to the current shell. Keep the compiler and optimizer revisions together when reproducing a build.
+`bin/build` locates its own checkout even when called from another directory. It names missing packages/tools, prints selected binary paths/versions, and compiles a dependency-free capability probe requiring `dataDecls`, `classDecls` and `typeTable` before `spago build`. The launcher imports `output/Main/index.js`; an absent/incomplete build points back to `bin/build`. Rebuild after changing compiler sources or PBO.
+
+The launcher defaults to a 16,384 MiB Node heap, configurable through `JAVAPURS_HEAP`; this is separate from Java heap settings. `PATH` changes apply to the current shell. Keep `installation.json` with the original checkout: it distinguishes the backend revision and working-tree edits from the fork's actual binary version/hash. See the [installation contract, replay commands and deliverables](docs/installation.md).
 
 ### Compile and run an application
 
-Create an application directory with this `spago.yaml`:
+The installer executes the checked-in [hello example](examples/hello/spago.yaml), matching the following files. To create another application directory, use this `spago.yaml`:
 
 ```yaml
 package:
@@ -120,9 +131,11 @@ javac --release 17 -d classes -sourcepath java_output java_output/MainRun.java
 java -cp classes MainRun
 ```
 
-The example prints `Hello from javapurs` using its own Java console binding. It uses registry packages for PureScript definitions; their unused foreign declarations may remain stubs. For a larger application, provide `.java` implementations for the foreign values it executes, including transitive dependencies. The sibling `javapurs-console`, `javapurs-effect` and `javapurs-aff` repositories now contain Java implementations. JavaScript FFI can coexist with Java FFI to support PureScript compilation and the JS target. Select the required ports through `workspace.extraPackages`; the [runner workspace](tests/runner/spago.yaml) gives a concrete core-package example.
+The example prints `Hello from javapurs` using its own Java console binding. It uses registry packages for PureScript definitions; their unused foreign declarations may remain stubs. The second [Refs example](examples/refs/spago.yaml) prints `42` using `Effect.Ref` and `Effect.Console`, explicitly selecting their Java ports and the `effect`/`prelude` implementations used transitively. Its paths assume `workspace/apps/refs`; the installer prepares this layout. JavaScript FFI can coexist with Java FFI. Larger applications must select all executed foreign implementations through `workspace.extraPackages`; the [runner workspace](tests/runner/spago.yaml) gives a broader example.
 
-The backend creates `java_output` and its parent directories. Spago invokes it after producing enriched `output/<Module>/corefn.json`. Verify that a generated file includes `dataDecls`, `classDecls`, and, with the current fork, `typeTable`. Missing metadata indicates an incompatible compiler or stale output; select the fork explicitly on `PATH` and rebuild in a fresh output directory.
+The backend creates `java_output` and its parent directories after validating the inputs. Spago invokes it after producing enriched `output/<Module>/corefn.json`. Each module must contain `dataDecls`, `classDecls` and `typeTable` arrays; empty arrays are valid for modules without those declarations/types. Missing or malformed metadata names the file and field: select the TAST-capable fork explicitly on `PATH` and rebuild in a fresh output directory.
+
+Unreadable/missing CoreFn files, invalid JSON/decoding, duplicate module names and missing non-`Prim` imports fail with **exit code 1 before output preparation**, preserving the previous Java generation and manifest. Root-level files such as `cache-db.json` are ignored; each subdirectory must supply CoreFn, except the `Prim`/`Prim.*` documentation-only directories produced by the frontend. See the [input contract](docs/compiler.md#2-chargement-tast-et-optimisation-pbo).
 
 Each compilation reports monotonic elapsed times in milliseconds to stderr: TAST loading and sorting, preparation, optimization and staged emission, Java publication, and the backend total. The total includes these phases; it excludes the preceding `purs` compilation and subsequent `javac` compilation. A failed phase and its enclosing total are marked `(failed)` before the error is propagated. TAST loading, FFI reading and Java writing failures include their operation and path; module emission errors also name the module.
 
@@ -143,6 +156,8 @@ For an application with no external JAR dependencies, package the compiled class
 jar --create --file app.jar --main-class MainRun -C classes .
 java -jar app.jar
 ```
+
+For these two examples, **`app.jar` and a compatible JVM are the complete runtime delivery**. The source installation verifies each JAR from another directory containing only that file, with the JDK alone on `PATH`. Node, `purs`, PBO, PureScript sources, TAST and generated Java are build-time inputs.
 
 Java libraries used by your FFI must be added to both classpaths. For example, with application JARs under `lib/` on macOS/Linux:
 
@@ -193,6 +208,8 @@ javapurs --input "TAST cache" --java-output "Java library" --no-main
 
 The selected entrypoint is checked before output preparation: the module must exist and its `main` must be local and exported. A re-export alone does not qualify. Library mode removes the previous owned launcher; with empty input it emits only `__IntFn.java` and the manifest.
 
+At JVM startup, `MainRun` calls the selected value exactly once: `Supplier.get()` takes priority, then `Function.apply(null)`. Other values, including `null`, throw `IllegalStateException` with the Java field name and actual class, producing a failed JVM run. For example: `Invalid Java entrypoint __M$Main.main: expected Supplier or Function, got java.lang.Integer`. Check the selected `--main` module and its Java FFI. Exceptions from initialization or from the action propagate normally; the return value is ignored. The [entrypoint checks](docs/testing.md#entrée-jvm-et-jar) cover both classes and standalone JARs.
+
 Loop invariant caches belong to each fully applied function invocation. They evaluate at the first original use, so skipped branches and zero-iteration loops keep their evaluation behavior. The analysis checks known definitions and closures recursively, rejects unknown FFI/effects and local captures, and only caches successful `Int` results.
 
 Direct calls use private static methods for eligible functions in the same module. Consecutive nonempty lambdas qualify at arities 2–32 for eager bindings and 1–32 for lazy bindings. Public curried functions remain available. Calls between eager declarations use earlier workers directly. Calls to lazy declarations, or from lazy bindings that can be entered early through a getter, retain an initialization guard. Saturated self calls through their own getter use a separate direct path. Proven `Int` worker parameters are primitive and receive explicit unboxing casts at call sites; other parameters use `Object`. See [DirectCalls](src/Javapurs/DirectCalls.purs) for the admission rules.
@@ -202,6 +219,8 @@ Ownership workers consume eligible fresh trees after proving that retained subtr
 ### Generated-file ownership and recovery
 
 `.javapurs-manifest.json` records the names and SHA-256 hashes of generated Java. Subsequent successful generations replace these files and remove owned modules/helpers that are no longer emitted. Files outside this inventory are preserved. A collision with a foreign file, or an edited generated file, fails with the affected path rather than overwriting it.
+
+Its `ffi` section records the source module, selected Java fragment, paths/origins, fragment hash and foreign bindings for that same successful generation. The report is published and restored with the Java inventory; the compiler prints its location on success.
 
 All sources are first staged under `.javapurs-work`. Publication backs up changed files, removes the old launcher first, publishes the new launcher last, then writes the manifest and commit marker. An ordinary publication error restores the previous generation. If the process is killed, the next generation recovers an uncommitted publication or keeps a committed one. The work directory contains the owner PID and recovery journal; a live owner rejects another writer. Invalid recovery metadata or a recovery conflict preserves the work directory for diagnosis. Consume the Java output after a successful compiler exit; publication is journaled file by file.
 
@@ -243,7 +262,19 @@ Names are escaped by [Naming](src/Javapurs/Naming.purs), including Java keywords
 
 Access PureScript records through `java.util.Map<String, Object>` and copy them before mutation. Generated typed record classes are immutable; other record paths use Maps. Do not assume every record is a `LinkedHashMap`. Generic arrays use `Object[]`; primitive values cross the generic function interface as their Java boxed equivalents. A plain `Function<Object, Object>` remains valid when the compiler specializes an `Int -> Int` call.
 
-When no `.java` file is found, or the selected file is empty, the backend emits missing-FFI stubs that throw when called. A selected nonempty file is inserted verbatim; the compiler does not validate every foreign binding or adapt ordinary Java method signatures. Failure to read a selected file stops compilation with its path in the diagnostic. A successful Java compilation therefore does not prove that all application FFI paths are implemented.
+When no `.java` file is found, or the selected file is empty, the backend emits missing-FFI stubs. Applying a curried stub, forcing its effect, or calling its varargs compatibility method throws `UnsupportedOperationException` naming the original `Module.binding`. A selected nonempty file is inserted verbatim; the compiler does not validate every foreign binding or adapt ordinary Java method signatures. Failure to read a selected file stops compilation with its path in the diagnostic. A successful Java compilation therefore does not prove that all application FFI paths are implemented.
+
+### Inspect the selected FFI
+
+Every successful generation includes `ffi: { version: 1, modules: [...] }` in `.javapurs-manifest.json`. Entries identify the TAST module source, the actual selected fragment (or the expected adjacent path), absolute and resolved paths, and a UTF-8 SHA-256 of the fragment. `origin` describes the path location: `workspace`, `spago`, or `external`. `status` is `provided`, `empty`, `missing`, or `not-required` for a module without foreign bindings or fragment.
+
+Each binding has its PureScript `name`, escaped `javaName`, and `retained` flag indicating whether PBO kept its foreign declaration. **`verification: "not-checked"`** makes the boundary explicit: a supplied fragment may omit a member, and a retained declaration may never be executed. The [FFI report schema and coverage table](docs/ffi-runtime.md#relevé-de-la-génération) connect these observations to named `javac`/JVM fixtures.
+
+```bash
+node -e 'const {ffi} = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")); console.log(JSON.stringify(ffi.modules.filter(m => m.status === "missing" || m.status === "empty"), null, 2))' java_output/.javapurs-manifest.json
+```
+
+For example, a `Foreign` source under `.spago/p/foreign-…/` with no selected Java points to the registry dependency. Select `javapurs-foreign` through `workspace.extraPackages`, rebuild the TAST and Java, and check `selectedJava.realPath`. The Promise/Aff rejection path needs this transitive port even when a successful round trip already works. If generation fails, stderr describes the failed attempt and the manifest continues to describe the preceding successful generation.
 
 ## Development and testing
 
@@ -273,28 +304,76 @@ export JAVA="$(command -v java)"
 node test/typed-records.mjs
 ```
 
-The shared JDK resolver uses explicit `JAVAC`/`JAVA` first, then `JAVA_HOME`, then `javac` on `PATH`, with a Homebrew fallback. If only one executable is supplied, its sibling is selected; mixed JDK bin directories are rejected. Most scripts import the compiler's built `output/` modules and generate Java fixtures under `TMPDIR` (or the OS temporary directory). Successful temporary workspaces are removed; failed ones are retained and their path is printed. `test/int-loops.mjs` has a Node-only analysis path.
+The shared JDK resolver uses explicit `JAVAC`/`JAVA` first, then `JAVA_HOME`, then `javac` on `PATH`, with a Homebrew fallback. If only one executable is supplied, its sibling is selected; the build pair must share a real JDK bin directory. The separate `JAVAPURS_JAVA_RUNTIME` override selects a different execution JVM. Most scripts import the compiler's built `output/` modules and generate Java fixtures under `TMPDIR` (or the OS temporary directory). Successful temporary workspaces are removed; failed ones are retained and their path is printed. `test/int-loops.mjs` has a Node-only analysis path.
 
 `node test/big-function.mjs` prepares BigFunction in its own temporary Spago workspace, executes the corpus entrypoint and performs 155 branch checks. It can run independently of the last test in `tests/runner`. It caps the fixture's `javac` heap at 4 GiB and the branch-check JVM at 512 MiB.
 
-`node test/driver.mjs` builds a small, isolated TAST application and exercises the real compiler CLI, two actual Spago invocations, entrypoint selection, output lifecycle, FFI and I/O diagnostics, then compiles and runs its Java with `--release 17`. It requires the built backend, Spago, the TAST-capable `purs` and a JDK. Its recording/comparison modes preserve identical inputs for refactoring checks; see the [driver recipe](docs/testing.md#pilote-de-compilation). `node --test test/output-files.mjs` checks filesystem ownership, rollback and recovery after `SIGKILL` using Node alone.
+`node test/driver.mjs` builds a small, isolated TAST application and exercises the real compiler CLI, two actual Spago invocations, entrypoint selection, output lifecycle, FFI and I/O diagnostics, then compiles and runs its Java with the common target (Java 17 by default). It requires the built backend, Spago, the TAST-capable `purs` and a JDK. Its recording/comparison modes preserve identical inputs for refactoring checks; see the [driver recipe](docs/testing.md#pilote-de-compilation). `node --test test/output-files.mjs` checks filesystem ownership, rollback and recovery after `SIGKILL` using Node alone.
+
+`node test/input.mjs` exercises strict TAST loading through the CLI: filesystem, JSON, metadata and dependency errors; previous output/cache preservation and no output creation on failure; sequential/bounded-parallel reads, empty metadata and primitive documentation directories. It needs the built backend and a TAST-capable `purs`. See the [input recipe](docs/testing.md#entrée-tast-stricte).
+
+`node test/entrypoint.mjs` builds ten real TAST/FFI entrypoints and checks the JVM result from classes and a JAR-only delivery directory: both valid calling conventions, their priority, non-callable values, action/initialization failures and a missing-FFI stub. It needs the built backend, TAST `purs` and a complete JDK including `jar`.
 
 `node test/ast-scopes.mjs` checks local shadowing, sibling branches, recursive captures, method selectors, nested loop targets and the raw-Java boundary. It compiles and executes the same fixtures after renaming, with and without chunking, targeting Java 17.
 
-`node test/ffi-runtimes.mjs` compiles the actual Ref/Promise/Aff Java fragments and runs 36 deterministic protocol checks; it needs Node, a JDK and the sibling ports. `node test/ffi-ports.mjs` additionally uses Spago, the TAST frontend and the built backend for 17 PureScript integration assertions per record mode, including the real Promise/Aff bridge. Both target Java 17.
+`node test/ffi-runtimes.mjs` compiles the actual Ref/Promise/Aff Java fragments and runs 36 deterministic protocol checks; it needs Node, a JDK and the sibling ports. `node test/ffi-ports.mjs` additionally uses Spago, the TAST frontend and the built backend for 17 PureScript integration assertions per record mode, including the real Promise/Aff bridge. Both use the common Java target.
+
+`node test/ffi-diagnostics.mjs` checks eight module reports, adjacent/fallback resolution, binding-specific stub errors, omitted members in supplied fragments and read errors. It requires the built backend, TAST `purs` and a JDK. The port integration also verifies the actual local fragments and reproduces the missing Java selection from the registry's `foreign` package.
 
 `node test/port-runners.mjs --port=aff` runs the Aff suite through the same isolated runner as its `bin/test`; `--port=promise` and `--port=promise-aff` select the other two suites. The runner requires a completion marker and the expected check count, and probes delayed assertions, rejections, timeouts and premature process exit. See the [port-suite recipe](docs/testing.md#suites-asynchrones-des-ports).
 
-The [test matrix](docs/testing.md#matrice-des-tests) covers all 25 scripts and identifies optional benchmark-cache inputs. The [specialized-pass recipe](docs/testing.md#passes-spécialisées) includes ownership admission and deep-recursion checks in both modes. See the [BigFunction recipe](docs/testing.md#chunker-et-bigfunction) and [runner checks](docs/testing.md#outillage-des-tests) for focused commands. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
+The [test matrix](docs/testing.md#matrice-des-tests) covers all 29 scripts and identifies optional benchmark-cache inputs. The [specialized-pass recipe](docs/testing.md#passes-spécialisées) includes ownership admission and deep-recursion checks in both modes. See the [BigFunction recipe](docs/testing.md#chunker-et-bigfunction), [source installation checks](docs/testing.md#installation-source) and [runner checks](docs/testing.md#outillage-des-tests) for focused commands. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
 
 `node tools/check-docs.mjs` checks local documentation links/anchors, shell-example syntax, the suite inventory, CLI options and plan progress using Node and Bash. The [maintenance guide](docs/maintenance.md#statut-des-fichiers-et-des-sorties) records which artifacts are active, generated or historical, including Git recovery instructions for the retired `.bak` snapshots.
 
-The maintainability plan v1 is complete: **11/11 milestones, 100/100 points**, with its history in the [M11 validation record](docs/testing.md#validation-m11). The [active plan v2](../todo.md) tracks five follow-up milestones (M12–M16): reliable asynchronous test runners, CLI/output handling, FFI diagnostics, reproducible source setup and measured JDK compatibility.
+The maintainability plan v1 is complete: **11/11 milestones, 100/100 points**, with its history in the [M11 validation record](docs/testing.md#validation-m11). The [completed plan v2](../todo.md) also reaches **5/5 milestones, 100/100 points**: reliable asynchronous test runners, CLI/output handling, FFI diagnostics, reproducible source setup and measured JDK compatibility. Its closure and coverage limits are recorded in [M16](docs/testing.md#validation-m16).
+
+### Java target and runtime
+
+[tools/java-tools.mjs](tools/java-tools.mjs) is the common configuration for Java-compiling `test/*.mjs` suites, the fixture runner, the isolated Aff/Promise/Promise-Aff port runners, their `test-runtime` delegates, and source-installation examples:
+
+| Setting | Meaning |
+| --- | --- |
+| `JAVA_HOME` or `JAVAC`/`JAVA` | Build JDK; explicit executables take priority. `JAVA` remains the build JDK's sibling runtime. |
+| `JAVAPURS_JAVA_RELEASE` | Decimal target version, **17 by default**, minimum accepted target 17. Passed as `javac --release N`. |
+| `JAVAPURS_JAVA_RUNTIME` | Optional executable used to run the classes; defaults to the build JDK's `java`. |
+
+Missing tools, malformed targets, targets newer than the compiler/runtime, and conflicting fixture target flags fail before fixture preparation. `node tools/java-tools.mjs` prints the actual paths, versions and target. Heap settings remain independent. These variables configure the Node runners; raw `javac` commands and older shell-only port runners need their own explicit flags.
+
+For a focused cross-JDK check, with both home paths set in the shell:
+
+```bash
+unset JAVAC JAVA
+export JAVA_HOME="$JDK_RECENT_HOME"
+export JAVAPURS_JAVA_RELEASE=17
+export JAVAPURS_JAVA_RUNTIME="$JDK17_HOME/bin/java"
+node tools/java-tools.mjs
+node test/chunk.mjs
+```
+
+The replayable compatibility selection is `driver`, `representations`, `chunk`, `big-function`, `ffi-runtimes` and `ffi-ports`. It runs with JDK 17, a selected newer JDK, and newer-compiler/JVM-17 execution, always targeting Java 17:
+
+```bash
+node tools/check-jdk.mjs --jdk17 "$JDK17_HOME" \
+  --recent-jdk "$JDK_RECENT_HOME" --output "$PWD/jdk-results"
+```
+
+The output directory must be new. `matrix.json` records paths, complete versions, target, bytecode/runtime probes and suite results; each suite has its own log. The backend, TAST `purs`, Spago and the selected local ports must already be available.
+
+**Executed on macOS arm64, 5 October 2026:**
+
+| Build JDK | Bytecode target | Execution JVM | Focused selection |
+| --- | --- | --- | --- |
+| Temurin **17.0.20.1+1** | Java 17 (class major 61) | Temurin **17.0.20.1+1** | 6/6 suites passed |
+| Homebrew OpenJDK **26.0.2** | Java 17 (class major 61) | Homebrew OpenJDK **26.0.2** | 6/6 suites passed |
+| Homebrew OpenJDK **26.0.2** | Java 17 (class major 61) | Temurin **17.0.20.1+1** | 6/6 suites passed |
+
+Each row covers the driver, 344 representation checks, 15 chunk fixtures, 155 BigFunction branch checks, 36 direct runtime checks and 17 integration assertions in each of two record modes. Hello/Refs JARs built by JDK 26 also execute on JVM 17. These are the measured versions and selected contracts; other JDK vendors, operating systems, target releases and library APIs require their own validation. See the [M16 record](docs/testing.md#validation-m16) for commands, exact references and additional diagnostics.
 
 ## Architecture
 
-1. **Configuration and orchestration:** [Main](src/Main.purs) passes process arguments through [Config](src/Javapurs/Config.purs) to [Driver](src/Javapurs/Driver.purs). The driver loads enriched `corefn.json` modules and directives, prepares shared helpers, then calls PBO's `buildModules` to obtain optimized `BackendModule` values.
-2. **FFI resolution and Java lowering:** Each module callback reads the Java snippet through [Ffi](src/Javapurs/Ffi.purs) and calls [Pipeline](src/Javapurs/Pipeline.purs). Its [CodeGen](src/Javapurs/CodeGen.purs) step prepares ownership workers, analyzes TCO and types, translates expressions and emits constructor classes into [JavaAst](src/Javapurs/JavaAst.purs), then applies direct calls and constructor reuse.
+1. **Configuration and orchestration:** [Main](src/Main.purs) passes process arguments through [Config](src/Javapurs/Config.purs) to [Driver](src/Javapurs/Driver.purs). [Input](src/Javapurs/Input.purs) loads and validates enriched `corefn.json` files, module uniqueness and import completeness, using PBO's decoder and dependency sorter. The driver loads directives, prepares shared helpers, then calls PBO's `buildModules` to obtain optimized `BackendModule` values.
+2. **FFI resolution and Java lowering:** Each module callback reads the Java snippet through [Ffi](src/Javapurs/Ffi.purs), records its selection/declarations for the manifest, and calls [Pipeline](src/Javapurs/Pipeline.purs). Its [CodeGen](src/Javapurs/CodeGen.purs) step prepares ownership workers, analyzes TCO and types, translates expressions and emits constructor classes into [JavaAst](src/Javapurs/JavaAst.purs), then applies direct calls and constructor reuse.
 3. **Lexical names and chunking:** `Pipeline` runs [Rename](src/Javapurs/Rename.purs) before [Chunk](src/Javapurs/Chunk.purs). [Chunk.Captures](src/Javapurs/Chunk/Captures.purs) analyzes dependencies and movement barriers; [Chunk.Extraction](src/Javapurs/Chunk/Extraction.purs) owns costs and the extraction decision. `Chunk` tracks effective Java local types and constructs helpers.
 4. **Printing and templates:** [Printer](src/Javapurs/Printer.purs) and [RecordPrinter](src/Javapurs/RecordPrinter.purs) render Java declarations, control flow, and record helpers. [Runtime](src/Javapurs/Runtime.purs) owns the `__IntFn`, `TcoLoop` and `MainRun` templates.
 5. **Assembly and output:** [Emit](src/Javapurs/Emit.purs) assembles modules with the members supplied by `Ffi`, stages module/record classes and the selected launcher, and stages shared runtime files once during preparation. [Output](src/Javapurs/Output.purs) owns the generated-file inventory, publication, rollback and recovery. [Diagnostics](src/Javapurs/Diagnostics.purs) adds context to propagated I/O errors. `javac` and `java` perform the final compilation and execution outside the backend.
@@ -315,7 +394,8 @@ The [compiler guide](docs/compiler.md) details the pass order, source modules, r
 - [x] Core Java benchmark results published in altbak.pub.
 - [ ] Complete Java FFI coverage across the library ports.
 - [ ] Virtual-thread integration and broader asynchronous interoperability.
-- [ ] Turnkey installation, setup automation, and broader compatibility validation.
+- [x] Pinned source installation and measured JDK 17/recent compatibility.
+- [ ] Broader platform and library compatibility validation.
 
 These checked items describe implemented facilities and available suites, not a claim that every official PureScript test passes. The project remains experimental, and library support must be checked for each application.
 

@@ -1,6 +1,6 @@
 # Reprise et entretien du dépôt
 
-État documenté au **3 octobre 2026**, complété pendant le plan v2 M12–M16.
+État documenté au **5 octobre 2026**, complété jusqu'au lot supplémentaire M18.
 Cette page donne le parcours de reprise, le statut des artefacts et les points
 encore ouverts. Les [preuves par lot](testing.md#consigner-une-validation)
 conservent leurs dates, versions et périmètres d'origine.
@@ -8,7 +8,7 @@ conservent leurs dates, versions et périmètres d'origine.
 ## Parcours de reprise
 
 1. Lire le [guide du compilateur](compiler.md#suivre-une-compilation) pour suivre
-   `Main` → `Config` → `Driver` → PBO → `Pipeline` → `Emit` → `Output`.
+   `Main` → `Config` → `Driver` → `Input`/PBO → `Pipeline` → `Emit` → `Output`.
 2. Choisir le contrat correspondant à la modification :
 
    | Sujet | Référence canonique |
@@ -16,11 +16,16 @@ conservent leurs dates, versions et périmètres d'origine.
    | Nœuds, noms, captures, Java brut | [AST et portées](ast.md) |
    | Extraction et budget des helpers | [Chunking](chunking.md) |
    | Traduction et ordre d'évaluation | [Expressions](expressions.md) |
-   | Types, stockage, ABI | [Représentations](representations.md) |
+    | Types, stockage, ABI | [Représentations](representations.md) |
+    | Entrée TAST, erreurs de lecture et graphe des imports | [Chargement strict](compiler.md#2-chargement-tast-et-optimisation-pbo) |
+    | Appel de `main`, valeurs non exécutables et erreurs JVM | [Contrat du launcher](compiler.md#6-compilation-et-exécution-java) et [suites classes/JAR](testing.md#entrée-jvm-et-jar) |
    | Admission/refus des optimisations | [Passes spécialisées](specialized-passes.md) |
    | Corps Java et frontières Supplier | [Rendu](printing.md) |
-    | Callbacks, fibres, références, promesses | [FFI et runtimes](ffi-runtime.md) |
+   | Callbacks, fibres, références, promesses | [FFI et runtimes](ffi-runtime.md) |
+   | FFI choisie, bindings et couverture | [Relevé de génération](ffi-runtime.md#relevé-de-la-génération) |
     | CLI, inventaire Java et récupération | [Pilote et sorties](compiler.md#cycle-de-vie-des-sorties-java) |
+    | Références source, prérequis et JAR autonome | [Installation](installation.md) |
+    | JDK de build, cible et JVM distincts | [Configuration et matrice Java](testing.md#build-jdk-cible-et-jvm) |
 
 3. Sélectionner les lignes pertinentes de la [matrice](testing.md#matrice-des-tests).
    Reconstruire après modification des sources du backend/PBO. Pour une modification
@@ -37,12 +42,13 @@ chemin ; les liens locaux supposent le layout des dépôts voisins décrit dans
 `compiler.md`. Il contrôle les liens/ancres Markdown des guides, du README, du
 TODO et des quatre README de ports M10, la syntaxe des exemples shell, les suites
 de la matrice, les options de `Config`, le score du plan actif et les preuves de
-ses lots cochés. Le nombre de lots est lu dans le TODO. Il ne lance pas les
+ses lots cochés, y compris les lots complémentaires hors score. Le nombre de lots
+pondérés est lu dans le TODO. Il ne lance pas les
 exemples et n'a pas besoin du backend construit ni d'un JDK.
 
 ## Interfaces et replis relus
 
-Les **47 modules** de `src/` exposent des listes explicites. Les façades ci-dessous
+Les **48 modules** de `src/` exposent des listes explicites. Les façades ci-dessous
 conservent des consommateurs et délèguent à une définition unique :
 
 | Interface | Propriétaire / consommateur |
@@ -70,6 +76,7 @@ Il ne signale pas un dispatcher manquant à remplacer par une spécialisation.
 | Emplacement | Propriétaire et statut |
 | --- | --- |
 | `src/`, `tools/`, `bin/` | Sources maintenues. Les fichiers `.purs` courants sont la référence du backend. |
+| `tools/source-lock.json`, `tools/install-source.mjs`, `examples/` | Références Git compatibles, export/reconstruction source isolée et exemples Hello/Refs. `installation.json`, logs, builds et JAR sont créés dans le workspace explicitement choisi. |
 | `test/`, `tests/ffi-ports/`, `tests/port-suites/`, `tests/ffi/`, `tests/passing/` | Sources des régressions et surcharges. Les fixtures FFI/ports restent hors de `test/**/*.purs`, glob du build du backend. |
 | `tests/runner/spago.yaml`, `spago.lock` | Configuration persistante du runner ; le YAML sert aussi aux workspaces isolés. |
 | `output/` du compilateur | Build JavaScript/externs **suivi dans Git** ; `bin/javapurs.js` charge `output/Main/index.js`. Il est régénéré par `./bin/build` après changement des sources. |
@@ -79,7 +86,7 @@ Il ne signale pas un dispatcher manquant à remplacer par une spécialisation.
 | `.DS_Store` | Métadonnées Finder retirées et ignorées dans le dépôt du compilateur. |
 | `tests/runner/src`, `output`, `java_output`, `classes`, `.purmeta` | État remplaçable d'une fixture, ignoré par le `.gitignore` du runner. Son `spago.yaml` et ses sources d'origine restent persistants. |
 | `output`/`java_output` dans un port ou une application | Entrées TAST/sorties Java propres à ce projet. Certains ports versionnent leurs sorties ; examiner leur statut local avant nettoyage. |
-| `.javapurs-manifest.json`, `.javapurs-work/` dans une sortie Java | Propriété et SHA-256 des sources générées ; staging, verrou PID et journal de récupération. Voir le [cycle de vie](compiler.md#cycle-de-vie-des-sorties-java) avant d'intervenir sur une génération interrompue. |
+| `.javapurs-manifest.json`, `.javapurs-work/` dans une sortie Java | Propriété/SHA-256 des sources et relevé de sélection `ffi` de la même génération ; staging, verrou PID et journal de récupération. Voir le [cycle de vie](compiler.md#cycle-de-vie-des-sorties-java) avant d'intervenir sur une génération interrompue. |
 | `logs/` | Journaux locaux ignorés par `logs/.gitignore`, recréés par les runners. Les anciens journaux ont été archivés puis retirés lors du nettoyage M13. |
 | Anciens `.purs.bak`, `output.bak/` | Retirés de l'arbre de travail après comparaison/restauration depuis Git ; références exactes ci-dessous. Le `.gitignore` du compilateur prévient leur réintroduction accidentelle. |
 
@@ -137,7 +144,7 @@ historique, avec ses propres dépendances et son format d'entrée.
 - **`logs/modtest/PORT.log`** : sortie du runner historique des ports, écrasée au
   prochain run de ce port. Les campagnes agrégées restent hors du protocole du plan.
 - **Temporaires des suites** : supprimés au succès et conservés à l'échec. Les
-   captures avant/après et dossiers `javapurs-m01` à `javapurs-m13` cités dans le
+   captures avant/après et dossiers `javapurs-m01` à `javapurs-m18` cités dans le
   registre sont des preuves **locales**, pas des artefacts distribués avec le dépôt.
   Leur durée de conservation dépend du disque temporaire ; pour transmettre un
   incident, joindre sources/empreintes, configuration, commande et logs utiles.
@@ -165,21 +172,32 @@ Git du compilateur couvrent désormais `.psci_modules/` et `.DS_Store`.
 
 ## Points ouverts après le plan
 
-Le score M01–M11 mesure les livrables de maintenabilité du plan v1. Les sujets
-techniques suivants gardent leurs limites documentées et leurs points d'entrée :
+Les scores M01–M11 et M12–M16 mesurent les livrables des deux plans terminés.
+Les sujets techniques suivants gardent leurs limites documentées et leurs points
+d'entrée :
 
 | Sujet | Point d'entrée pour une suite de travail |
 | --- | --- |
 | Couverture FFI des bibliothèques et JAR applicatifs | Vérifier les chemins réellement exécutés par port ; [contrat FFI](ffi-runtime.md#résolution-et-insertion). |
 | Scheduler Aff et interopérabilité asynchrone | Threads daemon ordinaires, annulation coopérative ; [durées de vie](ffi-runtime.md#supervision-parallèle-et-processus). |
 | Sémantique JS des promesses | Réactions eager sans microtasks, sans désabonnement Promise ; [contrat Promise](ffi-runtime.md#promesses). |
-| Installation, distribution et matrice JDK | Build source et classpaths explicites ; [prérequis](../README.md#prerequisites). Le versionnement actuel des caches/builds reste un choix à traiter séparément. |
-| Schéma TAST/PBO et preuves de type manquantes | Replis génériques et barrières d'instantiation ; [preuves de type](representations.md#ce-qui-constitue-une-preuve). |
+| Distribution et extension de la compatibilité | [Installation source](installation.md) et [matrice ciblée JDK 17/26](testing.md#validation-m16) livrées ; les autres plateformes, API de ports et modes de distribution restent à mesurer. Le versionnement actuel des caches/builds reste un choix à traiter séparément. |
+| Schéma TAST/PBO et preuves de type manquantes | Le [chargement strict M17](compiler.md#2-chargement-tast-et-optimisation-pbo) exige les tableaux enrichis et les imports présents. Le versionnement du schéma et la complétude des preuves restent distincts ; [replis et barrières d'instantiation](representations.md#ce-qui-constitue-une-preuve). |
 | Taille des méthodes / admission d'optimisations | Budgets heuristiques du chunker et des workers ownership ; [chunking](chunking.md) et [passes](specialized-passes.md). |
 | Licence | La déclaration MIT du README est conservée ; le dépôt n'a pas encore de fichier de licence autonome. |
 
-Le [plan v2 M12–M16](../../todo.md) précise les prochains objectifs : fiabilité
-des runners asynchrones historiques, CLI/sorties Java, diagnostic FFI,
-installation source et compatibilité JDK. Chaque lot possède son périmètre et
-ses contrôles ciblés ; son avancement est indépendant du score du plan v1.
-Les [preuves M11](testing.md#validation-m11) conservent la clôture de ce dernier.
+Le [plan v2 M12–M16](../../todo.md) est terminé à **100/100** : fiabilité des
+runners asynchrones, CLI/sorties Java, diagnostic FFI, installation source et
+compatibilité JDK mesurée. Les [preuves M16](testing.md#validation-m16) en
+conservent la clôture et les limites ; les [preuves M11](testing.md#validation-m11)
+restent la référence de clôture du plan v1.
+
+Le complément **M17 est clôturé** : chargement TAST strict, refus avant préparation
+des sorties et génération Java conservée sur les références figées. Ses
+[preuves](testing.md#validation-m17) comprennent le backend reconstruit dans un
+workspace neuf. Les deux scores précédents restent ceux de leurs plans respectifs.
+
+Le complément **M18 est clôturé** : une valeur `main` non exécutable produit un
+échec JVM explicite ; les deux ABI valides et les exceptions de l'action sont
+vérifiées en classes et JAR sur JVM 26/17. Les [preuves](testing.md#validation-m18)
+limitent les écarts Java des références figées à la branche de contrôle des launchers.

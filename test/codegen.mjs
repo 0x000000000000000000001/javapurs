@@ -17,7 +17,7 @@ import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 // Exercise BackendSyntax -> CodeGen -> Rename -> optional Chunk -> JVM.
 // The event trace observes evaluation order, laziness and multiplicity, rather
 // than the implementation's choice of temporary names or Java node shapes.
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const moduleName = "Codegen.Fixtures";
 const className = moduleClass(moduleName);
 const runtimeName = moduleClass("Codegen.Runtime");
@@ -188,7 +188,7 @@ for (const chunkEnabled of [false, true]) {
   ]);
   await withTemporaryDirectory(`javapurs-codegen-${chunkEnabled ? "chunk" : "plain"}-`, directory => {
     for (const [name, source] of sources) writeFileSync(join(directory, name), source);
-    runCommandSync(javac, ["--release", "17", "-nowarn", ...sources.keys()], { cwd: directory, stdio: "pipe" });
+    runCommandSync(javac, [...javacArgs, "-nowarn", ...sources.keys()], { cwd: directory, stdio: "pipe" });
     const result = runCommandSync(java, ["-Xss256k", "-cp", directory, "CodegenChecks"],
       { cwd: directory, encoding: "utf8", stdio: "pipe", timeout: 30000 });
     console.log(`${chunkEnabled ? "chunk" : "plain"}: ${result.trim()}`);

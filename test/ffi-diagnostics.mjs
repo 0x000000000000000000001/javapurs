@@ -47,7 +47,7 @@ try {
       assert.equal(report.moduleSource.origin, "workspace");
       assert.equal(report.moduleSource.realPath, report.moduleSource.path);
       assert.deepEqual(report.bindings.map(binding => binding.name), [...report.bindings.map(binding => binding.name)].sort());
-      for (const binding of report.bindings) assert.equal(binding.emitted, true);
+      for (const binding of report.bindings) assert.equal(binding.retained, true);
       if (report.selectedJava) {
         assert.equal(report.fragmentSha256, createHash("sha256").update(readFileSync(report.selectedJava.path)).digest("hex"));
       } else assert.equal(report.fragmentSha256, null);
@@ -68,8 +68,8 @@ try {
     assert.equal(reports.Types.status, "not-required");
     assert.deepEqual(reports.Types.bindings, []);
     assert.deepEqual(reports.Missing.bindings, [
-      { name: "action", javaName: "action", emitted: true },
-      { name: "void", javaName: "$void", emitted: true },
+      { name: "action", javaName: "action", retained: true },
+      { name: "void", javaName: "$void", retained: true },
     ]);
     for (const name of ["Partial", "Blank"]) {
       assert.equal(reports[name].status, "provided");
@@ -108,7 +108,7 @@ public class FfiDiagnosticChecks {
   }
 }`);
     const javaFiles = readdirSync(output).filter(name => name.endsWith(".java")).map(name => join(output, name));
-    await run("javac", tools.javac, ["--release", "17", "-d", "classes", ...javaFiles, "FfiDiagnosticChecks.java"]);
+    await run("javac", tools.javac, [...tools.javacArgs, "-d", "classes", ...javaFiles, "FfiDiagnosticChecks.java"]);
     const result = await run("jvm", tools.java, ["-cp", "classes", "FfiDiagnosticChecks"], { capture: true });
     assert.match(result, /8 binding-specific failures and 3 selections passed/);
 
@@ -117,7 +117,7 @@ public class FfiDiagnosticChecks {
     for (const name of ["Partial", "Blank"]) {
       write("Omitted.java", `class Omitted { Object use() { return __M$${name}.omitted; } }\n`);
       await assert.rejects(run(`omitted-${name}`, tools.javac,
-        ["--release", "17", "-cp", "classes", "-d", "classes", "Omitted.java"], { reportFailure: false }),
+        [...tools.javacArgs, "-cp", "classes", "-d", "classes", "Omitted.java"], { reportFailure: false }),
       error => error instanceof ProcessFailure && error.code === 1);
       const diagnostic = readFileSync(join(directory, `logs/omitted-${name}.log`), "utf8");
       assert.match(diagnostic, /cannot find symbol/);

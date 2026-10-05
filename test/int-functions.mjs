@@ -21,7 +21,7 @@ import { recordClassName } from "../output/Javapurs.RecordShapes/index.js";
 // representations; no backend rebuild or PureScript source compilation occurs.
 // Optional current optimized benchmark IR:
 // node test/int-functions.mjs --church-project ../../altbak.pub-javapurs
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const moduleName = "Int.Functions";
 const int = C.Int.value;
 const any = C.Any.value;
@@ -295,7 +295,7 @@ for (const enabled of [false, true]) {
   if (church) addModule(church);
   await withTemporaryDirectory(`javapurs-int-functions-${enabled ? "on" : "off"}-`, directory => {
     for (const [name, source] of files) writeFileSync(join(directory, name), source);
-    runCommandSync(javac, ["-nowarn", ...files.keys()], { cwd: directory, encoding: "utf8", stdio: "pipe" });
+    runCommandSync(javac, [...javacArgs, "-nowarn", ...files.keys()], { cwd: directory, encoding: "utf8", stdio: "pipe" });
     const output = runCommandSync(java, ["-Xss256k", "-cp", directory, "IntFunctionChecks", String(enabled)],
       { cwd: directory, encoding: "utf8", stdio: "pipe", timeout: 30000 }).trim();
     outputs.push(output);

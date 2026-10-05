@@ -24,7 +24,7 @@ import PureScript.Backend.Optimizer.FfiSupport (findFfiFile)
 type ForeignSource = { path :: String, source :: String }
 
 type SourceLocation = { path :: String, realPath :: Nullable String, origin :: String }
-type ForeignBinding = { name :: String, javaName :: String, emitted :: Boolean }
+type ForeignBinding = { name :: String, javaName :: String, retained :: Boolean }
 type ForeignReport =
   { moduleName :: String
   , moduleSource :: SourceLocation
@@ -59,7 +59,7 @@ describeForeign moduleName modulePath declared emitted implementation =
     describeImpl (unwrap moduleName) modulePath bindings status
       (toNullable (map _.path implementation)) (toNullable (map _.source implementation))
   where
-  bindings = map (\ident -> { name: unwrap ident, javaName: sanitizeName (unwrap ident), emitted: Array.elem ident emitted })
+  bindings = map (\ident -> { name: unwrap ident, javaName: sanitizeName (unwrap ident), retained: Array.elem ident emitted })
     (Array.sort (Array.nub (declared <> emitted)))
   status = case implementation of
     Just ffi | String.length ffi.source > 0 -> "provided"

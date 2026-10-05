@@ -9,7 +9,7 @@ import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 
 // Build the original fixture in an isolated workspace, then exercise f itself.
 // No dependency on the last program compiled in tests/runner or on the cwd.
-async function checkBranches(runner, { javac, java, env }, processes) {
+async function checkBranches(runner, { javac, java, javacArgs, env }, processes) {
   const source = readFileSync(join(runner, "src/Main.purs"), "utf8");
   assert.match(source, /f _ = 2137/, "expected the BigFunction fixture");
   const cases = new Map();
@@ -76,7 +76,7 @@ public final class BigFunctionChecks {
 `);
   const classes = join(runner, "classes");
   await processes.run("BigFunction: branch harness javac", javac,
-    ["--release", "17", "-cp", classes, "-d", directory, path],
+    [...javacArgs, "-cp", classes, "-d", directory, path],
     { env, log: join(directory, "javac.log"), timeout: 30_000 });
   const output = await processes.run("BigFunction: branch checks", java,
     ["-Xmx512m", "-cp", `${directory}${delimiter}${classes}`, "BigFunctionChecks"],

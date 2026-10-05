@@ -5,6 +5,7 @@
         "path": "./",
         "core": {
           "dependencies": [
+            "argonaut-codecs",
             "argonaut-core",
             "arrays",
             "backend-optimizer",
@@ -827,6 +828,8 @@
         "enums",
         "foldable-traversable",
         "foreign-object",
+        "functions",
+        "identity",
         "integers",
         "language-cst-parser",
         "lazy",
@@ -837,11 +840,13 @@
         "node-fs",
         "nullable",
         "ordered-collections",
+        "parallel",
         "partial",
         "prelude",
         "safe-coerce",
         "st",
         "strings",
+        "tailrec",
         "transformers",
         "tuples",
         "unsafe-coerce"

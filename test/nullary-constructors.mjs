@@ -16,7 +16,7 @@ import { renameWith, renameExpr } from "../output/Javapurs.Rename/index.js";
 import { moduleClass, moduleText } from "./support/module-classes.mjs";
 
 // Run after rebuilding the backend: node test/nullary-constructors.mjs
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const qualified = (module, name) => new C.Qualified(module === null ? Nothing.value : new Just(module), name);
 const reference = (module, name) => new S.Var(qualified(module, name));
 const literal = value => new S.Lit(new C.LitInt(value));
@@ -169,6 +169,6 @@ public final class NullaryChecks {
 
 await withTemporaryDirectory("javapurs-nullary-test-", directory => {
   for (const [name, source] of sources) writeFileSync(join(directory, name), source);
-  runCommandSync(javac, ["-nowarn", ...sources.keys()], { cwd: directory, stdio: "inherit", timeout: 60000 });
+  runCommandSync(javac, [...javacArgs, "-nowarn", ...sources.keys()], { cwd: directory, stdio: "inherit", timeout: 60000 });
   runCommandSync(java, ["-cp", directory, "NullaryChecks"], { stdio: "inherit", timeout: 60000 });
 });

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 set -e
-
-spago build
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+command -v node >/dev/null 2>&1 || { echo "javapurs build: Node.js is required on PATH (see README prerequisites)." >&2; exit 1; }
+exec node "$DIR/../tools/build.mjs" "$@"

@@ -22,7 +22,7 @@ import { renameWith } from "../output/Javapurs.Rename/index.js";
 // Run after the project backend build; --records=maps exercises the same values
 // and open/closed record operations using the retained Map representation.
 const typedRecords = !process.argv.includes("--records=maps");
-const { javac, java } = resolveJavaTools();
+const { javac, java, javacArgs } = resolveJavaTools();
 const tuples = fields => fields.map(([key, value]) => new Tuple(key, value));
 const type = (fields, tail = Nothing.value) => new C.Record(new C.Row(tuples(fields), tail));
 const typed = (ty, value) => new S.Typed(ty, value);
@@ -407,7 +407,7 @@ public final class TypedRecordChecks {
 sources.set("__IntFn.java", runtimeSource);
 await withTemporaryDirectory("javapurs-typed-records-test-", directory => {
   for (const [name, source] of sources) writeFileSync(join(directory, name), source);
-  runCommandSync(javac, ["-nowarn", ...sources.keys()], { cwd: directory, stdio: "inherit", timeout: 60000 });
+  runCommandSync(javac, [...javacArgs, "-nowarn", ...sources.keys()], { cwd: directory, stdio: "inherit", timeout: 60000 });
   runCommandSync(java, ["-cp", directory, "TypedRecordChecks"], { stdio: "inherit", timeout: 60000 });
   console.log("Record shape recognition, typed translation and renaming passed");
 });
