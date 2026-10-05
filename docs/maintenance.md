@@ -80,12 +80,12 @@ Il ne signale pas un dispatcher manquant à remplacer par une spécialisation.
 | `test/`, `tests/ffi-ports/`, `tests/port-suites/`, `tests/ffi/`, `tests/passing/` | Sources des régressions et surcharges. Les fixtures FFI/ports restent hors de `test/**/*.purs`, glob du build du backend. |
 | `tests/runner/spago.yaml`, `spago.lock` | Configuration persistante du runner ; le YAML sert aussi aux workspaces isolés. |
 | `output/` du compilateur | Build JavaScript/externs **suivi dans Git** ; `bin/javapurs.js` charge `output/Main/index.js`. Il est régénéré par `./bin/build` après changement des sources. |
-| `.spago/` | Dépendances et état Spago, dont des fichiers sont déjà suivis. Spago les gère ; ils ne sont pas une deuxième implémentation du backend. |
+| `.spago/` | Dépendances et état Spago régénérables, désormais ignorés. Les copies locales, y compris les anciennes copies suivies du compilateur, ont été retirées lors du nettoyage après M18. |
 | `.purs-repl` | Configuration persistante du REPL (`import Prelude`). |
 | `.psci_modules/` | Ancien build REPL retiré lors du nettoyage demandé pendant M13 ; régénérable par le REPL et désormais ignoré. Le launcher du compilateur charge `output/`. |
-| `.DS_Store` | Métadonnées Finder retirées et ignorées dans le dépôt du compilateur. |
+| `.DS_Store`, `*.class`, `*.java.bak` | Métadonnées Finder, classes compilées isolées et sauvegardes Java ignorées dans les 55 dossiers. Les exemplaires identifiés ont été archivés puis retirés après M18. |
 | `tests/runner/src`, `output`, `java_output`, `classes`, `.purmeta` | État remplaçable d'une fixture, ignoré par le `.gitignore` du runner. Son `spago.yaml` et ses sources d'origine restent persistants. |
-| `output`/`java_output` dans un port ou une application | Entrées TAST/sorties Java propres à ce projet. Certains ports versionnent leurs sorties ; examiner leur statut local avant nettoyage. |
+| `output`/`java_output`, `.purmeta` dans un port | Entrées TAST, Java/classes et caches d'optimisation régénérables. Les copies présentes dans les ports ont été archivées puis retirées après M18, avec leurs anciennes entrées suivies ; les règles Git couvrent leur régénération. |
 | `.javapurs-manifest.json`, `.javapurs-work/` dans une sortie Java | Propriété/SHA-256 des sources et relevé de sélection `ffi` de la même génération ; staging, verrou PID et journal de récupération. Voir le [cycle de vie](compiler.md#cycle-de-vie-des-sorties-java) avant d'intervenir sur une génération interrompue. |
 | `logs/` | Journaux locaux ignorés par `logs/.gitignore`, recréés par les runners. Les anciens journaux ont été archivés puis retirés lors du nettoyage M13. |
 | Anciens `.purs.bak`, `output.bak/` | Retirés de l'arbre de travail après comparaison/restauration depuis Git ; références exactes ci-dessous. Le `.gitignore` du compilateur prévient leur réintroduction accidentelle. |
@@ -169,6 +169,48 @@ vérification des tailles/SHA-256 avant suppression. Archive et manifeste locaux
 `/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m13/cleanup/`,
 fichiers `retired-artifacts.tar.gz`, `manifest.json` et `summary.json`. Les règles
 Git du compilateur couvrent désormais `.psci_modules/` et `.DS_Store`.
+
+### Nettoyage demandé après M18
+
+Le **5 octobre 2026**, revue de **55 dossiers** : le compilateur, 49 ports avec
+leur dépôt Git et cinq packages locaux sans dépôt propre. Les 50 dépôts étaient
+propres au départ ; leurs révisions sont conservées dans `inventory.json`.
+
+Retrait de **177 301 fichiers / 2 963 812 640 octets**, dont **13 738 fichiers
+suivis**, répartis ainsi :
+
+| Artefacts retirés | Fichiers | Octets |
+| --- | ---: | ---: |
+| `output/` des ports | 62 084 | 1 808 608 169 |
+| `java_output/` des ports, Java et classes | 87 689 | 323 992 116 |
+| `.purmeta/` | 11 383 | 693 965 045 |
+| `.spago/`, compilateur et runner inclus | 13 168 | 25 893 286 |
+| `output.bak/` d'arrays, strings et strings-extra | 2 915 | 110 897 067 |
+| Finder, `testRegex.class`, `Regex.java.bak` | 59 | 456 202 |
+| `javapurs-node-fs/tmp/`, produit par ses tests | 3 | 755 |
+
+Les sources maintenues, fragments FFI, configurations/lockfiles et le build
+exécutable `javapurs/output/` ont leurs empreintes de conservation. Les règles
+`.gitignore` couvrent les artefacts retirés, les classes et les métadonnées
+imbriquées ; les fichiers source `.purs`, `.java`, `.js` restent sélectionnables.
+Le launcher a été exercé, puis l'intégration FFI a reconstruit ses dépendances
+dans un workspace temporaire et réussi **17 assertions × 2 modes**. Voir le
+[relevé ciblé](testing.md#nettoyage-demandé-après-m18).
+
+Archive locale **`retired-artifacts.tar.gz`**, **330 039 644 octets**, vérifiée
+entrée par entrée (inventaire, SHA-256, modes et cibles de symlinks) avant retrait :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-cleanup-628j912y/`.
+Elle est accompagnée de `manifest.json`, `summary.json`, des références Git,
+empreintes conservées et journaux. SHA-256 de l'archive :
+`73abbb32715c7570b1c605656fc6c4cc90d3fda8640540457a6ffc04e14554c2`.
+
+Pour restaurer les anciens artefacts dans un dossier séparé :
+
+```bash
+ARCHIVE="/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-cleanup-628j912y/retired-artifacts.tar.gz"
+RESTORE="$(mktemp -d)"
+tar -xzf "$ARCHIVE" -C "$RESTORE"
+```
 
 ## Points ouverts après le plan
 

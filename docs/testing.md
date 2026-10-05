@@ -2346,3 +2346,43 @@ Preuves locales sous
 `source-checks.json`, `references-final.json` et `checks.json`.
 
 **Conclusion : M18 validé ; complément clôturé. Plans v1 et v2 toujours à 100/100.**
+
+## Nettoyage demandé après M18
+
+**5 octobre 2026 — nettoyage explicite du compilateur et des dossiers `javapurs-*`.**
+
+Référence du compilateur : **`93838ba667ee052789df3f3610e32dfc63ee7225`** ; les
+50 dépôts Git examinés étaient propres. Le relevé des 55 dossiers inclut aussi
+cinq packages locaux sans dépôt propre. Les références individuelles figurent
+dans `inventory.json` du dossier de preuve. Le
+[guide d'entretien](maintenance.md#nettoyage-demandé-après-m18) détaille les
+catégories retirées et la restauration.
+
+- **177 301 fichiers / 2 963 812 640 octets** retirés : caches, builds de ports,
+  trois anciennes sorties `output.bak`, temporaires des tests filesystem,
+  métadonnées Finder, classe compilée isolée et sauvegarde Java identifiée.
+- **13 738 suppressions suivies** confrontées au manifeste : chaque retrait Git
+  appartient à l'inventaire archivé. Les modifications restantes portent sur
+  les règles Git et la documentation de ce nettoyage.
+- Archive gzip de **330 039 644 octets**, relue intégralement avant retrait avec
+  SHA-256 de chaque fichier et contrôle des liens/modes. Une seconde lecture des
+  artefacts confirme leur identité avant suppression. Les empreintes des autres
+  fichiers, dont les sources et les 2 408 fichiers du build actif, sont préservées.
+- `./bin/javapurs --help` : **code 0**, launcher opérationnel après suppression
+  des caches locaux.
+- `node test/ffi-ports.mjs` : recompilation dans un temporaire avec le `purs` M15,
+  Spago **1.0.3**, JDK **26.0.2**, cible **17** ; **17 assertions × 2 modes**,
+  sélection FFI locale/registre et exécution JVM réussies. Les 261 cibles du
+  nettoyage restent absentes dans les checkouts après ce test.
+- Règles Git : **499 sondes d'artefacts ignorés** et **300 sondes de sources
+  visibles** sur les 50 dépôts, avec exclusions globales désactivées ; règles
+  correspondantes présentes dans les cinq packages locaux. `git diff --check`
+  contrôlé sur les 50 dépôts ; liens/ancres et exemples shell vérifiés par
+  `node tools/check-docs.mjs`.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-cleanup-628j912y/`,
+fichiers `inventory.json`, `manifest.json`, `preserved-before.json`,
+`retired-artifacts.tar.gz`, `summary.json`, `categories.json`, `cleanup.log`,
+`ffi-ports.log`, `ignore-checks.json`, `status-after-cleanup.json` et `checks.json`.
+Ce nettoyage ne change pas les scores des plans ni les clôtures M17/M18.

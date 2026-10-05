@@ -5,3 +5,11 @@
 # Disposable REPL build and Finder metadata.
 /.psci_modules/
 .DS_Store
+
+# Rebuildable dependencies and application/test artifacts.
+.spago/
+.purmeta/
+java_output/
+classes/
+*.class
+*.java.bak
