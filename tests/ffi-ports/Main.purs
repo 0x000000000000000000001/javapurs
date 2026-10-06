@@ -4,11 +4,14 @@ import Prelude
 import Control.Parallel (parallel, sequential)
 import Control.Alt ((<|>))
 import Data.Either (Either(..))
+import Data.Maybe (Maybe(..))
+import Data.String.CodeUnits as String
 import Effect (Effect)
 import Effect.Aff (Aff, Canceler(..), attempt, bracket, error, forkAff, joinFiber, killFiber, makeAff, never, supervise, throwError)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Effect.Exception (message, throw)
+import Effect.Exception as Exception
 import Effect.Ref as Ref
 import Promise as Promise
 import Promise.Aff as Bridge
@@ -21,6 +24,9 @@ foreign import newGate :: Effect Gate
 foreign import signal :: Gate -> Effect Unit
 foreign import wait :: Gate -> Effect Unit
 foreign import awaitAff :: Aff Unit -> Effect Unit
+foreign import nativeError :: Exception.Error
+foreign import sameError :: Exception.Error -> Exception.Error -> Boolean
+foreign import causeIs :: Exception.Error -> Exception.Error -> Boolean
 
 check :: forall a. Eq a => Show a => String -> a -> a -> Aff Unit
 check label expected actual = liftEffect do
@@ -46,6 +52,32 @@ deferred = do
 
 checks :: Aff Unit
 checks = do
+  let
+    inner = error "inner"
+    outer = Exception.errorWithCause "outer" inner
+    named = Exception.errorWithName "message" "CustomError"
+  check "Exception constructors"
+    [ { name: "Error", message: "inner" }, { name: "Error", message: "outer" }, { name: "CustomError", message: "message" } ]
+    (map (\e -> { name: Exception.name e, message: message e }) [ inner, outer, named ])
+  check "Exception empty name" "Error" (Exception.name (Exception.errorWithName "message" ""))
+  check "Exception show header" "CustomError: message" (String.take 20 (show named))
+  check "Exception stack" (Just (show named)) (Exception.stack named)
+  check "Exception cause identity" true (causeIs outer inner)
+  caught <- liftEffect $ Exception.try (Exception.throwException nativeError :: Effect Unit)
+  check "Exception catch identity" true (case caught of
+    Left failure -> sameError nativeError failure
+    Right _ -> false)
+  lifted <- attempt $ liftEffect (Exception.throwException nativeError :: Effect Unit)
+  check "Exception Aff identity" true (case lifted of
+    Left failure -> sameError nativeError failure
+    Right _ -> false)
+  rejectedError <- liftEffect $ Promise.then_
+    (\_ -> Exception.throwException nativeError :: Effect (Promise.Promise Int)) (Promise.resolve 1)
+  bridged <- attempt $ Bridge.toAff rejectedError
+  check "Exception Promise/Aff identity" true (case bridged of
+    Left failure -> sameError nativeError failure
+    Right _ -> false)
+
   cell <- liftEffect $ Ref.new 0
   previous <- liftEffect $ Ref.modify' (\n -> { state: n + 1, value: n }) cell
   check "Ref.modify result" 0 previous
@@ -146,7 +178,7 @@ checks = do
     n <- Lazy.new (\resolve _ -> resolve 30)
     pure (n + 1)
   check "Promise.Lazy" 31 lazyValue
-  liftEffect $ log "FFI ports: 17 PureScript contract checks passed"
+  liftEffect $ log "FFI ports: 25 PureScript contract checks passed"
 
 main :: Effect Unit
 main = awaitAff checks

@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import { compilerRoot, prepareWorkspace, runFixture } from "../tools/fixture-runner.mjs";
 import { resolveJavaTools } from "../tools/java-tools.mjs";
+import { requireExecutable } from "../tools/source-tools.mjs";
 import { Interrupted, TestProcesses } from "../tools/test-process.mjs";
 import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 
@@ -10,22 +11,41 @@ import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 // Main.awaitAff keeps the process alive and propagates asynchronous failures.
 assert.equal(process.argv.length, 2, "ffi-ports.mjs accepts no options");
 const tools = resolveJavaTools();
+const jar = requireExecutable(join(dirname(tools.javac), "jar"));
 const processes = new TestProcesses();
 try {
   await withTemporaryDirectory("javapurs-ffi-ports-", async directory => {
     prepareWorkspace(compilerRoot, directory);
     const configPath = join(directory, "spago.yaml");
-    let config = readFileSync(configPath, "utf8").replace("  dependencies:\n", "  dependencies:\n    - aff\n    - js-promise\n    - js-promise-aff\n    - either\n    - parallel\n");
+    let config = readFileSync(configPath, "utf8").replace("  dependencies:\n", "  dependencies:\n    - aff\n    - js-promise\n    - js-promise-aff\n    - either\n    - maybe\n    - parallel\n");
     for (const [name, port] of [["aff", "javapurs-aff"], ["js-promise", "javapurs-js-promise"], ["js-promise-aff", "javapurs-js-promise-aff"], ["foreign", "javapurs-foreign"]]) {
       config += `    ${name}:\n      path: ${JSON.stringify(resolve(compilerRoot, "..", port))}\n`;
     }
     writeFileSync(configPath, config);
     await runFixture({ directory, tools, processes,
       fixture: { name: "FfiPorts", source: join(compilerRoot, "tests/ffi-ports/Main.purs") } });
-    assert.match(readFileSync(join(directory, "logs/FfiPorts/execution.log"), "utf8"), /FFI ports: 17 PureScript contract checks passed/);
+    const assertCompleted = path => {
+      const lines = readFileSync(path, "utf8").split(/\r?\n/);
+      assert.equal(lines.filter(line => line === "FFI ports: 25 PureScript contract checks passed").length, 1);
+      assert.equal(lines.filter(line => line.startsWith("FFI: ")).length, 25);
+    };
+    assertCompleted(join(directory, "logs/FfiPorts/execution.log"));
+    const checkJar = async (mode, classes) => {
+      const delivery = join(directory, "delivery-" + mode); mkdirSync(delivery);
+      await processes.run(`FfiPorts ${mode}: jar`, jar,
+        ["--create", "--file", "app.jar", "--main-class", "MainRun", "-C", join(directory, classes), "."],
+        { cwd: delivery, env: tools.env, log: join(directory, `logs/${mode}-jar-build.log`), timeout: 30000 });
+      assert.deepEqual(readdirSync(delivery), ["app.jar"]);
+      const log = join(directory, `logs/${mode}-jar-execution.log`);
+      await processes.run(`FfiPorts ${mode}: standalone JAR`, tools.java, ["-jar", "app.jar"],
+        { cwd: delivery, env: { ...tools.env, PATH: dirname(tools.java), CLASSPATH: "" }, log, timeout: 30000 });
+      assertCompleted(log);
+    };
+    await checkJar("typed", "classes");
     const report = destination => JSON.parse(readFileSync(join(directory, destination, ".javapurs-manifest.json"))).ffi.modules;
     const typed = report("java_output");
-    for (const [moduleName, fragment] of [["Effect.Aff", "javapurs-aff/src/Effect/Aff.java"],
+    for (const [moduleName, fragment] of [["Effect.Exception", "javapurs-exceptions/src/Effect/Exception.java"],
+      ["Effect.Aff", "javapurs-aff/src/Effect/Aff.java"],
       ["Effect.Ref", "javapurs-refs/src/Effect/Ref.java"], ["Promise.Internal", "javapurs-js-promise/src/Promise/Internal.java"],
       ["Foreign", "javapurs-foreign/src/Foreign.java"]]) {
       const entry = typed.find(entry => entry.moduleName === moduleName);
@@ -45,7 +65,8 @@ try {
     assert.deepEqual(report("java_output"), typed, "FFI selection and declarations do not depend on record representation");
     await run("javac", tools.javac, [...tools.javacArgs, "-d", "classes-maps", "-sourcepath", "java_output", "java_output/MainRun.java"]);
     await run("execution", tools.java, ["-cp", "classes-maps", "MainRun"]);
-    assert.match(readFileSync(join(logs, "execution.log"), "utf8"), /FFI ports: 17 PureScript contract checks passed/);
+    assertCompleted(join(logs, "execution.log"));
+    await checkJar("maps", "classes-maps");
     // Reproduce the transitive-selection mistake with a real registry package.
     // Its declarations exist, but its Java fragment is absent; the report must
     // identify that source instead of treating the local port as selected.
@@ -59,7 +80,7 @@ try {
     assert.equal(foreign.moduleSource.origin, "spago");
     assert.match(foreign.moduleSource.path, /\/\.spago\/p\/foreign-[^/]+\/src\/Foreign.purs$/);
     assert.ok(foreign.bindings.some(binding => binding.name === "tagOf"));
-    console.log("FFI port integration: typed records and Maps passed; local/registry Foreign selection diagnosed");
+    console.log("FFI port integration: 25 checks × typed records/Maps × classes/JAR passed; local/registry Foreign selection diagnosed");
   });
 } catch (error) {
   if (error instanceof Interrupted) process.exitCode = error.exitCode;

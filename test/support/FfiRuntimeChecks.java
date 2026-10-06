@@ -40,6 +40,116 @@ public final class FfiRuntimeChecks {
     }
     static Object result(FutureTask<Object> task) throws Exception { return task.get(3, TimeUnit.SECONDS); }
 
+    static Object caught(Object action) {
+        return effect(call(__M$Effect_Exception.catchException,
+            (Function<Object, Object>) error -> (Supplier<Object>) () -> error, action));
+    }
+    static Throwable thrownBy(Supplier<Object> action) {
+        try { action.get(); } catch (Throwable error) { return error; }
+        throw new AssertionError("action did not throw");
+    }
+    static String header(Throwable error) { return error.toString(); }
+    static void exceptions() {
+        test("Exception ordinary Error properties", () -> {
+            var error = (Throwable) call(__M$Effect_Exception.error, "message");
+            equal("Error", call(__M$Effect_Exception.name, error));
+            equal("message", call(__M$Effect_Exception.message, error));
+            equal("Error: message", header(error));
+        });
+        test("Exception cause name and identity", () -> {
+            var cause = (Throwable) call(__M$Effect_Exception.error, "inner");
+            var error = (Throwable) call(__M$Effect_Exception.errorWithCause, "outer", cause);
+            equal("Error", call(__M$Effect_Exception.name, error));
+            equal("outer", call(__M$Effect_Exception.message, error));
+            equal(true, error.getCause() == cause);
+            equal("Error: outer", header(error));
+            equal(true, ((String) call(__M$Effect_Exception.showErrorImpl, error)).contains("Caused by: Error: inner"));
+        });
+        test("Exception named Error header", () -> {
+            var error = (Throwable) call(__M$Effect_Exception.errorWithName, "échec", "CustomError");
+            equal("CustomError", call(__M$Effect_Exception.name, error));
+            equal("échec", call(__M$Effect_Exception.message, error));
+            equal("CustomError: échec", header(error));
+        });
+        test("Exception empty names and messages", () -> {
+            for (String[] value : new String[][]{{"message", "", "message"}, {"", "CustomError", "CustomError"}, {"", "", ""}}) {
+                var error = (Throwable) call(__M$Effect_Exception.errorWithName, value[0], value[1]);
+                equal(value[1].isEmpty() ? "Error" : value[1], call(__M$Effect_Exception.name, error));
+                equal(value[2], header(error));
+            }
+            equal("Error", header((Throwable) call(__M$Effect_Exception.error, "")));
+        });
+        test("Exception native properties stay usable", () -> {
+            equal("IOException", call(__M$Effect_Exception.name, new java.io.IOException()));
+            equal("", call(__M$Effect_Exception.message, new java.io.IOException()));
+            equal("Error", call(__M$Effect_Exception.name, new RuntimeException() {}));
+        });
+        test("Exception show and stack retain native details", () -> {
+            var error = (Throwable) call(__M$Effect_Exception.errorWithName, "trace", "TraceError");
+            error.addSuppressed(new IllegalStateException("suppressed"));
+            Object stack = call(__M$Effect_Exception.stackImpl, (Function<Object, Object>) value -> value, null, error);
+            equal(stack, call(__M$Effect_Exception.showErrorImpl, error));
+            equal("TraceError: trace", ((String) stack).lines().findFirst().orElseThrow());
+            equal(true, ((String) stack).contains("Suppressed: java.lang.IllegalStateException: suppressed"));
+        });
+        test("Exception throwing is deferred, repeatable and identity preserving", () -> {
+            for (Throwable error : new Throwable[]{(Throwable) call(__M$Effect_Exception.error, "error"),
+                new IllegalArgumentException("runtime"), new java.io.IOException("checked"), new AssertionError("fatal")}) {
+                Object action = call(__M$Effect_Exception.throwException, error);
+                equal(true, thrownBy(() -> effect(action)) == error);
+                equal(true, thrownBy(() -> effect(action)) == error);
+                equal(true, caught(action) == error);
+            }
+        });
+        test("Exception catch is deferred and leaves success untouched", () -> {
+            AtomicInteger actions = new AtomicInteger(), handlers = new AtomicInteger();
+            Object action = call(__M$Effect_Exception.catchException,
+                (Function<Object, Object>) error -> { handlers.incrementAndGet(); throw new AssertionError("unexpected handler"); },
+                (Supplier<Object>) () -> { actions.incrementAndGet(); return null; });
+            equal(0, actions.get()); equal(0, handlers.get());
+            equal(null, effect(action)); equal(null, effect(action));
+            equal(2, actions.get()); equal(0, handlers.get());
+            Object result = new Object(); equal(true, caught((Supplier<Object>) () -> result) == result);
+        });
+        test("Exception handler applies and forces once", () -> {
+            RuntimeException error = new RuntimeException("body");
+            AtomicInteger actions = new AtomicInteger(), handlers = new AtomicInteger(), effects = new AtomicInteger();
+            Object action = call(__M$Effect_Exception.catchException,
+                (Function<Object, Object>) value -> { equal(true, value == error); handlers.incrementAndGet();
+                    return (Supplier<Object>) () -> { effects.incrementAndGet(); return 42; }; },
+                (Supplier<Object>) () -> { actions.incrementAndGet(); throw error; });
+            equal(0, actions.get()); equal(0, handlers.get()); equal(0, effects.get());
+            equal(42, effect(action)); equal(1, actions.get()); equal(1, handlers.get()); equal(1, effects.get());
+        });
+        test("Exception catch accepts native Error without wrapping", () -> {
+            AssertionError error = new AssertionError("native");
+            equal(true, caught((Supplier<Object>) () -> { throw error; }) == error);
+        });
+        test("Exception handler application failure escapes once", () -> {
+            RuntimeException error = new RuntimeException("handler application"); AtomicInteger handlers = new AtomicInteger();
+            Object action = call(__M$Effect_Exception.catchException,
+                (Function<Object, Object>) value -> { handlers.incrementAndGet(); throw error; },
+                call(__M$Effect_Exception.throwException, new RuntimeException("body")));
+            equal(true, thrownBy(() -> effect(action)) == error); equal(1, handlers.get());
+        });
+        test("Exception handler effect failure escapes once", () -> {
+            java.io.IOException error = new java.io.IOException("handler effect"); AtomicInteger handlers = new AtomicInteger();
+            Object action = call(__M$Effect_Exception.catchException,
+                (Function<Object, Object>) value -> { handlers.incrementAndGet(); return call(__M$Effect_Exception.throwException, error); },
+                call(__M$Effect_Exception.throwException, new RuntimeException("body")));
+            equal(true, thrownBy(() -> effect(action)) == error); equal(1, handlers.get());
+        });
+        test("Exception identity crosses lifted Aff and Promise handlers", () -> {
+            for (Throwable error : new Throwable[]{new java.io.IOException("checked"), new AssertionError("fatal")}) {
+                Object action = call(__M$Effect_Exception.throwException, error);
+                equal(true, run(call(__M$Effect_Aff._catchError, lifted((Supplier<Object>) action),
+                    (Function<Object, Object>) value -> pure(value))) == error);
+                var promise = then(resolved(1), ignored -> action);
+                equal(true, promise.failed); equal(true, promise.rejection == error);
+            }
+        });
+    }
+
     static void refs() {
         test("Ref allocation/evaluation/identity", () -> {
             Object action = call(__M$Effect_Ref._new, 1);
@@ -362,7 +472,7 @@ public final class FfiRuntimeChecks {
     }
 
     public static void main(String[] args) {
-        switch (args[0]) { case "refs": refs(); break; case "promise": promise(); break; case "aff": aff(); break; default: throw new AssertionError(args[0]); }
+        switch (args[0]) { case "exceptions": exceptions(); break; case "refs": refs(); break; case "promise": promise(); break; case "aff": aff(); break; default: throw new AssertionError(args[0]); }
         if (failures != 0) throw new AssertionError(args[0] + ": " + failures + " failures, " + checks + " passed");
         System.out.println(args[0] + ": " + checks + " runtime protocol checks passed");
     }

@@ -1,3 +1,9 @@
+    public static Object nativeError = new java.io.IOException("native checked exception");
+    public static Object sameError = (java.util.function.Function<Object, Object>) first ->
+        (java.util.function.Function<Object, Object>) second -> first == second;
+    public static Object causeIs = (java.util.function.Function<Object, Object>) error ->
+        (java.util.function.Function<Object, Object>) cause -> ((Throwable) error).getCause() == cause;
+
     // Test-only lifecycle boundary: failure and missing completion are process
     // failures, even though the production Aff fibers are daemon threads.
     public static Object awaitAff = (java.util.function.Function<Object, Object>) aff ->

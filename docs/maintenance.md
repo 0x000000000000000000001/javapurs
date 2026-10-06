@@ -1,6 +1,6 @@
 # Reprise et entretien du dépôt
 
-État documenté au **5 octobre 2026**, complété jusqu'au lot supplémentaire M18.
+État documenté au **5 octobre 2026**, complété jusqu'au lot supplémentaire M19.
 Cette page donne le parcours de reprise, le statut des artefacts et les points
 encore ouverts. Les [preuves par lot](testing.md#consigner-une-validation)
 conservent leurs dates, versions et périmètres d'origine.
@@ -21,7 +21,7 @@ conservent leurs dates, versions et périmètres d'origine.
     | Appel de `main`, valeurs non exécutables et erreurs JVM | [Contrat du launcher](compiler.md#6-compilation-et-exécution-java) et [suites classes/JAR](testing.md#entrée-jvm-et-jar) |
    | Admission/refus des optimisations | [Passes spécialisées](specialized-passes.md) |
    | Corps Java et frontières Supplier | [Rendu](printing.md) |
-   | Callbacks, fibres, références, promesses | [FFI et runtimes](ffi-runtime.md) |
+    | Exceptions, callbacks, fibres, références, promesses | [FFI et runtimes](ffi-runtime.md), dont le [contrat Throwable](ffi-runtime.md#exceptions) |
    | FFI choisie, bindings et couverture | [Relevé de génération](ffi-runtime.md#relevé-de-la-génération) |
     | CLI, inventaire Java et récupération | [Pilote et sorties](compiler.md#cycle-de-vie-des-sorties-java) |
     | Références source, prérequis et JAR autonome | [Installation](installation.md) |
@@ -40,7 +40,7 @@ conservent leurs dates, versions et périmètres d'origine.
 Le vérificateur utilise Node et Bash. Il retrouve le dépôt depuis son propre
 chemin ; les liens locaux supposent le layout des dépôts voisins décrit dans
 `compiler.md`. Il contrôle les liens/ancres Markdown des guides, du README, du
-TODO et des quatre README de ports M10, la syntaxe des exemples shell, les suites
+TODO et des cinq README de ports couverts en M10/M19, la syntaxe des exemples shell, les suites
 de la matrice, les options de `Config`, le score du plan actif et les preuves de
 ses lots cochés, y compris les lots complémentaires hors score. Le nombre de lots
 pondérés est lu dans le TODO. Il ne lance pas les
@@ -79,7 +79,7 @@ Il ne signale pas un dispatcher manquant à remplacer par une spécialisation.
 | `tools/source-lock.json`, `tools/install-source.mjs`, `examples/` | Références Git compatibles, export/reconstruction source isolée et exemples Hello/Refs. `installation.json`, logs, builds et JAR sont créés dans le workspace explicitement choisi. |
 | `test/`, `tests/ffi-ports/`, `tests/port-suites/`, `tests/ffi/`, `tests/passing/` | Sources des régressions et surcharges. Les fixtures FFI/ports restent hors de `test/**/*.purs`, glob du build du backend. |
 | `tests/runner/spago.yaml`, `spago.lock` | Configuration persistante du runner ; le YAML sert aussi aux workspaces isolés. |
-| `output/` du compilateur | Build JavaScript/externs **suivi dans Git** ; `bin/javapurs.js` charge `output/Main/index.js`. Il est régénéré par `./bin/build` après changement des sources. |
+| `output/` du compilateur | Modules JavaScript, FFI, source maps et `package.json` **suivis dans Git** ; `bin/javapurs.js` charge `output/Main/index.js`. Les métadonnées `corefn.json`, `docs.json`, `externs.cbor` et `cache-db.json` sont régénérables, retirées du checkout et ignorées. `./bin/build` reconstruit le tout après changement des sources. |
 | `.spago/` | Dépendances et état Spago régénérables, désormais ignorés. Les copies locales, y compris les anciennes copies suivies du compilateur, ont été retirées lors du nettoyage après M18. |
 | `.purs-repl` | Configuration persistante du REPL (`import Prelude`). |
 | `.psci_modules/` | Ancien build REPL retiré lors du nettoyage demandé pendant M13 ; régénérable par le REPL et désormais ignoré. Le launcher du compilateur charge `output/`. |
@@ -144,7 +144,7 @@ historique, avec ses propres dépendances et son format d'entrée.
 - **`logs/modtest/PORT.log`** : sortie du runner historique des ports, écrasée au
   prochain run de ce port. Les campagnes agrégées restent hors du protocole du plan.
 - **Temporaires des suites** : supprimés au succès et conservés à l'échec. Les
-   captures avant/après et dossiers `javapurs-m01` à `javapurs-m18` cités dans le
+   captures avant/après et dossiers `javapurs-m01` à `javapurs-m19` cités dans le
   registre sont des preuves **locales**, pas des artefacts distribués avec le dépôt.
   Leur durée de conservation dépend du disque temporaire ; pour transmettre un
   incident, joindre sources/empreintes, configuration, commande et logs utiles.
@@ -220,7 +220,7 @@ d'entrée :
 
 | Sujet | Point d'entrée pour une suite de travail |
 | --- | --- |
-| Couverture FFI des bibliothèques et JAR applicatifs | Vérifier les chemins réellement exécutés par port ; [contrat FFI](ffi-runtime.md#résolution-et-insertion). |
+| Couverture FFI des bibliothèques et JAR applicatifs | M19 couvre [Exceptions](ffi-runtime.md#exceptions) et l'intégration en classes/JAR sur JVM 17/26 ; poursuivre port par port selon les chemins réellement exécutés. [Contrat FFI](ffi-runtime.md#résolution-et-insertion). |
 | Scheduler Aff et interopérabilité asynchrone | Threads daemon ordinaires, annulation coopérative ; [durées de vie](ffi-runtime.md#supervision-parallèle-et-processus). |
 | Sémantique JS des promesses | Réactions eager sans microtasks, sans désabonnement Promise ; [contrat Promise](ffi-runtime.md#promesses). |
 | Distribution et extension de la compatibilité | [Installation source](installation.md) et [matrice ciblée JDK 17/26](testing.md#validation-m16) livrées ; les autres plateformes, API de ports et modes de distribution restent à mesurer. Le versionnement actuel des caches/builds reste un choix à traiter séparément. |
@@ -243,3 +243,8 @@ Le complément **M18 est clôturé** : une valeur `main` non exécutable produit
 échec JVM explicite ; les deux ABI valides et les exceptions de l'action sont
 vérifiées en classes et JAR sur JVM 26/17. Les [preuves](testing.md#validation-m18)
 limitent les écarts Java des références figées à la branche de contrôle des launchers.
+
+Le complément **M19 est clôturé** : noms/en-têtes/causes cohérents et identité
+Throwable préservée, y compris via Aff/Promise. Les [preuves](testing.md#validation-m19)
+incluent les JAR autonomes dans les deux modes records et les JVM 26/17 ; la
+comparaison Java sur TAST figé isole le seul fragment Exceptions corrigé.

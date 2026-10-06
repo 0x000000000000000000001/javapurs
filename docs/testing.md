@@ -15,7 +15,7 @@ depuis le dépôt du compilateur `htdocs/javapurs/javapurs`, sauf indication con
 | Outillage `test/test-tools.mjs` | Petit corpus et commandes simulés ; sélection, fichiers, processus et interruption. Node suffit. |
 | Installation source | `test/source-install.mjs` vérifie les frontières de build/installateur ; `tools/install-source.mjs` reconstruit le fork et le backend puis exécute Hello/Refs en classes et JAR dans un workspace neuf. |
 | Fixture PureScript nommée | `bin/test NOM` réalise Spago → Javapurs → `javac` → `MainRun` dans `tests/runner`. |
-| Protocoles des ports Java | `test/ffi-runtimes.mjs` compile les vrais fragments ; `test/ffi-ports.mjs` attend l'intégration PureScript réelle dans deux modes de records. Les quatre ports proposent `bin/test-runtime`. |
+| Protocoles des ports Java | `test/ffi-runtimes.mjs` compile les vrais fragments ; `test/ffi-ports.mjs` attend l'intégration PureScript réelle dans deux modes de records, en classes/JAR. Les cinq ports proposent `bin/test-runtime`. |
 | Suite d'un port | Les `bin/test` Aff/Promise/Promise-Aff délèguent à `test/port-runners.mjs` : workspace isolé, suite attendue et sondes d'échec. Les autres ports gardent leur runner propre. |
 | Documentation/outillage | `tools/check-docs.mjs` contrôle liens/ancres, exemples shell, matrice/options et score ; les suites d'outillage vérifient les contrats des processus modifiés. |
 
@@ -87,7 +87,7 @@ une erreur. La JVM croisée passe par `JAVAPURS_JAVA_RUNTIME`, pas par une paire
 `JAVAC`/`JAVA` dépareillée. Les enfants gardent cette paire de build et l'override
 séparé ; le dossier du JDK de build reste sur `PATH`. Les anciens scripts de ports
 qui appellent directement `javac`/`java` ne lisent pas les variables `JAVAPURS_*`.
-Les launchers Node Aff/Promise/Promise-Aff et les quatre `test-runtime` les prennent
+Les launchers Node Aff/Promise/Promise-Aff et les cinq `test-runtime` les prennent
 en compte par leurs suites déléguées.
 
 `javaCompileArgs` rejette les options concurrentes `--release`, `--source`/
@@ -162,8 +162,8 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Launcher JVM et résultat du processus | [test/entrypoint.mjs](../test/entrypoint.mjs) | 10 variantes × classes/JAR : 6 succès et 14 échecs JVM attendus ; entier/null/objet non callable, priorité Supplier, argument null, appel unique, erreurs d'action/initialisation/stub ; backend construit, `purs` TAST et JDK avec `jar`. |
 | Propriété, publication et récupération Java | [test/output-files.mjs](../test/output-files.mjs) | 9 groupes Node : fichiers étrangers/modifiés, adoption, staging, six erreurs de renommage, ordre du launcher, `SIGKILL` à trois étapes, conflits de reprise, métadonnées et symlinks ; pas de build ni JDK. |
 | Résolution, relevé et diagnostics FFI | [test/ffi-diagnostics.mjs](../test/ffi-diagnostics.mjs) | Huit modules, trois sélections adjacente/replis, huit erreurs JVM par binding, fragments incomplets/espaces et erreur de lecture ; backend construit, `purs` TAST, JDK, cible Java 17. |
-| Ref, Promise et Aff Java | [test/ffi-runtimes.mjs](../test/ffi-runtimes.mjs) | 36 contrôles directs : effets différés, écritures concurrentes, règlement/adoption, exceptions, désabonnement, annulation, bracket, supervision et parallèle ; vrais fragments, shim Either, Node/JDK et trois ports voisins. |
-| API PureScript des ports et pont Promise/Aff | [test/ffi-ports.mjs](../test/ffi-ports.mjs) | 17 assertions dans chacun des modes records typés/Maps, mêmes TAST ; attente de la fibre et échec JVM vérifiés. Relevé identique entre modes, fragments locaux identifiés, troisième génération avec `foreign` du registre pour diagnostiquer l'absence Java. Backend construit, Spago, `purs` TAST et ports locaux. |
+| Exceptions, Ref, Promise et Aff Java | [test/ffi-runtimes.mjs](../test/ffi-runtimes.mjs) | 49 contrôles directs : noms/traces/causes, identité Throwable, effets différés, écritures concurrentes, règlement/adoption, désabonnement, annulation, bracket, supervision et parallèle ; vrais fragments, référence JS Exceptions, shim Either, Node/JDK et quatre ports voisins. |
+| API PureScript des ports et pont Promise/Aff | [test/ffi-ports.mjs](../test/ffi-ports.mjs) | 25 assertions × records typés/Maps × classes/JAR, mêmes TAST ; attente de la fibre, inventaire et marqueur final vérifiés. Relevé identique entre modes, fragments locaux identifiés, troisième génération avec `foreign` du registre pour diagnostiquer l'absence Java. Backend construit, Spago, `purs` TAST, ports locaux et JDK avec `jar`. |
 | Complétion des suites asynchrones des ports | [test/port-runners.mjs](../test/port-runners.mjs) | Sélection `--port=aff\|promise\|promise-aff` ; 45/13/7 contrôles de suite, marqueur final et quatre sondes négatives par port. Workspaces isolés, backend construit, Spago/`purs` TAST, ports locaux et JDK ; Java 17. |
 | Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | Prépare et exécute BigFunction dans un workspace temporaire isolé, puis réalise 155 contrôles de `f`. |
 | Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 13 tests Node : sélection et absence d'effets, JDK/cible/runtime séparés, combinaisons invalides, conflit de cible avant nettoyage, préparation/FFI, logs, timeout et signaux aux descendants. |
@@ -594,6 +594,7 @@ Pour les [contrats runtime](ffi-runtime.md), depuis ce dépôt :
 node test/ffi-diagnostics.mjs
 node test/ffi-runtimes.mjs
 node test/ffi-runtimes.mjs --port=aff
+node test/ffi-runtimes.mjs --port=exceptions
 node test/ffi-ports.mjs
 ```
 
@@ -606,34 +607,40 @@ un fichier absent puis vide. Un fragment incomplet et un fragment d'espaces sont
 `provided`/`not-checked` : leur compilation seule réussit, celle d'un consommateur
 du binding omis échoue. Une erreur de lecture laisse le précédent rapport intact.
 
-`ffi-runtimes.mjs` compile un harness partagé et les fragments réels Aff, Ref,
-Promise avec `javac --release 17`, puis choisit les protocoles à exécuter.
-`--port=refs|promise|aff` sélectionne un groupe ; `--ports-root CHEMIN` sélectionne
-le dossier contenant les trois checkouts, utile pour une comparaison sauvegardée.
-Il utilise **4** contrôles Ref (dont 2 000 mises à jour entre quatre threads),
-**14** Promise et **18** Aff. Les barrières imposent les interleavings, avec des
+`ffi-runtimes.mjs` compile un harness partagé et les fragments réels Exceptions,
+Aff, Ref, Promise avec `javac --release 17`, puis choisit les protocoles à exécuter.
+`--port=exceptions|refs|promise|aff` sélectionne un groupe ; `--ports-root CHEMIN`
+sélectionne le dossier contenant les quatre checkouts, utile pour une comparaison
+sauvegardée. Il utilise **13** contrôles Exceptions, **4** Ref (dont 2 000 mises à
+jour entre quatre threads), **14** Promise et **18** Aff. Le groupe Exceptions
+vérifie aussi la référence JS pour les noms, en-têtes, causes et identités ; les
+protocoles JVM couvrent exceptions vérifiées et `java.lang.Error`, erreurs de
+handler et passage via Aff/Promise. Les barrières imposent les interleavings, avec des
 timeouts d'échec. Deux chaînes de 20 000 étapes vérifient les trampolines avec
 `-Xss512k`. Il ne dépend pas du build JavaScript du backend.
 
 `ffi-ports.mjs` prépare un workspace isolé depuis le template du runner et ajoute
 les ports Aff, Promise, Promise/Aff et Foreign. Ref et les dépendances communes
-viennent du template. Il exécute les vrais modules PureScript/ADT avec **17**
-assertions : Ref, joins réutilisés, bracket, annulation, supervision, course Unit,
+viennent du template. Il exécute les vrais modules PureScript/ADT avec **25**
+assertions : Exceptions (constructeurs, noms, traces, causes, identité via
+catch/Aff/Promise), Ref, joins réutilisés, bracket, annulation, supervision, course Unit,
 pont et erreurs, `all`, `race`, `finally`, exception de handler et Promise.Lazy.
 La seconde génération réutilise les mêmes TAST avec `--records=maps` ; les deux
-compilations ciblent Java 17. Le helper `Main.awaitAff` attend la fibre racine,
-propage son erreur et borne une absence de complétion ; le script exige aussi
-le marqueur final. Aucune option CLI n'est acceptée.
+compilations ciblent Java 17. Chaque mode est exécuté en classes puis depuis un
+dossier ne contenant que `app.jar`, avec le dossier JVM seul sur `PATH` et sans
+`CLASSPATH` externe. Le helper `Main.awaitAff` attend la fibre racine, propage son
+erreur et borne une absence de complétion ; le script exige aussi les 25 lignes
+d'assertions et un marqueur final unique. Aucune option CLI n'est acceptée.
 
 Le relevé `ffi` des deux modes est identique et nomme les vrais fragments locaux
-Aff/Ref/Promise/Foreign. Une troisième préparation Spago retire l'override
+Exceptions/Aff/Ref/Promise/Foreign. Une troisième préparation Spago retire l'override
 `foreign` et génère dans `java-registry` : son entrée `Foreign` doit être `missing`
 et nommer `.spago/p/foreign-…/src/Foreign.purs`. Cette sonde de sélection ne lance
 pas une fibre susceptible d'attendre une conversion absente. Les dépendances et
 labels de couverture sont détaillés dans la
-[table des quatre ports](ffi-runtime.md#couverture-exécutée-et-dépendances-des-quatre-ports).
+[table des ports](ffi-runtime.md#couverture-exécutée-et-dépendances-des-ports).
 
-Les launchers `../javapurs-{refs,aff,js-promise}/bin/test-runtime` délèguent au
+Les launchers `../javapurs-{exceptions,refs,aff,js-promise}/bin/test-runtime` délèguent au
 groupe direct correspondant ; `../javapurs-js-promise-aff/bin/test-runtime`
 lance l'intégration. Ils retrouvent les scripts depuis leur propre chemin et
 acceptent les mêmes arguments que leur cible. Les temporaires sont supprimés
@@ -2386,3 +2393,83 @@ fichiers `inventory.json`, `manifest.json`, `preserved-before.json`,
 `retired-artifacts.tar.gz`, `summary.json`, `categories.json`, `cleanup.log`,
 `ffi-ports.log`, `ignore-checks.json`, `status-after-cleanup.json` et `checks.json`.
 Ce nettoyage ne change pas les scores des plans ni les clôtures M17/M18.
+
+## Validation M19
+
+**5 octobre 2026 — contrat FFI des exceptions et JAR d'intégration ; lot complémentaire.**
+
+### Constat et références
+
+Avant correction, le nouveau groupe Exceptions donne **9 échecs / 4 réussites** :
+`errorWithCause` est nommé `RuntimeException`, les en-têtes affichent la classe
+interne Java au lieu du nom de l'erreur, `name` retourne une chaîne vide et un
+message natif absent retourne `null`. Le wrapper de `throwException` change
+l'identité des exceptions vérifiées et des `java.lang.Error`, y compris via les
+handlers, Aff et Promise. La référence JS des noms/en-têtes/causes/identités réussit.
+L'intégration PureScript échoue également avec **code JVM 1** sur le nom de
+`errorWithCause` ; les deux reproductions sont conservées.
+
+Références au départ, checkouts propres :
+
+| Composant | Révision |
+| --- | --- |
+| Javapurs | `d708180cc466fcc6c8be1a0f6a3b08e3d8373944` |
+| Exceptions | `2cae23930c5f354833a801dc01b37747b04a1546` |
+| Aff | `a2497e553efb4416287210332e4fe99e8efd161e` |
+| Promise | `669f30715449c521cee990400eb4d7463461833e` |
+| Promise/Aff | `debf430c6d2789a709d8f70f4415ce08d4a23db8` |
+
+Outils : Node **24.8.0**, Spago **1.0.3**, binaire `purs` reconstruit en M15
+annonçant **`b4a7fb1ca78eeb10b847558af0fcbeab06fa5c16`** sans marqueur `DIRTY`,
+SHA-256 **`b0cbba14f64305d70ddfa111a8d9b8907df88cdb4d57159a4805574c5637b549`**.
+PBO relevé propre à **`157a544f0a469c7b0137a3fca66e626d717db493`** ; fork propre
+au même `b4a7fb1…`. JDK Homebrew **26.0.2** et Temurin **17.0.20.1+1**, macOS arm64.
+
+### Livrables et contrôles ciblés
+
+- [Effect/Exception.java](../../javapurs-exceptions/src/Effect/Exception.java) :
+  `Error` pour les deux constructeurs ordinaires/avec cause, `NamedError` héritant
+  du même en-tête JS ; propriétés sans nom/message utilisables et relance générique
+  sans wrapper. Le [contrat](ffi-runtime.md#exceptions) distingue le nom retourné
+  de l'en-tête à nom vide et conserve les frames/causes/suppressed de la JVM.
+- `ffi-runtimes.mjs` et `FfiRuntimeChecks.java` : groupe **13 contrôles Exceptions**,
+  référence JS exécutée, quatre catégories de Throwable, handler appliqué/forcé
+  une fois et exceptions du handler propagées. Le port fournit `bin/test-runtime`.
+- `tests/ffi-ports/Main.{purs,java,js}` et `ffi-ports.mjs` : **8 assertions nouvelles**,
+  soit 25 au total ; vrai `IOException` observé par identité via `try`, `liftEffect`
+  et Promise/Aff. Chaque mode records est lancé en classes puis en JAR autonome ;
+  code 0, 25 lignes d'assertions et marqueur final unique exigés.
+
+Depuis le dépôt, `purs` M15 sur `PATH`, `TMPDIR` sous `opencode`, cible commune
+**`--release 17`**. Les variables JDK suivent la [recette commune](#build-jdk-cible-et-jvm).
+
+| Commande / configuration | Résultat |
+| --- | --- |
+| `JAVA_HOME="$JDK_RECENT_HOME" node test/ffi-runtimes.mjs` | **49 contrôles** : Exceptions 13, Ref 4, Promise 14, Aff 18, avec JDK/JVM 26 ; référence JS réussie. |
+| `JAVA_HOME="$JDK17_HOME" ../javapurs-exceptions/bin/test-runtime` | **13 contrôles Exceptions** et référence JS réussis avec JDK/JVM 17 ; launcher également résolu depuis un dossier externe. |
+| `JAVA_HOME="$JDK_RECENT_HOME" node test/ffi-ports.mjs` | **25 × 2 modes records × classes/JAR**, soit 100 assertions sur JVM 26 ; rapports FFI et sélection locale/registre réussis. |
+| Même commande avec `JAVAPURS_JAVA_RUNTIME="$JDK17_HOME/bin/java"` | Même compilation JDK 26/release 17, **100 assertions réellement exécutées sur JVM 17**, classes/JAR ; mêmes contrôles de sélection FFI. |
+| `python3 "$PROOF/compare-java.py"` | **275 TAST** conservés, **423 fichiers Java : 422 identiques / 1 modifié**, exactement par substitution du fragment Exceptions. Le relevé FFI diffère uniquement par son SHA-256. |
+
+La comparaison utilise les sorties de la reproduction initiale et les mêmes
+TAST/options/chemins de résolution ; elle contrôle leurs empreintes avant/après.
+Les **52 fichiers source du backend** et les sources Aff/Promise/Promise-Aff
+gardent leurs empreintes initiales. Le fragment est recompilé par `javac` dans
+chaque suite ; les modifications de production sont locales au port Exceptions.
+La nouvelle intégration JAR est rejouable par la suite versionnée, depuis un
+dossier contenant le seul JAR et avec le dossier JVM seul sur `PATH`.
+
+La clôture actualise TODO, contrats, matrice, README du compilateur/port et
+inventaire documentaire. Syntaxes Node/Bash, liens/ancres, **29 suites**,
+**12 options CLI**, preuves des lots cochés et `git diff --check` sont contrôlés.
+
+Preuves locales sous
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m19/` :
+`before.json`, `Exception.before.java`, `tools.json`, `runtime-before.log`,
+`integration-before.log`, workspaces initiaux conservés, `runtime-jdk26.log`,
+`runtime-jdk17.log`, `integration-jdk26-jar.log`, `integration-jvm17-jar.log`,
+`compare-java.py`, `java-comparison.json`, `frozen-generation.log` et `checks.json`.
+Les limites de traces JVM et les versions JDK exécutées restent explicites ;
+les autres ports gardent leurs périmètres de couverture datés.
+
+**Conclusion : M19 validé ; complément clôturé. Plans v1 et v2 toujours à 100/100.**

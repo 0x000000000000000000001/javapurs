@@ -87,16 +87,20 @@ deux sélections avec Spago réel. Un fragment `provided` conserve ce statut mê
 si un de ses bindings est omis ; `ffi-diagnostics.mjs` démontre l'échec `javac`
 lorsqu'un consommateur référence ce membre, y compris pour un fichier d'espaces.
 
-### Couverture exécutée et dépendances des quatre ports
+<a id="couverture-exécutée-et-dépendances-des-quatre-ports"></a>
+
+### Couverture exécutée et dépendances des ports
 
 La table relie les chemins exercés à des fixtures, sans assimiler l'inventaire des
 bindings à une couverture complète. Les contrôles directs M10 compilent les vrais
 fragments avec un shim Either ; l'intégration M14 utilise les ADT et API PureScript
 réels. Les [suites attendues M12](testing.md#suites-asynchrones-des-ports) apportent
-des preuves supplémentaires, datées séparément.
+des preuves supplémentaires, datées séparément. M19 ajoute Exceptions et les
+exécutions de l'intégration en JAR autonome.
 
 | Port | Chemins exécutés / preuve nommée | Dépendances pour ces chemins |
 | --- | --- | --- |
+| Exceptions | Groupe `exceptions` de [FfiRuntimeChecks.java](../test/support/FfiRuntimeChecks.java) : constructeurs, noms/messages vides, causes, traces, identité de chaque Throwable, effets différés et erreurs de handler (13 contrôles, dont propagation via Aff/Promise). Référence JS exécutée pour noms/en-têtes/causes/identité ; FfiPorts ajoute 8 assertions via les API PureScript. | `effect`, `prelude`, Either/Maybe pour les enveloppes PureScript. Le fragment lui-même ne dépend que du JDK. Les protocoles croisés du harness utilisent aussi les fragments Aff/Promise. |
 | Refs | Groupe `refs` de [FfiRuntimeChecks.java](../test/support/FfiRuntimeChecks.java) : allocation différée/identité, `read`, `write`, `modifyImpl` concurrent et exceptionnel, `newWithSelf` (4 contrôles). [FfiPorts](../tests/ffi-ports/Main.purs) : `Ref.modify result/state`, références utilisées par les rendez-vous. | `effect`, `prelude`. Le fragment Java n'appelle que le JDK ; les enveloppes/dictionnaires viennent des modules compilés. |
 | Aff | Groupe `aff` du même harness (18 contrôles) : bind/map, fibres, joins, callbacks/désabonnement, annulation, exceptions, bracket, parallèle et supervision. FfiPorts : `repeated join`, `bracket cleanup`, `cancellation cause`, `supervised cleanup`, `Unit race`. | API Effect, Exceptions, fonctions non curryfiées et ADT Either ; transitivement ST/Partial/Unsafe.Coerce et les bibliothèques de classes/transformers. Le [spago.yaml Aff](../../javapurs-aff/spago.yaml) donne les dépendances ; le template de test sélectionne leurs ports Java nécessaires. |
 | Promise | Groupe `promise` (14 contrôles) : pending/adoption, premier règlement, callbacks, erreurs, `all`, `race`, `finally`, auto-résolution et chaîne profonde. FfiPorts : `Promise.all order`, `Promise.race rejection`, `Promise.finally pending cleanup`, `Promise handler exception`, `Promise.Lazy`. | `effect` et ses wrappers `EffectFn`, `functions` (`Fn3`), `exceptions`, Maybe ; les wrappers Lazy emploient aussi Newtype/Traversable. Fragments `Promise.Internal` et `Promise.Rejection`, pas uniquement le premier. |
@@ -109,7 +113,7 @@ Le workspace de cette intégration est défini par le
 `functions`, `st`, `partial`, `unsafe-coerce` et les ports de collections/records
 utilisés par les fixtures ; Assert et Console fournissent leurs contrôles/logs.
 Les bibliothèques de classes et ADT restantes viennent du package set **77.10.1**.
-Les quatre `bin/test-runtime` pointent vers ces fixtures ; ce layout et ces chemins
+Les cinq `bin/test-runtime` pointent vers ces fixtures ; ce layout et ces chemins
 sont la référence de sélection, plutôt que la longue liste d'extraPackages des
 workspaces historiques de chaque port.
 
@@ -134,16 +138,46 @@ Les champs d'ADT et certains workers peuvent être primitifs ; leur adaptation
 appartient au [contrat des représentations](representations.md#stockage-et-conversions-scalaires).
 
 Le port [Effect.Exception](../../javapurs-exceptions/src/Effect/Exception.java)
-fournit son `Error` Java. Une exception levée par une FFI Effect se propage lors
-du forçage. Aff normalise les `Throwable` en `AffError` ; Promise rejette le
+fournit son `Error` Java et préserve les autres `Throwable` reçus à la frontière
+FFI. Une exception levée par une FFI Effect se propage lors du forçage. Aff
+normalise les `Throwable` en `AffError` ; Promise rejette le
 résultat du callback/exécuteur avec l'objet levé. Les rejets Promise sont des
 `Object` arbitraires : [Promise.Rejection](../../javapurs-js-promise/src/Promise/Rejection.java)
 reconnaît un `Throwable` comme Error et conserve son identité.
 
-Les quatre ports présentés ici utilisent le JDK, sans JAR tiers. Une FFI
+Les cinq ports présentés ici utilisent le JDK, sans JAR tiers. Une FFI
 applicative peut en demander : son appelant fournit les dépendances aux deux
 classpaths, `javac` et `java`. Voir la [recette d'application](../README.md#compile-and-run-an-application).
 Le résolveur de fragments ne gère ni JAR ni packaging.
+
+## Exceptions
+
+`Error` et `NamedError` sont des exceptions Java non vérifiées ; la seconde hérite
+de la première. Les valeurs Error reçues d'une autre FFI peuvent être n'importe
+quel `Throwable`, y compris une exception vérifiée ou un `java.lang.Error`.
+
+- `error` et `errorWithCause` portent le nom **`Error`** ; le second conserve
+  l'objet cause dans `getCause()`. `errorWithName` conserve le nom fourni.
+- `name` retourne le nom du port, ou le nom simple de classe d'une exception
+  native. Un nom vide ou absent se replie sur `Error`. `message` retourne une
+  chaîne vide si une exception native n'a pas de message.
+- L'en-tête de `show`/`stack` d'une erreur du port suit `Error.toString()` JS :
+  `nom: message`, seulement le nom si le message est vide, seulement le message
+  si le nom personnalisé est vide. Ce dernier cas est distinct du repli de `name`.
+  Les frames, causes et exceptions supprimées restent celles de la JVM ; les
+  traces ne sont pas identiques à celles d'un moteur JavaScript. `stack` retourne
+  toujours `Just` pour un `Throwable` Java.
+- `throwException` construit un `Supplier` qui relance **le même objet** à chaque
+  forçage. Un helper générique effacé permet de traverser l'ABI `Supplier` sans
+  envelopper les exceptions vérifiées ; type, identité, message et cause restent
+  observables par `catchException`, Aff et les rejets Promise.
+- `catchException` force l'action une fois et retourne son résultat, y compris
+  `null`. En cas d'échec, il applique le handler une fois puis force son effet
+  une fois. Les exceptions de l'application du handler ou de son effet se
+  propagent hors du catch, sans réinvoquer ce handler.
+
+Les [preuves M19](testing.md#validation-m19) couvrent ces règles avec les vrais
+fragments, les API PureScript et leurs ADT, en classes et en JAR sur JVM 26/17.
 
 ## Références
 
@@ -323,19 +357,21 @@ adjacente/replis, états/empreintes du relevé, huit erreurs JVM nommant le bind
 deux bindings omis rejetés par `javac` et une erreur de lecture conservant l'ancien
 manifeste. Backend construit, `purs` TAST et JDK sont nécessaires.
 
-`ffi-runtimes.mjs` compile les vrais fragments avec un shim Either minimal : **4**
-contrôles Ref, **14** Promise et **18** Aff. Il ne demande que Node, un JDK et les
-trois ports voisins. Les barrières imposent les ordres de concurrence ; les
+`ffi-runtimes.mjs` compile les vrais fragments avec un shim Either minimal : **13**
+contrôles Exceptions, **4** Ref, **14** Promise et **18** Aff. Il ne demande que
+Node, un JDK et les quatre ports voisins. `--port=exceptions` sélectionne le
+nouveau groupe et sa référence JS. Les barrières imposent les ordres de concurrence ; les
 timeouts bornent un protocole bloqué. Les chaînes de 20 000 étapes s'exécutent
 avec une pile de 512 Kio.
 
 `ffi-ports.mjs` demande aussi le backend construit, Spago et `purs` TAST. Il compile
-les vraies API PureScript et leurs ADT, puis exécute **17 assertions** dans
-chacun des modes records typés et Maps sur le même TAST. Il attend la fibre
+les vraies API PureScript et leurs ADT, puis exécute **25 assertions** dans
+chacun des modes records typés et Maps sur le même TAST, en classes puis en JAR
+autonome. Le JDK doit fournir `jar`. Il attend la fibre
 racine et propage son échec au processus ; le marqueur final est vérifié. Il
 contrôle les chemins des fragments des ports, l'égalité du relevé entre les modes,
 puis reconstruit avec `foreign` du registre pour constater son absence de Java.
-Les quatre ports exposent un `bin/test-runtime` vers ces suites. La
+Les cinq ports exposent un `bin/test-runtime` vers ces suites. La
 [recette de test](testing.md#runtimes-ffi-et-interopérabilité) précise les options,
 les preuves et les [suites de ports attendues](testing.md#suites-asynchrones-des-ports)
 livrées en M12, avec leurs sondes de fin de processus.

@@ -13,3 +13,10 @@ java_output/
 classes/
 *.class
 *.java.bak
+
+# Regenerable compiler metadata; the JavaScript runtime and source maps are tracked.
+!/output/*/
+/output/*/corefn.json
+/output/*/docs.json
+/output/*/externs.cbor
+/output/cache-db.json

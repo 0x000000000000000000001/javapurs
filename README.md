@@ -282,7 +282,7 @@ Use the same checkout layout as the source build instructions and select tests b
 
 - **`./bin/test`** compiles and runs the PureScript passing tests (`purescript/tests/purs/passing`) through the Java backend, like the other backend checkouts do.
 - **`test/*.mjs`** are the backend's own regression suites, run after `./bin/build`. The Node-only `test/test-tools.mjs` checks the runners with simulated commands and requires no backend build or JDK.
-- **Each port's `bin/test`** selects its suite. Aff, Promise and Promise/Aff use isolated workspaces and await all assertions and cleanup, with explicit failure/timeout checks. For Aff/Ref/Promise protocols, the four ports also provide **`bin/test-runtime`**; see the [runtime recipe](docs/testing.md#runtimes-ffi-et-interopérabilité).
+- **Each port's `bin/test`** selects its suite. Aff, Promise and Promise/Aff use isolated workspaces and await all assertions and cleanup, with explicit failure/timeout checks. For Exceptions/Aff/Ref/Promise protocols, the five ports also provide **`bin/test-runtime`**; see the [runtime recipe](docs/testing.md#runtimes-ffi-et-interopérabilité).
 
 ```bash
 # Inspect an explicit selection before running it:
@@ -316,7 +316,7 @@ The shared JDK resolver uses explicit `JAVAC`/`JAVA` first, then `JAVA_HOME`, th
 
 `node test/ast-scopes.mjs` checks local shadowing, sibling branches, recursive captures, method selectors, nested loop targets and the raw-Java boundary. It compiles and executes the same fixtures after renaming, with and without chunking, targeting Java 17.
 
-`node test/ffi-runtimes.mjs` compiles the actual Ref/Promise/Aff Java fragments and runs 36 deterministic protocol checks; it needs Node, a JDK and the sibling ports. `node test/ffi-ports.mjs` additionally uses Spago, the TAST frontend and the built backend for 17 PureScript integration assertions per record mode, including the real Promise/Aff bridge. Both use the common Java target.
+`node test/ffi-runtimes.mjs` compiles the actual Exceptions/Ref/Promise/Aff Java fragments and runs 49 deterministic protocol checks; it needs Node, a JDK and the sibling ports. `--port=exceptions` checks error names, causes, traces and Throwable identity, including checked exceptions. `node test/ffi-ports.mjs` additionally uses Spago, the TAST frontend and the built backend for 25 PureScript integration assertions per record mode, in classes and standalone JARs, including the real Promise/Aff bridge. Both use the common Java target.
 
 `node test/ffi-diagnostics.mjs` checks eight module reports, adjacent/fallback resolution, binding-specific stub errors, omitted members in supplied fragments and read errors. It requires the built backend, TAST `purs` and a JDK. The port integration also verifies the actual local fragments and reproduces the missing Java selection from the registry's `foreign` package.
 

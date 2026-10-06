@@ -11,16 +11,37 @@ import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 let ports = resolve(here, "../..");
-let selection = ["refs", "promise", "aff"];
+let selection = ["exceptions", "refs", "promise", "aff"];
 while (args.length) {
   const arg = args.shift();
   if (arg === "--ports-root") { assert.ok(args[0], "--ports-root requires a directory"); ports = resolve(args.shift()); }
-  else if (arg.startsWith("--port=")) { selection = [arg.slice(7)]; assert.ok(["refs", "promise", "aff"].includes(selection[0]), "unknown port"); }
+  else if (arg.startsWith("--port=")) { selection = [arg.slice(7)]; assert.ok(["exceptions", "refs", "promise", "aff"].includes(selection[0]), "unknown port"); }
   else throw new Error(`Unknown option: ${arg}`);
 }
 const { javac, java, javacArgs } = resolveJavaTools();
+if (selection.includes("exceptions")) {
+  // Check the reference's observable names/headers, including the distinction
+  // between name's empty-name fallback and Error.toString's empty-name rule.
+  const source = readFileSync(join(ports, "javapurs-exceptions/src/Effect/Exception.js"), "utf8");
+  const reference = await import(`data:text/javascript,${encodeURIComponent(source)}`);
+  const inner = reference.error("inner");
+  const outer = reference.errorWithCause("outer")(inner);
+  assert.equal(reference.name(outer), "Error"); assert.equal(outer.cause, inner);
+  for (const [message, name, header] of [["message", "CustomError", "CustomError: message"],
+    ["message", "", "message"], ["", "CustomError", "CustomError"], ["", "", ""]]) {
+    const error = reference.errorWithName(message)(name);
+    assert.equal(reference.name(error), name || "Error");
+    assert.equal(reference.message(error), message);
+    assert.equal(String(error), header);
+    assert.equal(reference.showErrorImpl(error).split("\n")[0], header);
+    assert.equal(reference.stackImpl(value => value)(null)(error), reference.showErrorImpl(error));
+    assert.equal(reference.catchException(value => () => value)(reference.throwException(error))(), error);
+  }
+  console.log("exceptions: JavaScript reference names, headers, cause and identity passed");
+}
 await withTemporaryDirectory("javapurs-ffi-runtimes-", directory => {
   const sources = new Map([
+    ["__M$Effect_Exception.java", `public class __M$Effect_Exception {\n${readFileSync(join(ports, "javapurs-exceptions/src/Effect/Exception.java"), "utf8")}\n}`],
     ["__M$Effect_Aff.java", `public class __M$Effect_Aff {\n${readFileSync(join(ports, "javapurs-aff/src/Effect/Aff.java"), "utf8")}\npublic static Object testRun(Object aff, RunContext ctx) { return runAffSync((AffRun) aff, ctx); }\n}`],
     ["__M$Effect_Ref.java", `public class __M$Effect_Ref {\n${readFileSync(join(ports, "javapurs-refs/src/Effect/Ref.java"), "utf8")}\n}`],
     ["__M$Promise_Internal.java", `public class __M$Promise_Internal {\n${readFileSync(join(ports, "javapurs-js-promise/src/Promise/Internal.java"), "utf8")}\n}`],

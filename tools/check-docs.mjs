@@ -8,7 +8,7 @@ import { runCommandSync } from "./test-process.mjs";
 // suffice: no compiler imports, network requests or execution of examples.
 assert.equal(process.argv.length, 2, "check-docs.mjs accepts no options");
 const root = fileURLToPath(new URL("../", import.meta.url));
-const ports = ["javapurs-aff", "javapurs-refs", "javapurs-js-promise", "javapurs-js-promise-aff"];
+const ports = ["javapurs-exceptions", "javapurs-aff", "javapurs-refs", "javapurs-js-promise", "javapurs-js-promise-aff"];
 const documents = [
   join(root, "README.md"), join(root, "../todo.md"),
   ...readdirSync(join(root, "docs")).filter(name => name.endsWith(".md")).sort().map(name => join(root, "docs", name)),
