@@ -12,14 +12,14 @@ import { Just, Nothing } from "../output/Data.Maybe/index.js";
 import { Tuple } from "../output/Data.Tuple/index.js";
 import { translateWithIntFunctions } from "../output/Javapurs.CodeGen/index.js";
 import { moduleClass, moduleText } from "./support/module-classes.mjs";
-import { runtimeSource } from "../output/Javapurs.IntFunctions/index.js";
+import { intFunctionSource, tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
 import { printExpr } from "../output/Javapurs.Printer/index.js";
 import { printRecordShape } from "../output/Javapurs.RecordPrinter/index.js";
 import { recordClassName } from "../output/Javapurs.RecordShapes/index.js";
 
 // Build the backend first. This generates and compiles real Java for both
 // representations; no backend rebuild or PureScript source compilation occurs.
-// Optional current optimized benchmark IR:
+// Optional benchmark TAST, optimized in an isolated workspace:
 // node test/int-functions.mjs --church-project ../../altbak.pub-javapurs
 const { javac, java, javacArgs } = resolveJavaTools();
 const moduleName = "Int.Functions";
@@ -114,12 +114,9 @@ const projectFlag = process.argv.indexOf("--church-project");
 if (projectFlag >= 0) {
   assert.ok(process.argv[projectFlag + 1], "--church-project requires an existing project directory");
   const project = resolve(process.argv[projectFlag + 1]);
-  const { readPurmetaSync } = await import("../output/PureScript.Backend.Optimizer.Cache/index.js");
-  const previousDirectory = process.cwd();
-  let cache;
-  try { process.chdir(project); cache = readPurmetaSync("Test.Church")(); }
-  finally { process.chdir(previousDirectory); }
-  assert.ok(cache instanceof Just, "build the Church project first to produce its current purmeta");
+  const { loadOptimizedImplementations } = await import("./support/optimized-module.mjs");
+  const cache = await loadOptimizedImplementations(project, "Test.Church");
+  assert.ok(cache instanceof Just, "the current build must produce Test.Church implementations");
   const implementations = new Map();
   function collect(tree) {
     if (tree.constructor.name !== "Node") return;
@@ -243,14 +240,10 @@ const outputs = [];
 for (const enabled of [false, true]) {
   const options = { typedRecords: true, loopInvariants: true, directCalls: true, intFunctions: enabled };
   const files = new Map([
-    ["__IntFn.java", runtimeSource],
+    ["__IntFn.java", intFunctionSource],
     [`${moduleClass("IntClosureRuntime")}.java`, moduleText(runtime, ["IntClosureRuntime", "Int_Functions", "Test_Church"])],
     ["IntFunctionChecks.java", moduleText(checks, ["IntClosureRuntime", "Int_Functions", "Test_Church"])],
-    ["TcoLoop.java", `public final class TcoLoop extends RuntimeException {
-      public final String loopId; public final Object[] args;
-      public TcoLoop(String id, Object[] values) { loopId = id; args = values; }
-      @Override public synchronized Throwable fillInStackTrace() { return this; }
-    }`],
+    ["TcoLoop.java", tcoLoopSource],
   ]);
   function addModule(module) {
     const result = translateWithIntFunctions(options)(module);

@@ -3,12 +3,13 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, extname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { runCommandSync } from "./test-process.mjs";
+import { portSuites } from "./port-test-runner.mjs";
 
 // Read-only checks for this workspace's Markdown conventions. Node and Bash
 // suffice: no compiler imports, network requests or execution of examples.
 assert.equal(process.argv.length, 2, "check-docs.mjs accepts no options");
 const root = fileURLToPath(new URL("../", import.meta.url));
-const ports = ["javapurs-exceptions", "javapurs-aff", "javapurs-refs", "javapurs-js-promise", "javapurs-js-promise-aff"];
+const ports = Object.values(portSuites).map(suite => suite.directory);
 const documents = [
   join(root, "README.md"), join(root, "../todo.md"),
   ...readdirSync(join(root, "docs")).filter(name => name.endsWith(".md")).sort().map(name => join(root, "docs", name)),

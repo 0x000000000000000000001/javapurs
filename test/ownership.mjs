@@ -13,6 +13,7 @@ import * as PursMap from "../output/Data.Map/index.js";
 import { prepare } from "../output/Javapurs.Ownership/index.js";
 import { translateWithIntFunctions } from "../output/Javapurs.CodeGen/index.js";
 import { printFile } from "../output/Javapurs.Printer/index.js";
+import { tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
 import { moduleClass, moduleText } from "./support/module-classes.mjs";
 
 // Run after building the backend: node test/ownership.mjs
@@ -211,12 +212,7 @@ await withTemporaryDirectory("javapurs-ownership-", directory => {
   writeFileSync(join(directory, `${moduleClass(moduleName)}.java`), source);
   writeFileSync(join(directory, `${moduleClass(listName)}.java`), listSource);
   writeFileSync(join(directory, `${moduleClass(localName)}.java`), localSource);
-  writeFileSync(join(directory, "TcoLoop.java"), `public class TcoLoop extends RuntimeException {
-    public String loopId;
-    public Object[] args;
-    public TcoLoop(String loopId, Object[] args) { this.loopId = loopId; this.args = args; }
-    @Override public synchronized Throwable fillInStackTrace() { return this; }
-}`);
+  writeFileSync(join(directory, "TcoLoop.java"), tcoLoopSource);
   writeFileSync(join(directory, "OwnershipRun.java"), moduleText(`public class OwnershipRun {
     static void collect(Object tree, java.util.List<Integer> keys) {
         if (tree == ${moduleName}.__singleton$E.value) return;

@@ -16,9 +16,10 @@ import { printExpr } from "../output/Javapurs.Printer/index.js";
 import { printRecordShape } from "../output/Javapurs.RecordPrinter/index.js";
 import { recordClassName } from "../output/Javapurs.RecordShapes/index.js";
 import { renameExpr } from "../output/Javapurs.Rename/index.js";
+import { tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
 import { moduleClass, moduleText } from "./support/module-classes.mjs";
 
-// Build the backend first. Optional real optimized input:
+// Build the backend first. Optional real TAST input, optimized in isolation:
 // node test/direct-calls.mjs --rbtree-project ../../altbak.pub-javapurs
 const { javac, java, javacArgs } = resolveJavaTools();
 const moduleName = "Direct_Fixtures";
@@ -186,12 +187,9 @@ const projectFlag = process.argv.indexOf("--rbtree-project");
 if (projectFlag >= 0) {
   assert.ok(process.argv[projectFlag + 1], "--rbtree-project requires an existing project directory");
   const project = resolve(process.argv[projectFlag + 1]);
-  const { readPurmetaSync } = await import("../output/PureScript.Backend.Optimizer.Cache/index.js");
-  const directory = process.cwd();
-  let cache;
-  try { process.chdir(project); cache = readPurmetaSync("Test.RBTree")(); }
-  finally { process.chdir(directory); }
-  assert.ok(cache instanceof Just, "build the project first to produce Test.RBTree.purmeta");
+  const { loadOptimizedImplementations } = await import("./support/optimized-module.mjs");
+  const cache = await loadOptimizedImplementations(project, "Test.RBTree");
+  assert.ok(cache instanceof Just, "the current build must produce Test.RBTree implementations");
   const expressions = new Map();
   function collect(tree) {
     if (tree.constructor.name !== "Node") return;
@@ -337,11 +335,7 @@ for (const enabled of [false, true]) {
     assert.equal(enabled ? calls(worker(actual, "depth")).length : 0, enabled ? 2 : 0, "depth self calls use the worker");
     assert.equal(calls(declaration(actual, "insert")).length, enabled ? 1 : 0, "insert calls the lazy ins worker");
     addFile("Test_RBTree", actual);
-    files.set("TcoLoop.java", `public final class TcoLoop extends RuntimeException {
-      public final String loopId; public final Object[] args;
-      public TcoLoop(String loopId, Object[] args) { this.loopId = loopId; this.args = args; }
-      @Override public synchronized Throwable fillInStackTrace() { return this; }
-    }`);
+    files.set("TcoLoop.java", tcoLoopSource);
   }
   const fixtureModules = [moduleName, "Direct_Typed", "Test_RBTree"];
   files.set("DirectRuntime.java", moduleText(runtimeSource, fixtureModules));

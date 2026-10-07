@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, readdirSync, realpathSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { compilerRoot, prepareWorkspace, runFixture } from "../tools/fixture-runner.mjs";
 import { resolveJavaTools } from "../tools/java-tools.mjs";
@@ -15,13 +15,7 @@ const jar = requireExecutable(join(dirname(tools.javac), "jar"));
 const processes = new TestProcesses();
 try {
   await withTemporaryDirectory("javapurs-ffi-ports-", async directory => {
-    prepareWorkspace(compilerRoot, directory);
-    const configPath = join(directory, "spago.yaml");
-    let config = readFileSync(configPath, "utf8").replace("  dependencies:\n", "  dependencies:\n    - aff\n    - js-promise\n    - js-promise-aff\n    - either\n    - maybe\n    - parallel\n");
-    for (const [name, port] of [["aff", "javapurs-aff"], ["js-promise", "javapurs-js-promise"], ["js-promise-aff", "javapurs-js-promise-aff"], ["foreign", "javapurs-foreign"]]) {
-      config += `    ${name}:\n      path: ${JSON.stringify(resolve(compilerRoot, "..", port))}\n`;
-    }
-    writeFileSync(configPath, config);
+    prepareWorkspace(compilerRoot, directory, { profile: "ffi-ports" });
     await runFixture({ directory, tools, processes,
       fixture: { name: "FfiPorts", source: join(compilerRoot, "tests/ffi-ports/Main.purs") } });
     const assertCompleted = path => {
@@ -70,8 +64,7 @@ try {
     // Reproduce the transitive-selection mistake with a real registry package.
     // Its declarations exist, but its Java fragment is absent; the report must
     // identify that source instead of treating the local port as selected.
-    const registryConfig = config.replace(/    foreign:\n      path: [^\n]+\n/, "");
-    assert.notEqual(registryConfig, config); writeFileSync(configPath, registryConfig);
+    prepareWorkspace(compilerRoot, directory, { profile: "ffi-ports", registryPackages: ["foreign"] });
     await run("registry-spago", "spago", ["build", "-q"]);
     await run("registry-generation", join(compilerRoot, "bin/javapurs"), ["--java-output", "java-registry"]);
     const foreign = report("java-registry").find(entry => entry.moduleName === "Foreign");

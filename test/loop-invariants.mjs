@@ -1,6 +1,6 @@
 import * as PursMap from "../output/Data.Map/index.js";
 import assert from "node:assert/strict";
-import { runtimeSource } from "../output/Javapurs.IntFunctions/index.js";
+import { intFunctionSource, tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
 import { writeFileSync } from "node:fs";
 import { runCommandSync } from "../tools/test-process.mjs";
 import { resolveJavaTools } from "../tools/java-tools.mjs";
@@ -162,14 +162,9 @@ const projectFlag = process.argv.indexOf("--lazy-project");
 if (projectFlag >= 0) {
   assert.ok(process.argv[projectFlag + 1], "--lazy-project requires a project directory");
   const project = resolve(process.argv[projectFlag + 1]);
-  const { readPurmetaSync } = await import("../output/PureScript.Backend.Optimizer.Cache/index.js");
-  const previousDirectory = process.cwd();
-  let cached;
-  try {
-    process.chdir(project);
-    cached = readPurmetaSync("Test.LazyEvaluation")();
-  } finally { process.chdir(previousDirectory); }
-  assert.ok(cached instanceof Just, "build the project first to produce Test.LazyEvaluation.purmeta");
+  const { loadOptimizedImplementations } = await import("./support/optimized-module.mjs");
+  const cached = await loadOptimizedImplementations(project, "Test.LazyEvaluation");
+  assert.ok(cached instanceof Just, "the current build must produce Test.LazyEvaluation implementations");
   const entries = [];
   function collect(map) {
     if (map.constructor.name !== "Node") return;
@@ -410,15 +405,10 @@ public final class LoopInvariantChecks {
   }
 }
 `, ["Invariant_Fixtures"]);
-const tcoLoopSource = `public final class TcoLoop extends RuntimeException {
-  public final String loopId; public final Object[] args;
-  public TcoLoop(String loopId, Object[] args) { this.loopId = loopId; this.args = args; }
-  @Override public synchronized Throwable fillInStackTrace() { return this; }
-}`;
 await withTemporaryDirectory("javapurs-loop-invariants-test-", directory => {
   writeFileSync(join(directory, "LoopInvariantChecks.java"), source);
   writeFileSync(join(directory, "TcoLoop.java"), tcoLoopSource);
-  writeFileSync(join(directory, "__IntFn.java"), runtimeSource);
+  writeFileSync(join(directory, "__IntFn.java"), intFunctionSource);
   writeFileSync(join(directory, `${moduleClass("Invariant_Fixtures")}.java`), unaryModuleSource);
   runCommandSync(javac, [...javacArgs, "-nowarn", "LoopInvariantChecks.java", "TcoLoop.java", `${moduleClass("Invariant_Fixtures")}.java`], { cwd: directory, stdio: "inherit", timeout: 60000 });
   runCommandSync(java, ["-cp", directory, "LoopInvariantChecks"], { stdio: "inherit", timeout: 60000 });

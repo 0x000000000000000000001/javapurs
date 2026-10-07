@@ -1,6 +1,6 @@
 import * as PursMap from "../output/Data.Map/index.js";
 import assert from "node:assert/strict";
-import { runtimeSource } from "../output/Javapurs.IntFunctions/index.js";
+import { intFunctionSource, tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
 import { readFileSync, writeFileSync } from "node:fs";
 import { runCommandSync } from "../tools/test-process.mjs";
 import { resolveJavaTools } from "../tools/java-tools.mjs";
@@ -173,16 +173,9 @@ if (projectFlag >= 0) {
   const source = readFileSync(join(project, "src/Test/Records.purs"), "utf8");
   assert.ok(source.includes("updateRec :: Int -> DeepRecord -> DeepRecord"),
     "the real PureScript fixture must declare the closed record parameter");
-  const { readPurmetaSync } = await import("../output/PureScript.Backend.Optimizer.Cache/index.js");
-  const previousDirectory = process.cwd();
-  let implementations;
-  try {
-    process.chdir(project);
-    implementations = readPurmetaSync("Test.Records")();
-  } finally {
-    process.chdir(previousDirectory);
-  }
-  assert.ok(implementations instanceof Just, "Test.Records.purmeta must already exist after a project build");
+  const { loadOptimizedImplementations } = await import("./support/optimized-module.mjs");
+  const implementations = await loadOptimizedImplementations(project, "Test.Records");
+  assert.ok(implementations instanceof Just, "the current build must produce Test.Records implementations");
   function implementation(map, name) {
     if (map.constructor.name !== "Node") return null;
     if (map.value2.value1 === name) return map.value3.value1;
@@ -218,11 +211,7 @@ if (projectFlag >= 0) {
   for (const layout of generated.recordShapes) sources.set(`${recordClassName(layout)}.java`, printRecordShape(layout));
   const recordsClass = moduleClass("Test_Records");
   sources.set(`${recordsClass}.java`, `public class ${recordsClass} {\n${generated.decls.map(printExpr).join("\n")}\n}`);
-  sources.set("TcoLoop.java", `public final class TcoLoop extends RuntimeException {
-    public final String loopId; public final Object[] args;
-    public TcoLoop(String loopId, Object[] args) { this.loopId = loopId; this.args = args; }
-    @Override public synchronized Throwable fillInStackTrace() { return this; }
-  }`);
+  sources.set("TcoLoop.java", tcoLoopSource);
   optimizedRuntimeChecks = `
     for (int count : new int[]{0, 1, 2, 5, 127, 10000}) {
       Object result = apply(apply(Test_Records.updateRec, count), Test_Records.initial);
@@ -404,7 +393,7 @@ public final class TypedRecordChecks {
 }
 `, ["Test_Records", "Records_Producer", "Records_Consumer", "Records_Parameters"]));
 
-sources.set("__IntFn.java", runtimeSource);
+sources.set("__IntFn.java", intFunctionSource);
 await withTemporaryDirectory("javapurs-typed-records-test-", directory => {
   for (const [name, source] of sources) writeFileSync(join(directory, name), source);
   runCommandSync(javac, [...javacArgs, "-nowarn", ...sources.keys()], { cwd: directory, stdio: "inherit", timeout: 60000 });

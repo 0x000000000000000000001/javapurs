@@ -1,6 +1,6 @@
 # Reprise et entretien du dépôt
 
-État documenté au **5 octobre 2026**, complété jusqu'au lot supplémentaire M19.
+État documenté au **6 octobre 2026**, après clôture M23 du plan v3.
 Cette page donne le parcours de reprise, le statut des artefacts et les points
 encore ouverts. Les [preuves par lot](testing.md#consigner-une-validation)
 conservent leurs dates, versions et périmètres d'origine.
@@ -40,7 +40,7 @@ conservent leurs dates, versions et périmètres d'origine.
 Le vérificateur utilise Node et Bash. Il retrouve le dépôt depuis son propre
 chemin ; les liens locaux supposent le layout des dépôts voisins décrit dans
 `compiler.md`. Il contrôle les liens/ancres Markdown des guides, du README, du
-TODO et des cinq README de ports couverts en M10/M19, la syntaxe des exemples shell, les suites
+TODO et des 48 README de ports délégués, la syntaxe des exemples shell, les suites
 de la matrice, les options de `Config`, le score du plan actif et les preuves de
 ses lots cochés, y compris les lots complémentaires hors score. Le nombre de lots
 pondérés est lu dans le TODO. Il ne lance pas les
@@ -215,11 +215,42 @@ tar -xzf "$ARCHIVE" -C "$RESTORE"
 ## Points ouverts après le plan
 
 Les scores M01–M11 et M12–M16 mesurent les livrables des deux plans terminés.
+Le [plan v3 actif](../../todo.md), ouvert le **6 octobre 2026** à **0/100**,
+organise le cleanup vérifié dans la [revue préalable](testing.md#revue-préalable-au-plan-v3) :
+runtime de production dans les fixtures (M20), préparation partagée des workspaces
+(M21), runner commun et trois ports pilotes (M22), puis migration des autres
+launchers historiques (M23). Les validations sont ciblées par profil et port.
+
+**M20–M23 sont clôturés ; avancement 100/100.** Les huit suites utilisent les templates
+de `Javapurs.Runtime`. Le support `test/support/optimized-module.mjs` reconstruit
+les entrées optionnelles RBTree/Records/Church/LazyEvaluation depuis leur TAST,
+dans un workspace isolé et un scope de publication PBO courant ; les `.purmeta`
+résiduels du projet ne sont pas des entrées de validation. Les
+[preuves M20](testing.md#validation-m20) précisent comparaison Java et limites.
+La [préparation commune](testing.md#préparation-des-workspaces) compose les profils
+de fixtures, d'intégration FFI et de suites de ports, avec une sélection locale
+unique pour Aff/Promise/Promise-Aff/Foreign. Les gabarits et chemins sont validés
+avant écriture ; les [preuves M21](testing.md#validation-m21) conservent les
+comparaisons de configuration, sondes de préservation et exécutions ciblées.
+Refs, Exceptions et Strings délèguent désormais au même runner que les suites
+asynchrones. Leurs profils conservent package set 77.7.0, arborescences, FFI et
+réglages de pile ; options strictes, phases bornées, logs et choix Java sont
+communs. Les [preuves M22](testing.md#validation-m22) comprennent les trois
+pilotes, Refs sur JVM 17 et la comparaison Java/FFI sur TAST figés.
+M23 migre les 42 launchers restants : **48 délégations communes**, 27 tests Node,
+13 suites réelles (12 réussies et un échec Event Emitter préexistant) et 22 sondes
+asynchrones négatives réussies. UUID attend ses six résultats Spec ; six suites
+sans protocole global de fin sont explicitement rejetées. L'[inventaire](port-launchers.md)
+et les [preuves M23](testing.md#validation-m23) distinguent chaque résultat réel,
+les sondes de délégation et les limites de couverture.
+
 Les sujets techniques suivants gardent leurs limites documentées et leurs points
 d'entrée :
 
 | Sujet | Point d'entrée pour une suite de travail |
 | --- | --- |
+| Complétion des six suites encore rejetées | Node FS/HTTP/Net/Streams, Spec et Yoga JSON : exposer une action attendable préservant assertions/ressources ; [obstacles par port](port-launchers.md#protocoles-attendus-et-limites-explicites). |
+| FFI Node Event Emitter | `javapurs-node-event-emitter/src/Node/EventEmitter.java` et ses consommateurs : erreurs Boolean/Supplier, 1/14 tests passent, reproduites sur les classes antérieures à M23. Le runner attend et propage désormais cet échec. |
 | Couverture FFI des bibliothèques et JAR applicatifs | M19 couvre [Exceptions](ffi-runtime.md#exceptions) et l'intégration en classes/JAR sur JVM 17/26 ; poursuivre port par port selon les chemins réellement exécutés. [Contrat FFI](ffi-runtime.md#résolution-et-insertion). |
 | Scheduler Aff et interopérabilité asynchrone | Threads daemon ordinaires, annulation coopérative ; [durées de vie](ffi-runtime.md#supervision-parallèle-et-processus). |
 | Sémantique JS des promesses | Réactions eager sans microtasks, sans désabonnement Promise ; [contrat Promise](ffi-runtime.md#promesses). |
@@ -228,7 +259,7 @@ d'entrée :
 | Taille des méthodes / admission d'optimisations | Budgets heuristiques du chunker et des workers ownership ; [chunking](chunking.md) et [passes](specialized-passes.md). |
 | Licence | La déclaration MIT du README est conservée ; le dépôt n'a pas encore de fichier de licence autonome. |
 
-Le [plan v2 M12–M16](../../todo.md) est terminé à **100/100** : fiabilité des
+Le [plan v2 M12–M16 archivé](plan-v2.md) est terminé à **100/100** : fiabilité des
 runners asynchrones, CLI/sorties Java, diagnostic FFI, installation source et
 compatibilité JDK mesurée. Les [preuves M16](testing.md#validation-m16) en
 conservent la clôture et les limites ; les [preuves M11](testing.md#validation-m11)

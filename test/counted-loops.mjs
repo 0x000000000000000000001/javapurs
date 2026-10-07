@@ -8,6 +8,7 @@ import * as A from "../output/Javapurs.JavaAst/index.js";
 import { Just, Nothing } from "../output/Data.Maybe/index.js";
 import { countedLoop } from "../output/Javapurs.CountedLoops/index.js";
 import { printExpr } from "../output/Javapurs.Printer/index.js";
+import { tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
 
 // Run after rebuilding the backend: node test/counted-loops.mjs
 const { javac, java, javacArgs } = resolveJavaTools();
@@ -201,18 +202,13 @@ public final class CountedLoopRegression {
     }
 }
 
-final class TcoLoop extends RuntimeException {
-    final String loopId;
-    final Object[] args;
-    TcoLoop(String loopId, Object[] args) { this.loopId = loopId; this.args = args; }
-    @Override public synchronized Throwable fillInStackTrace() { return this; }
-}
 `;
 
 console.log(`Counted loop classification: ${selections} selection and rejection cases passed`);
 await withTemporaryDirectory("javapurs-counted-loop-test-", directory => {
   const file = join(directory, "CountedLoopRegression.java");
   writeFileSync(file, source);
-  runCommandSync(javac, [...javacArgs, "-nowarn", file], { stdio: "inherit", timeout: 60000 });
+  writeFileSync(join(directory, "TcoLoop.java"), tcoLoopSource);
+  runCommandSync(javac, [...javacArgs, "-nowarn", file, join(directory, "TcoLoop.java")], { stdio: "inherit", timeout: 60000 });
   runCommandSync(java, ["-cp", directory, "CountedLoopRegression"], { stdio: "inherit", timeout: 30000 });
 });

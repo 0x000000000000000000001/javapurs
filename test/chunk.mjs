@@ -10,6 +10,7 @@ import { Tuple } from "../output/Data.Tuple/index.js";
 import { chunkFile } from "../output/Javapurs.Chunk/index.js";
 import { printFile } from "../output/Javapurs.Printer/index.js";
 import { renameExpr } from "../output/Javapurs.Rename/index.js";
+import { intFunctionSource, tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
 
 // Build the backend first, then run: node test/chunk.mjs
 // These fixtures force extraction and execute the resulting Java, including
@@ -150,6 +151,8 @@ await withTemporaryDirectory("javapurs-chunk-", directory => {
   for (const [name, file] of Object.entries(fixtures)) {
     writeFileSync(join(directory, `${name}.java`), printFile(name)(file));
   }
+  writeFileSync(join(directory, "__IntFn.java"), intFunctionSource);
+  writeFileSync(join(directory, "TcoLoop.java"), tcoLoopSource);
   writeFileSync(join(directory, "ChunkRuntime.java"), `
 import java.util.*;
 import java.util.function.*;
@@ -215,18 +218,9 @@ public final class ChunkRuntime {
     System.out.println("Chunk: 15 fixtures passed");
   }
 }
-interface __IntFn extends Function<Object,Object> {
-  int applyAsInt(int value);
-  default Object apply(Object value) { return applyAsInt((int)value); }
-}
-class TcoLoop extends RuntimeException {
-  final String loopId;
-  final Object[] args;
-  TcoLoop(String loopId, Object[] args) { this.loopId = loopId; this.args = args; }
-}
 `);
   runCommandSync(javac, [...javacArgs, "-d", directory, ...Object.keys(fixtures).map(name => join(directory, `${name}.java`)),
-    join(directory, "ChunkRuntime.java")], { stdio: "pipe", timeout: 120_000 });
+    ...["__IntFn.java", "TcoLoop.java", "ChunkRuntime.java"].map(name => join(directory, name))], { stdio: "pipe", timeout: 120_000 });
   const output = runCommandSync(java, ["-cp", directory, "ChunkRuntime"], { encoding: "utf8", timeout: 30_000 });
   assert.equal(output.trim(), "Chunk: 15 fixtures passed");
   process.stdout.write(output);

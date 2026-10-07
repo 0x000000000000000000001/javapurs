@@ -1,25 +1,14 @@
-import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { copyFileSync, cpSync, existsSync, mkdirSync, rmSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { javaCompileArgs } from "./java-tools.mjs";
+import { prepareWorkspaceConfig } from "./workspace-config.mjs";
 
 export const compilerRoot = fileURLToPath(new URL("../", import.meta.url));
 
-// Keep the checked-in runner config as the single package inventory. Its path
-// entries are JSON-quoted YAML strings; rebase those relative to the template,
-// so an isolated runner can live in TMPDIR without changing package selection.
-export function prepareWorkspace(root, directory) {
-  const template = join(root, "tests/runner/spago.yaml");
-  const config = readFileSync(template, "utf8").replace(/^(\s*path:\s*)(.+)$/gm, (_, prefix, quoted) => {
-    const path = resolve(dirname(template), JSON.parse(quoted));
-    if (!statSync(path, { throwIfNoEntry: false })?.isDirectory()) throw new Error(`Missing package checkout: ${path}`);
-    return prefix + JSON.stringify(path);
-  });
-  mkdirSync(directory, { recursive: true });
-  // The shared runner already has its relative template. Isolated runners get
-  // a rebased copy; never rewrite the tracked source of truth.
-  if (resolve(directory) !== resolve(root, "tests/runner")) writeFileSync(join(directory, "spago.yaml"), config);
+export function prepareWorkspace(root, directory, options) {
   if (!existsSync(join(root, "output/Main/index.js"))) throw new Error(`Backend not built: run ${join(root, "bin/build")}`);
+  return prepareWorkspaceConfig(root, directory, options);
 }
 
 function copyIfPresent(source, destination) {

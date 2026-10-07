@@ -6,6 +6,7 @@ import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
 import { join } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import { printExpr } from "../output/Javapurs.Printer/index.js";
+import { tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
 import { Tuple } from "../output/Data.Tuple/index.js";
 
 // Run after rebuilding the backend: node test/tco.mjs
@@ -374,21 +375,12 @@ public class TcoPrinterRegression {
     }
 }
 
-// Same fallback contract as src/Main.purs; ordinary exceptions remain untouched.
-final class TcoLoop extends RuntimeException {
-    final String loopId;
-    final Object[] args;
-    TcoLoop(String loopId, Object[] args) {
-        this.loopId = loopId;
-        this.args = args;
-    }
-    @Override public synchronized Throwable fillInStackTrace() { return this; }
-}
 `;
 
 await withTemporaryDirectory("javapurs-tco-test-", directory => {
   const javaFile = join(directory, "TcoPrinterRegression.java");
   writeFileSync(javaFile, source);
-  runCommandSync(javac, [...javacArgs, "-nowarn", javaFile], { stdio: "inherit", timeout: 60000 });
+  writeFileSync(join(directory, "TcoLoop.java"), tcoLoopSource);
+  runCommandSync(javac, [...javacArgs, "-nowarn", javaFile, join(directory, "TcoLoop.java")], { stdio: "inherit", timeout: 60000 });
   runCommandSync(java, ["-Xss2m", "-cp", directory, "TcoPrinterRegression"], { stdio: "inherit", timeout: 60000 });
 });

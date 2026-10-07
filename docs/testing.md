@@ -1,6 +1,6 @@
 # Tests ciblés et registre de validation
 
-État documenté au **5 octobre 2026**. Les commandes de cette page s'exécutent
+État documenté au **6 octobre 2026**. Les commandes de cette page s'exécutent
 depuis le dépôt du compilateur `htdocs/javapurs/javapurs`, sauf indication contraire.
 
 ## Choisir le bon niveau
@@ -16,7 +16,7 @@ depuis le dépôt du compilateur `htdocs/javapurs/javapurs`, sauf indication con
 | Installation source | `test/source-install.mjs` vérifie les frontières de build/installateur ; `tools/install-source.mjs` reconstruit le fork et le backend puis exécute Hello/Refs en classes et JAR dans un workspace neuf. |
 | Fixture PureScript nommée | `bin/test NOM` réalise Spago → Javapurs → `javac` → `MainRun` dans `tests/runner`. |
 | Protocoles des ports Java | `test/ffi-runtimes.mjs` compile les vrais fragments ; `test/ffi-ports.mjs` attend l'intégration PureScript réelle dans deux modes de records, en classes/JAR. Les cinq ports proposent `bin/test-runtime`. |
-| Suite d'un port | Les `bin/test` Aff/Promise/Promise-Aff délèguent à `test/port-runners.mjs` : workspace isolé, suite attendue et sondes d'échec. Les autres ports gardent leur runner propre. |
+| Suite d'un port | Les 48 `bin/test` délèguent à `test/port-runners.mjs` : profils explicites et workspaces isolés, suites synchrones ou attendues avec sondes d'échec. Six protocoles non pris en charge sont rejetés explicitement. [Inventaire et limites](port-launchers.md). |
 | Documentation/outillage | `tools/check-docs.mjs` contrôle liens/ancres, exemples shell, matrice/options et score ; les suites d'outillage vérifient les contrats des processus modifiés. |
 
 La règle du [plan de travail actif](../../todo.md) est une **validation
@@ -56,7 +56,7 @@ GHC et empreintes dans la [validation M15](#validation-m15).
   résolveur commun ; la valeur doit être un entier décimal sans zéro initial,
   au moins 17 et pas supérieur à la version majeure de `javac`.
 - **Périmètre commun :** toutes les compilations des suites Node `test/*.mjs`,
-  `fixture-runner`/`bin/test`, `port-test-runner` (Aff/Promise/Promise-Aff) et les
+  `fixture-runner`/`bin/test`, `port-test-runner` (48 sélections de ports) et les
   exemples de l'installation source. BigFunction et son harness ont la même cible.
   Les mentions Java 17 dans les recettes courantes désignent ce défaut ; les
   registres datés conservent leurs options réellement exécutées.
@@ -85,9 +85,8 @@ Un exécutable absent, une version illisible, deux dossiers différents dans la
 paire de build, une cible invalide ou supérieure au compilateur/runtime produisent
 une erreur. La JVM croisée passe par `JAVAPURS_JAVA_RUNTIME`, pas par une paire
 `JAVAC`/`JAVA` dépareillée. Les enfants gardent cette paire de build et l'override
-séparé ; le dossier du JDK de build reste sur `PATH`. Les anciens scripts de ports
-qui appellent directement `javac`/`java` ne lisent pas les variables `JAVAPURS_*`.
-Les launchers Node Aff/Promise/Promise-Aff et les cinq `test-runtime` les prennent
+séparé ; le dossier du JDK de build reste sur `PATH`.
+Les 48 launchers de ports délégués à Node et les cinq `test-runtime` les prennent
 en compte par leurs suites déléguées.
 
 `javaCompileArgs` rejette les options concurrentes `--release`, `--source`/
@@ -164,9 +163,9 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Résolution, relevé et diagnostics FFI | [test/ffi-diagnostics.mjs](../test/ffi-diagnostics.mjs) | Huit modules, trois sélections adjacente/replis, huit erreurs JVM par binding, fragments incomplets/espaces et erreur de lecture ; backend construit, `purs` TAST, JDK, cible Java 17. |
 | Exceptions, Ref, Promise et Aff Java | [test/ffi-runtimes.mjs](../test/ffi-runtimes.mjs) | 49 contrôles directs : noms/traces/causes, identité Throwable, effets différés, écritures concurrentes, règlement/adoption, désabonnement, annulation, bracket, supervision et parallèle ; vrais fragments, référence JS Exceptions, shim Either, Node/JDK et quatre ports voisins. |
 | API PureScript des ports et pont Promise/Aff | [test/ffi-ports.mjs](../test/ffi-ports.mjs) | 25 assertions × records typés/Maps × classes/JAR, mêmes TAST ; attente de la fibre, inventaire et marqueur final vérifiés. Relevé identique entre modes, fragments locaux identifiés, troisième génération avec `foreign` du registre pour diagnostiquer l'absence Java. Backend construit, Spago, `purs` TAST, ports locaux et JDK avec `jar`. |
-| Complétion des suites asynchrones des ports | [test/port-runners.mjs](../test/port-runners.mjs) | Sélection `--port=aff\|promise\|promise-aff` ; 45/13/7 contrôles de suite, marqueur final et quatre sondes négatives par port. Workspaces isolés, backend construit, Spago/`purs` TAST, ports locaux et JDK ; Java 17. |
+| Suites et complétion des ports | [test/port-runners.mjs](../test/port-runners.mjs) | 48 sélections `--port=NOM` ([inventaire](port-launchers.md)) : 37 synchrones, cinq attendues, six rejetées faute de protocole. Aff/Promise/Promise-Aff : 45/13/7 contrôles et quatre sondes chacune. UUID/Event Emitter : Spec attendue, 6/14 résultats exigés, cinq sondes chacune ; Event Emitter échoue actuellement 13 tests. Options strictes, sources/configurations préservées, phases bornées/loggées, pile Strings 64 Mio. Backend construit, Spago/`purs` TAST, ports locaux et JDK ; cible 17 par défaut. |
 | Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | Prépare et exécute BigFunction dans un workspace temporaire isolé, puis réalise 155 contrôles de `f`. |
-| Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 13 tests Node : sélection et absence d'effets, JDK/cible/runtime séparés, combinaisons invalides, conflit de cible avant nettoyage, préparation/FFI, logs, timeout et signaux aux descendants. |
+| Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 27 tests Node : sélection/aide sans effets, JDK/cible/runtime séparés, profils de dépendances/FFI, 45 gabarits historiques (dont dépendances vides), chemins validés avant écriture, sources/symlinks/outputs préservés, ressources/espaces, 45 délégations, rejets explicites et contrôle des résultats Spec, cinq échecs de phase, quatre timeouts et signaux aux descendants. |
 | Prérequis, build et lancement source | [test/source-install.mjs](../test/source-install.mjs) | Six groupes Node/Bash avec commandes contrôlées : bon répertoire de build, dépendances/outils absents, neuf TAST incompatibles malgré version correcte, backend absent/incomplet, destination existante et prérequis d'installation ; aucun réseau ni build réel. |
 | Installation complète et application autonome | [tools/install-source.mjs](../tools/install-source.mjs) | Sept références fetchées, fork GHC/Stack et backend reconstruits, Hello/Refs en Java 17 et JAR exécutés depuis un dossier JAR seul ; Spago 1.0.3, Stack, Git, Node, Bash, JDK complet et dépendances réseau/cache. |
 | Compatibilité Java ciblée | [tools/check-jdk.mjs](../tools/check-jdk.mjs) | Six suites × trois configurations de compilation/exécution, avec chemins/versions, cible 17, sondes bytecode/JVM et logs ; backend construit, deux JDK, `purs` TAST, Spago et ports locaux. |
@@ -179,20 +178,85 @@ consommatrices. Pour `Main`, la CLI ou l'insertion FFI, utiliser `driver.mjs`,
 ne couvrent pas l'orchestration. Les fixtures CLI simulées de `test-tools.mjs`
 couvrent le runner, celles de `driver.mjs` le compilateur réel.
 
+Les suites `chunk`, `tco`, `counted-loops`, `int-functions`, `loop-invariants`,
+`ownership`, `direct-calls` et `typed-records` utilisent les templates construits
+de `Javapurs.Runtime` pour `TcoLoop` et, lorsque nécessaire, `__IntFn`. Leur
+support Java est compilé dans des fichiers séparés ; les assertions restent
+propres aux suites. Voir la [validation M20](#validation-m20).
+
 ### Entrées optionnelles de benchmarks
 
-Ces options étendent certaines suites à un projet déjà construit :
+Ces options étendent certaines suites à un projet dont le frontend a déjà
+produit le TAST :
 
-| Script | Option | Cache examiné notamment |
+| Script | Option | Entrée et préparation |
 | --- | --- | --- |
-| `int-loops.mjs` | `--polymorphism-project CHEMIN` | `Test.Polymorphism`, `Test.RBTree`. |
-| `loop-invariants.mjs` | `--lazy-project CHEMIN` | Projet du cas LazyEvaluation. |
-| `direct-calls.mjs` | `--rbtree-project CHEMIN` | `Test.RBTree`. |
-| `int-functions.mjs` | `--church-project CHEMIN` | Projet du cas Church. |
-| `typed-records.mjs` | `--records-project CHEMIN` | Projet du cas Records. |
+| `int-loops.mjs` | `--polymorphism-project CHEMIN` | Ancien accès direct aux `.purmeta` de `Test.Polymorphism` et `Test.RBTree` ; limite ci-dessous. |
+| `loop-invariants.mjs` | `--lazy-project CHEMIN` | TAST de `Test.LazyEvaluation` et de ses imports, optimisation isolée. |
+| `direct-calls.mjs` | `--rbtree-project CHEMIN` | TAST de `Test.RBTree` et de ses imports, optimisation isolée. |
+| `int-functions.mjs` | `--church-project CHEMIN` | TAST de `Test.Church` et de ses imports, optimisation isolée. |
+| `typed-records.mjs` | `--records-project CHEMIN` | TAST de `Test.Records` et de ses imports, optimisation isolée ; source `src/Test/Records.purs` également vérifiée. |
 
-Les commentaires de chaque script décrivent le layout attendu. Ces options
-lisent les caches du projet ; elles ne déclenchent pas sa préparation complète.
+Les quatre dernières suites utilisent
+[optimized-module.mjs](../test/support/optimized-module.mjs). Le layout attendu
+est `CHEMIN/run/bak/java/output/<Module>/corefn.json`. Le helper copie uniquement
+la fermeture d'imports du module choisi, la valide avec `Javapurs.Input`, puis
+utilise le builder séquentiel, les directives et sémantiques FFI usuelles de PBO.
+Le build et la lecture des implémentations partagent le même processus et dossier
+temporaire ; le scope est libéré et le dossier appelant restauré ensuite.
+Les sources/TAST/caches du projet restent intacts. Un échec conserve le workspace
+temporaire pour diagnostic. Ces options ne relancent ni Spago ni le frontend.
+
+Le [contrat PBO](../../../purescript-backend-optimizer-javapurs/docs/purmeta-cache.md)
+refuse les implémentations non publiées dans le build courant : la présence
+d'anciens `.purmeta` ne suffit pas. Le parcours optionnel `int-loops`, hors des
+huit suites M20, conserve encore cet ancien accès direct et nécessite une reprise
+avant utilisation autonome ; son parcours synthétique Node reste distinct.
+
+Exemples ciblés, avec le projet existant ou une copie figée de ses entrées :
+
+```bash
+node test/direct-calls.mjs --rbtree-project "$BENCHMARK_PROJECT"
+node test/typed-records.mjs --records-project "$BENCHMARK_PROJECT"
+node test/typed-records.mjs --records-project "$BENCHMARK_PROJECT" --records=maps
+```
+
+## Préparation des workspaces
+
+[prepareWorkspace](../tools/fixture-runner.mjs) vérifie le backend construit puis
+délègue la configuration à [workspace-config](../tools/workspace-config.mjs).
+Le gabarit par défaut reste [tests/runner/spago.yaml](../tests/runner/spago.yaml) :
+18 dépendances directes, 19 sélections locales et package set **77.10.1**.
+Le troisième argument optionnel sélectionne un profil :
+
+| Profil | Dépendances ajoutées au gabarit | Ports locaux ajoutés |
+| --- | --- | --- |
+| `fixture` (défaut) | Aucune. | Aucun. |
+| `ffi-ports` | `aff`, `js-promise`, `js-promise-aff`, `either`, `maybe`, `parallel`. | Aff, Promise, Promise/Aff et Foreign. |
+| `port-suite` | Celles de l'intégration, plus `foreign`, `datetime`, `transformers`, `control`, `bifunctors`. | Les mêmes quatre ports. |
+
+La sélection locale est définie une seule fois ; `foreign` reste une dépendance
+transitive de l'intégration et directe des suites de ports. L'option
+`registryPackages: ["foreign"]` retire uniquement son override local pour la
+sonde négative de l'intégration. Un nom inconnu est refusé.
+
+Le lecteur accepte le sous-ensemble maintenu des gabarits : nom du package,
+listes de dépendances (y compris `[]` explicite), bloc `test` optionnel avec entrypoint/dépendances,
+package set de registre et packages locaux à chemins JSON-quotés. Une structure
+inattendue, un doublon dans le gabarit, un chemin local contradictoire ou un
+checkout requis absent provoque un diagnostic avant l'écriture du workspace.
+Les chemins sont rebasés depuis le dossier du gabarit, avec espaces conservés.
+
+L'option `template` permet de fournir un autre gabarit : sa version de package
+set et son bloc de test sont conservés. Les 45 profils historiques utilisent
+leur `spago.java.yaml` en **77.7.0**, y compris UUID/Event Emitter ; les trois
+suites Aff/Promise/Promise-Aff conservent le runner **77.10.1**. Cette distinction
+est vérifiée par les sondes et les exécutions réelles.
+Le gabarit source reste intact, y compris lorsque le runner est désigné par un
+alias filesystem. Un profil enrichi appliqué au gabarit source, ou une destination
+`spago.yaml` liée à une autre configuration, est refusé. Seul le fichier du
+workspace préparé est écrit. Les runners copient ensuite les sources et leurs
+FFI auxiliaires ; les tests contrôlent la conservation des originaux.
 
 ## Fixtures PureScript nommées
 
@@ -517,8 +581,9 @@ des fichiers en échec.
 | Module partagé | Responsabilité |
 | --- | --- |
 | [test-selection](../tools/test-selection.mjs) | Options et résolution complète de la sélection avant les opérations de fichiers. |
-| [fixture-runner](../tools/fixture-runner.mjs) | Template Spago, préparation de la fixture/FFI et phases jusqu'à la JVM. |
-| [port-test-runner](../tools/port-test-runner.mjs) | Copie des suites des trois ports, entrypoint attendu, inventaire d'assertions et sondes de fin de processus. |
+| [fixture-runner](../tools/fixture-runner.mjs) | Préparation de la fixture/FFI et phases jusqu'à la JVM. |
+| [workspace-config](../tools/workspace-config.mjs) | Gabarits, profils de dépendances et sélections locales, rebasing et validation avant écriture. |
+| [port-test-runner](../tools/port-test-runner.mjs) | Options strictes, 48 sélections de ports, sources/ressources, entrypoint, cible/pile Java, phases bornées et protocoles de fin explicites. |
 | [java-tools](../tools/java-tools.mjs) | Paire cohérente `javac`/`java` et environnement des ports. |
 | [test-workspace](../tools/test-workspace.mjs) | Cycle de vie des répertoires temporaires. |
 | [test-process](../tools/test-process.mjs) | Commandes synchrones des suites AST et processus asynchrones des runners. |
@@ -536,11 +601,67 @@ Choisir le script du port touché, par exemple :
 ../javapurs-refs/bin/test
 ```
 
-Le script Ref se place dans son propre dépôt, reconstruit ses sorties et peut
-sélectionner `spago.java.yaml` via le lien `spago.yaml`.
-Il utilise le compilateur frère puis exécute `Test.Main` sur la JVM avec
-`-Xss8m`. Consulter le script du port pour ses prérequis ; le runner agrégé
-`tools/modtest-runner.mjs` est un autre niveau d'orchestration.
+Les 48 `bin/test` délèguent à `test/port-runners.mjs`. Les profils exécutables
+nécessitent Node, le backend construit dans le dépôt voisin `javapurs/`, Spago,
+le frontend TAST, leurs ports locaux et un JDK complet. Le
+[relevé des 45 profils historiques](port-launchers.md) donne chaque révision,
+entrypoint, ressource, configuration et résultat de validation. Les pilotes M22 :
+
+| Profil | Entrypoint source | Sources et ressources copiées | Configuration | Pile |
+| --- | --- | --- | --- | --- |
+| `refs` | `test/Main.purs`, `Test.Main.main :: Effect Unit` | `src/`, `test/`, avec les FFI adjacentes ; aucune ressource externe à ces arbres. | `spago.java.yaml`, package set 77.7.0. | JVM `-Xss8m`. |
+| `exceptions` | `test/Main.purs`, même protocole synchrone. | Mêmes arbres, FFI Exceptions incluse. | Même gabarit propre au port, 77.7.0. | JVM `-Xss8m`. |
+| `strings` | `test/Test/Main.purs`, même protocole synchrone, huit modules de test appelés. | Mêmes arbres ; arborescence imbriquée conservée. | Même gabarit propre au port, 77.7.0. | `javac -J-Xss64m`, JVM `-Xss64m`. |
+
+Le retour de ces actions synchrones et le code de sortie JVM déterminent le
+résultat ; toute assertion levée échoue. Les actions asynchrones utilisent leurs
+wrappers attendables décrits ci-dessous. Les déclarations de profil dans
+[port-test-runner](../tools/port-test-runner.mjs) portent ce protocole explicitement.
+Prelude et Partial conservent leurs entrypoints fonctionnels synchrones, déjà
+acceptés par `MainRun` ; Partial ne contient pas d'assertion d'exécution.
+
+Exécutions ciblées équivalentes depuis le compilateur :
+
+```bash
+node test/port-runners.mjs --port=refs
+../javapurs-exceptions/bin/test
+../javapurs-strings/bin/test
+../javapurs-refs/bin/test --help
+../javapurs-arrays/bin/test
+../javapurs-node-path/bin/test
+../javapurs-uuid/bin/test
+```
+
+Chaque lancement prépare un workspace temporaire neuf. La configuration est
+rebasée et les seules sources/ressources déclarées sont copiées ; configuration,
+lockfile, caches et anciens outputs du port source sont préservés. L'aide reste
+sans effet, même avec `-c`. Une option inconnue, un nom de port invalide ou une
+seconde sélection échoue avec le code **2** avant outils/build/préparation.
+
+`-c`/`--clean` appelle le `bin/build` du compilateur, depuis sa racine et avec
+l'environnement Java résolu, avant la première suite. Cette phase et Spago,
+génération, `javac` sont bornées à **120 s** chacune ; l'exécution JVM à **45 s**.
+Les logs séparés résident dans le workspace ; celui-ci est supprimé au succès,
+conservé avec son chemin à l'échec. SIGINT/SIGTERM sont transmis aux descendants,
+avec sorties **130/143** du runner. La cible `JAVAPURS_JAVA_RELEASE` (17 par défaut)
+et la JVM `JAVAPURS_JAVA_RUNTIME` restent indépendantes des réglages de pile.
+
+**UUID et Node Event Emitter** exposent leur Spec originale au wrapper
+`Test.PortRunner`. Il attend l'Aff, vérifie les résultats de `evalSpecT` avec
+`exit = false` et rejette échecs/pending ; le launcher exige respectivement
+**6 et 14 succès**, puis le marqueur final. Aux quatre sondes asynchrones
+ci-dessous s'ajoute une assertion suspendue capturée par Spec. Le graphe de
+dépendances initial est conservé ; le support Java partage la frontière d'attente
+de `Runner.java` et compose seulement `Aff.java` ou `Promise.java` selon le port.
+La suite Event Emitter échoue actuellement **13/14 tests** sur une conversion
+Boolean/Supplier, reproduite sur ses classes de référence ([M23](#validation-m23)).
+
+**Node FS, HTTP, Net, Streams, Spec et Yoga JSON** échouent en **1** avec
+`unsupported suite completion protocol` avant sélection Java, build ou création
+de workspace, même avec `-c`. Leurs callbacks, Aff détachés ou runners Node n'ont
+pas de signal global de fin exploitable. L'aide reste disponible ; les
+[obstacles par port](port-launchers.md#protocoles-attendus-et-limites-explicites)
+sont consignés. Un lancement détaché n'est jamais compté comme une suite réussie.
 
 ### Suites asynchrones des ports
 
@@ -554,9 +675,8 @@ Depuis le compilateur, sélectionner la suite du port modifié :
 
 Ces launchers délèguent à `node test/port-runners.mjs --port=NOM`, avec
 `NOM=aff|promise|promise-aff`. Sans option, le script direct sélectionne ces trois
-suites. Les options historiques `-c`/`--clean` reconstruisent le backend avant la
-sélection exécutée ; chaque suite utilise ensuite un workspace temporaire neuf.
-Les arguments inconnus ou une seconde sélection de port échouent avant le build.
+suites. Les options, phases bornées, choix Java et cycle de vie des workspaces
+sont ceux du parcours commun décrit ci-dessus.
 
 Le support copie les sources `test/` du port (hors `Test.Bench`) et un entrypoint
 `Test.PortRunner`. Il utilise le template des dépendances du compilateur avec les
@@ -687,9 +807,10 @@ son chemin, ou depuis ce dépôt :
 node tools/check-docs.mjs
 ```
 
-Ce contrôle lit les guides du compilateur, le TODO parent et les README des quatre
-ports M10. Il suppose le layout local documenté ; les liens distants ne sont pas
-interrogés. Les exemples shell passent par `bash -n` sans être exécutés.
+Ce contrôle lit les guides du compilateur, le plan v2 archivé, le TODO parent et
+les README des 48 ports délégués. Il suppose le layout local documenté ; les liens
+distants ne sont pas interrogés. Les exemples shell passent par `bash -n` sans être
+exécutés.
 
 Pour le lot traité, conserver :
 
@@ -2473,3 +2594,475 @@ Les limites de traces JVM et les versions JDK exécutées restent explicites ;
 les autres ports gardent leurs périmètres de couverture datés.
 
 **Conclusion : M19 validé ; complément clôturé. Plans v1 et v2 toujours à 100/100.**
+
+## Revue préalable au plan v3
+
+**6 octobre 2026 — cleanup des fixtures et runners ; ouverture à 0/100.**
+
+Cette revue fonde les quatre lots M20–M23 du [plan actif](../../todo.md).
+Le [plan v2 archivé](plan-v2.md) conserve ses clôtures et les compléments M17–M19.
+La revue porte sur les sources et l'outillage ; elle ne valide aucun lot nouveau.
+
+Références initiales, checkouts propres :
+
+| Dépôt | Révision |
+| --- | --- |
+| Javapurs | `dc6dadf7d3d0213174bdd3aa65f9288121209c63` |
+| Arrays, représentant des launchers identiques | `e4c716465a7502a15e8d8186b2cac988bbddf236` |
+| Strings, variante à pile de 64 Mio | `f769f61f6c1b1eb07a7c33f8ea362c9f391a0d70` |
+
+Constats obtenus par lecture et inventaire en lecture seule :
+
+- **52 fichiers / 5 600 lignes dans `src/`**, dont 48 modules PureScript ;
+  les responsabilités du backend sont déjà découpées. Les 1 018 fichiers suivis
+  de `output/` représentent 5 323 309 octets de build actif, dont le launcher
+  dépend ; leur seule présence ne caractérise pas un déchet.
+- **Huit suites définissent leur propre `TcoLoop`** : `chunk`, `tco`,
+  `counted-loops`, `int-functions`, `loop-invariants`, `ownership`, `direct-calls`
+  et `typed-records`. Les deux dernières ont cette copie dans leur parcours
+  optionnel sur entrées optimisées externes. Dans `chunk`, `__IntFn` ne possède
+  ni l'interface `IntUnaryOperator` ni la méthode `from` du
+  [runtime de production](../src/Javapurs/Runtime.purs) ; le `TcoLoop` local
+  ne désactive pas non plus `fillInStackTrace`.
+- [L'intégration FFI](../test/ffi-ports.mjs) et le
+  [runner de ports](../tools/port-test-runner.mjs) ajoutent séparément des
+  dépendances par remplacement de texte YAML et les mêmes quatre ports locaux
+  Aff, Promise, Promise/Aff et Foreign après `prepareWorkspace`.
+- **48 `bin/test` de ports** : **44 fichiers identiques**, un fichier Strings
+  différant par les réglages de pile, et trois délégations isolées M12.
+  Les 45 premiers retirent les sorties du port, remplacent sa configuration par
+  un symlink, ignorent les arguments inconnus et appellent directement les outils
+  Java du `PATH`, sans `--release` ni prise en compte de la JVM distincte.
+- Les 49 `spago.java.yaml` utilisent le package set **77.7.0**, avec chacun
+  48 chemins locaux ; les 49 `spago.yaml` correspondants sont déjà des symlinks.
+  Cinq autres ports possèdent un `spago.yaml` régulier. Le runner du compilateur
+  utilise **77.10.1**. Un partage de préparation doit rendre ces choix explicites.
+- [UUID](../../javapurs-uuid/test/Main.purs) et
+  [Yoga JSON](../../javapurs-yoga-json/test/Main.purs) illustrent les suites
+  historiques dont `main` utilise `launchAff_` : la migration doit relever le
+  protocole de fin, pas seulement reproduire un code de sortie 0.
+
+La comparaison des launchers a utilisé les octets et SHA-256, avec ces deux
+empreintes :
+
+| Script | SHA-256 |
+| --- | --- |
+| `javapurs-arrays/bin/test`, commun à 44 ports | `d3a9a4a64eb70407ad1536acf752033aedf092cb34ad2c3c05a5460e4a253f96` |
+| `javapurs-strings/bin/test` | `03f38deb39142b430bc74d7692ac7da70f5880752d783fedb01feb53d1689edb` |
+
+**Sonde comportementale isolée :** copier chacun de ces deux scripts dans un
+port temporaire ; créer des sentinelles `output/keep` et `java_output/keep`,
+un `spago.yaml` régulier et un `spago.java.yaml` distinct ; placer un faux
+`spago` retournant 37 devant `/usr/bin:/bin` dans `PATH` ; appeler
+`/bin/bash <copie>/bin/test --clena` depuis le dossier parent.
+
+Pour les deux copies, la commande a atteint « Building project with spago »
+et quitté avec **1** après l'échec simulé de Spago. Les deux sentinelles avaient
+été retirées et `spago.yaml` remplacé par un symlink. Cela reproduit l'absence de
+validation des options avant mutation, sans exécuter de compilateur réel. Les
+dossiers temporaires de la sonde ont été supprimés ; les ports sources n'ont
+pas été modifiés.
+
+**Périmètre :** inventaires statiques et deux sondes de launchers copiés,
+sans campagne de ports ni validation fonctionnelle supplémentaire du compilateur.
+Le score du plan v3 reste **0/100** jusqu'aux validations de ses lots.
+
+## Validation M20
+
+**6 octobre 2026 — fixtures compilées avec le runtime de production ; 20/100.**
+
+### Références et périmètre
+
+- Backend : `dc6dadf7d3d0213174bdd3aa65f9288121209c63`, avec les modifications
+  documentaires d'ouverture du plan v3 déjà présentes au départ. Les tests,
+  sources et modules construits n'avaient pas de modification locale.
+- Entrées de benchmark : checkout `altbak.pub-javapurs` à
+  `ada9eb2276083dfb590bb35a10c935a9a8d3722e`, propre. Copie figée de **38 fichiers
+  TAST** : RBTree, Records, Church, LazyEvaluation et fermeture de leurs imports ;
+  quatre sources PureScript et quatre anciens `.purmeta` également inventoriés.
+  Les anciens caches servent au constat initial, pas au build de validation.
+- Node **24.8.0**, JDK/JVM Homebrew **26.0.2**, cible **17**. Chemins exacts,
+  variables du runner, commandes et SHA-256 sont dans les preuves locales.
+
+Les huit suites retirent leurs copies de `TcoLoop`, ainsi que le `__IntFn`
+réduit de `chunk`. Elles importent `tcoLoopSource`/`intFunctionSource` depuis
+`output/Javapurs.Runtime/index.js` et compilent les fichiers correspondants.
+Assertions AST/JVM, modes, entrées sémantiques, timeouts et réglages de pile sont
+conservés.
+
+**Constat supplémentaire reproduit avant correction :** les neuf commandes
+standard réussissaient ; les cinq invocations optionnelles échouaient en lisant
+des caches pourtant présents. Le PBO construit démarre avec une portée de
+publication vide, donc `readPurmetaSync` retourne `Nothing` pour ces fichiers
+produits par un autre processus. La correction commune des quatre consommateurs
+reconstruit leurs implémentations via
+[optimized-module.mjs](../test/support/optimized-module.mjs), dans le même scope
+que leur lecture, sans assouplir le contrat du cache.
+
+Pour isoler l'effet du retrait des runtimes copiés, les cinq parcours optionnels
+de la référence ont reçu la même préparation TAST corrigée, tout en gardant leurs
+anciens templates locaux. Cette référence effective et la version finale
+utilisent les mêmes 38 TAST et les mêmes modules construits du backend.
+
+### Commandes et résultats
+
+Chaque ligne a réussi sur la référence effective puis sur la version finale.
+`INPUTS` désigne le dossier figé décrit ci-dessus.
+
+| Commande ciblée | Résultat |
+| --- | --- |
+| `node test/chunk.mjs` | **15 fixtures** réussies, avec les interfaces/runtime de production. |
+| `node test/tco.mjs` | **16 cas comportementaux**, dont replis et sauts entre boucles. |
+| `node test/counted-loops.mjs` | **51 admissions/refus**, comportements JVM, overflow et replis réussis. |
+| `node test/int-functions.mjs` | Modes générique/spécialisé réussis : ABI, ordre, captures, exceptions et TCO profond. |
+| `node test/int-functions.mjs --church-project "$INPUTS"` | Les deux modes précédents avec Church optimisé, dont pont avec fonction FFI ordinaire. |
+| `node test/loop-invariants.mjs` | **23 contrôles de pureté, 13 de portée, 50 JVM**. |
+| `node test/loop-invariants.mjs --lazy-project "$INPUTS"` | Mêmes contrôles, plus invariant réel LazyEvaluation et génération désactivée vérifiés. |
+| `node test/ownership.mjs` | Workers, arbre persistant/consommé, listes polymorphes et groupe récursif local réussis. |
+| `node test/direct-calls.mjs` | **37 contrôles JVM × 2 modes**. |
+| `node test/direct-calls.mjs --rbtree-project "$INPUTS"` | **56 contrôles JVM × 2 modes**, dont rotations/invariants RBTree et ordre des valeurs. |
+| `node test/typed-records.mjs`, puis `--records=maps` | **75 / 69 contrôles JVM**. |
+| `node test/typed-records.mjs --records-project "$INPUTS"`, puis ajout de `--records=maps` | **100 / 94 contrôles JVM**, dont mises à jour profondes optimisées ; six lectures de paramètre sans annotation locale. |
+
+Soit **14 commandes réussies et 18 variantes compilées/exécutées sur JVM** par
+version effective. Trois sondes supplémentaires du nouveau support réussissent :
+
+1. Cache résiduel volontairement invalide ignoré ; implémentations fraîchement
+   construites disponibles, tous les fichiers du projet préservés et workspace
+   temporaire supprimé au succès.
+2. `typeTable` invalide refusé par le loader de production, dossier appelant
+   préservé et workspace en échec conservé.
+3. Erreur d'écriture `.purmeta` injectée et propagée ; dossier appelant restauré,
+   scope de publication réinitialisé et ancien cache du projet intact.
+
+### Comparaison et clôture
+
+Captures des sources Java écrites par les suites, avant leur nettoyage normal :
+
+- **104 fichiers identiques** à l'octet près.
+- **11 fichiers `TcoLoop.java` remplacés** exactement par le template courant.
+- **3 harness Java** conservés à l'octet près après retrait de leurs seules
+  définitions runtime terminales (`ChunkRuntime`, `TcoPrinterRegression`,
+  `CountedLoopRegression`).
+- **4 fichiers ajoutés** : `TcoLoop.java` dans ces trois workspaces et
+  `__IntFn.java` dans celui de `chunk`, tous identiques aux templates construits.
+
+Inventaires : **118 sources avant / 122 après**. Les **52 fichiers de `src/`**,
+les **1 018 fichiers du build `output/`** et les **46 entrées figées/inventoriées**
+gardent leurs empreintes ; le checkout du benchmark garde également ses fichiers.
+Les changements concernent huit suites et un helper de test ; aucune génération
+de production n'a été modifiée pour les faire passer.
+
+Limites : cette validation utilise JVM 26 avec bytecode cible 17 ; elle n'est pas
+une nouvelle matrice inter-JDK. Le parcours optionnel `int-loops` décrit plus
+haut garde sa limitation préexistante et n'est pas couvert par M20.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m20-mgceekkm/`,
+notamment `references.json`, `inputs/`, `base/`, `before/` (y compris les cinq
+échecs initiaux), `before-prepared/`, `after/`, `comparison.json`, `capture.mjs`,
+`run-suites.py`, `helper-probes.mjs` et les workspaces des sondes négatives.
+La revue finale contrôle le diff, l'absence de copies runtime dans `test/`,
+les liens, exemples shell et le score du plan.
+
+**Conclusion : M20 validé, +20 points ; plan v3 à 20/100, 1 lot sur 4.
+Prochain lot : M21 — préparation déclarative des workspaces de test.**
+
+## Validation M21
+
+**6 octobre 2026 — profils partagés et configuration des workspaces ; 45/100.**
+
+### Références et périmètre
+
+- Backend : `dc6dadf7d3d0213174bdd3aa65f9288121209c63`, avec les modifications
+  documentaires et M20 déjà présentes au départ, conservées dans le diff initial.
+- **23 ports locaux propres** au départ, inventoriés avec révision, fichiers,
+  SHA-256, répertoires et cibles des symlinks. Les quatre sélections partagées :
+
+| Port | Révision |
+| --- | --- |
+| Aff | `a2497e553efb4416287210332e4fe99e8efd161e` |
+| Promise | `669f30715449c521cee990400eb4d7463461833e` |
+| Promise/Aff | `debf430c6d2789a709d8f70f4415ce08d4a23db8` |
+| Foreign | `c7d5403aea3ea607d731987d6406418a0e5d4cce` |
+
+- Node **24.8.0**, Spago **1.0.3**, `purs` **0.15.16**, étiquette du binaire
+  `3c8fcfd7a3d440bba487fe9fe059284cffc6e908 DIRTY` ; JDK/JVM Homebrew
+  **26.0.2**, `JAVAPURS_JAVA_RELEASE=17`.
+- Fichiers de code : nouveau [workspace-config.mjs](../tools/workspace-config.mjs),
+  [fixture-runner.mjs](../tools/fixture-runner.mjs),
+  [port-test-runner.mjs](../tools/port-test-runner.mjs),
+  [ffi-ports.mjs](../test/ffi-ports.mjs) et [test-tools.mjs](../test/test-tools.mjs).
+
+Les profils conservent les différences de dépendances directes et partagent la
+sélection Aff/Promise/Promise-Aff/Foreign. L'intégration utilise également cette
+préparation pour sélectionner `foreign` dans le registre lors de sa sonde négative.
+Le lecteur du sous-ensemble de gabarit documenté refuse structures inattendues,
+doublons, conflits de chemins et checkouts manquants avant écriture ; il conserve
+le package set explicite et le bloc de test optionnel. Le gabarit du runner reste
+la source de l'inventaire de base.
+
+### Commandes et résultats
+
+| Commande ciblée | Résultat |
+| --- | --- |
+| `node test/test-tools.mjs` | **18 tests réussis**, dont cinq nouveaux groupes de préparation : profils/Foreign registre, gabarit alternatif 77.7.0/entrypoint, neuf gabarits invalides et sélections erronées, checkouts absents/non-répertoires/conflits, préservation du gabarit et des configurations liées. Le pipeline simulé utilise des chemins avec espaces et vérifie les FFI auxiliaires/originaux. |
+| `node test/ffi-ports.mjs` | **25 assertions × records typés/Maps × classes/JAR**, inventaires et marqueurs finaux vérifiés. Sélection des fragments locaux et relevé identique entre représentations ; génération avec Foreign du registre diagnostiquée `missing`, source Spago identifiée. |
+| `node test/port-runners.mjs --port=aff` | **45 contrôles**, marqueur de fin et quatre sondes négatives réussis. |
+| `node test/port-runners.mjs --port=promise` | **13 contrôles**, marqueur de fin et quatre sondes négatives réussis. |
+| `node test/port-runners.mjs --port=promise-aff` | **7 contrôles**, marqueur de fin et quatre sondes négatives réussis. |
+
+Les quatre commandes réelles utilisent un `TMPDIR` contenant des espaces. Les
+**12 sondes négatives** vérifient assertion après suspension, rejet, timeout
+interne et sortie prématurée sans marqueur. Les phases gardent leurs logs,
+bornes et paramètres Java ; les workspaces des suites sont supprimés au succès.
+
+Le script de collecte avait initialement exigé un `TMPDIR` entièrement vide,
+après les quatre codes de sortie 0. Il a trouvé le dossier `spago-nodejs` et ses
+répertoires vides, sans fichier. Le contrôle corrigé distingue ce scratch Spago
+des workspaces des runners : aucun de ceux-ci n'est resté. Ce contrôle final a
+été rejoué sur les résultats conservés, sans relancer les quatre suites réussies.
+
+### Conservation et clôture
+
+Avant modification, capture de la préparation existante de la fixture, de
+l'intégration et des trois ports, y compris le bloc original de composition de
+`ffi-ports.mjs`. Après modification, même préparation par les profils communs :
+**21 fichiers identiques à l'octet près**, dont **cinq configurations Spago** et
+**16 sources/FFI de suites**. Les dépendances, versions de package set, chemins
+locaux et fichiers copiés de ces parcours sont ainsi conservés.
+
+L'inventaire final est identique pour les **23 ports locaux**, le gabarit
+`tests/runner/spago.yaml`, les **52 fichiers de `src/`** et les **1 018 fichiers
+du build `output/`**. Le contrôle documentaire et `git diff --check` complètent
+la revue des diffs du compilateur et du TODO parent.
+
+La validation utilise JVM 26 avec cible 17. Le gabarit alternatif 77.7.0 est
+couvert par les sondes Node ; les exécutions réelles de ce lot utilisent le
+runner 77.10.1. La migration des launchers historiques relève de M22–M23.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m21-TonoZh/`,
+notamment `references.json`, `before-inventory.json`, `after-inventory.json`,
+`base/`, `before/`, `after/`, `preparation-comparison.json`, `test-tools.log`,
+les quatre logs d'intégration/ports, `validation.json`, `workspace-cleanup.json`
+et les scripts de capture, comparaison et exécution.
+
+**Conclusion : M21 validé, +25 points ; plan v3 à 45/100, 2 lots sur 4.
+Prochain lot : M22 — runner commun et pilotes Refs, Exceptions, Strings.**
+
+## Validation M22
+
+**6 octobre 2026 — runner commun et trois migrations pilotes ; 80/100.**
+
+### Références et contrat
+
+Le compilateur reste à `dc6dadf7d3d0213174bdd3aa65f9288121209c63`, avec les
+modifications M20/M21 déjà présentes au départ. Les trois ports pilotes étaient
+propres avant cette passe :
+
+| Port | Révision | Entrée de référence |
+| --- | --- | --- |
+| Refs | `c8e66b9acde8dda2a0e7271fb4175dd20cf3d5ae` | `test/Main.purs`, cinq assertions, dont deux via `selfRef`. |
+| Exceptions | `d47b968ffe098b66c6e5573ee4f7c23c4d57c8f2` | `test/Main.purs`, erreurs et propriétés, log final `All tests passed`. |
+| Strings | `f769f61f6c1b1eb07a7c33f8ea362c9f391a0d70` | `test/Test/Main.purs`, huit modules de test appelés séquentiellement. |
+
+Leurs `main :: Effect Unit` sont synchrones. Les ressources résident dans `src/`
+et `test/`, avec les fragments FFI adjacents ; les arbres sont conservés par copie.
+Chaque port garde son gabarit `spago.java.yaml`, son package set **77.7.0** et ses
+dépendances de package/test. Les wrappers Aff/Promise gardent le runner **77.10.1**,
+leurs attentes, marqueurs et sondes négatives.
+
+Les trois `bin/test` deviennent des délégations de quatre lignes. Le parcours
+commun de [port-test-runner.mjs](../tools/port-test-runner.mjs) et
+[port-runners.mjs](../test/port-runners.mjs) livre : options strictes avant effets,
+aide sans JDK/build, `-c` via `bin/build` avec environnement résolu, workspace
+isolé, phases bornées et logs conservés à l'échec, propagation des signaux,
+cible/JVM séparées et pile Strings de **64 Mio** pour `javac` et `java`.
+
+### Exécutions et sondes
+
+Node **24.8.0**, Spago **1.0.3**, `purs` **0.15.16** portant l'étiquette
+`3c8fcfd7a3d440bba487fe9fe059284cffc6e908 DIRTY`. JDK de build Homebrew
+**26.0.2** ; JVM 26.0.2 puis Temurin **17.0.20.1+1** pour la sélection croisée.
+Le JDK 17 a été téléchargé depuis la release épinglée de M16 ; SHA-256 vérifié :
+`196d13ba5f10414bef7f6a05a9b3f00edacb18ebacef2b99485db9e2ee18f0e8`.
+
+**Référence préalable :** les trois launchers historiques ont réussi dans des
+copies isolées, avant modification des ports. Seuls les chemins locaux de leurs
+gabarits copiés ont été rebasés vers les checkouts inventoriés. Les scripts ont
+conservé leurs arguments Java historiques, sans cible explicite. Leurs TAST,
+sources Java, relevés FFI et logs ont été figés.
+
+| Commande / sélection finale | Résultat |
+| --- | --- |
+| `node test/test-tools.mjs` | **24 tests Node réussis**. Six nouveaux groupes couvrent aide/options/délégations des trois pilotes, cibles 17/26 et JVM distincte, pile Strings, cinq échecs de phase, launcher Java manquant, quatre timeouts et SIGINT/SIGTERM aux descendants. Sources, configurations liées, lockfiles et anciens outputs sentinelles sont préservés. |
+| `../javapurs-refs/bin/test` | Suite réelle réussie depuis un dossier externe ; nouveau workspace, package set 77.7.0, cible 17 et JVM 26. |
+| `../javapurs-exceptions/bin/test` | Suite réelle réussie dans les mêmes conditions ; assertions et message final conservés. |
+| `../javapurs-strings/bin/test` | Huit modules de suite exécutés ; `javac --release 17 -J-Xss64m` et JVM `-Xss64m` effectifs. |
+| `JAVAPURS_JAVA_RUNTIME="$JDK17_HOME/bin/java" ../javapurs-refs/bin/test` | Compilation par JDK 26 en release 17, exécution réelle sur **JVM 17**. `MainRun.class` a la version majeure **61**. |
+| `node test/port-runners.mjs --port=aff` | **45 contrôles + quatre sondes négatives** réussis. |
+| `node test/port-runners.mjs --port=promise` | **13 contrôles + quatre sondes négatives** réussis. |
+| `node test/port-runners.mjs --port=promise-aff` | **7 contrôles + quatre sondes négatives** réussis. |
+
+Les sept sélections réelles utilisent un `TMPDIR` avec espaces. Pour les sondes
+de timeout, l'adaptateur de test vérifie les bornes de production **120 s / 45 s**
+puis réduit la phase bloquée à 200 ms ; l'escalade SIGKILL est exercée. Les erreurs
+de build passent également par un log et un workspace conservés. Les interruptions
+des launchers retournent **130/143**, avec réception du signal par le petit-fils.
+
+La première collecte réelle a rencontré **ENOSPC** : Strings/Spago et Aff/PBO
+ont signalé l'écriture impossible, puis Spago a remonté une erreur d'I/O SQLite.
+Exceptions et Refs/JVM17 avaient fini leur suite mais leur copie de preuve avait
+échoué. Les preuves partielles ont été archivées et relues octet par octet ; la
+capture a été réduite aux sources/FFI, Java/classes, logs et configurations,
+avec inventaire des TAST. Les six sélections en échec ont ensuite réussi ; Refs,
+déjà réussi avec capture complète, a été conservé. Aucun échec n'a été converti
+en succès par le runner et aucun correctif du backend n'a été nécessaire.
+
+### Comparaison et conservation
+
+Rejeu du nouveau pipeline sur les **mêmes TAST figés**, avec les mêmes sources
+et fragments FFI ; seule la phase Spago est remplacée par la reprise des fichiers
+dont les SHA-256 sont vérifiés. Génération, `javac` et exécution restent réels :
+
+| Pilote | Fichiers TAST | Java identiques | Entrées du relevé FFI identiques |
+| --- | ---: | ---: | ---: |
+| Refs | 161 | 269 | 161 |
+| Exceptions | 250 | 397 | 250 |
+| Strings | 193 | 306 | 193 |
+| **Total par workspace** | **604** | **972** | **604** |
+
+Les rapports FFI sont comparés après normalisation des seules racines temporaires :
+origines, résolution, statuts, bindings et empreintes des fragments sont identiques.
+Les **972 Java** des builds Spago neufs de la sélection finale correspondent aussi
+à cette référence, octet par octet. Les sources et modes sémantiques des suites
+n'ont pas été retouchés.
+
+L'inventaire des ports et les empreintes du backend sont revérifiés à la clôture ;
+seuls `bin/test` et `README.md` des trois pilotes changent dans les ports. Les
+configurations, symlinks, lockfiles et anciens outputs sont conservés. Les contrôles
+documentaires, la syntaxe Bash des délégations, `git diff --check` dans les quatre
+dépôts touchés et la revue du TODO parent complètent la validation.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m22-guTuD1/`,
+dont `references.json`, inventaires avant/après, `legacy workspaces/`, `after/`,
+`frozen workspaces/`, `frozen-comparison.json`, `validation.json`, `jdk17.json`,
+`test-tools.log`, `initial-enospc.tar.gz`, `initial-enospc/` et `final-audit.json`.
+Les scripts de capture, de reprise et de comparaison sont conservés avec ces preuves.
+
+Le périmètre réel couvre ces six ports et le croisement JVM 17 de Refs. Les
+**42 launchers historiques restants** relèvent de M23 et de sa sélection bornée.
+
+**Conclusion : M22 validé, +35 points ; plan v3 à 80/100, 3 lots sur 4.
+Prochain lot : M23 — migration des 42 autres launchers historiques.**
+
+## Validation M23
+
+**6 octobre 2026 — migration des 42 launchers restants ; plan v3 à 100/100.**
+
+### Références et inventaire
+
+Javapurs reste à `dc6dadf7d3d0213174bdd3aa65f9288121209c63`, avec les
+modifications M20–M22 non commitées déjà présentes. Les 42 ports à migrer sont
+propres ; les trois pilotes conservent leurs changements M22. Le
+[relevé exhaustif](port-launchers.md) donne les **45 révisions historiques**,
+destinations, entrypoints, ressources, piles, configurations et résultats par
+port. Les 54 dossiers de ports locaux et les sources/builds du backend ont une
+empreinte préalable. Aucun commit ni push n'est réalisé.
+
+Outils : Node **24.8.0**, Spago **1.0.3**, JDK/JVM Homebrew **26.0.2**, `purs`
+**0.15.16**, build `3c8fcfd7a3d440bba487fe9fe059284cffc6e908 DIRTY`.
+Les nouvelles compilations ciblent **release 17** ; la preuve JVM 17 des pilotes
+reste celle de M22. Les références historiques utilisent les options originales,
+sans `--release`. La sélection réelle est nommée et séquentielle ; aucun `t -c`,
+corpus entier ni `modtest`.
+
+### Livrables
+
+- **42 délégations de quatre lignes**, rejoignant les trois pilotes et les
+  trois ports M12 : **48 launchers communs**. Les options/arguments, modes
+  exécutables et destinations sont contrôlés. Les migrations couvrent le groupe
+  synchrone, les deux Spec attendues, puis les six protocoles explicitement rejetés.
+- **37 profils historiques synchrones**, dont Prelude et Partial déjà acceptés
+  via `Function.apply(null)` par `MainRun`, **deux profils Spec/Aff** et **six
+  profils non pris en charge**. Les listes de dépendances vides `[]` des gabarits
+  Prelude/Partial sont désormais lues et réémises explicitement.
+- UUID et Node Event Emitter exposent `spec :: Spec Unit` ; les assertions
+  d'origine sont conservées. Le wrapper `tests/port-suites/Spec.purs` attend
+  `evalSpecT` sans sortie de processus, rejette les résultats failed/pending et
+  publie un nombre de succès vérifié par le launcher. Le support Java sépare
+  `Aff.java` et `Promise.java` du cœur commun `Runner.java`, sans ajouter Promise
+  au graphe des ports Spec.
+- Node FS/HTTP/Net/Streams, Spec et Yoga JSON échouent explicitement avant outils,
+  build et workspace. Leurs sources restent intactes ; le diagnostic décrit le
+  protocole détaché ou les callbacks qui empêchent de prouver leur fin.
+- Les 42 README sont actualisés. `check-docs.mjs` couvre désormais les **48
+  README** de ports et l'inventaire des launchers. Cinq liens locaux préexistants
+  cassés dans ces README sont corrigés lors de l'extension de ce contrôle.
+
+### Commandes et résultats
+
+Les commandes ci-dessous partent du compilateur ; la collection a aussi lancé
+les scripts par leur chemin absolu depuis un dossier tiers.
+
+| Commande / sonde | Résultat |
+| --- | --- |
+| Référence `--clena` des 42 anciens scripts, commandes simulées sur copies | Les 42 atteignent Spago après suppression des outputs et remplacement de configuration ; sortie 1 du faux Spago. Le défaut historique est enregistré avant migration. |
+| Références réelles Arrays, Node Path, UUID, Node Event Emitter, Prelude, Partial, Console | Sept codes 0 avec les scripts d'origine sur copies isolées. Les deux Spec n'impriment aucun résultat avant la sortie JVM : ce code 0 n'établit pas leur complétion. |
+| `node test/test-tools.mjs` | **27 tests Node réussis** : aide/arguments des 45 délégations, gabarits/dépendances/chemins, ressources/FFI, absence de mutation, empty lists, six rejets avant effets, Spec incomplète/sans marqueur ; garanties M22 de cible/JVM/pile, erreurs, timeouts et signaux conservées. |
+| `../javapurs-arrays/bin/test` ; `../javapurs-node-path/bin/test` | **Réussis**, vrais pipelines en release 17. |
+| `../javapurs-prelude/bin/test` ; `../javapurs-partial/bin/test` | **Réussis**, entrypoints fonctionnels et dépendances directes vides ; Partial reste un smoke test sans assertions. |
+| `../javapurs-console/bin/test` | **Réussi**, ressource `test/expected_output.txt` copiée ; mêmes messages qu'à la référence, sans ajouter de comparaison absente du test initial. |
+| `../javapurs-refs/bin/test` ; `../javapurs-exceptions/bin/test` ; `../javapurs-strings/bin/test` | **Trois pilotes réussis**, pile Strings 64 Mio conservée. |
+| `../javapurs-uuid/bin/test` | **Six tests et cinq sondes négatives réussis** : assertion suspendue, rejet, timeout, sortie prématurée, assertion capturée par Spec. |
+| `../javapurs-node-event-emitter/bin/test` | **Échec visible, code 1 : 1/14 tests passent**, erreurs `Boolean cannot be cast to Supplier`. Pas de marqueur ni de succès de remplacement. |
+| Classes historiques Event Emitter + `BaselineWait` maintenant le thread principal en vie | **Même échec, code 1, 1/14** avec les classes compilées avant modification ; les échecs précédemment masqués sont préexistants. |
+| `checkPortRunner("node-event-emitter", …)` sur les classes de la suite en échec | **Cinq sondes négatives réussies**, exécutées séparément car le parcours normal s'arrête correctement à l'échec de la suite. |
+| `../javapurs-aff/bin/test` ; `../javapurs-js-promise/bin/test` ; `../javapurs-js-promise-aff/bin/test` | **45/13/7 contrôles et 12 sondes négatives réussis** après composition du support Java. |
+| `../javapurs-node-fs/bin/test` ; `../javapurs-node-http/bin/test` ; `../javapurs-node-net/bin/test` ; `../javapurs-node-streams/bin/test` ; `../javapurs-spec/bin/test` ; `../javapurs-yoga-json/bin/test` | **Six codes 1 et diagnostics de protocole attendus**, avant préparation ; leurs suites ne sont pas déclarées validées. |
+| Audit, syntaxe Bash et `git diff --check` | **54 ports préservés** hors des 42 launchers/README et des deux extractions de Spec prévues ; 48 launchers exécutables et syntaxiquement valides ; aucun écart de whitespace dans les dépôts touchés. |
+| `node tools/check-docs.mjs` | **651 liens/ancres, 53 exemples Bash et 63 documents** vérifiés ; 29 suites, 12 options CLI, progression **100/100 — 4/4 lots**. |
+
+Au total : **13 suites réellement construites/exécutées**, **12 réussites**,
+**un échec FFI préexistant désormais observé**, **22 sondes asynchrones négatives
+réussies** et **six refus explicites de protocole**. Les **29 autres suites
+historiques synchrones** ont leurs délégations/gabarits vérifiés avec commandes
+simulées ; elles ne sont pas ajoutées à la couverture sémantique réelle.
+
+Le premier essai UUID a révélé deux imports auxiliaires absents de son graphe
+(`Effect.Console`, `Test.Assert`). Le wrapper utilise maintenant `Test.Spec.Console`
+et `Test.Spec.Assertions`, déjà présents, puis la sélection est rejouée avec
+succès. Cette correction conserve les dépendances et configurations originales.
+
+### Comparaison et préservation
+
+Sur Arrays, Node Path, Prelude, Partial et Console, les cinq builds de référence
+et les nouveaux builds produisent **1 479 Java** : **1 271 identiques octet pour
+octet**, **208 ne différant que par le commentaire du chemin FFI relatif**,
+la racine du workspace ayant un niveau de profondeur différent. Les fichiers
+sont identiques après ce seul rebasage ; les **cinq rapports FFI sont identiques**
+après normalisation des racines temporaires. Aucun changement de génération
+n'est introduit. Les **52 fichiers source du backend et ses 1 018 fichiers de
+build** gardent leurs empreintes.
+
+L'audit des 54 ports conserve `src/`, configurations, symlinks, lockfiles, caches,
+outputs et ressources, y compris les anciens temporaires Node FS. Les seuls
+changements de tests sont les deux extractions de Spec ; le corps des six tests
+UUID est comparé à sa référence en ignorant uniquement l'indentation, et les
+tests Event Emitter résident dans un module auxiliaire inchangé. Les changements
+M20–M22 restent présents.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m23-hchnV9/`.
+Le dossier contient `references.json`, `port-inventory.json`, l'inventaire initial,
+les scripts/résultats de référence, `validation.json`, `test-tools.log`, les logs
+et captures ciblées `after/`, `java-comparison.json`, `baseline-event-wait.log`,
+`event-probes.log`, `final-audit.json` et les diffs. Les références complètes et
+workspaces en échec sont archivés en `.tar.gz`, vérifiés octet par octet avant
+retrait de leur copie extraite ; les premiers essais sont conservés sous `initial/`.
+
+**Conclusion : M23 validé, +20 points ; plan v3 à 100/100, quatre lots sur quatre.
+La migration d'outillage est terminée. Les six protocoles non pris en charge,
+l'échec Event Emitter et les suites non exécutées restent des limites explicites.**

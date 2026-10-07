@@ -322,15 +322,21 @@ The shared JDK resolver uses explicit `JAVAC`/`JAVA` first, then `JAVA_HOME`, th
 
 `node test/port-runners.mjs --port=aff` runs the Aff suite through the same isolated runner as its `bin/test`; `--port=promise` and `--port=promise-aff` select the other two suites. The runner requires a completion marker and the expected check count, and probes delayed assertions, rejections, timeouts and premature process exit. See the [port-suite recipe](docs/testing.md#suites-asynchrones-des-ports).
 
+All **48 port launchers** now use this runner. The [45 historical profiles](docs/port-launchers.md) retain their source/test layout, dependencies, local FFI and package set 77.7.0. Options are strict, `--help` is read-only, and `-c`/`--clean` rebuilds the backend through `bin/build`. Build, generation and Java phases have deadlines and separate logs, retained with failed workspaces. Strings keeps its 64 MiB compiler/runtime stacks. See the [common-runner recipe](docs/testing.md#port-particulier).
+
+`--port=uuid` awaits six Spec tests and verifies five failure probes. `--port=node-event-emitter` uses the same protocol for 14 tests, currently exposing 13 pre-existing FFI failures. Node FS, HTTP, Net, Streams, Spec and Yoga JSON report unsupported completion and exit 1 before building; their detached/callback protocols still need a joined completion action. The direct runner's default remains only Aff/Promise/Promise-Aff.
+
 The [test matrix](docs/testing.md#matrice-des-tests) covers all 29 scripts and identifies optional benchmark-cache inputs. The [specialized-pass recipe](docs/testing.md#passes-spécialisées) includes ownership admission and deep-recursion checks in both modes. See the [BigFunction recipe](docs/testing.md#chunker-et-bigfunction), [source installation checks](docs/testing.md#installation-source) and [runner checks](docs/testing.md#outillage-des-tests) for focused commands. Compare performance changes against the [altbak.pub Java baselines](https://github.com/0x000000000000000000001/altbak.pub#java), separately from semantic regressions.
 
 `node tools/check-docs.mjs` checks local documentation links/anchors, shell-example syntax, the suite inventory, CLI options and plan progress using Node and Bash. The [maintenance guide](docs/maintenance.md#statut-des-fichiers-et-des-sorties) records which artifacts are active, generated or historical, including Git recovery instructions for the retired `.bak` snapshots.
 
-The maintainability plan v1 is complete: **11/11 milestones, 100/100 points**, with its history in the [M11 validation record](docs/testing.md#validation-m11). The [completed plan v2](../todo.md) also reaches **5/5 milestones, 100/100 points**: reliable asynchronous test runners, CLI/output handling, FFI diagnostics, reproducible source setup and measured JDK compatibility. Its closure and coverage limits are recorded in [M16](docs/testing.md#validation-m16).
+The maintainability plan v1 is complete: **11/11 milestones, 100/100 points**, with its history in the [M11 validation record](docs/testing.md#validation-m11). The [archived plan v2](docs/plan-v2.md) also reaches **5/5 milestones, 100/100 points**: reliable asynchronous test runners, CLI/output handling, FFI diagnostics, reproducible source setup and measured JDK compatibility. Its closure and coverage limits are recorded in [M16](docs/testing.md#validation-m16); the archive also preserves the completed M17–M19 follow-ups.
+
+The [plan v3](../todo.md), opened on **6 October 2026**, is complete: **M20–M23, 4/4 milestones, 100/100**. Fixtures use production runtime templates and current PBO builds for optional inputs; [shared workspace profiles](docs/testing.md#préparation-des-workspaces) own dependency/FFI selection; all 48 port launchers delegate to the common runner. See the [M20](docs/testing.md#validation-m20), [M21](docs/testing.md#validation-m21), [M22](docs/testing.md#validation-m22) and [M23](docs/testing.md#validation-m23) records. M23 validates tooling migration with 27 Node tests and targeted real suites; six unsupported completion protocols, the existing Event Emitter failures and unexecuted suites remain explicit coverage limits.
 
 ### Java target and runtime
 
-[tools/java-tools.mjs](tools/java-tools.mjs) is the common configuration for Java-compiling `test/*.mjs` suites, the fixture runner, the isolated Aff/Promise/Promise-Aff port runners, their `test-runtime` delegates, and source-installation examples:
+[tools/java-tools.mjs](tools/java-tools.mjs) is the common configuration for Java-compiling `test/*.mjs` suites, the fixture runner, all executable port-suite profiles, the five `test-runtime` delegates, and source-installation examples:
 
 | Setting | Meaning |
 | --- | --- |
@@ -338,7 +344,7 @@ The maintainability plan v1 is complete: **11/11 milestones, 100/100 points**, w
 | `JAVAPURS_JAVA_RELEASE` | Decimal target version, **17 by default**, minimum accepted target 17. Passed as `javac --release N`. |
 | `JAVAPURS_JAVA_RUNTIME` | Optional executable used to run the classes; defaults to the build JDK's `java`. |
 
-Missing tools, malformed targets, targets newer than the compiler/runtime, and conflicting fixture target flags fail before fixture preparation. `node tools/java-tools.mjs` prints the actual paths, versions and target. Heap settings remain independent. These variables configure the Node runners; raw `javac` commands and older shell-only port runners need their own explicit flags.
+Missing tools, malformed targets, targets newer than the compiler/runtime, and conflicting fixture target flags fail before fixture preparation. `node tools/java-tools.mjs` prints the actual paths, versions and target. Heap settings remain independent. These variables configure the Node runners; raw `javac` commands need their own explicit flags.
 
 For a focused cross-JDK check, with both home paths set in the shell:
 
