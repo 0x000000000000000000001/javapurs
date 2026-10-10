@@ -129,7 +129,7 @@ export function preparePortSuite(port, directory, { root = compilerRoot } = {}) 
     const common = readFileSync(join(support, "Runner.java"), "utf8");
     writeFileSync(`${destination}.java`, common + readFileSync(join(support, `${suite.ffi}.java`), "utf8"));
   }
-  for (const child of ["java_output", "classes", "logs"]) mkdirSync(join(directory, child), { recursive: true });
+  mkdirSync(join(directory, "logs"), { recursive: true });
   return config;
 }
 
@@ -141,11 +141,11 @@ export async function runPortSuite(port, directory, tools, processes, { root = c
     { cwd: directory, env: tools.env, timeout, log: join(directory, "logs", `${phase}.log`) });
   await run("purescript", "spago", ["build", "-q"]);
   await run("generation", join(root, "bin/javapurs"), ["--main", suite.main]);
-  if (!existsSync(join(directory, "java_output/MainRun.java"))) {
+  if (!existsSync(join(directory, "output/java/MainRun.java"))) {
     throw new Error(`${port}: generation did not produce MainRun.java; log: ${join(directory, "logs/generation.log")}`);
   }
-  await run("javac", tools.javac, [...compileArgs, "-d", "classes", "-sourcepath", "java_output", "java_output/MainRun.java"]);
-  await run("execution", tools.java, [...suite.javaArgs, "-cp", "classes", "MainRun"], 45000);
+  await run("javac", tools.javac, [...compileArgs, "-d", "output/java/classes", "-sourcepath", "output/java", "output/java/MainRun.java"]);
+  await run("execution", tools.java, [...suite.javaArgs, "-cp", "output/java/classes", "MainRun"], 45000);
   if (suite.completion === "awaited") {
     const output = readFileSync(join(directory, "logs/execution.log"), "utf8");
     assertCompleted(output);
@@ -176,7 +176,7 @@ export async function checkPortRunner(port, directory, tools, processes) {
   for (const [mode, diagnostic] of probes) {
     const log = join(directory, "logs", `probe-${mode}.log`);
     await assert.rejects(() => processes.run(`${port}: probe ${mode}`, tools.java,
-      ["-Djavapurs.test.mode=" + mode, `-Djavapurs.test.timeout=${mode === "timeout" ? 200 : 5000}`, "-cp", "classes", "MainRun"],
+      ["-Djavapurs.test.mode=" + mode, `-Djavapurs.test.timeout=${mode === "timeout" ? 200 : 5000}`, "-cp", "output/java/classes", "MainRun"],
       { cwd: directory, env: tools.env, timeout: 10000, log, reportFailure: false }),
     error => error instanceof ProcessFailure && error.code === 1 && !error.timeout);
     const output = readFileSync(log, "utf8");
@@ -185,7 +185,7 @@ export async function checkPortRunner(port, directory, tools, processes) {
   }
   const log = join(directory, "logs/probe-early-exit.log");
   await processes.run(`${port}: probe early-exit`, tools.java,
-    ["-Djavapurs.test.mode=early-exit", "-cp", "classes", "MainRun"],
+    ["-Djavapurs.test.mode=early-exit", "-cp", "output/java/classes", "MainRun"],
     { cwd: directory, env: tools.env, timeout: 5000, log });
   assert.throws(() => assertCompleted(readFileSync(log, "utf8")), /suite-completion marker/);
   console.log(`${port}: delayed assertion, rejection, timeout and premature exit detected${suiteFor(port).wrapper === "Spec" ? "; Spec failure detected" : ""}`);

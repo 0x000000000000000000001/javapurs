@@ -35,17 +35,17 @@ export async function sourceSmoke(workspace, destination, processes) {
       return processes.run(`${name}: ${phase}`, command, args,
         { cwd: app, env, log: join(app, `${phase}.log`), timeout: 120_000, ...options });
     };
-    assert.ok(!existsSync(join(app, "output")) && !existsSync(join(app, "java_output")));
+    assert.ok(!existsSync(join(app, "output")));
     await run("spago", spago, ["build"]);
     const tast = JSON.parse(readFileSync(join(app, "output/Main/corefn.json"), "utf8"));
     for (const key of ["dataDecls", "classDecls", "typeTable"]) assert.ok(Array.isArray(tast[key]), key);
-    mkdirSync(join(app, "classes"));
-    await run("javac", tools.javac, [...tools.javacArgs, "-d", "classes", "-sourcepath", "java_output", "java_output/MainRun.java"]);
-    const classMajor = readFileSync(join(app, "classes/MainRun.class")).readUInt16BE(6);
+    mkdirSync(join(app, "output/java/classes"));
+    await run("javac", tools.javac, [...tools.javacArgs, "-d", "output/java/classes", "-sourcepath", "output/java", "output/java/MainRun.java"]);
+    const classMajor = readFileSync(join(app, "output/java/classes/MainRun.class")).readUInt16BE(6);
     assert.equal(classMajor, tools.release + 44, "bytecode target");
-    assert.equal((await run("classes", tools.java, ["-cp", "classes", "MainRun"], { capture: true })).trim(), expected);
-    await run("jar", jar, ["--create", "--file", "app.jar", "--main-class", "MainRun", "-C", "classes", "."]);
-    const manifest = JSON.parse(readFileSync(join(app, "java_output/.javapurs-manifest.json"), "utf8"));
+    assert.equal((await run("classes", tools.java, ["-cp", "output/java/classes", "MainRun"], { capture: true })).trim(), expected);
+    await run("jar", jar, ["--create", "--file", "app.jar", "--main-class", "MainRun", "-C", "output/java/classes", "."]);
+    const manifest = JSON.parse(readFileSync(join(app, "output/java/.javapurs-manifest.json"), "utf8"));
     if (name === "refs") {
       for (const [module, file] of [["Effect", "effect/src/Effect.java"], ["Effect.Ref", "refs/src/Effect/Ref.java"],
         ["Effect.Console", "console/src/Effect/Console.java"]]) {

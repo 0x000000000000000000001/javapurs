@@ -19,7 +19,7 @@ depuis le dépôt du compilateur `htdocs/javapurs/javapurs`, sauf indication con
 | Suite d'un port | Les 48 `bin/test` délèguent à `test/port-runners.mjs` : profils explicites et workspaces isolés, suites synchrones ou attendues avec sondes d'échec. Six protocoles non pris en charge sont rejetés explicitement. [Inventaire et limites](port-launchers.md). |
 | Documentation/outillage | `tools/check-docs.mjs` contrôle liens/ancres, exemples shell, matrice/options et score ; les suites d'outillage vérifient les contrats des processus modifiés. |
 
-La règle du [plan de travail actif](../../todo.md) est une **validation
+La règle du [plan de travail actif](../todo.md) est une **validation
 ciblée sur les changements** : build du composant modifié et contrôles de ses
 responsabilités. `t -c`, le corpus entier et `modtest` sont hors de ce protocole.
 
@@ -148,7 +148,7 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Nommage, constructeurs nullaires, initialisation | [test/nullary-constructors.mjs](../test/nullary-constructors.mjs) | Singletons, portées, noms des modules/constructeurs et initialisations. |
 | Records, types de champs et interopérabilité Map | [test/typed-records.mjs](../test/typed-records.mjs) | Construction, lectures, mises à jour et ABI ; le script accepte aussi `--records=maps`. |
 | Invariants de boucle et preuve de pureté | [test/loop-invariants.mjs](../test/loop-invariants.mjs) | Évaluation différée, caches par invocation, ordre des effets et candidats refusés. |
-| Workers directs, arité et ordre d'initialisation | [test/direct-calls.mjs](../test/direct-calls.mjs) | Saturation, partielles, surapplication, eager/lazy et frontières d'exception. |
+| Workers directs, arité et ordre d'initialisation | [test/direct-calls.mjs](../test/direct-calls.mjs) | Saturation, partielles, surapplication, eager/lazy, frontières d'exception et gardes imbriquées sans expansion exponentielle ; 40 contrôles JVM par mode. |
 | Fonctions Int et ABI publique | [test/int-functions.mjs](../test/int-functions.mjs) | Appels primitifs/génériques, captures et comportement d'évaluation. |
 | Opérateurs numériques | [test/operators.mjs](../test/operators.mjs) | Division/modulo Int et égalité Number confrontés aux références sémantiques. |
 | Réutilisation des constructeurs | [test/constructor-reuse.mjs](../test/constructor-reuse.mjs) | Réécriture AST et exécution des cas de partage. |
@@ -156,7 +156,7 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Admission ownership, alias, cellules et littéraux | [test/ownership-admission.mjs](../test/ownership-admission.mjs) | 11 admissions/refus, 28 contrôles JVM en mode persistant et 31 avec ownership : snapshots, identité des cellules, Char/String et nombres IEEE ; `--simple-scalars` isole le cas Char sans erreur d'échappement. |
 | Cibles des boucles ownership | [test/ownership-loops.mjs](../test/ownership-loops.mjs) | 9 contrôles JVM par mode : alias arbre/scalaire et scope récursif, 0/1/100 000 itérations avec `-Xss256k`. |
 | `Chunk`, `Chunk.Captures`, `Chunk.Extraction` | [test/chunk.mjs](../test/chunk.mjs) | 15 fixtures : captures imbriquées, portées, types Java, récursion, mutations, ordre des effets, scopes profonds, boucles et frontières 256/257 unités, 64/65 captures. |
-| Configuration, pilote, pipeline, FFI et émission | [test/driver.mjs](../test/driver.mjs) | 11 variantes CLI, aide, 25 échecs attendus, deux ABI de launcher, bibliothèque/entrée vide, générations successives et deux builds Spago réels ; `purs` TAST, Spago, backend construit et JDK. Comparaison du Java sur entrées figées. |
+| Configuration, pilote, pipeline, FFI et émission | [test/driver.mjs](../test/driver.mjs) | 11 variantes CLI, aide, 25 échecs attendus, deux ABI de launcher, bibliothèque/entrée vide, générations successives et trois builds Spago réels ; `purs` TAST, Spago, backend construit et JDK. Comparaison du Java sur entrées figées. |
 | Entrée TAST stricte et graphe des imports | [test/input.mjs](../test/input.mjs) | Erreurs filesystem/JSON/décodage/métadonnées, doublons et imports manquants ; sorties/caches préservés, destination neuve absente, lecture séquentielle/parallèle, tableaux vides, symlinks et docs Prim ; backend construit et `purs` TAST. |
 | Launcher JVM et résultat du processus | [test/entrypoint.mjs](../test/entrypoint.mjs) | 10 variantes × classes/JAR : 6 succès et 14 échecs JVM attendus ; entier/null/objet non callable, priorité Supplier, argument null, appel unique, erreurs d'action/initialisation/stub ; backend construit, `purs` TAST et JDK avec `jar`. |
 | Propriété, publication et récupération Java | [test/output-files.mjs](../test/output-files.mjs) | 9 groupes Node : fichiers étrangers/modifiés, adoption, staging, six erreurs de renommage, ordre du launcher, `SIGKILL` à trois étapes, conflits de reprise, métadonnées et symlinks ; pas de build ni JDK. |
@@ -285,10 +285,10 @@ Pour chaque fixture sélectionnée :
 
 1. Une surcharge locale de même nom dans `tests/passing` prime sur le fichier du
    fork. Les modules auxiliaires du dossier associé sont copiés avec elle.
-2. Le runner remplace `tests/runner/src`, `output`, `java_output` et `classes`.
+2. Le runner remplace `tests/runner/src` et `output`, dont `output/java/classes`.
 3. Une FFI Java adjacente prime sur `tests/ffi/NOM.java` ; la FFI JavaScript
    adjacente, lorsqu'elle existe, satisfait la compilation PureScript.
-4. Il appelle Spago, Javapurs, `javac`, puis `java -cp classes MainRun`.
+4. Il appelle Spago, Javapurs, `javac`, puis `java -cp output/java/classes MainRun`.
 5. Il conserve `purescript.log`, `generation.log`, `javac.log` et `execution.log`
    dans `logs/tests/NOM/`. Le dossier de logs de cette fixture est remplacé au
    début de son prochain run ; une phase non atteinte n'a donc pas de vieux log.
@@ -401,10 +401,10 @@ chemins TAST/Java avec espaces, destination imbriquée créée automatiquement e
 alias `--output` sont utilisés. L'entrée vide en mode bibliothèque conserve
 seulement `__IntFn.java` et le manifeste.
 
-Deux vrais `spago build` exécutent un backend espion qui enregistre les arguments
-puis lance Javapurs : configuration par défaut, puis `--output "TAST cache"`.
-L'assertion vérifie les `backend.args` et l'ajout réel du chemin TAST absolu ; la
-destination Java `Java sources` est configurée séparément. Chaque résultat est
+Trois vrais `spago build` exécutent un backend espion qui enregistre les arguments
+puis lance Javapurs : configuration par défaut, répétition avec classes présentes,
+puis `--output "TAST cache"`. L'assertion vérifie les `backend.args` et l'ajout réel
+du chemin TAST absolu ; la destination Java suit ce chemin sous `java/`. Chaque résultat est
 compilé puis exécuté sur la JVM. Le workspace temporaire est supprimé au succès
 et conservé à l'échec.
 
@@ -415,6 +415,8 @@ Les comparaisons portent sur l'inventaire et les octets de l'ancienne/nouvelle
 génération, le fichier étranger conservé et l'ordre du launcher, même identique.
 Les conflits, métadonnées invalides et alias symlinks vérifient les
 chemins de refus et la conservation des preuves de reprise.
+Le sous-arbre réservé `java/` est accepté, y compris via un alias de la racine
+TAST ; les symlinks qui le redirigent vers un module restent refusés.
 Depuis M14, les snapshots de publication/restauration incluent un relevé FFI
 différent pour les deux générations, afin de vérifier leur cohérence avec le Java.
 
@@ -2599,7 +2601,7 @@ les autres ports gardent leurs périmètres de couverture datés.
 
 **6 octobre 2026 — cleanup des fixtures et runners ; ouverture à 0/100.**
 
-Cette revue fonde les quatre lots M20–M23 du [plan actif](../../todo.md).
+Cette revue fonde les quatre lots M20–M23 du [plan actif](../todo.md).
 Le [plan v2 archivé](plan-v2.md) conserve ses clôtures et les compléments M17–M19.
 La revue porte sur les sources et l'outillage ; elle ne valide aucun lot nouveau.
 
@@ -3066,3 +3068,156 @@ retrait de leur copie extraite ; les premiers essais sont conservés sous `initi
 **Conclusion : M23 validé, +20 points ; plan v3 à 100/100, quatre lots sur quatre.
 La migration d'outillage est terminée. Les six protocoles non pris en charge,
 l'échec Event Emitter et les suites non exécutées restent des limites explicites.**
+
+## Validation M24
+
+### Périmètre et références — 8–9 octobre 2026
+
+Demande : corriger le conflit `output/classes/corefn.json` de b8x et regrouper
+les sorties Javapurs sous le dossier `output` commun aux backends. Le défaut
+devient `<input>/java/` ; `--java-output` reste un override explicite. Les runners
+et exemples compilent sous `output/java/classes/`. Le lecteur réserve uniquement
+`java/` en minuscules et conserve les erreurs des autres entrées invalides.
+
+Références de départ : Javapurs `c05b2b3b14d657469b72113ce22e9f308d9eb9d1`,
+PBO Java `ce24af533bf39e50a4cb20931f86488b8fa1f589`, fork source
+`105f5752b39cc0f6c99a40064295338bf57ad223`, b8x
+`cc9e5ce17352817a19ac0cb5dcb28507d190a4c8`. Javapurs et PBO sont propres au
+départ ; les modifications applicatives, Rust, PHP et liens b8x préexistants
+sont relevés séparément. Le build du backend remet aussi ses modules PBO
+construits à jour avec les sources déjà présentes à `ce24af5`.
+
+Outils réellement sélectionnés : Node 24.8.0, Spago 1.0.3, OpenJDK 26.0.2,
+bytecode cible 17. Le `purs` actif est `~/.local/bin/purs`, annoncé `0.15.16`
+avec `3c8fcfd7… DIRTY`, SHA-256
+`758f82437163403272d9537eb934231f17d6efbe147f6107c276d257643a30d2`.
+La sonde de `bin/build` confirme les trois métadonnées TAST enrichies ; les
+anciens outils temporaires M15/M16 ne sont plus présents. L'essai avec l'ancien
+chemin JVM17 échoue au contrôle d'exécutable avant compilation et est consigné.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `./bin/build` du backend | 460 modules reconstruits, sonde TAST réussie. |
+| `node test/driver.mjs --record …`, puis `--compare …` | 11 variantes, aide, 25 refus attendus et cycle de publication ; **86 Java identiques** sur TAST/FFI figés. Trois builds Spago avec JVM réussis, dont deux consécutifs et une entrée personnalisée avec espaces. |
+| `node test/input.mjs` | **29 entrées invalides / 116 refus attendus** ; Java, manifeste, classes sentinelles et caches préservés. Un dossier `output/classes` reste refusé, alors que `output/java/classes` est accepté. |
+| `node --test test/output-files.mjs test/test-tools.mjs` | **37/37 tests** ; publication/rollback, sous-arbre réservé, symlinks, sélection et délégation des runners. |
+| `node test/entrypoint.mjs` | **10 variantes, 6 succès et 14 échecs JVM attendus**, classes et JAR. |
+| `node test/ffi-diagnostics.mjs` | 8 rapports, 3 résolutions, 8 refus JVM ciblés, 2 membres manquants refusés par javac et 1 erreur de lecture attendue. |
+| `node test/ffi-ports.mjs` | **25 assertions × 2 représentations × classes/JAR = 100 assertions**, sélection FFI locale/registre vérifiée. |
+| `node tools/source-smoke.mjs …` | Hello/Refs reconstruits, classes et JAR autonomes exécutés ; bytecode 61. |
+| Fixture isolée `BigFunction`, runners isolés `refs` et `aff` | BigFunction et Refs réussis ; **45 contrôles Aff** et quatre sondes de terminaison/échec réussis. |
+| `node test/direct-calls.mjs`, après reproduction négative de la nouvelle régression | **40 contrôles JVM × deux modes**, admission et taille bornée ; 32 appels imbriqués, ordre des effets et échec d'initialisation réentrante. |
+| `node test/constructor-reuse.mjs` ; `node test/chunk.mjs` | **7 groupes Reuse**, **15 fixtures Chunk** réussis. |
+| `node test/representations.mjs` après correction des gardes | **43 assertions JVM × huit modes = 344**, ABI, records typés/Maps, fonctions Int/génériques et appels directs on/off. |
+| Rejeu du driver et de BigFunction après correction des gardes | **86 Java du driver et 329 Java BigFunction identiques** aux références figées. |
+| `node --test bin/tests/build.test.mjs` dans b8x | **6/6 tests** : routage, destination Java, retrait du bytecode obsolète, launcher de production et code d'échec javac propagé. |
+| Premier essai `bin/build` b8x, heap par défaut 16 Gio | Les **2 685 TAST** sont chargés ; l'erreur `classes/corefn.json` est résolue. Échec mémoire Node pendant `Inter.Cli.Logic.Registry`, avant publication ; cause et correction ci-dessous. |
+| Premier `./bin/build` b8x après correction, heap par défaut 16 Gio | **Code 0** ; backend en **60 943 ms**, **2 687 sources gérées** et **9 launchers** publiés puis compilés par JDK 26.0.2 en release 17. Empreintes du manifeste vérifiées. |
+| `./bin/run Ping` après le premier build corrigé | **Code 0, `pong`**, via le classpath `output/java/classes` du conteneur `core-api-cli-1`, OpenJDK **17.0.20.1**. |
+| Second `./bin/build` b8x consécutif, classes déjà présentes | **Code 0 en 617,975 s**, dont backend **58 277 ms**, heap habituel de 16 Gio. **2 685 TAST, 2 696 Java et manifeste strictement identiques** au premier build ; **39 189 classes**, toutes en version majeure **61**. Marqueur présent, anciens chemins `java_output` et `output/classes` absents. |
+| `./bin/run Ping` après le second build | **Code 0, `pong`** sur la même JVM 17. Les deux générations ont chacune été compilées et exécutées. |
+| Revue finale, syntaxe Bash/Node, `git diff --check` et `node tools/check-docs.mjs` | Contrôles réussis ; sauvegarde de migration revérifiée par SHA-256, 11 diffs b8x préexistants conservés, FFI construites alignées sur leurs sources et instrumentation limitée aux copies temporaires. |
+
+Les liens du TODO, désormais suivi dans le dépôt du compilateur, et son chemin
+dans `check-docs.mjs` sont corrigés : le contrôle initial échouait sur
+`README.md -> ../todo.md` absent.
+
+### Expansion des gardes d'appels directs
+
+Le premier échec mémoire apparaît pendant `Reuse.reuseConstructors`, après
+`DirectCalls`. Une instrumentation isolée du module `Inter.Cli.Logic.Registry`
+montre que les gardes lazy imbriquées partagent chaque argument entre branches
+lente/directe, puis dupliquent récursivement ces sous-arbres. Le graphe de
+179 555 objets représente **7 202 796 762 objets après dépliage** ; le parcours
+arborescent de Reuse révèle cette expansion. L'essai avec 32 Gio autorisés est
+arrêté au même module après une empreinte mesurée de 24,8 Gio.
+
+La correction est limitée à `DirectCalls` : une nouvelle garde n'est pas ajoutée
+autour d'une garde déjà introduite dans ses enfants. L'appel extérieur reste
+curryfié ; les appels directs non gardés, les gardes indépendantes et les
+auto-appels saturés conservent leur admission. Aucun argument n'est anticipé ni
+mis en cache. La nouvelle régression échoue sur la version précédente avant
+les tests JVM ; les tests corrigés vérifient taille, ordre d'évaluation et
+moment de l'échec sur champ encore nul.
+Sur les mêmes TAST, le graphe corrigé contient **175 847 objets uniques** et
+**180 085 objets après dépliage**, relevés dans `registry-graph-comparison.json`.
+
+### Migration des anciens artefacts b8x
+
+Les **3 482 sources Java suivies**, soit **68 670 327 octets**, de `java_output/`
+et les **40 879 fichiers** de `run/bak/java/output/classes`, soit **70 229 868
+octets**, sont déplacés vers la sauvegarde locale `b8x-legacy/` et vérifiés par
+SHA-256 avant/après. Le nouvel arbre est régénéré ; `output/` est déjà ignoré,
+et `/java_output/` est ajouté aux exclusions historiques. Le build produit ses
+launchers via le modèle `Runtime.mainRunSource`, après une seule génération
+`--records=maps --no-main` ; ses classes et son marqueur `.javapurs` sont dans
+`output/java/classes/`, également utilisé par `bin/run` dans Docker.
+
+Preuves locales :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m24/`.
+Inventaires et références : `references.json`, `b8x-before.json`,
+`javapurs-before.json`, `b8x-migration.json`, snapshots `driver-baseline/`,
+logs nommés par contrôle, workspaces `BigFunction/`, `port-refs/`, `port-aff/`
+et `source-smoke/`. Les deux builds sont consignés dans
+`b8x-build-fixed-{1,2}.log`, `b8x-{first,second}-generation.json` et
+`b8x-second-build.json` ; leurs exécutions dans `b8x-ping-{1,2}.log`.
+`final-audit.json` et `ports-final.json` relèvent l'état final des dépôts et
+la vérification des sauvegardes.
+
+**Conclusion : M24 validé le 9 octobre 2026. Nouveau layout, migration b8x,
+correction des gardes et deux builds consécutifs avec lancement `Ping` validés.
+La campagne reste ciblée : les suites applicatives complètes b8x et les autres
+ports ne sont pas inclus dans ce relevé.**
+
+### Complément runj — 9 octobre 2026
+
+Le runner externe [altbak.pub-gopurs/bin/java/run](../../../altbak.pub-gopurs/bin/java/run)
+attendait encore `java_output/MainRun.java` après une génération réussie.
+Checkout initial propre à `323f7c15ab2f5703b5067eec7f4923a449245dd2`.
+Le contrôle du launcher et `javac -sourcepath` visent désormais `output/java` ;
+la compilation et le packaging partagent `output/java/classes`. La préparation
+commune retire déjà tout `output` avant une reconstruction, ce qui remplace le
+nettoyage séparé des anciens dossiers. La documentation du benchmark décrit
+le layout relatif à chaque workspace et le JAR conservé à sa racine.
+
+Vérifications avec le profil Java existant, OpenJDK 26.0.2 et `-Xss100M` :
+
+- `./bin/java/run --build-only` : **code 0**, mode `pure` et JAR produits dans
+  `run/bak/java/modes/pure`, sans exécution de la suite complète.
+- `./bin/java/run --test Fib --build-dir "…/Fibonacci workspace"` : génération,
+  compilation, packaging et exécution réussis ; oracle **55** validé.
+- Même sélection avec `--build-only`, après insertion d'une classe sentinelle :
+  **code 0**, bytecode obsolète absent du dossier et du JAR ; anciens chemins
+  `java_output` et `classes` non créés dans ce workspace neuf.
+- Même sélection avec `--run-only` : **code 0**, manifeste/SHA-256 du JAR et
+  oracle **55** validés. Syntaxe Python, documentation et diffs vérifiés.
+
+Preuves :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m24-runj/`
+contient `references.json`, `validation.json`, `pure-build.log`,
+`fib-{first,rebuild,run-only}.log` et le workspace ciblé.
+
+Le signalement suivant révèle que le dossier affiché avant la commande ne
+détermine pas le runner exécuté : `zsh -ic 'whence -v runj altj'` résout `runj`
+en `altj; ./bin/java/run -c;`, et `altj` fait un `cd` vers
+`altbak.pub-javapurs`. Le premier correctif portait sur la copie Gopurs.
+La copie réellement appelée, [altbak.pub-javapurs/bin/java/run](../../../altbak.pub-javapurs/bin/java/run),
+encore propre à la même révision `323f7c15…`, est donc corrigée à son tour.
+
+Depuis `altbak.pub-gopurs`, les vérifications passent par le véritable alias
+`altj` dans un shell interactif, puis exécutent le runner de sa destination :
+
+- `./bin/java/run -c --build-only` : **code 0**, JAR `pure` produit dans
+  `altbak.pub-javapurs/run/bak/java/modes/pure` après nettoyage complet du
+  workspace marqué, conformément à l'option de `runj`.
+- `./bin/java/run -c --test Fib`, puis `./bin/java/run --test Fib --run-only` :
+  **deux codes 0 et oracle 55** ; sources, classes et JAR du checkout Javapurs
+  contrôlés, anciens dossiers séparés absents des workspaces reconstruits.
+
+Les définitions des alias, commandes, empreintes des JAR et résultats sont
+conservés dans `javapurs-m24-runj/alias/{aliases.txt,validation.json}` et les
+trois logs de cette même sous-arborescence. La suite complète du benchmark
+n'est pas exécutée ; le contrôle ciblé couvre ici le routage effectif, le
+nettoyage `-c`, la génération, le packaging et l'exécution sauvegardée.

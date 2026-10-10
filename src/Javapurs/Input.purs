@@ -85,7 +85,8 @@ validateModules loaded = do
 readModules :: String -> Aff (List (Module Ann))
 readModules directory = do
   jobs <- liftEffect readConcurrency
-  entries <- FS.readdir directory
+  -- Lowercase java is reserved for backend artifacts, never a PureScript module.
+  entries <- Array.filter (_ /= "java") <$> FS.readdir directory
   let
     read = readEntry directory
     batches remaining

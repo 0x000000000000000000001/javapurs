@@ -84,8 +84,8 @@ Il ne signale pas un dispatcher manquant à remplacer par une spécialisation.
 | `.purs-repl` | Configuration persistante du REPL (`import Prelude`). |
 | `.psci_modules/` | Ancien build REPL retiré lors du nettoyage demandé pendant M13 ; régénérable par le REPL et désormais ignoré. Le launcher du compilateur charge `output/`. |
 | `.DS_Store`, `*.class`, `*.java.bak` | Métadonnées Finder, classes compilées isolées et sauvegardes Java ignorées dans les 55 dossiers. Les exemplaires identifiés ont été archivés puis retirés après M18. |
-| `tests/runner/src`, `output`, `java_output`, `classes`, `.purmeta` | État remplaçable d'une fixture, ignoré par le `.gitignore` du runner. Son `spago.yaml` et ses sources d'origine restent persistants. |
-| `output`/`java_output`, `.purmeta` dans un port | Entrées TAST, Java/classes et caches d'optimisation régénérables. Les copies présentes dans les ports ont été archivées puis retirées après M18, avec leurs anciennes entrées suivies ; les règles Git couvrent leur régénération. |
+| `tests/runner/src`, `output` (dont `java/classes`), `.purmeta` | État remplaçable d'une fixture, ignoré par le `.gitignore` du runner. Son `spago.yaml` et ses sources d'origine restent persistants. |
+| `output` (dont `java/classes`), `.purmeta` dans un port | Entrées TAST, Java/classes et caches d'optimisation régénérables. Les anciennes copies `output`/`java_output` des ports ont été archivées puis retirées après M18, avec leurs entrées suivies ; les règles Git couvrent leur régénération. |
 | `.javapurs-manifest.json`, `.javapurs-work/` dans une sortie Java | Propriété/SHA-256 des sources et relevé de sélection `ffi` de la même génération ; staging, verrou PID et journal de récupération. Voir le [cycle de vie](compiler.md#cycle-de-vie-des-sorties-java) avant d'intervenir sur une génération interrompue. |
 | `logs/` | Journaux locaux ignorés par `logs/.gitignore`, recréés par les runners. Les anciens journaux ont été archivés puis retirés lors du nettoyage M13. |
 | Anciens `.purs.bak`, `output.bak/` | Retirés de l'arbre de travail après comparaison/restauration depuis Git ; références exactes ci-dessous. Le `.gitignore` du compilateur prévient leur réintroduction accidentelle. |
@@ -215,7 +215,7 @@ tar -xzf "$ARCHIVE" -C "$RESTORE"
 ## Points ouverts après le plan
 
 Les scores M01–M11 et M12–M16 mesurent les livrables des deux plans terminés.
-Le [plan v3 actif](../../todo.md), ouvert le **6 octobre 2026** à **0/100**,
+Le [plan v3 actif](../todo.md), ouvert le **6 octobre 2026** à **0/100**,
 organise le cleanup vérifié dans la [revue préalable](testing.md#revue-préalable-au-plan-v3) :
 runtime de production dans les fixtures (M20), préparation partagée des workspaces
 (M21), runner commun et trois ports pilotes (M22), puis migration des autres

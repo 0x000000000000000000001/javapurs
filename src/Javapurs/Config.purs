@@ -40,7 +40,7 @@ defaultConfig :: Config
 defaultConfig =
   { inputDirectory: "output"
   , output:
-      { directory: "java_output"
+      { directory: "output/java"
       , mainModule: Just "Main"
       }
   , pipeline:
@@ -63,7 +63,9 @@ type ParseState = { config :: Config, seen :: Array String, help :: Boolean }
 parseArgs :: Array String -> Either String Command
 parseArgs args = do
   result <- go { config: defaultConfig, seen: [], help: false } args
-  pure if result.help then Help else Compile result.config
+  let config = if Array.elem "--java-output" result.seen then result.config
+        else result.config { output = result.config.output { directory = result.config.inputDirectory <> "/java" } }
+  pure if result.help then Help else Compile config
   where
   go :: ParseState -> Array String -> Either String ParseState
   go state remaining = case Array.uncons remaining of
@@ -112,7 +114,7 @@ Usage: javapurs [options]
   --help                   Show this help without reading inputs or writing files.
   --input DIR              Read enriched CoreFn/TAST from DIR (default: output).
   --output DIR             Alias of --input, supplied by Spago's output option.
-  --java-output DIR        Write Java and its manifest to DIR (default: java_output).
+  --java-output DIR        Write Java and its manifest to DIR (default: <input>/java).
   --main MODULE            Select a module with a local exported main (default: Main).
   --no-main                Generate a library without MainRun.java; permits empty input.
   --records=maps           Use Map records instead of typed records.

@@ -45,7 +45,7 @@ admis par `admitCall`, puis émettre les wrappers et workers effectivement utili
 | Site | Décision |
 | --- | --- |
 | Callee déclaré avant le caller, tous deux eager | Appel direct ; les arguments ne sont pas dupliqués dans un repli inutile. |
-| Callee antérieur lazy, ou caller lazy | Garde `calleeField == null` : conserver l'application curryfiée dans ce cas, appeler le worker sinon. |
+| Callee antérieur lazy, ou caller lazy | Garde `calleeField == null` : conserver l'application curryfiée dans ce cas, appeler le worker sinon ; si un enfant contient déjà une garde introduite par cette passe, garder l'appel extérieur curryfié. |
 | Getter lazy du binding récursif courant, exactement saturé | Appel direct à son propre worker : le getter a terminé avant l'exécution du corps. |
 | Déclaration antérieure au callee, autre getter, appel local/étranger, arité insuffisante | Application ordinaire. |
 
@@ -54,6 +54,12 @@ l'affectation d'un champ eager pourtant situé plus haut dans le fichier. La gar
 préserve aussi le moment où un appel nul arrête l'évaluation de ses arguments.
 Entre bindings eager, supprimer la garde évite la duplication exponentielle des
 sous-arbres d'appels imbriqués.
+Pour les appels nécessitant une garde, la passe compte les gardes introduites
+pendant la réécriture des enfants. Elle refuse de les dupliquer à nouveau dans
+les deux branches d'un appel extérieur. Ce repli conserve l'ordre curryfié des
+arguments et l'arrêt au premier échec, sans déplacement d'effet ni changement
+du contrôle d'initialisation. Les appels directs non gardés et les auto-appels
+restent admissibles autour d'un enfant gardé.
 
 L'émission reprend le **corps déjà réécrit**, puis conserve les groupes de lambdas
 publiques `Object`. Les signatures de worker et leurs casts sont décrits dans
@@ -63,6 +69,8 @@ réécrit ; son corps reste accessible par le champ public générique.
 Régressions : [direct-calls.mjs](../test/direct-calls.mjs) couvre arités,
 partielles/surapplications, collisions, scopes, frontières de calcul retournant
 une closure, initialisations eager/lazy et exceptions, dans les deux modes.
+Une chaîne de 32 appels gardés vérifie une taille d'AST bornée, l'ordre des effets
+et l'échec lors d'une initialisation réentrante ; voir [M24](testing.md#validation-m24).
 
 ## Paramètres Int et boucles comptées
 

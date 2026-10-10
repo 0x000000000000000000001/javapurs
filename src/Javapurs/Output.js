@@ -41,7 +41,7 @@ function readManifest(file) {
 function canonical(file) {
   try { return fs.realpathSync(file); }
   catch (error) {
-    if (error.code !== "ENOENT") throw error;
+    if (error.code !== "ENOENT" && error.code !== "ENOTDIR") throw error;
     const parent = path.dirname(file);
     if (parent === file) throw error;
     return path.join(canonical(parent), path.basename(file));
@@ -53,7 +53,11 @@ export const validatePaths = input => output => () => {
     const relative = path.relative(parent, child);
     return relative === "" || (relative !== ".." && !relative.startsWith(".." + path.sep) && !path.isAbsolute(relative));
   };
-  if (contains(a, b) || contains(b, a)) throw new Error(`TAST input and Java output must not overlap: ${a} / ${b}`);
+  // Only the reserved java subtree may overlap TAST. Compare physical paths:
+  // java -> Main or a nested symlink must not turn a module into an output dir.
+  if ((contains(a, b) && !contains(path.join(a, "java"), b)) || contains(b, a)) {
+    throw new Error(`TAST input and Java output must not overlap outside <input>/java: ${a} / ${b}`);
+  }
 };
 
 function atomicWrite(file, bytes, scratch) {

@@ -91,27 +91,27 @@ var readEntry = function (parent) {
     return function (entry) {
         var directory = parent + ("/" + entry);
         return Control_Bind.bind(Effect_Aff.bindAff)(Data_Function.apply(Javapurs_Diagnostics.withContext("inspect TAST entry " + directory))(Node_FS_Aff.stat(directory)))(function (stat) {
-            var $27 = !Node_FS_Stats.isDirectory(stat);
-            if ($27) {
+            var $28 = !Node_FS_Stats.isDirectory(stat);
+            if ($28) {
                 return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
             };
             var file = directory + "/corefn.json";
             return Javapurs_Diagnostics.withContext("read TAST " + file)(Control_Bind.bind(Effect_Aff.bindAff)((function () {
-                var $28 = PureScript_Backend_Optimizer_CoreFn.isPrimModule(entry);
-                if ($28) {
+                var $29 = PureScript_Backend_Optimizer_CoreFn.isPrimModule(entry);
+                if ($29) {
                     return Data_Functor.map(Effect_Aff.functorAff)(Data_Array.elem(Data_Eq.eqString)("corefn.json"))(Node_FS_Aff.readdir(directory));
                 };
                 return Control_Applicative.pure(Effect_Aff.applicativeAff)(true);
             })())(function (hasCoreFn) {
-                var $29 = !hasCoreFn;
-                if ($29) {
+                var $30 = !hasCoreFn;
+                if ($30) {
                     return Control_Applicative.pure(Effect_Aff.applicativeAff)(Data_Maybe.Nothing.value);
                 };
                 return Control_Bind.bind(Effect_Aff.bindAff)(Node_FS_Aff.stat(file))(function (fileStat) {
                     return Control_Bind.discard(Control_Bind.discardUnit)(Effect_Aff.bindAff)(Data_Function.apply(Control_Applicative.unless(Effect_Aff.applicativeAff)(Node_FS_Stats.isFile(fileStat)))(Data_Function.apply(throwError1)(Effect_Exception.error("Expected a regular corefn.json file"))))(function () {
                         return Control_Bind.bind(Effect_Aff.bindAff)(Node_FS_Aff.readTextFile(Node_Encoding.UTF8.value)(file))(function (contents) {
-                            return Control_Bind.bind(Effect_Aff.bindAff)(Data_Either.either(function ($35) {
-                                return throwError2(Effect_Exception.error($35));
+                            return Control_Bind.bind(Effect_Aff.bindAff)(Data_Either.either(function ($36) {
+                                return throwError2(Effect_Exception.error($36));
                             })(pure1)(parseTast(contents)))(function (tast) {
                                 return Data_Function.apply(pure2)(new Data_Maybe.Just({
                                     file: file,
@@ -127,7 +127,9 @@ var readEntry = function (parent) {
 };
 var readModules = function (directory) {
     return Control_Bind.bind(Effect_Aff.bindAff)(Effect_Class.liftEffect(Effect_Aff.monadEffectAff)($foreign.readConcurrency))(function (jobs) {
-        return Control_Bind.bind(Effect_Aff.bindAff)(Node_FS_Aff.readdir(directory))(function (entries) {
+        return Control_Bind.bind(Effect_Aff.bindAff)(Data_Functor.map(Effect_Aff.functorAff)(Data_Array.filter(function (v) {
+            return v !== "java";
+        }))(Node_FS_Aff.readdir(directory)))(function (entries) {
             var read = readEntry(directory);
             var batches = function (remaining) {
                 if (Data_Array["null"](remaining)) {
@@ -141,15 +143,15 @@ var readModules = function (directory) {
                         });
                     });
                 };
-                throw new Error("Failed pattern match at Javapurs.Input (line 91, column 5 - line 97, column 38): " + [ remaining.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.Input (line 92, column 5 - line 98, column 38): " + [ remaining.constructor.name ]);
             };
             return Control_Bind.bind(Effect_Aff.bindAff)((function () {
-                var $34 = jobs === 1;
-                if ($34) {
+                var $35 = jobs === 1;
+                if ($35) {
                     return Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect_Aff.applicativeAff)(read)(entries);
                 };
-                return Data_Functor.map(Effect_Aff.functorAff)(function ($36) {
-                    return Data_Array.concat(fromFoldable($36));
+                return Data_Functor.map(Effect_Aff.functorAff)(function ($37) {
+                    return Data_Array.concat(fromFoldable($37));
                 })(batches(entries));
             })())(function (results) {
                 var loaded = Data_Array.catMaybes(results);

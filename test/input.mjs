@@ -52,7 +52,7 @@ main = report value
 `);
     writeFileSync(join(directory, "src/Unused.purs"), "module Unused where\n");
     await run("purs", "purs", ["compile", "src/*.purs", "--codegen", "corefn,docs"]);
-    const input = join(directory, "output"), output = join(directory, "java_output");
+    const input = join(directory, "output"), output = join(input, "java");
     assert.ok(existsSync(join(input, "Prim/docs.json")) && !existsSync(join(input, "Prim/corefn.json")));
     const unusedFile = join(input, "Unused/corefn.json"), original = readFileSync(unusedFile);
     const leafFile = join(input, "Leaf/corefn.json"), leaf = JSON.parse(readFileSync(leafFile));
@@ -61,6 +61,8 @@ main = report value
       assert.ok(leaf[key].length > 0, `nonempty ${key} is decoded too`);
     }
     await backend("valid");
+    mkdirSync(join(output, "classes"));
+    writeFileSync(join(output, "classes/keep.class"), "compiled bytecode sentinel");
     const generated = state(output);
     assert.ok(generated["__M$Unused.java"] && generated["MainRun.java"]);
     const manifest = JSON.parse(readFileSync(join(output, ".javapurs-manifest.json")));
@@ -100,7 +102,7 @@ main = report value
     const before = state(output), cacheBefore = state(join(directory, ".purmeta"));
     const inputBefore = state(input);
     let cases = 0, failures = 0;
-    async function reject(name, diagnostics) {
+    async function reject(name, diagnostics, protectedOutput = output) {
       cases++;
       for (const jobs of ["1", "2"]) {
         for (const fresh of [false, true]) {
@@ -114,7 +116,7 @@ main = report value
           assert.match(log, /load TAST \+ sort: \d+ ms \(failed\)/);
           assert.match(log, /backend total: \d+ ms \(failed\)/);
           assert.doesNotMatch(log, /Successfully loaded|Building module|prepare:|optimize \+ emit:|publish Java:/);
-          assert.deepEqual(state(output), before, `${label}: prior Java and manifest preserved`);
+          assert.deepEqual(state(protectedOutput), before, `${label}: prior Java and manifest preserved`);
           assert.deepEqual(state(join(directory, ".purmeta")), cacheBefore, `${label}: no optimizer/cache work`);
           assert.ok(!existsSync(join(directory, "fresh Java")), `${label}: no output parent created`);
           failures++;
@@ -167,6 +169,9 @@ main = report value
     mkdirSync(join(input, "stray directory"));
     try { await reject("stray-directory", [/read TAST output\/stray directory\/corefn.json:.*ENOENT/]); }
     finally { rmSync(join(input, "stray directory"), { recursive: true }); }
+    mkdirSync(join(input, "classes"));
+    try { await reject("root-classes", [/read TAST output\/classes\/corefn.json:.*ENOENT/]); }
+    finally { rmSync(join(input, "classes"), { recursive: true }); }
     symlinkSync(join(directory, "absent-module"), join(input, "Broken"), "dir");
     try { await reject("dangling-module", [/inspect TAST entry output\/Broken:.*ENOENT/]); }
     finally { unlinkSync(join(input, "Broken")); }
@@ -184,9 +189,9 @@ main = report value
 
     renameSync(input, join(directory, "saved-input"));
     try {
-      await reject("absent-input", [/load TAST from output:.*ENOENT/]);
+      await reject("absent-input", [/load TAST from output:.*ENOENT/], join(directory, "saved-input/java"));
       writeFileSync(input, "not a directory");
-      await reject("file-input", [/load TAST from output:.*ENOTDIR/]);
+      await reject("file-input", [/load TAST from output:.*ENOTDIR/], join(directory, "saved-input/java"));
     } finally { rmSync(input, { force: true }); renameSync(join(directory, "saved-input"), input); }
     assert.deepEqual(state(input), inputBefore, "mutations restored the original TAST inputs");
     await backend("restored", [], "2");

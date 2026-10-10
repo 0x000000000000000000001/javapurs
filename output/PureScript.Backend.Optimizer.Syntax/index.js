@@ -876,32 +876,49 @@ var $lazy_traversablePair = /* #__PURE__ */ $runtime_lazy("traversablePair", "Pu
         }
     };
 });
-var traversablePair = /* #__PURE__ */ $lazy_traversablePair(416);
-var $lazy_foldableBackendOperator = /* #__PURE__ */ $runtime_lazy("foldableBackendOperator", "PureScript.Backend.Optimizer.Syntax", function () {
-    return {
-        foldr: function (a) {
-            return Data_Foldable.foldrDefault($lazy_foldableBackendOperator(0))(a);
-        },
-        foldl: function (a) {
-            return Data_Foldable.foldlDefault($lazy_foldableBackendOperator(0))(a);
-        },
-        foldMap: function (dictMonoid) {
-            var Semigroup0 = dictMonoid.Semigroup0();
-            return function (f) {
-                return function (v) {
-                    if (v instanceof Op1) {
-                        return f(v.value1);
-                    };
-                    if (v instanceof Op2) {
-                        return Data_Semigroup.append(Semigroup0)(f(v.value1))(f(v.value2));
-                    };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 425, column 15 - line 427, column 28): " + [ v.constructor.name ]);
+var traversablePair = /* #__PURE__ */ $lazy_traversablePair(476);
+var foldableBackendOperator = {
+    foldl: function (f) {
+        return function (z) {
+            return function (v) {
+                if (v instanceof Op1) {
+                    return f(z)(v.value1);
                 };
+                if (v instanceof Op2) {
+                    return f(f(z)(v.value1))(v.value2);
+                };
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 483, column 15 - line 485, column 29): " + [ v.constructor.name ]);
             };
-        }
-    };
-});
-var foldableBackendOperator = /* #__PURE__ */ $lazy_foldableBackendOperator(422);
+        };
+    },
+    foldr: function (f) {
+        return function (z) {
+            return function (v) {
+                if (v instanceof Op1) {
+                    return f(v.value1)(z);
+                };
+                if (v instanceof Op2) {
+                    return f(v.value1)(f(v.value2)(z));
+                };
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 486, column 15 - line 488, column 29): " + [ v.constructor.name ]);
+            };
+        };
+    },
+    foldMap: function (dictMonoid) {
+        var Semigroup0 = dictMonoid.Semigroup0();
+        return function (f) {
+            return function (v) {
+                if (v instanceof Op1) {
+                    return f(v.value1);
+                };
+                if (v instanceof Op2) {
+                    return Data_Semigroup.append(Semigroup0)(f(v.value1))(f(v.value2));
+                };
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 489, column 15 - line 491, column 28): " + [ v.constructor.name ]);
+            };
+        };
+    }
+};
 var $lazy_traversableBackendOperato = /* #__PURE__ */ $runtime_lazy("traversableBackendOperato", "PureScript.Backend.Optimizer.Syntax", function () {
     return {
         sequence: function (dictApplicative) {
@@ -920,7 +937,7 @@ var $lazy_traversableBackendOperato = /* #__PURE__ */ $runtime_lazy("traversable
                     if (v instanceof Op2) {
                         return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(Op2.create(v.value0))(f(v.value1)))(f(v.value2));
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 431, column 16 - line 433, column 39): " + [ v.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 495, column 16 - line 497, column 39): " + [ v.constructor.name ]);
                 };
             };
         },
@@ -932,136 +949,326 @@ var $lazy_traversableBackendOperato = /* #__PURE__ */ $runtime_lazy("traversable
         }
     };
 });
-var traversableBackendOperato = /* #__PURE__ */ $lazy_traversableBackendOperato(429);
-var $lazy_foldableBackendEffect = /* #__PURE__ */ $runtime_lazy("foldableBackendEffect", "PureScript.Backend.Optimizer.Syntax", function () {
-    return {
-        foldr: function (a) {
-            return Data_Foldable.foldrDefault($lazy_foldableBackendEffect(0))(a);
-        },
-        foldl: function (a) {
-            return Data_Foldable.foldlDefault($lazy_foldableBackendEffect(0))(a);
-        },
-        foldMap: function (dictMonoid) {
-            var Semigroup0 = dictMonoid.Semigroup0();
-            return function (f) {
-                return function (v) {
-                    if (v instanceof EffectRefNew) {
-                        return f(v.value0);
-                    };
-                    if (v instanceof EffectRefRead) {
-                        return f(v.value0);
-                    };
-                    if (v instanceof EffectRefWrite) {
-                        return Data_Semigroup.append(Semigroup0)(f(v.value0))(f(v.value1));
-                    };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 440, column 15 - line 443, column 37): " + [ v.constructor.name ]);
+var traversableBackendOperato = /* #__PURE__ */ $lazy_traversableBackendOperato(493);
+var foldableBackendEffect = {
+    foldl: function (f) {
+        return function (z) {
+            return function (v) {
+                if (v instanceof EffectRefNew) {
+                    return f(z)(v.value0);
                 };
-            };
-        }
-    };
-});
-var foldableBackendEffect = /* #__PURE__ */ $lazy_foldableBackendEffect(437);
-var $lazy_foldableBackendSyntax = /* #__PURE__ */ $runtime_lazy("foldableBackendSyntax", "PureScript.Backend.Optimizer.Syntax", function () {
-    return {
-        foldr: function (a) {
-            return Data_Foldable.foldrDefault($lazy_foldableBackendSyntax(0))(a);
-        },
-        foldl: function (a) {
-            return Data_Foldable.foldlDefault($lazy_foldableBackendSyntax(0))(a);
-        },
-        foldMap: function (dictMonoid) {
-            var mempty = Data_Monoid.mempty(dictMonoid);
-            var Semigroup0 = dictMonoid.Semigroup0();
-            return function (f) {
-                return function (v) {
-                    if (v instanceof Var) {
-                        return mempty;
-                    };
-                    if (v instanceof Local) {
-                        return mempty;
-                    };
-                    if (v instanceof Lit) {
-                        if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitArray) {
-                            return Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(f)(v.value0.value0);
-                        };
-                        if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitRecord) {
-                            return Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(Data_Foldable.foldMap(PureScript_Backend_Optimizer_CoreFn.foldableProp)(dictMonoid)(f))(v.value0.value0);
-                        };
-                        return mempty;
-                    };
-                    if (v instanceof App) {
-                        return Data_Semigroup.append(Semigroup0)(f(v.value0))(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(dictMonoid)(f)(v.value1));
-                    };
-                    if (v instanceof TypeApp) {
-                        return f(v.value0);
-                    };
-                    if (v instanceof Abs) {
-                        return f(v.value1);
-                    };
-                    if (v instanceof UncurriedApp) {
-                        return Data_Semigroup.append(Semigroup0)(f(v.value0))(Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(f)(v.value1));
-                    };
-                    if (v instanceof UncurriedAbs) {
-                        return f(v.value1);
-                    };
-                    if (v instanceof UncurriedEffectApp) {
-                        return Data_Semigroup.append(Semigroup0)(f(v.value0))(Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(f)(v.value1));
-                    };
-                    if (v instanceof UncurriedEffectAbs) {
-                        return f(v.value1);
-                    };
-                    if (v instanceof Accessor) {
-                        return f(v.value0);
-                    };
-                    if (v instanceof Update) {
-                        return Data_Semigroup.append(Semigroup0)(f(v.value0))(Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(Data_Foldable.foldMap(PureScript_Backend_Optimizer_CoreFn.foldableProp)(dictMonoid)(f))(v.value1));
-                    };
-                    if (v instanceof LetRec) {
-                        return Data_Semigroup.append(Semigroup0)(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(dictMonoid)(Data_Foldable.foldMap(Data_Foldable.foldableTuple)(dictMonoid)(f))(v.value1))(f(v.value2));
-                    };
-                    if (v instanceof Let) {
-                        return Data_Semigroup.append(Semigroup0)(f(v.value2))(f(v.value3));
-                    };
-                    if (v instanceof EffectBind) {
-                        return Data_Semigroup.append(Semigroup0)(f(v.value2))(f(v.value3));
-                    };
-                    if (v instanceof EffectPure) {
-                        return f(v.value0);
-                    };
-                    if (v instanceof EffectDefer) {
-                        return f(v.value0);
-                    };
-                    if (v instanceof Branch) {
-                        return Data_Semigroup.append(Semigroup0)(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(dictMonoid)(Data_Foldable.foldMap(foldablePair)(dictMonoid)(f))(v.value0))(f(v.value1));
-                    };
-                    if (v instanceof PrimOp) {
-                        return Data_Foldable.foldMap(foldableBackendOperator)(dictMonoid)(f)(v.value0);
-                    };
-                    if (v instanceof PrimEffect) {
-                        return Data_Foldable.foldMap(foldableBackendEffect)(dictMonoid)(f)(v.value0);
-                    };
-                    if (v instanceof PrimUndefined) {
-                        return mempty;
-                    };
-                    if (v instanceof CtorSaturated) {
-                        return Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(Data_Foldable.foldMap(Data_Foldable.foldableTuple)(dictMonoid)(f))(v.value4);
-                    };
-                    if (v instanceof CtorDef) {
-                        return mempty;
-                    };
-                    if (v instanceof Fail) {
-                        return mempty;
-                    };
-                    if (v instanceof Typed) {
-                        return f(v.value1);
-                    };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 317, column 15 - line 346, column 21): " + [ v.constructor.name ]);
+                if (v instanceof EffectRefRead) {
+                    return f(z)(v.value0);
                 };
+                if (v instanceof EffectRefWrite) {
+                    return f(f(z)(v.value0))(v.value1);
+                };
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 502, column 15 - line 505, column 38): " + [ v.constructor.name ]);
             };
-        }
-    };
-});
-var foldableBackendSyntax = /* #__PURE__ */ $lazy_foldableBackendSyntax(314);
+        };
+    },
+    foldr: function (f) {
+        return function (z) {
+            return function (v) {
+                if (v instanceof EffectRefNew) {
+                    return f(v.value0)(z);
+                };
+                if (v instanceof EffectRefRead) {
+                    return f(v.value0)(z);
+                };
+                if (v instanceof EffectRefWrite) {
+                    return f(v.value0)(f(v.value1)(z));
+                };
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 506, column 15 - line 509, column 38): " + [ v.constructor.name ]);
+            };
+        };
+    },
+    foldMap: function (dictMonoid) {
+        var Semigroup0 = dictMonoid.Semigroup0();
+        return function (f) {
+            return function (v) {
+                if (v instanceof EffectRefNew) {
+                    return f(v.value0);
+                };
+                if (v instanceof EffectRefRead) {
+                    return f(v.value0);
+                };
+                if (v instanceof EffectRefWrite) {
+                    return Data_Semigroup.append(Semigroup0)(f(v.value0))(f(v.value1));
+                };
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 510, column 15 - line 513, column 37): " + [ v.constructor.name ]);
+            };
+        };
+    }
+};
+var foldableBackendSyntax = {
+    foldl: function (f) {
+        return function (z) {
+            return function (v) {
+                if (v instanceof Var) {
+                    return z;
+                };
+                if (v instanceof Local) {
+                    return z;
+                };
+                if (v instanceof Lit) {
+                    if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitArray) {
+                        return Data_Foldable.foldl(Data_Foldable.foldableArray)(f)(z)(v.value0.value0);
+                    };
+                    if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitRecord) {
+                        return Data_Foldable.foldl(Data_Foldable.foldableArray)(Data_Foldable.foldl(PureScript_Backend_Optimizer_CoreFn.foldableProp)(f))(z)(v.value0.value0);
+                    };
+                    return z;
+                };
+                if (v instanceof App) {
+                    return Data_Foldable.foldl(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(f)(f(z)(v.value0))(v.value1);
+                };
+                if (v instanceof TypeApp) {
+                    return f(z)(v.value0);
+                };
+                if (v instanceof Abs) {
+                    return f(z)(v.value1);
+                };
+                if (v instanceof UncurriedApp) {
+                    return Data_Foldable.foldl(Data_Foldable.foldableArray)(f)(f(z)(v.value0))(v.value1);
+                };
+                if (v instanceof UncurriedAbs) {
+                    return f(z)(v.value1);
+                };
+                if (v instanceof UncurriedEffectApp) {
+                    return Data_Foldable.foldl(Data_Foldable.foldableArray)(f)(f(z)(v.value0))(v.value1);
+                };
+                if (v instanceof UncurriedEffectAbs) {
+                    return f(z)(v.value1);
+                };
+                if (v instanceof Accessor) {
+                    return f(z)(v.value0);
+                };
+                if (v instanceof Update) {
+                    return Data_Foldable.foldl(Data_Foldable.foldableArray)(Data_Foldable.foldl(PureScript_Backend_Optimizer_CoreFn.foldableProp)(f))(f(z)(v.value0))(v.value1);
+                };
+                if (v instanceof LetRec) {
+                    return f(Data_Foldable.foldl(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(Data_Foldable.foldl(Data_Foldable.foldableTuple)(f))(z)(v.value1))(v.value2);
+                };
+                if (v instanceof Let) {
+                    return f(f(z)(v.value2))(v.value3);
+                };
+                if (v instanceof EffectBind) {
+                    return f(f(z)(v.value2))(v.value3);
+                };
+                if (v instanceof EffectPure) {
+                    return f(z)(v.value0);
+                };
+                if (v instanceof EffectDefer) {
+                    return f(z)(v.value0);
+                };
+                if (v instanceof Branch) {
+                    return f(Data_Foldable.foldl(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(Data_Foldable.foldl(foldablePair)(f))(z)(v.value0))(v.value1);
+                };
+                if (v instanceof PrimOp) {
+                    return Data_Foldable.foldl(foldableBackendOperator)(f)(z)(v.value0);
+                };
+                if (v instanceof PrimEffect) {
+                    return Data_Foldable.foldl(foldableBackendEffect)(f)(z)(v.value0);
+                };
+                if (v instanceof PrimUndefined) {
+                    return z;
+                };
+                if (v instanceof CtorSaturated) {
+                    return Data_Foldable.foldl(Data_Foldable.foldableArray)(Data_Foldable.foldl(Data_Foldable.foldableTuple)(f))(z)(v.value4);
+                };
+                if (v instanceof CtorDef) {
+                    return z;
+                };
+                if (v instanceof Fail) {
+                    return z;
+                };
+                if (v instanceof Typed) {
+                    return f(z)(v.value1);
+                };
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 319, column 15 - line 347, column 23): " + [ v.constructor.name ]);
+            };
+        };
+    },
+    foldr: function (f) {
+        return function (z) {
+            return function (v) {
+                if (v instanceof Var) {
+                    return z;
+                };
+                if (v instanceof Local) {
+                    return z;
+                };
+                if (v instanceof Lit) {
+                    if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitArray) {
+                        return Data_Foldable.foldr(Data_Foldable.foldableArray)(f)(z)(v.value0.value0);
+                    };
+                    if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitRecord) {
+                        return Data_Foldable.foldr(Data_Foldable.foldableArray)(Data_Function.flip(Data_Foldable.foldr(PureScript_Backend_Optimizer_CoreFn.foldableProp)(f)))(z)(v.value0.value0);
+                    };
+                    return z;
+                };
+                if (v instanceof App) {
+                    return f(v.value0)(Data_Foldable.foldr(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(f)(z)(v.value1));
+                };
+                if (v instanceof TypeApp) {
+                    return f(v.value0)(z);
+                };
+                if (v instanceof Abs) {
+                    return f(v.value1)(z);
+                };
+                if (v instanceof UncurriedApp) {
+                    return f(v.value0)(Data_Foldable.foldr(Data_Foldable.foldableArray)(f)(z)(v.value1));
+                };
+                if (v instanceof UncurriedAbs) {
+                    return f(v.value1)(z);
+                };
+                if (v instanceof UncurriedEffectApp) {
+                    return f(v.value0)(Data_Foldable.foldr(Data_Foldable.foldableArray)(f)(z)(v.value1));
+                };
+                if (v instanceof UncurriedEffectAbs) {
+                    return f(v.value1)(z);
+                };
+                if (v instanceof Accessor) {
+                    return f(v.value0)(z);
+                };
+                if (v instanceof Update) {
+                    return f(v.value0)(Data_Foldable.foldr(Data_Foldable.foldableArray)(Data_Function.flip(Data_Foldable.foldr(PureScript_Backend_Optimizer_CoreFn.foldableProp)(f)))(z)(v.value1));
+                };
+                if (v instanceof LetRec) {
+                    return Data_Foldable.foldr(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(Data_Function.flip(Data_Foldable.foldr(Data_Foldable.foldableTuple)(f)))(f(v.value2)(z))(v.value1);
+                };
+                if (v instanceof Let) {
+                    return f(v.value2)(f(v.value3)(z));
+                };
+                if (v instanceof EffectBind) {
+                    return f(v.value2)(f(v.value3)(z));
+                };
+                if (v instanceof EffectPure) {
+                    return f(v.value0)(z);
+                };
+                if (v instanceof EffectDefer) {
+                    return f(v.value0)(z);
+                };
+                if (v instanceof Branch) {
+                    return Data_Foldable.foldr(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(Data_Function.flip(Data_Foldable.foldr(foldablePair)(f)))(f(v.value1)(z))(v.value0);
+                };
+                if (v instanceof PrimOp) {
+                    return Data_Foldable.foldr(foldableBackendOperator)(f)(z)(v.value0);
+                };
+                if (v instanceof PrimEffect) {
+                    return Data_Foldable.foldr(foldableBackendEffect)(f)(z)(v.value0);
+                };
+                if (v instanceof PrimUndefined) {
+                    return z;
+                };
+                if (v instanceof CtorSaturated) {
+                    return Data_Foldable.foldr(Data_Foldable.foldableArray)(Data_Function.flip(Data_Foldable.foldr(Data_Foldable.foldableTuple)(f)))(z)(v.value4);
+                };
+                if (v instanceof CtorDef) {
+                    return z;
+                };
+                if (v instanceof Fail) {
+                    return z;
+                };
+                if (v instanceof Typed) {
+                    return f(v.value1)(z);
+                };
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 348, column 15 - line 376, column 23): " + [ v.constructor.name ]);
+            };
+        };
+    },
+    foldMap: function (dictMonoid) {
+        var mempty = Data_Monoid.mempty(dictMonoid);
+        var Semigroup0 = dictMonoid.Semigroup0();
+        return function (f) {
+            return function (v) {
+                if (v instanceof Var) {
+                    return mempty;
+                };
+                if (v instanceof Local) {
+                    return mempty;
+                };
+                if (v instanceof Lit) {
+                    if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitArray) {
+                        return Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(f)(v.value0.value0);
+                    };
+                    if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitRecord) {
+                        return Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(Data_Foldable.foldMap(PureScript_Backend_Optimizer_CoreFn.foldableProp)(dictMonoid)(f))(v.value0.value0);
+                    };
+                    return mempty;
+                };
+                if (v instanceof App) {
+                    return Data_Semigroup.append(Semigroup0)(f(v.value0))(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(dictMonoid)(f)(v.value1));
+                };
+                if (v instanceof TypeApp) {
+                    return f(v.value0);
+                };
+                if (v instanceof Abs) {
+                    return f(v.value1);
+                };
+                if (v instanceof UncurriedApp) {
+                    return Data_Semigroup.append(Semigroup0)(f(v.value0))(Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(f)(v.value1));
+                };
+                if (v instanceof UncurriedAbs) {
+                    return f(v.value1);
+                };
+                if (v instanceof UncurriedEffectApp) {
+                    return Data_Semigroup.append(Semigroup0)(f(v.value0))(Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(f)(v.value1));
+                };
+                if (v instanceof UncurriedEffectAbs) {
+                    return f(v.value1);
+                };
+                if (v instanceof Accessor) {
+                    return f(v.value0);
+                };
+                if (v instanceof Update) {
+                    return Data_Semigroup.append(Semigroup0)(f(v.value0))(Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(Data_Foldable.foldMap(PureScript_Backend_Optimizer_CoreFn.foldableProp)(dictMonoid)(f))(v.value1));
+                };
+                if (v instanceof LetRec) {
+                    return Data_Semigroup.append(Semigroup0)(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(dictMonoid)(Data_Foldable.foldMap(Data_Foldable.foldableTuple)(dictMonoid)(f))(v.value1))(f(v.value2));
+                };
+                if (v instanceof Let) {
+                    return Data_Semigroup.append(Semigroup0)(f(v.value2))(f(v.value3));
+                };
+                if (v instanceof EffectBind) {
+                    return Data_Semigroup.append(Semigroup0)(f(v.value2))(f(v.value3));
+                };
+                if (v instanceof EffectPure) {
+                    return f(v.value0);
+                };
+                if (v instanceof EffectDefer) {
+                    return f(v.value0);
+                };
+                if (v instanceof Branch) {
+                    return Data_Semigroup.append(Semigroup0)(Data_Foldable.foldMap(Data_Array_NonEmpty_Internal.foldableNonEmptyArray)(dictMonoid)(Data_Foldable.foldMap(foldablePair)(dictMonoid)(f))(v.value0))(f(v.value1));
+                };
+                if (v instanceof PrimOp) {
+                    return Data_Foldable.foldMap(foldableBackendOperator)(dictMonoid)(f)(v.value0);
+                };
+                if (v instanceof PrimEffect) {
+                    return Data_Foldable.foldMap(foldableBackendEffect)(dictMonoid)(f)(v.value0);
+                };
+                if (v instanceof PrimUndefined) {
+                    return mempty;
+                };
+                if (v instanceof CtorSaturated) {
+                    return Data_Foldable.foldMap(Data_Foldable.foldableArray)(dictMonoid)(Data_Foldable.foldMap(Data_Foldable.foldableTuple)(dictMonoid)(f))(v.value4);
+                };
+                if (v instanceof CtorDef) {
+                    return mempty;
+                };
+                if (v instanceof Fail) {
+                    return mempty;
+                };
+                if (v instanceof Typed) {
+                    return f(v.value1);
+                };
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 377, column 15 - line 406, column 21): " + [ v.constructor.name ]);
+            };
+        };
+    }
+};
 var $lazy_traversableBackendEffect = /* #__PURE__ */ $runtime_lazy("traversableBackendEffect", "PureScript.Backend.Optimizer.Syntax", function () {
     return {
         sequence: function (dictApplicative) {
@@ -1083,7 +1290,7 @@ var $lazy_traversableBackendEffect = /* #__PURE__ */ $runtime_lazy("traversableB
                     if (v instanceof EffectRefWrite) {
                         return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(EffectRefWrite.create)(f(v.value0)))(f(v.value1));
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 447, column 16 - line 450, column 57): " + [ v.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 517, column 16 - line 520, column 57): " + [ v.constructor.name ]);
                 };
             };
         },
@@ -1095,7 +1302,7 @@ var $lazy_traversableBackendEffect = /* #__PURE__ */ $runtime_lazy("traversableB
         }
     };
 });
-var traversableBackendEffect = /* #__PURE__ */ $lazy_traversableBackendEffect(445);
+var traversableBackendEffect = /* #__PURE__ */ $lazy_traversableBackendEffect(515);
 var $lazy_traversableBackendSyntax = /* #__PURE__ */ $runtime_lazy("traversableBackendSyntax", "PureScript.Backend.Optimizer.Syntax", function () {
     return {
         sequence: function (dictApplicative) {
@@ -1131,16 +1338,16 @@ var $lazy_traversableBackendSyntax = /* #__PURE__ */ $runtime_lazy("traversableB
                             return Control_Applicative.pure(dictApplicative)(new Lit(new PureScript_Backend_Optimizer_CoreFn.LitBoolean(v.value0.value0)));
                         };
                         if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitArray) {
-                            return Data_Functor.map(Functor0)(function ($854) {
-                                return Lit.create(PureScript_Backend_Optimizer_CoreFn.LitArray.create($854));
+                            return Data_Functor.map(Functor0)(function ($992) {
+                                return Lit.create(PureScript_Backend_Optimizer_CoreFn.LitArray.create($992));
                             })(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(f)(v.value0.value0));
                         };
                         if (v.value0 instanceof PureScript_Backend_Optimizer_CoreFn.LitRecord) {
-                            return Data_Functor.map(Functor0)(function ($855) {
-                                return Lit.create(PureScript_Backend_Optimizer_CoreFn.LitRecord.create($855));
+                            return Data_Functor.map(Functor0)(function ($993) {
+                                return Lit.create(PureScript_Backend_Optimizer_CoreFn.LitRecord.create($993));
                             })(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(Data_Traversable.traverse(PureScript_Backend_Optimizer_CoreFn.traversableProp)(dictApplicative)(f))(v.value0.value0));
                         };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 356, column 7 - line 363, column 71): " + [ v.value0.constructor.name ]);
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 416, column 7 - line 423, column 71): " + [ v.value0.constructor.name ]);
                     };
                     if (v instanceof App) {
                         return Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(App.create)(f(v.value0)))(Data_Traversable.traverse(Data_Array_NonEmpty_Internal.traversableNonEmptyArray)(dictApplicative)(f)(v.value1));
@@ -1208,7 +1415,7 @@ var $lazy_traversableBackendSyntax = /* #__PURE__ */ $runtime_lazy("traversableB
                     if (v instanceof Typed) {
                         return Data_Functor.map(Functor0)(Typed.create(v.value0))(f(v.value1));
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 350, column 16 - line 407, column 22): " + [ v.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Syntax (line 410, column 16 - line 467, column 22): " + [ v.constructor.name ]);
                 };
             };
         },
@@ -1220,7 +1427,7 @@ var $lazy_traversableBackendSyntax = /* #__PURE__ */ $runtime_lazy("traversableB
         }
     };
 });
-var traversableBackendSyntax = /* #__PURE__ */ $lazy_traversableBackendSyntax(348);
+var traversableBackendSyntax = /* #__PURE__ */ $lazy_traversableBackendSyntax(408);
 var eqPair = function (dictEq) {
     return {
         eq: function (x) {

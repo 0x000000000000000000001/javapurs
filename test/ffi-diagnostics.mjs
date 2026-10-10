@@ -37,7 +37,7 @@ try {
     write("src/Blank.java", " \n\t");
     await run("purs", "purs", ["compile", "src/**/*.purs", "--codegen", "corefn"]);
     await run("generate", join(root, "bin/javapurs"), ["--no-main"]);
-    const output = join(directory, "java_output"), manifestFile = join(output, ".javapurs-manifest.json");
+    const output = join(directory, "output/java"), manifestFile = join(output, ".javapurs-manifest.json");
     const manifest = JSON.parse(readFileSync(manifestFile));
     assert.equal(manifest.ffi.version, 1);
     const reports = Object.fromEntries(manifest.ffi.modules.map(report => [report.moduleName, report]));

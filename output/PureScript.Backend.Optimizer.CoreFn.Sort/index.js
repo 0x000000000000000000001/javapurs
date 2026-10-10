@@ -83,9 +83,9 @@ var sortModules = function (dictFoldable) {
         var modIndex = Data_Foldable.foldr(dictFoldable)(function (m) {
             return Data_Map_Internal.insert(PureScript_Backend_Optimizer_CoreFn.ordModuleName)(PureScript_Backend_Optimizer_CoreFn.moduleName(m))(new Data_Tuple.Tuple(false, m));
         })(Data_Map_Internal.empty)(init);
-        var modStk = Data_Foldable.foldr(dictFoldable)(function ($45) {
-            return Data_List_Types.Cons.create(Data_Either.Right.create(PureScript_Backend_Optimizer_CoreFn.moduleName($45)));
-        })(Data_List_Types.Nil.value)(init);
+        var modStk = Data_Foldable.foldr(Data_Map_Internal.foldableMap)(function ($45) {
+            return Data_List_Types.Cons.create(Data_Either.Right.create(PureScript_Backend_Optimizer_CoreFn.moduleName(Data_Tuple.snd($45))));
+        })(Data_List_Types.Nil.value)(modIndex);
         return runSort(modIndex)(modStk);
     };
 };

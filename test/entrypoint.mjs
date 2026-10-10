@@ -73,7 +73,7 @@ try {
       if (variant.java) writeFileSync(source + ".java", variant.java + "\n");
     }
     await run("purs", "purs", ["compile", "src/**/*.purs", "--codegen", "corefn"]);
-    const output = join(directory, "java_output"), classes = join(directory, "classes");
+    const output = join(directory, "output/java"), classes = join(output, "classes");
     const delivery = join(directory, "delivery"); mkdirSync(delivery);
     let successes = 0, failures = 0;
     for (const [index, variant] of variants.entries()) {

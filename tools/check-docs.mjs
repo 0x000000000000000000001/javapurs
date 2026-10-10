@@ -11,7 +11,7 @@ assert.equal(process.argv.length, 2, "check-docs.mjs accepts no options");
 const root = fileURLToPath(new URL("../", import.meta.url));
 const ports = Object.values(portSuites).map(suite => suite.directory);
 const documents = [
-  join(root, "README.md"), join(root, "../todo.md"),
+  join(root, "README.md"), join(root, "todo.md"),
   ...readdirSync(join(root, "docs")).filter(name => name.endsWith(".md")).sort().map(name => join(root, "docs", name)),
   ...ports.map(name => join(root, "..", name, "README.md")),
 ];
@@ -80,7 +80,7 @@ const options = [...section(readme, "### Compiler options").matchAll(/^\| `(--[^
   .map(match => match[1].split(" ")[0]).sort();
 assert.deepEqual(options, flags, "README options must match Config");
 
-const plan = read(join(root, "../todo.md"));
+const plan = read(join(root, "todo.md"));
 const lots = [...plan.matchAll(/^- \[([ xX])\] \*\*(M\d{2}) — (\d+) points/gm)]
   .map(([, state, name, weight]) => ({ done: state.toLowerCase() === "x", name, weight: Number(weight) }));
 assert.ok(lots.length > 0, "The active plan must have milestones");

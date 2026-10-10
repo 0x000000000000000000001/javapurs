@@ -1,6 +1,6 @@
 # Javapurs — cleanup des fixtures et des runners de ports
 
-Plan v3 — dernière mise à jour : **6 octobre 2026**.
+Plan v3 et compléments — dernière mise à jour : **9 octobre 2026**.
 
 Objectif : supprimer les copies de runtime dans les fixtures, donner un
 propriétaire commun à la préparation des workspaces de test et remplacer les
@@ -8,12 +8,13 @@ launchers historiques des ports par un parcours isolé, explicite et rejouable.
 
 Les plans précédents sont clôturés : **v1 M01–M11 : 100/100** ; **v2 M12–M16 :
 100/100**, avec les **compléments M17–M19 terminés**. Le
-[plan v2 archivé](javapurs/docs/plan-v2.md) conserve ses lots, résultats et
-nettoyages. Les [preuves M11](javapurs/docs/testing.md#validation-m11) et le
+[plan v2 archivé](docs/plan-v2.md) conserve ses lots, résultats et
+nettoyages. Les [preuves M11](docs/testing.md#validation-m11) et le
 registre M12–M19 restent leurs références datées.
 
-Les chemins sont relatifs à ce dossier : le compilateur est dans `javapurs/`,
-les ports dans les dossiers `javapurs-*` voisins.
+Ce TODO est suivi à la racine du compilateur. Les chemins de code historiques
+ci-dessous sont relatifs au workspace parent : `javapurs/` désigne ce dépôt,
+les ports sont les dossiers `javapurs-*` voisins.
 
 ## Avancement
 
@@ -21,14 +22,18 @@ les ports dans les dossiers `javapurs-*` voisins.
 
 **M20–M23 clôturés : runtime et workspaces partagés, 48 launchers délégués au
 runner commun.** Les sélections ciblées et les limites de complétion/FFI sont
-consignées dans les [preuves M23](javapurs/docs/testing.md#validation-m23) : six
+consignées dans les [preuves M23](docs/testing.md#validation-m23) : six
 protocoles explicitement non pris en charge et un échec Event Emitter préexistant.
+
+**Complément M24 clôturé : sorties `output/java`, deux builds b8x consécutifs
+réussis et `Ping` exécuté sur Java 17.** Voir les
+[preuves M24](docs/testing.md#validation-m24).
 
 ## Constats initiaux vérifiés
 
 Revue du **6 octobre 2026**, compilateur à la révision
 `dc6dadf7d3d0213174bdd3aa65f9288121209c63`, checkout initial propre.
-Le [relevé préalable](javapurs/docs/testing.md#revue-préalable-au-plan-v3)
+Le [relevé préalable](docs/testing.md#revue-préalable-au-plan-v3)
 donne les références, la méthode et les limites.
 
 | Constat | Point d'entrée | Conséquence pour le cleanup |
@@ -42,7 +47,7 @@ Le backend possède déjà des modules séparés pour traduction, portées, chun
 représentations, sorties et diagnostics. Le besoin identifié concerne surtout
 les fixtures et l'outillage autour des ports. Le build JavaScript `output/` du
 compilateur reste un artefact actif du launcher ; son statut est décrit dans le
-[guide d'entretien](javapurs/docs/maintenance.md#statut-des-fichiers-et-des-sorties).
+[guide d'entretien](docs/maintenance.md#statut-des-fichiers-et-des-sorties).
 
 ## Règles de suivi et de validation
 
@@ -52,7 +57,7 @@ compilateur reste un artefact actif du launcher ; son statut est décrit dans le
   sa révision, son état Git, son entrypoint, ses ressources de test et son résultat
   de référence sur la sélection concernée.
 - Cocher un lot après son critère de fin, ses contrôles pertinents et une entrée
-  datée dans le [registre](javapurs/docs/testing.md#consigner-une-validation) :
+  datée dans le [registre](docs/testing.md#consigner-une-validation) :
   fichiers, références, commandes, résultats et limites. Actualiser date, score
   et prochaine étape.
 - **Validation ciblée uniquement :** pas de `t -c`, de corpus entier ni de
@@ -69,7 +74,7 @@ compilateur reste un artefact actif du launcher ; son statut est décrit dans le
   et documenté ; la migration d'un launcher n'établit pas la couverture de sa FFI.
 - Terminer chaque passe par `node tools/check-docs.mjs` depuis `javapurs/`,
   `git diff --check` dans les dépôts touchés et une revue des diffs, y compris ce
-  TODO situé hors du dépôt Git du compilateur.
+  TODO situé à la racine du dépôt Git du compilateur.
 
 ## Lots, dans l'ordre de travail
 
@@ -102,7 +107,7 @@ compilateur reste un artefact actif du launcher ; son statut est décrit dans le
     3 supports embarqués retirés et 4 fichiers runtime ajoutés** ; assertions
     sémantiques conservées. Trois sondes de préparation vérifient cache résiduel
     invalide, métadonnées TAST et erreur d'écriture. Voir les
-    [preuves M20](javapurs/docs/testing.md#validation-m20).
+    [preuves M20](docs/testing.md#validation-m20).
 
 - [x] **M21 — 25 points — Préparation déclarative des workspaces de test.**
   - **Constat :** `prepareWorkspace` rebase le gabarit commun, puis `ffi-ports`
@@ -135,7 +140,7 @@ compilateur reste un artefact actif du launcher ; son statut est décrit dans le
     JDK/JVM 26.0.2, release 17, workspaces réels avec espaces. Les **21 fichiers
     préparés**, dont cinq configurations Spago, sont identiques à la référence ;
     les 23 ports locaux et le gabarit gardent leurs empreintes. Voir les
-    [preuves M21](javapurs/docs/testing.md#validation-m21).
+    [preuves M21](docs/testing.md#validation-m21).
 
 - [x] **M22 — 35 points — Runner commun de ports et trois migrations pilotes.**
   - **Constat :** les 45 launchers historiques possèdent un second pipeline de
@@ -172,7 +177,7 @@ compilateur reste un artefact actif du launcher ; son statut est décrit dans le
     ports asynchrones conservent **65 contrôles et 12 sondes négatives**.
     Comparaison sur **604 TAST figés : 972 Java identiques**, rapports FFI identiques
     après normalisation des racines temporaires. Voir les
-    [preuves M22](javapurs/docs/testing.md#validation-m22).
+    [preuves M22](docs/testing.md#validation-m22).
 
 - [x] **M23 — 20 points — Migration bornée des 42 autres launchers historiques.**
   - **Constat :** les trois pilotes laissent 42 copies du pipeline shell à retirer.
@@ -208,13 +213,37 @@ compilateur reste un artefact actif du launcher ; son statut est décrit dans le
     couvertes uniquement par les sondes de délégation/préparation. **1 479 Java**
     comparés sur cinq sélections : seuls 208 commentaires de chemins FFI relatifs
     diffèrent ; graphes et FFI conservés. Les 54 ports, les 52 sources du backend
-    et ses 1 018 fichiers construits sont audités. Voir l'[inventaire](javapurs/docs/port-launchers.md)
-    et les [preuves M23](javapurs/docs/testing.md#validation-m23).
+    et ses 1 018 fichiers construits sont audités. Voir l'[inventaire](docs/port-launchers.md)
+    et les [preuves M23](docs/testing.md#validation-m23).
+
+## Compléments au plan v3
+
+- [x] **M24 — Sorties Java intégrées à `output` et builds b8x répétés**
+  - Dériver la destination implicite `<input>/java`, réserver ce seul sous-arbre
+    dans le lecteur TAST et conserver le refus des autres dossiers invalides.
+  - Adapter runners, exemples et b8x à `output/java/classes`, puis retirer
+    les artefacts b8x historiques après sauvegarde vérifiée.
+  - Valider chemins explicites/symlinks, publication, comparaison Java sur TAST
+    figés, parcours ciblés et deux builds b8x consécutifs avec lancement `Ping`.
+  - **Clôture — 9 octobre 2026 :** contrôles du compilateur et runners réussis ; expansion exponentielle des
+    gardes lazy révélée par b8x, reproduite et corrigée dans `DirectCalls`.
+    40 contrôles JVM par mode, 86 Java du driver et 329 Java BigFunction identiques.
+    **Deux builds b8x consécutifs réussis**, heap habituel de 16 Gio : 2 685 TAST,
+    2 696 Java et manifeste identiques ; 39 189 classes ciblent Java 17. `Ping`
+    répond `pong` après chacun sur JVM 17. Ancien `java_output` sauvegardé et
+    retiré, documentation/syntaxes/diffs vérifiés. Voir les
+    [preuves M24](docs/testing.md#validation-m24).
+  - **Complément `runj` — 9 octobre 2026 :** les consommateurs
+    `altbak.pub-{gopurs,javapurs}/bin/java/run` utilisent aussi `output/java` et
+    `output/java/classes`. L'alias `runj` appelle `altj` et bascule vers le
+    checkout `altbak.pub-javapurs` : correction appliquée et vérifiée dans cette
+    destination effective, avec `-c`. Build du JAR `pure`, Fibonacci ciblé,
+    reconstruction avec classe obsolète et `--run-only` validés ; oracle `55`.
 
 ## Points d'appui
 
-- [Revue préalable et références](javapurs/docs/testing.md#revue-préalable-au-plan-v3).
-- [Matrice des tests](javapurs/docs/testing.md#matrice-des-tests) et
-  [contrats FFI/runtime](javapurs/docs/ffi-runtime.md).
-- [Entretien et sujets de poursuite](javapurs/docs/maintenance.md).
-- [Plan v2 archivé, compléments et nettoyage](javapurs/docs/plan-v2.md).
+- [Revue préalable et références](docs/testing.md#revue-préalable-au-plan-v3).
+- [Matrice des tests](docs/testing.md#matrice-des-tests) et
+  [contrats FFI/runtime](docs/ffi-runtime.md).
+- [Entretien et sujets de poursuite](docs/maintenance.md).
+- [Plan v2 archivé, compléments et nettoyage](docs/plan-v2.md).

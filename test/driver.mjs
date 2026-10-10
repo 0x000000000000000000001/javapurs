@@ -109,7 +109,7 @@ async function check(directory, mode, processes, tools) {
   }
   const frozen = JSON.parse(readFileSync(join(directory, "inputs.json"), "utf8"));
   assert.deepEqual(inputs(directory), frozen, "TAST and FFI inputs must match the recorded run");
-  const output = join(directory, "java_output");
+  const output = join(directory, "output/java");
   const runBackend = (name, args = [], cwd = directory) => processes.run(`driver: ${name}`, join(root, "bin/javapurs"), args,
     { cwd, env: tools.env, log: join(directory, `logs/${name}.log`), timeout: 60_000 });
   const compile = async (name, args = []) => {
@@ -148,7 +148,7 @@ async function check(directory, mode, processes, tools) {
     if (variant.expected === null) {
       assert.ok(!sources["MainRun.java"], "library mode does not emit a launcher");
     } else assert.match(sources["MainRun.java"], variant.expected === "99" ? /__M\$Chosen.main/ : /__M\$Main.main/);
-    const classes = join(directory, "classes");
+    const classes = join(output, "classes");
     rmSync(classes, { recursive: true, force: true });
     mkdirSync(classes);
     await processes.run(`driver: ${variant.name} javac`, tools.javac,
@@ -220,7 +220,7 @@ async function check(directory, mode, processes, tools) {
   for (const [name, file] of [["module-write", "__M$Chosen.java"], ["launcher-write", "MainRun.java"], ["runtime-write", "TcoLoop.java"]]) {
     rmSync(output, { recursive: true });
     mkdirSync(join(output, file), { recursive: true });
-    await expectFailure(name, [], /publish Java to java_output: Expected a regular file, preserving/);
+    await expectFailure(name, [], /publish Java to output\/java: Expected a regular file, preserving/);
   }
 
   // Exercise real consecutive generations in one destination: records, launcher,
@@ -253,7 +253,7 @@ visible = 0
   for (const name of ["Hidden", "ReExport"]) {
     await expectFailure(`invalid-entrypoint-${name}`, ["--input", renamedInputs, "--main", name], /must define and export a local main/);
   }
-  await runBackend("renamed-modules", ["--input", renamedInputs, "--main", "Renamed"]);
+  await runBackend("renamed-modules", ["--java-output", output, "--input", renamedInputs, "--main", "Renamed"]);
   assert.ok(!existsSync(join(output, "__M$Chosen.java")) && !existsSync(join(output, "__M$Missing.java")));
   assert.ok(checkManifest(output).includes("__M$Renamed.java"));
   assert.match(readFileSync(join(output, "MainRun.java"), "utf8"), /__M\$Renamed.main/);
@@ -264,9 +264,12 @@ visible = 0
   await runBackend("explicit-paths", ["--output=" + renamedInputs, "--java-output", customOutput, "--main=Renamed"]);
   assert.deepEqual(javaSources(customOutput), Object.fromEntries(Object.entries(javaSources(output)).filter(([name]) => name !== "User.java")));
   checkManifest(customOutput);
+  await runBackend("derived-input-path", ["--input", renamedInputs, "--main", "Renamed"]);
+  assert.deepEqual(javaSources(join(renamedInputs, "java")), javaSources(customOutput));
+  checkManifest(join(renamedInputs, "java"));
   await checkSpago(directory, processes, tools);
   assert.deepEqual(inputs(directory), frozen, "error fixtures restore the original inputs");
-  console.log(`Driver: ${variants.length} CLI variants, help, ${failures} expected failures, output lifecycle and 2 real Spago invocations passed${mode === "compare" ? `; ${compared} Java files identical` : ""}`);
+  console.log(`Driver: ${variants.length} CLI variants, help, ${failures} expected failures, output lifecycle and 3 real Spago invocations passed${mode === "compare" ? `; ${compared} Java files identical` : ""}`);
 }
 
 async function checkSpago(directory, processes, tools) {
@@ -280,18 +283,19 @@ const result = spawnSync(${JSON.stringify(join(root, "bin/javapurs"))}, process.
 if (result.error) throw result.error;
 process.exitCode = result.status ?? 1;
 `);
-  const backendArgs = ["--main", "Chosen", "--java-output", "Java sources"];
+  const backendArgs = ["--main", "Chosen"];
   writeFileSync(join(workspace, "spago.yaml"), `package:\n  name: driver-spago\n  dependencies: []\nworkspace:\n  packageSet:\n    registry: 77.10.1\n  backend:\n    cmd: ${JSON.stringify(process.execPath)}\n    args: ${JSON.stringify([spy, ...backendArgs])}\n`);
-  for (const [name, outputArgs] of [["default", []], ["custom", ["--output", "TAST cache"]]]) {
+  for (const [name, outputArgs] of [["default", []], ["repeat", []], ["custom", ["--output", "TAST cache"]]]) {
     await processes.run(`driver: Spago ${name}`, "spago", ["build", "-q", ...outputArgs],
       { cwd: workspace, env: tools.env, log: join(directory, `logs/spago-${name}.log`), timeout: 120_000 });
     // Spago 1.x resolves its output option before appending it to backend.args.
     const forwarded = outputArgs.length ? ["--output", join(realpathSync(workspace), "TAST cache")] : [];
     assert.deepEqual(JSON.parse(readFileSync(join(workspace, "backend-args.json"))), [...backendArgs, ...forwarded]);
-    const java = join(workspace, "Java sources"); checkManifest(java);
-    await processes.run(`driver: Spago ${name} javac`, tools.javac, [...tools.javacArgs, "-d", "classes", "-sourcepath", java, join(java, "MainRun.java")],
+    const java = join(workspace, outputArgs.length ? "TAST cache" : "output", "java"), classes = join(java, "classes");
+    checkManifest(java);
+    await processes.run(`driver: Spago ${name} javac`, tools.javac, [...tools.javacArgs, "-d", classes, "-sourcepath", java, join(java, "MainRun.java")],
       { cwd: workspace, log: join(directory, `logs/spago-${name}-javac.log`), timeout: 60_000 });
-    const result = await processes.run(`driver: Spago ${name} JVM`, tools.java, ["-cp", "classes", "MainRun"],
+    const result = await processes.run(`driver: Spago ${name} JVM`, tools.java, ["-cp", classes, "MainRun"],
       { cwd: workspace, capture: true, log: join(directory, `logs/spago-${name}-java.log`), timeout: 30_000 });
     assert.equal(result.trim(), "99");
   }

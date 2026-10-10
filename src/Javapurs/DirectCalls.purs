@@ -2,10 +2,10 @@ module Javapurs.DirectCalls (directCalls) where
 
 import Prelude
 
-import Control.Monad.State (State, modify_, runState)
+import Control.Monad.State (State, gets, modify_, runState)
 import Data.Array as Array
 import Data.Foldable (foldr)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), isJust)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Traversable (traverse)
@@ -44,13 +44,13 @@ directCalls moduleName file =
           not (Array.elem worker names) then
         Just { name, worker, index, arity: Array.length lambdas.args, params: map snd lambdas.args, lazy }
       else Nothing
-    Tuple rewritten used = runState
+    Tuple rewritten state = runState
       (traverse identity (Array.mapWithIndex (\index declaration ->
         rewrite moduleName candidates index (case declaration of
           JavaLazyAssign _ _ -> true
-          _ -> false) declaration) file.decls)) Set.empty
+          _ -> false) declaration) file.decls)) { used: Set.empty, guards: 0 }
     emit index declaration = case Array.find (\candidate -> candidate.index == index) candidates of
-      Just candidate | Set.member index used -> case declaration of
+      Just candidate | Set.member index state.used -> case declaration of
         JavaAssign name value -> emitWorker JavaAssign 2 candidate name value declaration
         JavaLazyAssign name value -> emitWorker JavaLazyAssign 1 candidate name value declaration
         _ -> [declaration]
@@ -101,17 +101,26 @@ workerCall moduleName candidate args =
   JavaCall (JavaStaticMethodRef (Just moduleName) candidate.worker)
     (Array.zipWith coerceArgument candidate.params args)
 
-type Rewrite = State (Set Int)
+type Rewrite = State { used :: Set Int, guards :: Int }
 
 rewrite :: String -> Array Candidate -> Int -> Boolean -> JavaExpr -> Rewrite JavaExpr
 rewrite moduleName candidates declarationIndex fromLazy expression = do
   -- Rewriting children first allows exactly the saturated prefix of an
   -- overapplication to become a method call. Later arguments remain outside it.
+  guardsBefore <- gets _.guards
   result <- traverseChildren (rewrite moduleName candidates declarationIndex fromLazy) expression
+  guardsAfter <- gets _.guards
   case admitCall moduleName candidates declarationIndex fromLazy result of
     Nothing -> pure result
+    -- Both branches share the argument AST. Duplicating a nested guard would
+    -- expand that graph exponentially in later tree passes and Java output.
+    -- Keep the outer curried call, including its initialization/failure timing.
+    Just plan | isJust plan.guardField && guardsAfter /= guardsBefore -> pure result
     Just plan -> do
-      modify_ (Set.insert plan.candidate.index)
+      modify_ (\state -> state
+        { used = Set.insert plan.candidate.index state.used
+        , guards = state.guards + if isJust plan.guardField then 1 else 0
+        })
       let direct = workerCall moduleName plan.candidate plan.args
       pure case plan.guardField of
         Just field -> JavaTernary (JavaBinaryOp "==" field (JavaRaw "null")) result direct

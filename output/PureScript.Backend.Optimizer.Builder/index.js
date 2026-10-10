@@ -114,30 +114,16 @@ var effectiveDirectives = function (base) {
     return function (accumulated) {
         return function (contributions) {
             return function (currentIndex) {
-                var restore = function (key) {
-                    return function (v) {
-                        return function (acc) {
-                            var v1 = Data_Map_Internal.lookup(PureScript_Backend_Optimizer_Semantics.ordEvalRef)(key)(base);
-                            if (v1 instanceof Data_Maybe.Just) {
-                                return Data_Map_Internal.insert(PureScript_Backend_Optimizer_Semantics.ordEvalRef)(key)(v1.value0)(acc);
-                            };
-                            if (v1 instanceof Data_Maybe.Nothing) {
-                                return Data_Map_Internal["delete"](PureScript_Backend_Optimizer_Semantics.ordEvalRef)(key)(acc);
-                            };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 572, column 23 - line 574, column 34): " + [ v1.constructor.name ]);
-                        };
-                    };
-                };
                 var removeContribution = function (contrib) {
                     return function (acc) {
-                        return Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(restore)(acc)(contrib);
+                        return Data_Map_Internal.union(PureScript_Backend_Optimizer_Semantics.ordEvalRef)(Data_Map_Internal.intersection(PureScript_Backend_Optimizer_Semantics.ordEvalRef)(base)(contrib))(Data_Map_Internal.difference(PureScript_Backend_Optimizer_Semantics.ordEvalRef)(acc)(contrib));
                     };
                 };
                 return Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(function (rank) {
                     return function (contrib) {
                         return function (acc) {
-                            var $131 = rank >= currentIndex;
-                            if ($131) {
+                            var $127 = rank >= currentIndex;
+                            if ($127) {
                                 return removeContribution(contrib)(acc);
                             };
                             return acc;
@@ -471,11 +457,11 @@ var buildModulesParallel = function (dictMonadEffect) {
                     return function (waiting) {
                         var stepW = function (acc) {
                             return function (v) {
-                                var $237 = Data_Set.member(Data_Ord.ordInt)(done)(v.value1);
-                                if ($237) {
+                                var $233 = Data_Set.member(Data_Ord.ordInt)(done)(v.value1);
+                                if ($233) {
                                     var remaining = Data_Set["delete"](Data_Ord.ordInt)(done)(v.value1);
-                                    var $238 = Data_Set.isEmpty(remaining);
-                                    if ($238) {
+                                    var $234 = Data_Set.isEmpty(remaining);
+                                    if ($234) {
                                         return {
                                             waiting: acc.waiting,
                                             ready: Data_Set.insert(Data_Ord.ordInt)(v.value0)(acc.ready)
@@ -538,8 +524,8 @@ var buildModulesParallel = function (dictMonadEffect) {
                                                     var privateGlobals = Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(function (rank) {
                                                         return function (globals) {
                                                             return function (acc) {
-                                                                var $245 = rank < i;
-                                                                if ($245) {
+                                                                var $241 = rank < i;
+                                                                if ($241) {
                                                                     return Data_Set.union(ordQualified)(globals)(acc);
                                                                 };
                                                                 return acc;
@@ -618,14 +604,14 @@ var buildModulesParallel = function (dictMonadEffect) {
                             return Data_Foldable.foldl(Data_Foldable.foldableArray)(function (a) {
                                 return function (m) {
                                     return Data_Map_Internal.insertWith(Data_Ord.ordInt)(append)((function () {
-                                        var $253 = m > i;
-                                        if ($253) {
+                                        var $249 = m > i;
+                                        if ($249) {
                                             return m;
                                         };
                                         return i;
                                     })())([ (function () {
-                                        var $254 = m > i;
-                                        if ($254) {
+                                        var $250 = m > i;
+                                        if ($250) {
                                             return i;
                                         };
                                         return m;
@@ -667,8 +653,8 @@ var buildModulesParallel = function (dictMonadEffect) {
                                 return new Data_Maybe.Just(new Data_Tuple.Tuple(v1.value0, true));
                             };
                             if (v1 instanceof Data_Maybe.Nothing) {
-                                var $260 = Data_Set.isEmpty(st.inFlight);
-                                if ($260) {
+                                var $256 = Data_Set.isEmpty(st.inFlight);
+                                if ($256) {
                                     return Data_Functor.map(Data_Maybe.functorMaybe)(function (i) {
                                         return new Data_Tuple.Tuple(i, true);
                                     })(firstFree(Data_Map.keys(st.pending)));
@@ -753,8 +739,8 @@ var buildModulesParallel = function (dictMonadEffect) {
                         })(modules)),
                         depsLeft: depsLeft0,
                         ready: Data_Function.apply(fromFoldable2)(Data_Array.mapMaybe(function (v) {
-                            var $269 = v.value1 === 0;
-                            if ($269) {
+                            var $265 = v.value1 === 0;
+                            if ($265) {
                                 return new Data_Maybe.Just(v.value0);
                             };
                             return Data_Maybe.Nothing.value;
@@ -797,8 +783,8 @@ var buildModulesParallel = function (dictMonadEffect) {
                 })(modules)))(Data_Map_Internal.toUnfoldable(Data_Unfoldable.unfoldableArray)(deps));
                 var step = function (st) {
                     return function (result) {
-                        var $276 = !Data_Set.isEmpty(result.pendingDeps);
-                        if ($276) {
+                        var $272 = !Data_Set.isEmpty(result.pendingDeps);
+                        if ($272) {
                             var stats$prime = {
                                 emitMillis: st.stats.emitMillis,
                                 wakeups: st.stats.wakeups,
@@ -815,8 +801,8 @@ var buildModulesParallel = function (dictMonadEffect) {
                             var fresh = Data_Set.filter(Data_Ord.ordInt)(function (d) {
                                 return !Data_Map_Internal.member(Data_Ord.ordInt)(d)(st.finalized);
                             })(result.pendingDeps);
-                            var $277 = Data_Set.isEmpty(fresh);
-                            if ($277) {
+                            var $273 = Data_Set.isEmpty(fresh);
+                            if ($273) {
                                 return Control_Applicative.pure(Applicative0)({
                                     finalized: st.finalized,
                                     depsLeft: st.depsLeft,
@@ -943,8 +929,8 @@ var buildModulesParallel = function (dictMonadEffect) {
                         throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 402, column 34 - line 412, column 72): " + [ v1.constructor.name ]);
                     };
                     if (v instanceof Data_Maybe.Nothing) {
-                        var $286 = Data_Set.isEmpty(st.inFlight);
-                        if ($286) {
+                        var $282 = Data_Set.isEmpty(st.inFlight);
+                        if ($282) {
                             if (runner.onStats instanceof Data_Maybe.Just) {
                                 return runner.onStats.value0({
                                     dispatched: st.stats.dispatched,

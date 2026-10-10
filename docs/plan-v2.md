@@ -2,7 +2,7 @@
 
 Plan v2 — dernière mise à jour : **5 octobre 2026**.
 
-Archive du TODO à l'ouverture du [plan v3](../../todo.md), le 6 octobre 2026.
+Archive du TODO à l'ouverture du [plan v3](../todo.md), le 6 octobre 2026.
 Les cases, scores et clôtures ci-dessous conservent leur état historique.
 
 Objectif : rendre les résultats des tests asynchrones fiables, les erreurs de
@@ -15,7 +15,7 @@ restent dans la documentation. La numérotation continue avec M12 pour conserver
 des références de validation uniques.
 
 Les chemins de travail cités ci-dessous restent relatifs au workspace contenant
-le [TODO actif](../../todo.md) : le compilateur est dans `javapurs/`, les ports
+le [TODO actif](../todo.md) : le compilateur est dans `javapurs/`, les ports
 dans les dossiers `javapurs-*` voisins.
 
 ## Avancement

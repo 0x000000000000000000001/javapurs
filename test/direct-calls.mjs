@@ -43,6 +43,25 @@ const fixture = (name, body) => assign(name, abs(["ignored"], body));
 const pairBody = add(binary("*", local("a"), raw(10)), local("b"));
 const wide = count => abs(Array.from({ length: count }, (_, i) => `arg${i}`), local(`arg${count - 1}`));
 
+// Guarded calls share their arguments between the slow and direct branches.
+// Count the expanded tree with memoization so a regression fails without OOM.
+function expandedSize(expression, cache = new WeakMap()) {
+  if (cache.has(expression)) return cache.get(expression);
+  const size = 1n + A.children(expression).reduce((sum, child) => sum + expandedSize(child, cache), 0n);
+  cache.set(expression, size);
+  return size;
+}
+const guardedDepth = 32;
+const guardedChain = Array.from({ length: guardedDepth }, (_, index) => index).reduce((value, index) =>
+  apply(global("pair"), [note(`guard-${index}`, raw(0)), value]), raw(7));
+const guardedFixture = { recordShapes: [], decls: [
+  assign("pair", abs(["a", "b"], pairBody)),
+  new A.JavaLazyAssign("guardedChain", abs(["ignored"], guardedChain)),
+] };
+const guardedResult = directCalls(moduleClass(moduleName))(guardedFixture);
+assert.ok(expandedSize(guardedResult.decls.at(-1)) < 1000n,
+  "nested lazy guards must not expand exponentially in subsequent AST passes");
+
 function nodes(value, constructor, result = []) {
   if (!value || typeof value !== "object") return result;
   if (value instanceof constructor) result.push(value);
@@ -70,7 +89,9 @@ const original = { recordShapes: [layout], decls: [
   // the immediately forced Supplier would incorrectly bypass initialization.
   assign("early", invoke("DirectRuntime.observe", [abs([], apply(global("future"), [note("early-a", raw(1)), note("early-b", raw(2))]))])),
   assign("reentrantEarly", invoke("DirectRuntime.observe", [abs([], apply(invoke("__lazy_get_reentrant", []), [raw(0)]))])),
+  assign("nestedReentrantEarly", invoke("DirectRuntime.observe", [abs([], apply(invoke("__lazy_get_guardedChain", []), [raw(0)]))])),
   assign("pair", abs(["a", "b"], pairBody)),
+  new A.JavaLazyAssign("guardedChain", abs(["ignored"], guardedChain)),
   assign("nested", abs(["a"], abs(["b"], add(local("a"), local("b"))))),
   assign("constant", abs(["a", "unused"], local("a"))),
   assign("returner", abs(["a", "b"], new A.JavaLet("saved", note("body", add(local("a"), local("b"))),
@@ -275,7 +296,8 @@ public final class DirectChecks {
   public static void main(String[] args) throws Exception {
     equal("future field remains uninitialized during earlier initializer", Direct_Fixtures.early, "uninitialized");
     equal("later lazy getter respects an earlier uninitialized field", Direct_Fixtures.reentrantEarly, "uninitialized");
-    trace("early-a", "reentrant-a");
+    equal("nested lazy calls retain initialization failure timing", Direct_Fixtures.nestedReentrantEarly, "uninitialized");
+    trace("early-a", "reentrant-a", "guard-${guardedDepth - 1}");
     equal("reentrant getter works after initialization", apply(Direct_Fixtures.reentrant, 0), 12); trace("reentrant-a", "reentrant-b");
     Object partial = apply(Direct_Fixtures.pair, 4);
     equal("public partial application", apply(partial, 2), 42);
@@ -295,6 +317,8 @@ public final class DirectChecks {
     equal("unqualified global", apply(Direct_Fixtures.unqualified, 0), 42);
     equal("local callback shadows global", apply(Direct_Fixtures.scope, DirectRuntime.foreignPair, 4), 42);
     equal("lazy function uses earlier worker", apply(Direct_Fixtures.lazy, 4, 2), 42);
+    equal("nested guarded calls", apply(Direct_Fixtures.guardedChain, 0), 7);
+    trace(${Array.from({ length: guardedDepth }, (_, index) => JSON.stringify(`guard-${guardedDepth - index - 1}`)).join(", ")});
     equal("recursive lazy worker", apply(Direct_Fixtures.selfCall, 3), 30);
     equal("unary recursive lazy worker", apply(Direct_Fixtures.selfUnaryCall, 3), 6);
     equal("zero arity Supplier preserved", ((Supplier<?>)Direct_Fixtures.zero).get(), 7);

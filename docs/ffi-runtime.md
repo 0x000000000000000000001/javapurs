@@ -76,7 +76,7 @@ Java retenu ou candidat adjacent, mode de résolution et noms foreign. Exemple d
 lecture ciblée du relevé, depuis l'application :
 
 ```bash
-node -e 'const {ffi} = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")); console.log(JSON.stringify(ffi.modules.filter(m => m.status === "missing" || m.status === "empty"), null, 2))' java_output/.javapurs-manifest.json
+node -e 'const {ffi} = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")); console.log(JSON.stringify(ffi.modules.filter(m => m.status === "missing" || m.status === "empty"), null, 2))' output/java/.javapurs-manifest.json
 ```
 
 Pour corriger une sélection, partir de `moduleSource.path` : si `Foreign` vient

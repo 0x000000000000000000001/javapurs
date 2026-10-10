@@ -35,9 +35,9 @@ try {
         { cwd: delivery, env: { ...tools.env, PATH: dirname(tools.java), CLASSPATH: "" }, log, timeout: 30000 });
       assertCompleted(log);
     };
-    await checkJar("typed", "classes");
+    await checkJar("typed", "output/java/classes");
     const report = destination => JSON.parse(readFileSync(join(directory, destination, ".javapurs-manifest.json"))).ffi.modules;
-    const typed = report("java_output");
+    const typed = report("output/java");
     for (const [moduleName, fragment] of [["Effect.Exception", "javapurs-exceptions/src/Effect/Exception.java"],
       ["Effect.Aff", "javapurs-aff/src/Effect/Aff.java"],
       ["Effect.Ref", "javapurs-refs/src/Effect/Ref.java"], ["Promise.Internal", "javapurs-js-promise/src/Promise/Internal.java"],
@@ -56,11 +56,11 @@ try {
     const run = (phase, command, args) => processes.run(`FfiPorts Maps: ${phase}`, command, args,
       { cwd: directory, env: tools.env, log: join(logs, `${phase}.log`) });
     await run("generation", join(compilerRoot, "bin/javapurs"), ["--records=maps"]);
-    assert.deepEqual(report("java_output"), typed, "FFI selection and declarations do not depend on record representation");
-    await run("javac", tools.javac, [...tools.javacArgs, "-d", "classes-maps", "-sourcepath", "java_output", "java_output/MainRun.java"]);
-    await run("execution", tools.java, ["-cp", "classes-maps", "MainRun"]);
+    assert.deepEqual(report("output/java"), typed, "FFI selection and declarations do not depend on record representation");
+    await run("javac", tools.javac, [...tools.javacArgs, "-d", "output/java/classes-maps", "-sourcepath", "output/java", "output/java/MainRun.java"]);
+    await run("execution", tools.java, ["-cp", "output/java/classes-maps", "MainRun"]);
     assertCompleted(join(logs, "execution.log"));
-    await checkJar("maps", "classes-maps");
+    await checkJar("maps", "output/java/classes-maps");
     // Reproduce the transitive-selection mistake with a real registry package.
     // Its declarations exist, but its Java fragment is absent; the report must
     // identify that source instead of treating the local port as selected.

@@ -20,8 +20,8 @@ export async function runFixture({ root = compilerRoot, fixture, directory, proc
   const compileArgs = javaCompileArgs(tools, javacArgs);
   const { name, source } = fixture;
   console.log(`=> Testing ${name}`);
-  // These four directories are owned by the fixture runner, not by the ports.
-  for (const child of ["src", "output", "java_output", "classes"]) {
+  // These directories are owned by the fixture runner, not by the ports.
+  for (const child of ["src", "output"]) {
     rmSync(join(directory, child), { recursive: true, force: true });
     mkdirSync(join(directory, child), { recursive: true });
   }
@@ -38,10 +38,10 @@ export async function runFixture({ root = compilerRoot, fixture, directory, proc
     { cwd: directory, env: tools.env, log: join(logs, phase + ".log") });
   await run("purescript", "spago", ["build", "-q"]);
   await run("generation", join(root, "bin/javapurs"), ["--main", "Main"]);
-  if (!existsSync(join(directory, "java_output/MainRun.java"))) {
+  if (!existsSync(join(directory, "output/java/MainRun.java"))) {
     throw new Error(`${name}: generation did not produce MainRun.java; log: ${join(logs, "generation.log")}`);
   }
-  await run("javac", tools.javac, [...compileArgs, "-d", "classes", "-sourcepath", "java_output", "java_output/MainRun.java"]);
-  await run("execution", tools.java, ["-cp", "classes", "MainRun"]);
+  await run("javac", tools.javac, [...compileArgs, "-d", "output/java/classes", "-sourcepath", "output/java", "output/java/MainRun.java"]);
+  await run("execution", tools.java, ["-cp", "output/java/classes", "MainRun"]);
   console.log(`   ${name}: OK`);
 }

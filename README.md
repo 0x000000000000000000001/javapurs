@@ -125,17 +125,16 @@ public static final Object logLine =
 From the application root, with the built backend and the TAST compiler on `PATH`:
 
 ```bash
-mkdir -p classes
 spago build
-javac --release 17 -d classes -sourcepath java_output java_output/MainRun.java
-java -cp classes MainRun
+javac --release 17 -d output/java/classes -sourcepath output/java output/java/MainRun.java
+java -cp output/java/classes MainRun
 ```
 
 The example prints `Hello from javapurs` using its own Java console binding. It uses registry packages for PureScript definitions; their unused foreign declarations may remain stubs. The second [Refs example](examples/refs/spago.yaml) prints `42` using `Effect.Ref` and `Effect.Console`, explicitly selecting their Java ports and the `effect`/`prelude` implementations used transitively. Its paths assume `workspace/apps/refs`; the installer prepares this layout. JavaScript FFI can coexist with Java FFI. Larger applications must select all executed foreign implementations through `workspace.extraPackages`; the [runner workspace](tests/runner/spago.yaml) gives a broader example.
 
-The backend creates `java_output` and its parent directories after validating the inputs. Spago invokes it after producing enriched `output/<Module>/corefn.json`. Each module must contain `dataDecls`, `classDecls` and `typeTable` arrays; empty arrays are valid for modules without those declarations/types. Missing or malformed metadata names the file and field: select the TAST-capable fork explicitly on `PATH` and rebuild in a fresh output directory.
+The backend creates `<input>/java/` after validating the inputs: `output/java/` by default, or `<DIR>/java/` with `spago build --output DIR`. Spago invokes it after producing enriched `output/<Module>/corefn.json`. Each module must contain `dataDecls`, `classDecls` and `typeTable` arrays; empty arrays are valid for modules without those declarations/types. Missing or malformed metadata names the file and field: select the TAST-capable fork explicitly on `PATH` and rebuild in a fresh output directory.
 
-Unreadable/missing CoreFn files, invalid JSON/decoding, duplicate module names and missing non-`Prim` imports fail with **exit code 1 before output preparation**, preserving the previous Java generation and manifest. Root-level files such as `cache-db.json` are ignored; each subdirectory must supply CoreFn, except the `Prim`/`Prim.*` documentation-only directories produced by the frontend. See the [input contract](docs/compiler.md#2-chargement-tast-et-optimisation-pbo).
+Unreadable/missing CoreFn files, invalid JSON/decoding, duplicate module names and missing non-`Prim` imports fail with **exit code 1 before output preparation**, preserving the previous Java generation and manifest. Root-level files such as `cache-db.json` and the reserved lowercase `java/` subtree are ignored. Other subdirectories must supply CoreFn, except the `Prim`/`Prim.*` documentation-only directories produced by the frontend. Put compiled classes under `output/java/classes/` to keep repeated builds valid. See the [input contract](docs/compiler.md#2-chargement-tast-et-optimisation-pbo).
 
 Each compilation reports monotonic elapsed times in milliseconds to stderr: TAST loading and sorting, preparation, optimization and staged emission, Java publication, and the backend total. The total includes these phases; it excludes the preceding `purs` compilation and subsequent `javac` compilation. A failed phase and its enclosing total are marked `(failed)` before the error is propagated. TAST loading, FFI reading and Java writing failures include their operation and path; module emission errors also name the module.
 
@@ -144,16 +143,15 @@ Generated classes use the default Java package and the reserved prefix `__M$`, w
 To regenerate Java from existing TAST without recompiling PureScript, invoke the backend directly:
 
 ```bash
-mkdir -p classes
 javapurs --main Main
-javac --release 17 -d classes -sourcepath java_output java_output/MainRun.java
-java -cp classes MainRun
+javac --release 17 -d output/java/classes -sourcepath output/java output/java/MainRun.java
+java -cp output/java/classes MainRun
 ```
 
 For an application with no external JAR dependencies, package the compiled classes with:
 
 ```bash
-jar --create --file app.jar --main-class MainRun -C classes .
+jar --create --file app.jar --main-class MainRun -C output/java/classes .
 java -jar app.jar
 ```
 
@@ -162,8 +160,8 @@ For these two examples, **`app.jar` and a compatible JVM are the complete runtim
 Java libraries used by your FFI must be added to both classpaths. For example, with application JARs under `lib/` on macOS/Linux:
 
 ```bash
-javac --release 17 -cp "lib/*" -d classes -sourcepath java_output java_output/MainRun.java
-java -cp "classes:lib/*" MainRun
+javac --release 17 -cp "lib/*" -d output/java/classes -sourcepath output/java output/java/MainRun.java
+java -cp "output/java/classes:lib/*" MainRun
 ```
 
 Dependency management and JAR packaging are application responsibilities.
@@ -186,7 +184,7 @@ Merge this fragment with the rest of your workspace configuration.
 | `--help` | Print usage and exit without reading TAST or writing files. |
 | `--input <DIR>` | Read enriched CoreFn/TAST from this directory; defaults to `output`. |
 | `--output <DIR>` | Alias of `--input`, matching the argument Spago appends for its own output option. |
-| `--java-output <DIR>` | Create and manage Java sources in this directory; defaults to `java_output`. |
+| `--java-output <DIR>` | Override the Java destination; defaults to `<input>/java` (`output/java`). |
 | `--main <Module>` | Select a module defining and exporting a local `main`; defaults to `Main`. `MainRun` forces a `Supplier` or applies a `Function` to `null`. All loaded modules are generated. |
 | `--no-main` | Generate a library without `MainRun.java`. An empty input directory is accepted in this mode. |
 | `--records=maps` | Compare Map records with the default typed representation on the same TAST. |
@@ -198,7 +196,9 @@ Merge this fragment with the rest of your workspace configuration.
 
 Options taking a value accept `--name VALUE` or `--name=VALUE`. Paths are relative to the caller; quote paths containing spaces. Each option may appear once, including the `--input`/`--output` alias pair. `--main` and `--no-main` are mutually exclusive. Unknown arguments, missing/empty values, repeated options and conflicts fail before compilation with exit code **2**. Success and help return **0**; compilation and I/O failures return **1**. These rules live in [Config](src/Javapurs/Config.purs).
 
-Spago **1.0.3** passes `backend.args`, then appends `--output` with an absolute TAST path when its output option is set. It supplies no `build` positional argument. Configure the Java destination with `backend.args: ["--java-output", "Java sources"]`; let Spago provide its TAST path. Input and Java directories must be disjoint, including through symlink aliases.
+Spago **1.0.3** passes `backend.args`, then appends `--output` with an absolute TAST path when its output option is set. It supplies no `build` positional argument. The Java destination follows that path automatically. An explicit `backend.args: ["--java-output", "Java sources"]` overrides it regardless of option order. Overlap is allowed only inside the reserved `<input>/java/` subtree; other overlap, including a symlink from `java` into a module directory, is rejected.
+
+Older projects can regenerate into the new destination and update their `javac`/`java` paths. Existing `java_output/` files are not moved or deleted automatically; `--java-output java_output` retains the old layout explicitly. The [M24 record](docs/testing.md#validation-m24) documents the b8x migration.
 
 ```bash
 javapurs --help
@@ -212,7 +212,7 @@ At JVM startup, `MainRun` calls the selected value exactly once: `Supplier.get()
 
 Loop invariant caches belong to each fully applied function invocation. They evaluate at the first original use, so skipped branches and zero-iteration loops keep their evaluation behavior. The analysis checks known definitions and closures recursively, rejects unknown FFI/effects and local captures, and only caches successful `Int` results.
 
-Direct calls use private static methods for eligible functions in the same module. Consecutive nonempty lambdas qualify at arities 2–32 for eager bindings and 1–32 for lazy bindings. Public curried functions remain available. Calls between eager declarations use earlier workers directly. Calls to lazy declarations, or from lazy bindings that can be entered early through a getter, retain an initialization guard. Saturated self calls through their own getter use a separate direct path. Proven `Int` worker parameters are primitive and receive explicit unboxing casts at call sites; other parameters use `Object`. See [DirectCalls](src/Javapurs/DirectCalls.purs) for the admission rules.
+Direct calls use private static methods for eligible functions in the same module. Consecutive nonempty lambdas qualify at arities 2–32 for eager bindings and 1–32 for lazy bindings. Public curried functions remain available. Calls between eager declarations use earlier workers directly. Calls to lazy declarations, or from lazy bindings that can be entered early through a getter, retain an initialization guard. A guarded call containing another guarded rewrite stays curried to prevent exponential argument duplication while preserving initialization and evaluation order. Saturated self calls through their own getter use a separate direct path. Proven `Int` worker parameters are primitive and receive explicit unboxing casts at call sites; other parameters use `Object`. See [DirectCalls](src/Javapurs/DirectCalls.purs) for the admission rules.
 
 Ownership workers consume eligible fresh trees after proving that retained subtrees do not alias and that later reads remain valid. Reads are snapshotted before writes; shared leaves are never reusable cells. The [specialized-pass guide](docs/specialized-passes.md) maps candidate selection, usage proofs, cells, worker emission and fallbacks, together with the contracts of direct calls, loops, invariants and constructor reuse.
 
@@ -271,7 +271,7 @@ Every successful generation includes `ffi: { version: 1, modules: [...] }` in `.
 Each binding has its PureScript `name`, escaped `javaName`, and `retained` flag indicating whether PBO kept its foreign declaration. **`verification: "not-checked"`** makes the boundary explicit: a supplied fragment may omit a member, and a retained declaration may never be executed. The [FFI report schema and coverage table](docs/ffi-runtime.md#relevé-de-la-génération) connect these observations to named `javac`/JVM fixtures.
 
 ```bash
-node -e 'const {ffi} = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")); console.log(JSON.stringify(ffi.modules.filter(m => m.status === "missing" || m.status === "empty"), null, 2))' java_output/.javapurs-manifest.json
+node -e 'const {ffi} = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")); console.log(JSON.stringify(ffi.modules.filter(m => m.status === "missing" || m.status === "empty"), null, 2))' output/java/.javapurs-manifest.json
 ```
 
 For example, a `Foreign` source under `.spago/p/foreign-…/` with no selected Java points to the registry dependency. Select `javapurs-foreign` through `workspace.extraPackages`, rebuild the TAST and Java, and check `selectedJava.realPath`. The Promise/Aff rejection path needs this transitive port even when a successful round trip already works. If generation fails, stderr describes the failed attempt and the manifest continues to describe the preceding successful generation.
@@ -292,7 +292,7 @@ Use the same checkout layout as the source build instructions and select tests b
 ./bin/test DerivingTraversable
 ```
 
-Each selected test replaces `tests/runner/src`, `output`, `java_output` and `classes`, then builds with Spago, generates Java, compiles with `javac` and executes `MainRun`. Backend-local overrides and FFI are described in the [testing guide](docs/testing.md). An invalid explicit name, option or range boundary fails before building or cleaning. `--list` only resolves the selection, including when combined with `-c`. An executing `-c` run also rebuilds the backend and cleans caches. Phase logs remain in `logs/tests/<Name>/`.
+Each selected test replaces `tests/runner/src` and `output` (including `output/java/classes`), then builds with Spago, generates Java, compiles with `javac` and executes `MainRun`. Backend-local overrides and FFI are described in the [testing guide](docs/testing.md). An invalid explicit name, option or range boundary fails before building or cleaning. `--list` only resolves the selection, including when combined with `-c`. An executing `-c` run also rebuilds the backend and cleans caches. Phase logs remain in `logs/tests/<Name>/`.
 
 After a compiler-source change, rebuild the backend, select a JDK, then run the focused regression:
 
@@ -332,7 +332,9 @@ The [test matrix](docs/testing.md#matrice-des-tests) covers all 29 scripts and i
 
 The maintainability plan v1 is complete: **11/11 milestones, 100/100 points**, with its history in the [M11 validation record](docs/testing.md#validation-m11). The [archived plan v2](docs/plan-v2.md) also reaches **5/5 milestones, 100/100 points**: reliable asynchronous test runners, CLI/output handling, FFI diagnostics, reproducible source setup and measured JDK compatibility. Its closure and coverage limits are recorded in [M16](docs/testing.md#validation-m16); the archive also preserves the completed M17–M19 follow-ups.
 
-The [plan v3](../todo.md), opened on **6 October 2026**, is complete: **M20–M23, 4/4 milestones, 100/100**. Fixtures use production runtime templates and current PBO builds for optional inputs; [shared workspace profiles](docs/testing.md#préparation-des-workspaces) own dependency/FFI selection; all 48 port launchers delegate to the common runner. See the [M20](docs/testing.md#validation-m20), [M21](docs/testing.md#validation-m21), [M22](docs/testing.md#validation-m22) and [M23](docs/testing.md#validation-m23) records. M23 validates tooling migration with 27 Node tests and targeted real suites; six unsupported completion protocols, the existing Event Emitter failures and unexecuted suites remain explicit coverage limits.
+The [plan v3](todo.md), opened on **6 October 2026**, is complete: **M20–M23, 4/4 milestones, 100/100**. Fixtures use production runtime templates and current PBO builds for optional inputs; [shared workspace profiles](docs/testing.md#préparation-des-workspaces) own dependency/FFI selection; all 48 port launchers delegate to the common runner. See the [M20](docs/testing.md#validation-m20), [M21](docs/testing.md#validation-m21), [M22](docs/testing.md#validation-m22) and [M23](docs/testing.md#validation-m23) records. M23 validates tooling migration with 27 Node tests and targeted real suites; six unsupported completion protocols, the existing Event Emitter failures and unexecuted suites remain explicit coverage limits.
+
+The [M24 follow-up](docs/testing.md#validation-m24), completed on **9 October 2026**, moves Java output under `<input>/java` and fixes exponential expansion of nested direct-call guards. Two consecutive b8x builds produce identical Java and manifests; their `Ping` entrypoint runs successfully on Java 17. Focused compiler, runner and BigFunction checks are recorded there.
 
 ### Java target and runtime
 

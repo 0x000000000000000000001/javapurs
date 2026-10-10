@@ -91,7 +91,7 @@ fakeCommand(join(bin, "javac"), "javac");
 fakeCommand(join(bin, "java"), "execution");
 fakeCommand(join(root, "bin/build"), "build");
 fakeCommand(join(root, "bin/javapurs"), "generation",
-  "if (!process.env.NO_LAUNCHER) fs.writeFileSync('java_output/MainRun.java', '// generated launcher');");
+  "fs.mkdirSync('output/java', {recursive:true}); if (!process.env.NO_LAUNCHER) fs.writeFileSync('output/java/MainRun.java', '// generated launcher');");
 const env = { ...process.env, PATH: bin, JAVA_HOME: dirname(bin), JAVAC: "", JAVA: "", TRACE: trace,
   JAVAPURS_JAVA_RELEASE: "17", JAVAPURS_JAVA_RUNTIME: "" };
 function cli(args, extraEnv = {}) {
@@ -120,7 +120,7 @@ for (const port of historical) {
   for (const [path, content] of [["src/Example.purs", "module Example where\n"], ["src/Example.java", "// source FFI\n"],
     ["src/Example.js", "// source JS\n"], ["test/Support/Extra.java", "// nested test FFI\n"],
     ["test/Support/input.txt", "test resource\n"], ["spago.lock", "original lock\n"],
-    ["output/keep", "old output\n"], ["java_output/keep", "old Java\n"], [".spago/keep", "old cache\n"]]) {
+    ["output/keep", "old output\n"], ["output/java/keep", "old Java\n"], [".spago/keep", "old cache\n"]]) {
     write(join(checkout, path), content);
   }
   write(join(checkout, port === "strings" ? "test/Test/Main.purs" : "test/Main.purs"), "module Test.Main where\n");
@@ -470,7 +470,7 @@ test("all historical templates preserve dependency sets, local paths, entrypoint
     assert.equal(readFileSync(join(destination, "test/Support/input.txt"), "utf8"), "test resource\n");
     assert.equal(readFileSync(join(destination, "test/Support/Extra.java"), "utf8"), "// nested test FFI\n");
     assert.deepEqual(tree(join(destination, "src")), tree(join(source, "src")));
-    for (const name of ["spago.lock", "output/keep", "java_output/keep", ".spago/keep"]) assert.ok(!existsSync(join(destination, name)));
+    for (const name of ["spago.lock", "output/keep", "output/java/keep", ".spago/keep"]) assert.ok(!existsSync(join(destination, name)));
     if (portSuites[port].wrapper === "Spec") {
       const ffi = readFileSync(join(destination, "test/PortRunner.java"), "utf8");
       assert.match(ffi, /awaitAff/); assert.ok(!ffi.includes("Promise_Internal"));
@@ -494,8 +494,8 @@ test("all migrated delegations select their pipeline or explicitly reject unsupp
       assert.deepEqual(events.slice(0, 5).map(event => event.phase), ["build", "purescript", "generation", "javac", "execution"]);
       assert.deepEqual(events[2].args, ["--main", suite.main]);
       assert.deepEqual(events[3].args, ["--release", "17", ...suite.javacArgs,
-        "-d", "classes", "-sourcepath", "java_output", "java_output/MainRun.java"]);
-      assert.deepEqual(events[4].args, [...suite.javaArgs, "-cp", "classes", "MainRun"]);
+        "-d", "output/java/classes", "-sourcepath", "output/java", "output/java/MainRun.java"]);
+      assert.deepEqual(events[4].args, [...suite.javaArgs, "-cp", "output/java/classes", "MainRun"]);
       assert.ok(events[4].cwd.startsWith(portScratch + "/javapurs-port-" + port + "-"));
       assert.equal(events.length, suite.wrapper === "Spec" ? 10 : 5);
       assert.ok(!existsSync(events[4].cwd));
@@ -534,11 +534,11 @@ test("pilot pipelines preserve source trees and apply build, target, runtime and
     assert.deepEqual(generation.args, ["--main", "Test.Main"]);
     const javac = events.find(event => event.phase === "javac");
     assert.deepEqual(javac.args, ["--release", release, ...(port === "strings" ? ["-J-Xss64m"] : []),
-      "-d", "classes", "-sourcepath", "java_output", "java_output/MainRun.java"]);
+      "-d", "output/java/classes", "-sourcepath", "output/java", "output/java/MainRun.java"]);
     assert.equal(javac.command, join(bin, "javac"));
     const execution = events.find(event => event.phase === "execution");
     assert.equal(execution.command, port === "refs" ? runtime17 : join(bin, "java"));
-    assert.deepEqual(execution.args, [port === "strings" ? "-Xss64m" : "-Xss8m", "-cp", "classes", "MainRun"]);
+    assert.deepEqual(execution.args, [port === "strings" ? "-Xss64m" : "-Xss8m", "-cp", "output/java/classes", "MainRun"]);
     assert.ok(execution.cwd.startsWith(portScratch + "/javapurs-port-" + port + "-"));
     assert.ok(events.filter(event => event.phase !== "build").every(event => event.cwd === execution.cwd));
     assert.ok(!existsSync(execution.cwd)); assert.deepEqual(originalPorts(), portOriginals);
@@ -564,7 +564,7 @@ test("all five port phase failures retain inputs and logs, stop the pipeline and
       assert.ok(!existsSync(join(directory, "spago.lock")));
       assert.ok(!existsSync(join(directory, ".spago/keep")));
       assert.ok(!existsSync(join(directory, "output/keep")));
-      assert.ok(!existsSync(join(directory, "java_output/keep")));
+      assert.ok(!existsSync(join(directory, "output/java/keep")));
       assert.ok(readFileSync(join(directory, "spago.yaml"), "utf8").includes(JSON.stringify(resolve(root, "../javapurs-prelude"))));
     }
     assert.deepEqual(originalPorts(), portOriginals);

@@ -24,12 +24,12 @@ var Compile = /* #__PURE__ */ (function () {
     };
     return Compile;
 })();
-var help = "\x0aUsage: javapurs [options]\x0a\x0a  --help                   Show this help without reading inputs or writing files.\x0a  --input DIR              Read enriched CoreFn/TAST from DIR (default: output).\x0a  --output DIR             Alias of --input, supplied by Spago's output option.\x0a  --java-output DIR        Write Java and its manifest to DIR (default: java_output).\x0a  --main MODULE            Select a module with a local exported main (default: Main).\x0a  --no-main                Generate a library without MainRun.java; permits empty input.\x0a  --records=maps           Use Map records instead of typed records.\x0a  --loop-invariants=off    Disable loop-invariant caching.\x0a  --direct-calls=off       Disable direct static calls.\x0a  --int-functions=off      Disable specialized Int functions.\x0a  --ownership=off          Disable consuming workers.\x0a  --no-chunk               Disable extraction into chunk helpers.\x0a\x0aValue options accept --name VALUE or --name=VALUE. Paths are relative to the\x0acaller. Options may be supplied once; --main and --no-main are exclusive.\x0aExit codes: 0 success/help, 2 argument errors, 1 compilation or I/O failure.\x0a";
+var help = "\x0aUsage: javapurs [options]\x0a\x0a  --help                   Show this help without reading inputs or writing files.\x0a  --input DIR              Read enriched CoreFn/TAST from DIR (default: output).\x0a  --output DIR             Alias of --input, supplied by Spago's output option.\x0a  --java-output DIR        Write Java and its manifest to DIR (default: <input>/java).\x0a  --main MODULE            Select a module with a local exported main (default: Main).\x0a  --no-main                Generate a library without MainRun.java; permits empty input.\x0a  --records=maps           Use Map records instead of typed records.\x0a  --loop-invariants=off    Disable loop-invariant caching.\x0a  --direct-calls=off       Disable direct static calls.\x0a  --int-functions=off      Disable specialized Int functions.\x0a  --ownership=off          Disable consuming workers.\x0a  --no-chunk               Disable extraction into chunk helpers.\x0a\x0aValue options accept --name VALUE or --name=VALUE. Paths are relative to the\x0acaller. Options may be supplied once; --main and --no-main are exclusive.\x0aExit codes: 0 success/help, 2 argument errors, 1 compilation or I/O failure.\x0a";
 var defaultConfig = /* #__PURE__ */ (function () {
     return {
         inputDirectory: "output",
         output: {
-            directory: "java_output",
+            directory: "output/java",
             mainModule: new Data_Maybe.Just("Main")
         },
         pipeline: {
@@ -50,8 +50,8 @@ var parseArgs = function (args) {
         return function (text) {
             return function (state) {
                 return function (remaining) {
-                    var $27 = text === "" || Data_Eq.eq(eqMaybe)(Data_String_CodePoints.indexOf("-")(text))(new Data_Maybe.Just(0));
-                    if ($27) {
+                    var $29 = text === "" || Data_Eq.eq(eqMaybe)(Data_String_CodePoints.indexOf("-")(text))(new Data_Maybe.Just(0));
+                    if ($29) {
                         return new Data_Either.Left("Missing or invalid value for " + name);
                     };
                     if (name === "--main") {
@@ -102,8 +102,8 @@ var parseArgs = function (args) {
         return function (before) {
             return function (remaining) {
                 return function (after) {
-                    var $29 = Data_Array.elem(Data_Eq.eqString)(key)(before.seen);
-                    if ($29) {
+                    var $31 = Data_Array.elem(Data_Eq.eqString)(key)(before.seen);
+                    if ($31) {
                         return new Data_Either.Left("Repeated or conflicting option: " + key);
                     };
                     return go({
@@ -212,10 +212,10 @@ var parseArgs = function (args) {
                     if (separator instanceof Data_Maybe.Just) {
                         return Data_String_CodeUnits.take(separator.value0)(v.value0.head);
                     };
-                    throw new Error("Failed pattern match at Javapurs.Config (line 83, column 18 - line 85, column 44): " + [ separator.constructor.name ]);
+                    throw new Error("Failed pattern match at Javapurs.Config (line 85, column 18 - line 87, column 44): " + [ separator.constructor.name ]);
                 })();
-                var $34 = !Data_Array.elem(Data_Eq.eqString)(name)([ "--main", "--input", "--output", "--java-output" ]);
-                if ($34) {
+                var $36 = !Data_Array.elem(Data_Eq.eqString)(name)([ "--main", "--input", "--output", "--java-output" ]);
+                if ($36) {
                     return new Data_Either.Left("Unknown argument: " + v.value0.head);
                 };
                 if (separator instanceof Data_Maybe.Just) {
@@ -229,11 +229,11 @@ var parseArgs = function (args) {
                     if (v1 instanceof Data_Maybe.Just) {
                         return value(name)(v1.value0.head)(state)(v1.value0.tail);
                     };
-                    throw new Error("Failed pattern match at Javapurs.Config (line 90, column 22 - line 92, column 62): " + [ v1.constructor.name ]);
+                    throw new Error("Failed pattern match at Javapurs.Config (line 92, column 22 - line 94, column 62): " + [ v1.constructor.name ]);
                 };
-                throw new Error("Failed pattern match at Javapurs.Config (line 88, column 14 - line 92, column 62): " + [ separator.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.Config (line 90, column 14 - line 94, column 62): " + [ separator.constructor.name ]);
             };
-            throw new Error("Failed pattern match at Javapurs.Config (line 69, column 24 - line 92, column 62): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Config (line 71, column 24 - line 94, column 62): " + [ v.constructor.name ]);
         };
     };
     var codegen = function (key) {
@@ -262,11 +262,26 @@ var parseArgs = function (args) {
         seen: [  ],
         help: false
     })(args))(function (result) {
+        var config = (function () {
+            var $44 = Data_Array.elem(Data_Eq.eqString)("--java-output")(result.seen);
+            if ($44) {
+                return result.config;
+            };
+            return {
+                inputDirectory: result.config.inputDirectory,
+                pipeline: result.config.pipeline,
+                rewriteLimit: result.config.rewriteLimit,
+                output: {
+                    mainModule: result.config.output.mainModule,
+                    directory: result.config.inputDirectory + "/java"
+                }
+            };
+        })();
         return Control_Applicative.pure(Data_Either.applicativeEither)((function () {
             if (result.help) {
                 return Help.value;
             };
-            return new Compile(result.config);
+            return new Compile(config);
         })());
     });
 };

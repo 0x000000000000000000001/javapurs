@@ -38,11 +38,11 @@ dans la configuration Spago de chaque application. Le
 | Compilateur : `output/Main/index.js` et `output/Javapurs.*/` | `./bin/build` vérifie les packages/outils et une sonde TAST, puis exécute `spago build` dans son propre checkout ; ces modules JavaScript font fonctionner l'outil sous Node. |
 | Application : `output/<Module>/corefn.json` | Le fork PureScript produit l'entrée enrichie lue par PBO. |
 | Application : `.purmeta/<Module>.purmeta` | PBO conserve des implémentations optimisées pour les dépendances ; certaines suites peuvent examiner ces caches. |
-| Application : `java_output/` (ou `--java-output`) | Javapurs publie les classes de modules, helpers, FFI insérée, launcher et manifeste de propriété. |
-| Répertoire passé à `javac -d` | `javac` produit les `.class` exécutés par la JVM ; le backend ne choisit pas cette destination. |
+| Application : `output/java/` (ou `<input>/java`, ou `--java-output`) | Javapurs publie les classes de modules, helpers, FFI insérée, launcher et manifeste de propriété. |
+| Répertoire passé à `javac -d`, habituellement `output/java/classes/` | `javac` produit les `.class` exécutés par la JVM ; le backend ne choisit pas cette destination. |
 
 Le nom `output/` désigne donc le build de l'outil quand on travaille dans son
-dépôt, et l'entrée TAST quand on lance cet outil depuis une application.
+dépôt, et les artefacts applicatifs TAST/Java quand on lance cet outil depuis une application.
 Les runners Node choisissent séparément JDK de compilation, cible Java (17 par
 défaut) et JVM d'exécution ; la [configuration et matrice](testing.md#build-jdk-cible-et-jvm)
 documente les variables et les parcours réellement mesurés.
@@ -85,15 +85,18 @@ avant compilation. Les options à valeur acceptent `--nom valeur` et `--nom=vale
 bibliothèque. Les deux options sont exclusives.
 
 `--input` configure l'entrée TAST (`output` par défaut) et `--java-output` la
-destination (`java_output` par défaut), relativement au dossier appelant. Le
+destination (`<input>/java` par défaut), relativement au dossier appelant. Le
 backend crée la destination et ses parents. `--output` est un **alias d'entrée** :
 Spago 1.0.3 passe les `backend.args`, puis ajoute `--output` et le chemin TAST
 absolu lorsque son option de sortie est renseignée. Aucun argument positionnel
 `build` n'est transmis. La paire d'alias `--input`/`--output` compte comme une seule
 option ; le parseur générique et les options FFI de PBO ne sont pas utilisés ici.
+La destination Java implicite est dérivée après parsing de tous les arguments ;
+un `--java-output` explicite reste prioritaire quel que soit leur ordre.
 
-Les chemins TAST/Java doivent être disjoints : même chemin ou inclusion dans
-l'autre rejetés, y compris à travers les ancêtres symlinks. Après chargement,
+Seul le sous-arbre réservé `<input>/java/` peut être imbriqué dans les TAST.
+Les autres chevauchements sont rejetés, y compris à travers les ancêtres symlinks :
+un lien `java -> Main` ne permet pas d'écrire dans un dossier de module. Après chargement,
 `Driver.validateMain` exige un module présent, avec un `main` exporté défini
 localement (binding PureScript ou foreign). Un simple réexport est refusé. Ces
 contrôles précèdent la création du dossier de sortie ; l'ABI de `main` reste
@@ -106,7 +109,9 @@ Javapurs. Le vocabulaire TAST/`tcorefn` désigne le format enrichi du fork ; le
 chemin consommé reste `output/<Module>/corefn.json` :
 
 1. Lecture des entrées immédiates du dossier ; les fichiers à la racine, notamment
-   `cache-db.json`, ne sont pas des modules. Chaque sous-dossier exige un
+   `cache-db.json`, ne sont pas des modules. Le sous-arbre `java/` en minuscules
+   est réservé aux sources Java, au manifeste, au staging et aux classes ; il
+   est exclu avant toute lecture de module. Chaque autre sous-dossier exige un
    `corefn.json` régulier et lisible. Les symlinks de dossiers/fichiers sont suivis ;
    les liens cassés échouent. Exception : le frontend produit des dossiers `Prim`
    et `Prim.*` avec seulement `docs.json`. L'absence de CoreFn y est normale ; un
@@ -341,6 +346,13 @@ Les commandes minimales et le classpath sont dans le
 [build](../../../b8x/bin/build) et [_javapurs](../../../b8x/bin/_javapurs)
 emploient les records Maps, `javac --release 17` et les JAR de
 `run/bak/java/lib/`. Ce sont des choix d'intégration applicative.
+Le lien `output` pointe vers `run/bak/java/output` ; les sources sont dans
+`output/java/`, les classes dans `output/java/classes/`. Le backend est invoqué
+une fois en `--no-main`, puis [_java-launchers.mjs](../../../b8x/bin/_java-launchers.mjs)
+réutilise `Runtime.mainRunSource` pour chaque module `Main`/`*.Main` exportant
+`main`. Ces launchers résident dans `output/java/launchers/` ; `bin/run` utilise
+les classes depuis le même layout, localement et dans Docker. Le nettoyage du
+dossier `output` retire donc ensemble TAST, Java, manifeste, launchers et classes.
 
 ### Diagnostics et durées
 
@@ -354,7 +366,7 @@ erreurs remontées par le chargement, la lecture FFI et les écritures. Exemples
 `load TAST from output: ENOENT…`,
 `load TAST from output: read TAST output/Unused/corefn.json: Incompatible TAST: typeTable must be an array…`,
 `compile module Missing: read Java FFI src/Missing.java: EISDIR…` ou
-`publish Java to java_output: Java output conflict; preserving …`.
+`publish Java to output/java: Java output conflict; preserving …`.
 La frontière `Main` produit un code de sortie 1 pour ces erreurs.
 Un échec de chargement marque `load TAST + sort` et `backend total` comme échoués,
 sans atteindre les phases de préparation ou de publication.
@@ -500,7 +512,7 @@ compilation d'une classe ne décrit pas sa couverture fonctionnelle.
    versions et FFI lors de la comparaison des sources Java.
 5. Mettre à jour le contrat et consigner les preuves ciblées dans le registre.
 
-Le [plan de travail actif](../../todo.md) donne les lots et leurs critères de
+Le [plan de travail actif](../todo.md) donne les lots et leurs critères de
 fin. Les [preuves M01–M11](testing.md#validation-m11) clôturent le plan v1 de
 maintenabilité. La matrice décrit les vérifications par responsabilité ; elle sert à
 sélectionner les contrôles adaptés à chaque changement.

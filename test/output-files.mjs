@@ -208,3 +208,23 @@ test("input/output overlap is rejected through missing children and symlink alia
   Output.validatePaths(join(directory, "input"))(join(directory, "java"))();
   assert.deepEqual(fs.readdirSync(directory), []);
 });
+
+test("only the physical reserved java subtree may overlap TAST", () => {
+  const directory = fresh(); fs.mkdirSync(directory, { recursive: true });
+  const alias = join(directory, "..", "input-alias"); fs.symlinkSync(directory, alias);
+  for (const output of [join(directory, "java"), join(alias, "java/sources")]) {
+    Output.validatePaths(directory)(output)();
+  }
+  assert.deepEqual(fs.readdirSync(directory), [], "validation creates no directories");
+  fs.mkdirSync(join(directory, "Main"));
+  fs.symlinkSync(join(directory, "Main"), join(directory, "java"));
+  assert.throws(() => Output.validatePaths(directory)(join(directory, "java"))(), /must not overlap/);
+  assert.throws(() => Output.validatePaths(directory)(join(directory, "java/nested"))(), /must not overlap/);
+  fs.unlinkSync(join(directory, "java"));
+  fs.mkdirSync(join(directory, "java"));
+  fs.symlinkSync(join(directory, "Main"), join(directory, "java/escape"));
+  assert.throws(() => Output.validatePaths(directory)(join(directory, "java/escape"))(), /must not overlap/);
+  Output.validatePaths(directory)(join(directory, "java/sources"))();
+  // A symlinked input root remains compatible with the default destination.
+  Output.validatePaths(alias)(join(alias, "java"))();
+});
