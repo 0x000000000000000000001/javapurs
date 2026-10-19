@@ -1,6 +1,6 @@
 # Javapurs — cleanup des fixtures et des runners de ports
 
-Plan v3 et compléments — dernière mise à jour : **9 octobre 2026**.
+Plan v3 et compléments — dernière mise à jour : **19 octobre 2026**.
 
 Objectif : supprimer les copies de runtime dans les fixtures, donner un
 propriétaire commun à la préparation des workspaces de test et remplacer les
@@ -28,6 +28,9 @@ protocoles explicitement non pris en charge et un échec Event Emitter préexist
 **Complément M24 clôturé : sorties `output/java`, deux builds b8x consécutifs
 réussis et `Ping` exécuté sur Java 17.** Voir les
 [preuves M24](docs/testing.md#validation-m24).
+
+**Complément M25 clôturé : FFI Node EventEmitter corrigée, 19/19 tests et cinq
+sondes réussis.** Voir les [preuves M25](docs/testing.md#validation-m25).
 
 ## Constats initiaux vérifiés
 
@@ -239,6 +242,25 @@ compilateur reste un artefact actif du launcher ; son statut est décrit dans le
     checkout `altbak.pub-javapurs` : correction appliquée et vérifiée dans cette
     destination effective, avec `-c`. Build du JAR `pure`, Fibonacci ciblé,
     reconstruction avec classe obsolète et `--run-only` validés ; oracle `55`.
+
+- [x] **M25 — FFI Node EventEmitter et régressions d'événements**
+  - Aligner `unsafeEmitFn` sur l'ABI `EffectFn` Java (effet `Boolean`), sans
+    perdre l'arité variable des arguments d'événement.
+  - Conserver les arguments des listeners `once` et permettre leur désinscription
+    par le callback retourné ; rapprocher le comportement de Node pour l'ordre,
+    le rejet des événements passés et la propagation des exceptions.
+  - Ajouter des assertions ciblées sur le retour d'`emit`, les arguments
+    multiples, les listeners tardifs, l'unicité de `once` et les exceptions.
+  - **Clôture — 19 octobre 2026 :** `EventEmitter.java` corrigé ; la suite
+    d'origine et cinq régressions passent **19/19**, avec les cinq sondes
+    négatives du runner. `unsafeEmitFn` expose désormais un `Supplier` par appel
+    et accepte les arguments successifs via un proxy callable ; les wrappers
+    `once` transmettent leurs arguments, se retirent avant l'appel et restent
+    désinscriptibles. Les événements passés ne sont plus rejoués et les
+    exceptions des listeners remontent. La sonde Node Streams confirme que ses
+    émissions Java restent trop précoces pour une validation synchrone ; son
+    protocole reste rejeté. Les **six** protocoles non pris en charge restent
+    donc ouverts. Voir les [preuves M25](docs/testing.md#validation-m25).
 
 ## Points d'appui
 

@@ -73,7 +73,7 @@ simulées. « Non exécuté » concerne seulement la suite réelle du port.
 | `js-date` | `02782d15e717279b95cead33acbcc3b33728bbcd` | `test/Test/Main.purs` | S | Non exécuté |
 | `lazy` | `576e72e31a0404610ad9fb7de5416220b0689060` | `test/Test/Main.purs` | S | Non exécuté |
 | `node-buffer` | `44c2530e14c54e42b058fe79cd00e07823d092f3` | `test/Test/Main.purs` | S | Non exécuté |
-| `node-event-emitter` | `bfc9196b75fe4f9db81f75d7da9ced2252194a1e` | `test/Test/Main.purs` | A | Échec préexistant : 1/14 ; cinq sondes du wrapper réussies |
+| `node-event-emitter` | `bfc9196b75fe4f9db81f75d7da9ced2252194a1e` | `test/Test/Main.purs` | A | **19/19 depuis M25**, cinq sondes du wrapper réussies |
 | `node-fs` | `5b98beca764c716b4e232d12d141bf6684d88e4a` | `test/Main.purs` | U | Rejet 1 vérifié |
 | `node-http` | `8cb44f5296cc85a3014bc4c0e3b93db02dfd71a3` | `test/Main.purs` | U | Rejet 1 vérifié |
 | `node-net` | `1f46812560587cb33bc67d761049c927a9a6ac00` | `test/Test/Main.purs` | U | Rejet 1 vérifié |
@@ -106,9 +106,10 @@ simulées. « Non exécuté » concerne seulement la suite réelle du port.
 UUID et Node Event Emitter exposent leur **Spec originale** sans changer ses
 assertions. `Spec.purs` utilise `evalSpecT` avec `exit = false`, attend l'Aff,
 rejette les résultats en échec ou pending, puis annonce le nombre de succès.
-Le launcher exige **6/14 résultats** et le marqueur final unique. Un simple
-`runSpec' { exit = false }` aurait perdu les erreurs capturées dans l'arbre de
-résultats. Le cinquième contre-exemple vérifie précisément ce cas.
+Le launcher exige **6 résultats pour UUID et 19 pour Event Emitter**, puis le
+marqueur final unique. Un simple `runSpec' { exit = false }` aurait perdu les
+erreurs capturées dans l'arbre de résultats. Le cinquième contre-exemple vérifie
+précisément ce cas. Les deux suites passent depuis M25.
 
 Les six profils U restent enregistrés avec leurs sources et configuration :
 
@@ -117,7 +118,7 @@ Les six profils U restent enregistrés avec leurs sources et configuration :
 | Node FS | Quatre suites mélangent opérations sync, callbacks, streams et `launchAff_`, sans action commune attendable. |
 | Node HTTP | Serveurs HTTP/HTTPS, timers et Aff détachés ; aucune jonction globale. |
 | Node Net | Retour après enregistrement de callbacks TCP/serveur/socket. |
-| Node Streams | Assertions dans des callbacks de streams sans signal de fin. |
+| Node Streams | Assertions dans des callbacks sans signal de fin ; l'émission Java anticipée peut précéder l'enregistrement du listener. |
 | Spec | `launchAff_`, CLI et sortie de processus `spec-node`, avec sous-processus d'intégration. |
 | Yoga JSON | `launchAff_`, découverte dynamique de modules `spec-discovery`, puis sortie `spec-node`. |
 

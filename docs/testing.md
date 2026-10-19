@@ -163,7 +163,7 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Résolution, relevé et diagnostics FFI | [test/ffi-diagnostics.mjs](../test/ffi-diagnostics.mjs) | Huit modules, trois sélections adjacente/replis, huit erreurs JVM par binding, fragments incomplets/espaces et erreur de lecture ; backend construit, `purs` TAST, JDK, cible Java 17. |
 | Exceptions, Ref, Promise et Aff Java | [test/ffi-runtimes.mjs](../test/ffi-runtimes.mjs) | 49 contrôles directs : noms/traces/causes, identité Throwable, effets différés, écritures concurrentes, règlement/adoption, désabonnement, annulation, bracket, supervision et parallèle ; vrais fragments, référence JS Exceptions, shim Either, Node/JDK et quatre ports voisins. |
 | API PureScript des ports et pont Promise/Aff | [test/ffi-ports.mjs](../test/ffi-ports.mjs) | 25 assertions × records typés/Maps × classes/JAR, mêmes TAST ; attente de la fibre, inventaire et marqueur final vérifiés. Relevé identique entre modes, fragments locaux identifiés, troisième génération avec `foreign` du registre pour diagnostiquer l'absence Java. Backend construit, Spago, `purs` TAST, ports locaux et JDK avec `jar`. |
-| Suites et complétion des ports | [test/port-runners.mjs](../test/port-runners.mjs) | 48 sélections `--port=NOM` ([inventaire](port-launchers.md)) : 37 synchrones, cinq attendues, six rejetées faute de protocole. Aff/Promise/Promise-Aff : 45/13/7 contrôles et quatre sondes chacune. UUID/Event Emitter : Spec attendue, 6/14 résultats exigés, cinq sondes chacune ; Event Emitter échoue actuellement 13 tests. Options strictes, sources/configurations préservées, phases bornées/loggées, pile Strings 64 Mio. Backend construit, Spago/`purs` TAST, ports locaux et JDK ; cible 17 par défaut. |
+| Suites et complétion des ports | [test/port-runners.mjs](../test/port-runners.mjs) | 48 sélections `--port=NOM` ([inventaire](port-launchers.md)) : 37 synchrones, cinq attendues, six rejetées faute de protocole. Aff/Promise/Promise-Aff : 45/13/7 contrôles et quatre sondes chacune. UUID/Event Emitter : Spec attendue, **6/19 résultats exigés**, cinq sondes chacune ; les deux suites passent depuis M25. Options strictes, sources/configurations préservées, phases bornées/loggées, pile Strings 64 Mio. Backend construit, Spago/`purs` TAST, ports locaux et JDK ; cible 17 par défaut. |
 | Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | Prépare et exécute BigFunction dans un workspace temporaire isolé, puis réalise 155 contrôles de `f`. |
 | Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 27 tests Node : sélection/aide sans effets, JDK/cible/runtime séparés, profils de dépendances/FFI, 45 gabarits historiques (dont dépendances vides), chemins validés avant écriture, sources/symlinks/outputs préservés, ressources/espaces, 45 délégations, rejets explicites et contrôle des résultats Spec, cinq échecs de phase, quatre timeouts et signaux aux descendants. |
 | Prérequis, build et lancement source | [test/source-install.mjs](../test/source-install.mjs) | Six groupes Node/Bash avec commandes contrôlées : bon répertoire de build, dépendances/outils absents, neuf TAST incompatibles malgré version correcte, backend absent/incomplet, destination existante et prérequis d'installation ; aucun réseau ni build réel. |
@@ -651,17 +651,19 @@ et la JVM `JAVAPURS_JAVA_RUNTIME` restent indépendantes des réglages de pile.
 **UUID et Node Event Emitter** exposent leur Spec originale au wrapper
 `Test.PortRunner`. Il attend l'Aff, vérifie les résultats de `evalSpecT` avec
 `exit = false` et rejette échecs/pending ; le launcher exige respectivement
-**6 et 14 succès**, puis le marqueur final. Aux quatre sondes asynchrones
+**6 et 19 succès**, puis le marqueur final. Aux quatre sondes asynchrones
 ci-dessous s'ajoute une assertion suspendue capturée par Spec. Le graphe de
 dépendances initial est conservé ; le support Java partage la frontière d'attente
 de `Runner.java` et compose seulement `Aff.java` ou `Promise.java` selon le port.
-La suite Event Emitter échoue actuellement **13/14 tests** sur une conversion
-Boolean/Supplier, reproduite sur ses classes de référence ([M23](#validation-m23)).
+La suite Event Emitter échouait en M23 sur une conversion Boolean/Supplier ; sa
+FFI est corrigée et couverte par cinq régressions depuis [M25](#validation-m25).
 
 **Node FS, HTTP, Net, Streams, Spec et Yoga JSON** échouent en **1** avec
 `unsupported suite completion protocol` avant sélection Java, build ou création
 de workspace, même avec `-c`. Leurs callbacks, Aff détachés ou runners Node n'ont
-pas de signal global de fin exploitable. L'aide reste disponible ; les
+pas de signal global de fin exploitable. Pour Node Streams, l'émission Java
+anticipée peut en outre précéder l'enregistrement du listener. L'aide reste
+disponible ; les
 [obstacles par port](port-launchers.md#protocoles-attendus-et-limites-explicites)
 sont consignés. Un lancement détaché n'est jamais compté comme une suite réussie.
 
@@ -3221,3 +3223,50 @@ conservés dans `javapurs-m24-runj/alias/{aliases.txt,validation.json}` et les
 trois logs de cette même sous-arborescence. La suite complète du benchmark
 n'est pas exécutée ; le contrôle ciblé couvre ici le routage effectif, le
 nettoyage `-c`, la génération, le packaging et l'exécution sauvegardée.
+
+## Validation M25
+
+### Périmètre et référence — 19 octobre 2026
+
+La suite Node EventEmitter restait le seul échec FFI observé pendant M23 :
+**1/14 tests**, avec treize erreurs `Boolean cannot be cast to Supplier`.
+La référence du compilateur est `08c4432b4f2a7db47c6fb2383b8f012999d50ac6` ;
+le port est à `ab34c93ee1c70fdc85cf18861588b6f3bb54b034`, avec un checkout
+initial propre. La [validation M23](#validation-m23) conserve son résultat
+historique ; M25 corrige le défaut courant et étend la couverture.
+
+### Causes et corrections
+
+| Défaut | Correction |
+| --- | --- |
+| `unsafeEmitFn` retournait un `Boolean` brut alors que `runEffectFn` attend un effet `Supplier` en Java. | Chaque application d'argument construit un proxy à la fois `Function` et `Supplier` ; le dernier pas exécute `emit` et renvoie un `Effect Boolean`. L'arité variable reste disponible sans `EffectFnN` spécialisé. |
+| Le wrapper `once` appelait le listener avec un tableau d'arguments vide. | Le wrapper conserve le listener d'origine et `fire` lui transmet tous les arguments de l'événement. |
+| Le callback de désinscription d'un `once` ne retirait pas le wrapper. | `removeListener` retrouve le wrapper par identité de son listener d'origine, en partant de la fin comme Node. |
+| Les événements passés étaient rejoués aux listeners ajoutés plus tard. | Le cache `fired`/`lastArgs` est retiré : seuls les listeners présents au moment de `emit` sont appelés. |
+| Les exceptions des listeners étaient absorbées. | Elles remontent désormais à l'appelant de `emit`, conformément à Node. |
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `../javapurs-node-event-emitter/bin/test` avant correction | **Code 1, 1/14**, reproduit sur la révision `ab34c93` ; les logs et le workspace en échec sont conservés. |
+| Même commande après correction | **Code 0, 19/19 tests** et marqueur unique ; cinq sondes négatives réussies (assertion tardive, rejet, timeout, échec Spec capturé, sortie prématurée). |
+| Régressions ajoutées | Retour booléen d'`emit`, arguments multiples, absence de rejeu pour un listener tardif, `once` exécuté une seule fois, propagation d'une exception de listener. |
+| `node --test test/test-tools.mjs` | **27/27 tests**, dont la sélection du port et son compte attendu de 19. |
+| Sonde Node Streams avec `Test.Main` synchrone | Information seule, **pas une validation** : le processus termine sans erreur, mais `testPipe` attache son listener de sortie après l'émission synchrone des données. Certaines assertions ne s'exécutent donc pas ; le protocole reste rejeté. |
+| Documentation, syntaxe et diffs | `node tools/check-docs.mjs`, `git diff --check` dans les deux dépôts et inspection des changements réussis. |
+
+Comparaison Java : la FFI est un fragment inséré, non généré par PBO ; aucun
+autre fichier Java du backend n'est modifié. Le test du port compile en release
+17 avec OpenJDK 26.0.2 et s'exécute sur la même JVM.
+
+Preuves :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m25/`
+contient `references.json`, les logs `javapurs-m25-event-{baseline,final}.log`,
+les sondes exploratoires `streams-*` et `*-probe.log` qui motivent le maintien
+du rejet Node Streams, puis `test-tools.log`.
+
+**Conclusion : M25 validé le 19 octobre 2026. Node EventEmitter passe de 1/14 à
+19/19 avec ses cinq sondes. Les six protocoles de fin non pris en charge restent
+les limites principales du runner de ports ; Node Streams exige encore une
+barrière de complétion et une émission ordonnée par rapport aux listeners.**

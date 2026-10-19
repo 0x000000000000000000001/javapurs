@@ -238,11 +238,15 @@ réglages de pile ; options strictes, phases bornées, logs et choix Java sont
 communs. Les [preuves M22](testing.md#validation-m22) comprennent les trois
 pilotes, Refs sur JVM 17 et la comparaison Java/FFI sur TAST figés.
 M23 migre les 42 launchers restants : **48 délégations communes**, 27 tests Node,
-13 suites réelles (12 réussies et un échec Event Emitter préexistant) et 22 sondes
-asynchrones négatives réussies. UUID attend ses six résultats Spec ; six suites
-sans protocole global de fin sont explicitement rejetées. L'[inventaire](port-launchers.md)
-et les [preuves M23](testing.md#validation-m23) distinguent chaque résultat réel,
-les sondes de délégation et les limites de couverture.
+13 suites réelles (12 réussies et un échec Event Emitter alors préexistant) et
+22 sondes asynchrones négatives réussies. UUID attend ses six résultats Spec ;
+six suites sans protocole global de fin étaient alors explicitement rejetées.
+L'[inventaire](port-launchers.md) et les [preuves M23](testing.md#validation-m23)
+distinguent chaque résultat réel, les sondes de délégation et les limites de
+couverture. M25 corrige ensuite la FFI Event Emitter : **19/19 tests** et cinq
+sondes réussis. **Les six protocoles sans fin restent ouverts** ; Node Streams
+demande encore une vraie barrière de complétion et une émission ordonnée par
+rapport aux listeners.
 
 Les sujets techniques suivants gardent leurs limites documentées et leurs points
 d'entrée :
@@ -250,7 +254,7 @@ d'entrée :
 | Sujet | Point d'entrée pour une suite de travail |
 | --- | --- |
 | Complétion des six suites encore rejetées | Node FS/HTTP/Net/Streams, Spec et Yoga JSON : exposer une action attendable préservant assertions/ressources ; [obstacles par port](port-launchers.md#protocoles-attendus-et-limites-explicites). |
-| FFI Node Event Emitter | `javapurs-node-event-emitter/src/Node/EventEmitter.java` et ses consommateurs : erreurs Boolean/Supplier, 1/14 tests passent, reproduites sur les classes antérieures à M23. Le runner attend et propage désormais cet échec. |
+| FFI Node Event Emitter | **Corrigée en M25** : `unsafeEmitFn` respecte l'ABI `EffectFn` Java, les listeners `once` gardent leurs arguments et restent désinscriptibles, les événements passés ne sont plus rejoués et les exceptions propagent. `19/19` tests et cinq sondes ; [preuves](testing.md#validation-m25). |
 | Couverture FFI des bibliothèques et JAR applicatifs | M19 couvre [Exceptions](ffi-runtime.md#exceptions) et l'intégration en classes/JAR sur JVM 17/26 ; poursuivre port par port selon les chemins réellement exécutés. [Contrat FFI](ffi-runtime.md#résolution-et-insertion). |
 | Scheduler Aff et interopérabilité asynchrone | Threads daemon ordinaires, annulation coopérative ; [durées de vie](ffi-runtime.md#supervision-parallèle-et-processus). |
 | Sémantique JS des promesses | Réactions eager sans microtasks, sans désabonnement Promise ; [contrat Promise](ffi-runtime.md#promesses). |
