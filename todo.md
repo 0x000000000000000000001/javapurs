@@ -32,6 +32,16 @@ réussis et `Ping` exécuté sur Java 17.** Voir les
 **Complément M25 clôturé : FFI Node EventEmitter corrigée, 19/19 tests et cinq
 sondes réussis.** Voir les [preuves M25](docs/testing.md#validation-m25).
 
+**Complément M26 clôturé : Node Streams repasse en protocole synchrone avec un
+tampon d'événements propre aux streams.** Quatre protocoles restent rejetés
+après M27.
+
+**Complément M27 clôturé : Node FS exécute ses suites synchrones, attend son
+action Aff et termine sur le marqueur commun.**
+
+**Complément M28 clôturé : Node Net attend la fermeture du socket et corrige
+`addressTcpImpl` (`Nullable`).** Trois protocoles restent rejetés.
+
 ## Constats initiaux vérifiés
 
 Revue du **6 octobre 2026**, compilateur à la révision
@@ -257,10 +267,41 @@ compilateur reste un artefact actif du launcher ; son statut est décrit dans le
     et accepte les arguments successifs via un proxy callable ; les wrappers
     `once` transmettent leurs arguments, se retirent avant l'appel et restent
     désinscriptibles. Les événements passés ne sont plus rejoués et les
-    exceptions des listeners remontent. La sonde Node Streams confirme que ses
-    émissions Java restent trop précoces pour une validation synchrone ; son
-    protocole reste rejeté. Les **six** protocoles non pris en charge restent
-    donc ouverts. Voir les [preuves M25](docs/testing.md#validation-m25).
+    exceptions des listeners remontent. La sonde Node Streams révèle un besoin
+    distinct, traité en M26. Voir les [preuves M25](docs/testing.md#validation-m25).
+
+- [x] **M26 — Node Streams : tampon d'événements eager**
+  - Conserver le non-rejeu de l'EventEmitter général tout en émulant le tampon
+    des streams Node, dont les événements `data`/`readable`/`end` sont eager.
+  - Borner l'historique, le limiter aux `ReadableStream`, puis valider un
+    listener `data` ajouté après l'écriture et la suite complète.
+  - **Clôture — 19 octobre 2026 :** `Node/Stream.java` conserve un historique de
+    **4 096 événements** par stream et le rejoue au listener ajouté, sans changer
+    `Node.EventEmitter`. `Test.Main` ajoute un test de listener tardif ; la suite
+    passe en protocole synchrone. Le rejeu reste explicite et borné, limité aux
+    streams eager. Voir les [preuves M26](docs/testing.md#validation-m26).
+
+- [x] **M27 — Node FS : jonction de l'action Aff et fin des streams**
+  - Exposer `TestAff.testAff` comme action attendable et ajouter un wrapper qui
+    exécute les suites synchrones avant de l'attendre.
+  - Terminer les streams de fichier eager par `end`, réutiliser l'historique de
+    M26 et vérifier le flux `pipe` jusqu'à `all good`.
+  - **Clôture — 19 octobre 2026 :** `tests/port-suites/Fs.purs` exécute `Test`,
+    `TestAsync`, `Test.Streams`, attend `TestAff.testAff`, puis publie `[OK]` et
+    le marqueur commun. La suite passe en protocole synchrone avec wrapper ;
+    les logs montrent `all good`, la liste des répertoires et
+    `PORT SUITE COMPLETED`. Voir les [preuves M27](docs/testing.md#validation-m27).
+
+- [x] **M28 — Node Net : attente du cycle socket et `addressTcp`**
+  - Exposer `Test.Main.testNet :: Aff Unit`, attendre la fermeture finale du
+    socket et joindre cette action par un wrapper.
+  - Enregistrer les listeners avant l'émission eager de `listening` et corriger
+    le retour `Nullable` de `addressTcpImpl`.
+  - **Clôture — 19 octobre 2026 :** `tests/port-suites/Net.purs` attend
+    `testNet`, puis publie `[OK]`. Les logs couvrent serveur, connexion,
+    données, fin socket, fermeture et marqueur commun. **Trois** protocoles
+    restent rejetés : Node HTTP, Spec et Yoga JSON. Voir les
+    [preuves M28](docs/testing.md#validation-m28).
 
 ## Points d'appui
 

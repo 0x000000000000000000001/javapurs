@@ -74,12 +74,12 @@ simulées. « Non exécuté » concerne seulement la suite réelle du port.
 | `lazy` | `576e72e31a0404610ad9fb7de5416220b0689060` | `test/Test/Main.purs` | S | Non exécuté |
 | `node-buffer` | `44c2530e14c54e42b058fe79cd00e07823d092f3` | `test/Test/Main.purs` | S | Non exécuté |
 | `node-event-emitter` | `bfc9196b75fe4f9db81f75d7da9ced2252194a1e` | `test/Test/Main.purs` | A | **19/19 depuis M25**, cinq sondes du wrapper réussies |
-| `node-fs` | `5b98beca764c716b4e232d12d141bf6684d88e4a` | `test/Main.purs` | U | Rejet 1 vérifié |
+| `node-fs` | `5b98beca764c716b4e232d12d141bf6684d88e4a` | `test/Main.purs` | S + A | **Réussi depuis M27** ; wrapper et action Aff attendus. `S + A` signifie suites synchrones puis `TestAff.testAff` attendu. |
 | `node-http` | `8cb44f5296cc85a3014bc4c0e3b93db02dfd71a3` | `test/Main.purs` | U | Rejet 1 vérifié |
-| `node-net` | `1f46812560587cb33bc67d761049c927a9a6ac00` | `test/Test/Main.purs` | U | Rejet 1 vérifié |
+| `node-net` | `1f46812560587cb33bc67d761049c927a9a6ac00` | `test/Test/Main.purs` | S + A | **Réussi depuis M28** ; attente du socket, `addressTcp` Nullable |
 | `node-path` | `c859522b7732636707434b403827aa97bed6d74f` | `test/Test/Main.purs` | S | Réussi |
 | `node-process` | `bf7383e43165556947026f463eb2985daec363ef` | `test/Test/Main.purs` | S | Non exécuté |
-| `node-streams` | `bc00afaa94fe01dc3cc173e402e15e3f395d5c96` | `test/Main.purs` | U | Rejet 1 vérifié |
+| `node-streams` | `bc00afaa94fe01dc3cc173e402e15e3f395d5c96` | `test/Main.purs` | S | **Réussi depuis M26** ; rejeu borné des événements eager |
 | `now` | `55181bd2e32b004d56d74741a6103167bf45fbcb` | `test/Main.purs` | S | Non exécuté |
 | `nullable` | `883b23bd9f7b51448246fd071ca99e26c2a17bda` | `test/Main.purs` | S | Non exécuté |
 | `numbers` | `52e949c54ede4753c8efa52d79adf9bf64130c0a` | `test/Test/Main.purs` | S | Non exécuté |
@@ -111,16 +111,27 @@ marqueur final unique. Un simple `runSpec' { exit = false }` aurait perdu les
 erreurs capturées dans l'arbre de résultats. Le cinquième contre-exemple vérifie
 précisément ce cas. Les deux suites passent depuis M25.
 
-Les six profils U restent enregistrés avec leurs sources et configuration :
+Les trois profils U restent enregistrés avec leurs sources et configuration :
 
 | Port | Obstacle au protocole de fin |
 | --- | --- |
-| Node FS | Quatre suites mélangent opérations sync, callbacks, streams et `launchAff_`, sans action commune attendable. |
 | Node HTTP | Serveurs HTTP/HTTPS, timers et Aff détachés ; aucune jonction globale. |
-| Node Net | Retour après enregistrement de callbacks TCP/serveur/socket. |
-| Node Streams | Assertions dans des callbacks sans signal de fin ; l'émission Java anticipée peut précéder l'enregistrement du listener. |
 | Spec | `launchAff_`, CLI et sortie de processus `spec-node`, avec sous-processus d'intégration. |
 | Yoga JSON | `launchAff_`, découverte dynamique de modules `spec-discovery`, puis sortie `spec-node`. |
+
+Node Streams n'est plus dans cette liste : ses événements Java sont eager, mais
+un historique borné par stream est rejoué au listener ajouté plus tard. Cela
+émule le tampon Node sans réintroduire de rejeu dans l'EventEmitter général ;
+la suite passe avec le protocole synchrone depuis M26.
+
+Node FS n'y figure plus non plus : `TestAff` expose `testAff`, le wrapper
+`tests/port-suites/Fs.purs` exécute les parties synchrones puis attend cette
+action. Les streams de fichier terminent par `end`, et la sonde de flux atteint
+`all good` avant le marqueur commun.
+
+Node Net expose `testNet`, attend la fermeture du socket et enregistre ses
+listeners avant l'émission eager de `listening`. `addressTcpImpl` renvoie
+désormais une valeur `Nullable` (record ou `null`), et non un `Maybe`.
 
 Leurs commandes échouent explicitement même avec `--clean` ; `--help` reste
 consultable sans outils Java. Adapter ces suites requiert une action attendable

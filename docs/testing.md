@@ -163,7 +163,7 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Résolution, relevé et diagnostics FFI | [test/ffi-diagnostics.mjs](../test/ffi-diagnostics.mjs) | Huit modules, trois sélections adjacente/replis, huit erreurs JVM par binding, fragments incomplets/espaces et erreur de lecture ; backend construit, `purs` TAST, JDK, cible Java 17. |
 | Exceptions, Ref, Promise et Aff Java | [test/ffi-runtimes.mjs](../test/ffi-runtimes.mjs) | 49 contrôles directs : noms/traces/causes, identité Throwable, effets différés, écritures concurrentes, règlement/adoption, désabonnement, annulation, bracket, supervision et parallèle ; vrais fragments, référence JS Exceptions, shim Either, Node/JDK et quatre ports voisins. |
 | API PureScript des ports et pont Promise/Aff | [test/ffi-ports.mjs](../test/ffi-ports.mjs) | 25 assertions × records typés/Maps × classes/JAR, mêmes TAST ; attente de la fibre, inventaire et marqueur final vérifiés. Relevé identique entre modes, fragments locaux identifiés, troisième génération avec `foreign` du registre pour diagnostiquer l'absence Java. Backend construit, Spago, `purs` TAST, ports locaux et JDK avec `jar`. |
-| Suites et complétion des ports | [test/port-runners.mjs](../test/port-runners.mjs) | 48 sélections `--port=NOM` ([inventaire](port-launchers.md)) : 37 synchrones, cinq attendues, six rejetées faute de protocole. Aff/Promise/Promise-Aff : 45/13/7 contrôles et quatre sondes chacune. UUID/Event Emitter : Spec attendue, **6/19 résultats exigés**, cinq sondes chacune ; les deux suites passent depuis M25. Options strictes, sources/configurations préservées, phases bornées/loggées, pile Strings 64 Mio. Backend construit, Spago/`purs` TAST, ports locaux et JDK ; cible 17 par défaut. |
+| Suites et complétion des ports | [test/port-runners.mjs](../test/port-runners.mjs) | 48 sélections `--port=NOM` ([inventaire](port-launchers.md)) : **40 synchrones (dont Node FS et Node Net avec wrapper Aff), cinq attendues, trois rejetées** faute de protocole. Aff/Promise/Promise-Aff : 45/13/7 contrôles et quatre sondes chacune. UUID/Event Emitter : Spec attendue, **6/19 résultats exigés**, cinq sondes chacune ; les deux suites passent depuis M25. Node Streams (M26), Node FS (M27) et Node Net (M28) sont validés. Options strictes, sources/configurations préservées, phases bornées/loggées, pile Strings 64 Mio. Backend construit, Spago/`purs` TAST, ports locaux et JDK ; cible 17 par défaut. |
 | Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | Prépare et exécute BigFunction dans un workspace temporaire isolé, puis réalise 155 contrôles de `f`. |
 | Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 27 tests Node : sélection/aide sans effets, JDK/cible/runtime séparés, profils de dépendances/FFI, 45 gabarits historiques (dont dépendances vides), chemins validés avant écriture, sources/symlinks/outputs préservés, ressources/espaces, 45 délégations, rejets explicites et contrôle des résultats Spec, cinq échecs de phase, quatre timeouts et signaux aux descendants. |
 | Prérequis, build et lancement source | [test/source-install.mjs](../test/source-install.mjs) | Six groupes Node/Bash avec commandes contrôlées : bon répertoire de build, dépendances/outils absents, neuf TAST incompatibles malgré version correcte, backend absent/incomplet, destination existante et prérequis d'installation ; aucun réseau ni build réel. |
@@ -658,14 +658,26 @@ de `Runner.java` et compose seulement `Aff.java` ou `Promise.java` selon le port
 La suite Event Emitter échouait en M23 sur une conversion Boolean/Supplier ; sa
 FFI est corrigée et couverte par cinq régressions depuis [M25](#validation-m25).
 
-**Node FS, HTTP, Net, Streams, Spec et Yoga JSON** échouent en **1** avec
+**Node HTTP, Spec et Yoga JSON** échouent en **1** avec
 `unsupported suite completion protocol` avant sélection Java, build ou création
 de workspace, même avec `-c`. Leurs callbacks, Aff détachés ou runners Node n'ont
-pas de signal global de fin exploitable. Pour Node Streams, l'émission Java
-anticipée peut en outre précéder l'enregistrement du listener. L'aide reste
-disponible ; les
+pas de signal global de fin exploitable. L'aide reste disponible ; les
 [obstacles par port](port-launchers.md#protocoles-attendus-et-limites-explicites)
 sont consignés. Un lancement détaché n'est jamais compté comme une suite réussie.
+
+**Node Streams** est sorti de cette liste en M26 : un historique borné par
+`ReadableStream` est rejoué au listener ajouté plus tard, ce qui émule le tampon
+Node sans changer l'EventEmitter général. La suite passe en synchrone avec un
+test explicite de listener tardif.
+
+**Node FS** est sorti en M27 : les streams de fichier terminent par `end`,
+`TestAff.testAff` est attendu par un wrapper dédié, et le flux de fichier atteint
+`all good` avant le marqueur commun.
+
+**Node Net** est sorti en M28 : `testNet` attend la fermeture finale du socket,
+le wrapper `Net.purs` joint cette action, et `addressTcpImpl` renvoie désormais
+le `Nullable` attendu plutôt qu'un `Maybe`. Le cycle serveur/client complet est
+observé avant le marqueur.
 
 ### Suites asynchrones des ports
 
@@ -3253,7 +3265,7 @@ historique ; M25 corrige le défaut courant et étend la couverture.
 | Même commande après correction | **Code 0, 19/19 tests** et marqueur unique ; cinq sondes négatives réussies (assertion tardive, rejet, timeout, échec Spec capturé, sortie prématurée). |
 | Régressions ajoutées | Retour booléen d'`emit`, arguments multiples, absence de rejeu pour un listener tardif, `once` exécuté une seule fois, propagation d'une exception de listener. |
 | `node --test test/test-tools.mjs` | **27/27 tests**, dont la sélection du port et son compte attendu de 19. |
-| Sonde Node Streams avec `Test.Main` synchrone | Information seule, **pas une validation** : le processus termine sans erreur, mais `testPipe` attache son listener de sortie après l'émission synchrone des données. Certaines assertions ne s'exécutent donc pas ; le protocole reste rejeté. |
+| Sonde Node Streams avec `Test.Main` synchrone | Information seule, **pas une validation M25** : le processus termine sans erreur, mais `testPipe` attache son listener de sortie après l'émission synchrone des données. Cette sonde motive le tampon d'événements de M26. |
 | Documentation, syntaxe et diffs | `node tools/check-docs.mjs`, `git diff --check` dans les deux dépôts et inspection des changements réussis. |
 
 Comparaison Java : la FFI est un fragment inséré, non généré par PBO ; aucun
@@ -3267,6 +3279,118 @@ les sondes exploratoires `streams-*` et `*-probe.log` qui motivent le maintien
 du rejet Node Streams, puis `test-tools.log`.
 
 **Conclusion : M25 validé le 19 octobre 2026. Node EventEmitter passe de 1/14 à
-19/19 avec ses cinq sondes. Les six protocoles de fin non pris en charge restent
-les limites principales du runner de ports ; Node Streams exige encore une
-barrière de complétion et une émission ordonnée par rapport aux listeners.**
+19/19 avec ses cinq sondes. À ce stade, six protocoles de fin restent rejetés ;
+M26 traite ensuite Node Streams.**
+
+## Validation M26
+
+### Périmètre et correction — 19 octobre 2026
+
+La sonde M25 montrait que Node Streams ne pouvait pas être déclaré synchrone :
+les flux Java émettent `data`, `readable` et `end` immédiatement, alors que le
+test attache certains listeners après l'écriture. Le processus sortait sans
+erreur, mais des assertions ne s'exécutaient pas. Le rejeu global de
+l'EventEmitter avait masqué ce défaut ; il a été retiré en M25.
+
+`Node/Stream.java` ajoute donc un historique borné à **4 096 événements** par
+`ReadableStream`. Tout événement de stream y est consigné, puis rejoué au
+listener ajouté plus tard. Le mécanisme reste limité aux streams ; l'EventEmitter
+général ne rejoue aucun événement. Cette émulation correspond au tampon des flux
+Node pour ce backend eager, sans modifier les assertions métier.
+
+`Test.Main` ajoute un test dédié : écriture avant abonnement, puis vérification
+que le listener `data` ajouté ensuite reçoit bien le payload. Sans l'historique,
+la valeur resterait vide et l'assertion échouerait.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `../javapurs-node-streams/bin/test` | **Code 0**, protocole synchrone, aucune erreur d'assertion. |
+| Test de listener tardif ajouté | Écriture, abonnement `data`, rejeu et comparaison du payload réussis. |
+| `node --test test/test-tools.mjs` | **27/27 tests**, avec Node Streams sélectionné en synchrone et cinq profils rejetés. |
+| Documentation, syntaxes et diffs | `node tools/check-docs.mjs`, `git diff --check` et inspection des changements réussis. |
+
+Preuves :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m25/`
+contient `streams-final.log`, `streams-probe.log`, `event-final-m26.log`,
+`yoga-probe3.log` (sonde non retenue) et les autres logs du lot.
+
+Une sonde séparée a composé explicitement les quatre modules Spec de Yoga JSON
+pour contourner `spec-discovery` : après une correction exploratoire, non
+conservée, de l'ordre `JS.BigInt`, elle atteint **44/52 tests**, puis échoue sur des écarts
+Null/Undefined et de sérialisation de champs optionnels. Cette piste n'est pas
+retenue ; Yoga JSON reste rejeté et demande un traitement sémantique dédié.
+
+**Conclusion : M26 validé le 19 octobre 2026. Node Streams passe en protocole
+synchrone ; cinq protocoles restent rejetés (Node FS, HTTP, Net, Spec et Yoga
+JSON).**
+
+## Validation M27
+
+### Périmètre et correction — 19 octobre 2026
+
+Node FS restait rejeté pour deux raisons distinctes : `Test.Main` combine des
+callbacks synchrones, des streams et un `launchAff_` non attendu. Les streams de
+fichier Java étaient également eager et ne terminaient pas toujours avant que
+le listener `end` soit ajouté.
+
+Le port expose désormais `TestAff.testAff :: Aff Unit`, tout en conservant
+`main = launchAff_ testAff` pour JavaScript. `tests/port-suites/Fs.purs` exécute
+`Test.main`, `TestAsync.main`, `Test.Streams.main`, attend `testAff` avec la
+frontière `awaitAff` commune, puis publie `[OK] node-fs suite`. Les streams de
+fichier positionnent `ended` et émettent `end` via l'historique borné de M26 ;
+`Stream.pipe` ajoute ses listeners par `addListener`, ce qui rejoue correctement
+la fin au stream de destination.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `../javapurs-node-fs/bin/test` | **Code 0**, wrapper exécuté et marqueur commun présent. |
+| Log d'exécution détaillé | `Testing streams`, **`all good`**, liste des répertoires issue de `TestAff`, puis `PORT SUITE COMPLETED` et `[OK] node-fs suite`. |
+| `node --test test/test-tools.mjs` | **27/27 tests** avec le wrapper Node FS et quatre profils rejetés. |
+| Documentation, syntaxes et diffs | `node tools/check-docs.mjs`, `git diff --check` et inspection des changements réussis. |
+
+Preuves :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m25/`
+contient `fs-suite.log`, `fs-suite-probe.log` et son workspace `fs-probe/`
+avec `logs/execution.log`.
+
+**Conclusion : M27 validé le 19 octobre 2026. Node FS rejoint les protocoles
+validés ; quatre protocoles restent rejetés : Node HTTP, Node Net, Spec et Yoga
+JSON.**
+
+## Validation M28
+
+### Périmètre et correction — 19 octobre 2026
+
+Node Net restait rejeté car `Test.Main` rendait la main après l'enregistrement
+des callbacks TCP, alors que le serveur et le socket vivent sur des threads JVM.
+Le test expose désormais `testNet :: Aff Unit`, qui attend l'événement final de
+fermeture du socket. `tests/port-suites/Net.purs` joint cette action avec
+`awaitAff`, puis publie `[OK] node-net suite`.
+
+Deux défauts réels ont été corrigés en même temps :
+
+- Les deux listeners `listening` sont enregistrés avant `listenTcp`, car la FFI
+  Java émet cet événement de façon eager.
+- `addressTcpImpl` renvoyait un `Just record` alors que le contrat `Nullable`
+  attend le record brut ou `null`; le cast JVM échouait.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `../javapurs-node-net/bin/test` | **Code 0**, protocole synchrone avec wrapper, marqueur commun présent. |
+| Log d'exécution détaillé | `Server is listening`, serveur ouvert, socket connecté/ready, connexion acceptée, deux messages reçus, fin socket, fermeture sans erreur, `PORT SUITE COMPLETED` et `[OK] node-net suite`. |
+| `node --test test/test-tools.mjs` | **27/27 tests** avec Node Net sélectionné et trois profils rejetés. |
+| Documentation, syntaxes et diffs | `node tools/check-docs.mjs`, `git diff --check` et inspection des changements réussis. |
+
+Preuves :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m25/`
+contient `net-suite.log`, `net-suite-probe.log` et son workspace
+`net-probe-suite/logs/execution.log`.
+
+**Conclusion : M28 validé le 19 octobre 2026. Node Net rejoint les protocoles
+validés ; trois protocoles restent rejetés : Node HTTP, Spec et Yoga JSON.**
