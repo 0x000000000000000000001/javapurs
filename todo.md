@@ -40,7 +40,10 @@ après M27.
 action Aff et termine sur le marqueur commun.**
 
 **Complément M28 clôturé : Node Net attend la fermeture du socket et corrige
-`addressTcpImpl` (`Nullable`).** Trois protocoles restent rejetés.
+`addressTcpImpl` (`Nullable`).**
+
+**Complément M29 clôturé : Yoga JSON passe 52/52 avec `undefined`, BigInt et
+dates corrigés.** Deux protocoles restent rejetés.
 
 ## Constats initiaux vérifiés
 
@@ -299,9 +302,24 @@ compilateur reste un artefact actif du launcher ; son statut est décrit dans le
     le retour `Nullable` de `addressTcpImpl`.
   - **Clôture — 19 octobre 2026 :** `tests/port-suites/Net.purs` attend
     `testNet`, puis publie `[OK]`. Les logs couvrent serveur, connexion,
-    données, fin socket, fermeture et marqueur commun. **Trois** protocoles
-    restent rejetés : Node HTTP, Spec et Yoga JSON. Voir les
+    données, fin socket, fermeture et marqueur commun. Voir les
     [preuves M28](docs/testing.md#validation-m28).
+
+- [x] **M29 — Yoga JSON : undefined, BigInt et dates**
+  - Contourner `spec-discovery` en composant explicitement les quatre Specs,
+    puis exécuter cette composition avec le wrapper Spec commun.
+  - Distinguer `undefined` de `null` dans `Foreign` et `Foreign.Index`, indexer
+    les tableaux, omettre les propriétés `undefined` à la sérialisation, écrire
+    les BigInt en chaînes et fournir `JSDate.toISOString`/parse ISO.
+  - **Clôture — 20 octobre 2026 :** **52/52 tests** et cinq sondes réussis.
+    `Foreign.undefined` est un sentinel partagé ; les propriétés absentes et les
+    index hors bornes le renvoient. `Foreign.Index` lit aussi `Object[]`.
+    `Yoga.JSON` omet les champs `undefined`, écrit `BigInteger` en chaîne et
+    `JSDate` produit/parse l'ISO avec millisecondes. BigInt compare en `int`.
+    Vérifications croisées : EventEmitter 19/19, Node Streams, Node FS, Node Net
+    et `ffi-ports` 25 contrôles × 2 représentations × classes/JAR. **Deux**
+    protocoles restent rejetés : Node HTTP et Spec. Voir les
+    [preuves M29](docs/testing.md#validation-m29).
 
 ## Points d'appui
 

@@ -247,15 +247,16 @@ couverture. M25 corrige ensuite la FFI Event Emitter : **19/19 tests** et cinq
 sondes réussis. M26 ajoute aux streams un historique d'événements borné qui
 émule le tampon Node et replace Node Streams en protocole synchrone. M27 attend
 l'action Aff de Node FS et valide ses streams de fichier. M28 attend la
-fermeture du socket Node Net et corrige son adresse `Nullable`.
-**Trois protocoles sans fin restent ouverts** : HTTP, Spec et Yoga JSON.
+fermeture du socket Node Net et corrige son adresse `Nullable`. M29 compose les
+Specs Yoga JSON et corrige `undefined`, BigInt et les dates ISO.
+**Deux protocoles sans fin restent ouverts** : Node HTTP et Spec.
 
 Les sujets techniques suivants gardent leurs limites documentées et leurs points
 d'entrée :
 
 | Sujet | Point d'entrée pour une suite de travail |
 | --- | --- |
-| Complétion des trois suites encore rejetées | Node HTTP, Spec et Yoga JSON : exposer une action attendable préservant assertions/ressources ; [obstacles par port](port-launchers.md#protocoles-attendus-et-limites-explicites). Node Streams (M26), Node FS (M27) et Node Net (M28) sont validés. |
+| Complétion des deux suites encore rejetées | Node HTTP et Spec : exposer une action attendable préservant assertions/ressources ; [obstacles par port](port-launchers.md#protocoles-attendus-et-limites-explicites). Node Streams (M26), Node FS (M27), Node Net (M28) et Yoga JSON (M29) sont validés. |
 | FFI Node Event Emitter | **Corrigée en M25** : `unsafeEmitFn` respecte l'ABI `EffectFn` Java, les listeners `once` gardent leurs arguments et restent désinscriptibles, les événements passés ne sont plus rejoués et les exceptions propagent. `19/19` tests et cinq sondes ; [preuves](testing.md#validation-m25). |
 | Couverture FFI des bibliothèques et JAR applicatifs | M19 couvre [Exceptions](ffi-runtime.md#exceptions) et l'intégration en classes/JAR sur JVM 17/26 ; poursuivre port par port selon les chemins réellement exécutés. [Contrat FFI](ffi-runtime.md#résolution-et-insertion). |
 | Scheduler Aff et interopérabilité asynchrone | Threads daemon ordinaires, annulation coopérative ; [durées de vie](ffi-runtime.md#supervision-parallèle-et-processus). |

@@ -163,7 +163,7 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Résolution, relevé et diagnostics FFI | [test/ffi-diagnostics.mjs](../test/ffi-diagnostics.mjs) | Huit modules, trois sélections adjacente/replis, huit erreurs JVM par binding, fragments incomplets/espaces et erreur de lecture ; backend construit, `purs` TAST, JDK, cible Java 17. |
 | Exceptions, Ref, Promise et Aff Java | [test/ffi-runtimes.mjs](../test/ffi-runtimes.mjs) | 49 contrôles directs : noms/traces/causes, identité Throwable, effets différés, écritures concurrentes, règlement/adoption, désabonnement, annulation, bracket, supervision et parallèle ; vrais fragments, référence JS Exceptions, shim Either, Node/JDK et quatre ports voisins. |
 | API PureScript des ports et pont Promise/Aff | [test/ffi-ports.mjs](../test/ffi-ports.mjs) | 25 assertions × records typés/Maps × classes/JAR, mêmes TAST ; attente de la fibre, inventaire et marqueur final vérifiés. Relevé identique entre modes, fragments locaux identifiés, troisième génération avec `foreign` du registre pour diagnostiquer l'absence Java. Backend construit, Spago, `purs` TAST, ports locaux et JDK avec `jar`. |
-| Suites et complétion des ports | [test/port-runners.mjs](../test/port-runners.mjs) | 48 sélections `--port=NOM` ([inventaire](port-launchers.md)) : **40 synchrones (dont Node FS et Node Net avec wrapper Aff), cinq attendues, trois rejetées** faute de protocole. Aff/Promise/Promise-Aff : 45/13/7 contrôles et quatre sondes chacune. UUID/Event Emitter : Spec attendue, **6/19 résultats exigés**, cinq sondes chacune ; les deux suites passent depuis M25. Node Streams (M26), Node FS (M27) et Node Net (M28) sont validés. Options strictes, sources/configurations préservées, phases bornées/loggées, pile Strings 64 Mio. Backend construit, Spago/`purs` TAST, ports locaux et JDK ; cible 17 par défaut. |
+| Suites et complétion des ports | [test/port-runners.mjs](../test/port-runners.mjs) | 48 sélections `--port=NOM` ([inventaire](port-launchers.md)) : **40 synchrones (dont Node FS et Node Net avec wrapper Aff), six attendues, deux rejetées** faute de protocole. Aff/Promise/Promise-Aff : 45/13/7 contrôles et quatre sondes chacune. UUID/Event Emitter : Spec attendue, **6/19 résultats exigés**, cinq sondes chacune ; les deux suites passent depuis M25. Yoga JSON : **52/52**, cinq sondes depuis M29. Node Streams (M26), Node FS (M27) et Node Net (M28) sont validés. Options strictes, sources/configurations préservées, phases bornées/loggées, pile Strings 64 Mio. Backend construit, Spago/`purs` TAST, ports locaux et JDK ; cible 17 par défaut. |
 | Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | Prépare et exécute BigFunction dans un workspace temporaire isolé, puis réalise 155 contrôles de `f`. |
 | Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 27 tests Node : sélection/aide sans effets, JDK/cible/runtime séparés, profils de dépendances/FFI, 45 gabarits historiques (dont dépendances vides), chemins validés avant écriture, sources/symlinks/outputs préservés, ressources/espaces, 45 délégations, rejets explicites et contrôle des résultats Spec, cinq échecs de phase, quatre timeouts et signaux aux descendants. |
 | Prérequis, build et lancement source | [test/source-install.mjs](../test/source-install.mjs) | Six groupes Node/Bash avec commandes contrôlées : bon répertoire de build, dépendances/outils absents, neuf TAST incompatibles malgré version correcte, backend absent/incomplet, destination existante et prérequis d'installation ; aucun réseau ni build réel. |
@@ -658,7 +658,7 @@ de `Runner.java` et compose seulement `Aff.java` ou `Promise.java` selon le port
 La suite Event Emitter échouait en M23 sur une conversion Boolean/Supplier ; sa
 FFI est corrigée et couverte par cinq régressions depuis [M25](#validation-m25).
 
-**Node HTTP, Spec et Yoga JSON** échouent en **1** avec
+**Node HTTP et Spec** échouent en **1** avec
 `unsupported suite completion protocol` avant sélection Java, build ou création
 de workspace, même avec `-c`. Leurs callbacks, Aff détachés ou runners Node n'ont
 pas de signal global de fin exploitable. L'aide reste disponible ; les
@@ -678,6 +678,10 @@ test explicite de listener tardif.
 le wrapper `Net.purs` joint cette action, et `addressTcpImpl` renvoie désormais
 le `Nullable` attendu plutôt qu'un `Maybe`. Le cycle serveur/client complet est
 observé avant le marqueur.
+
+**Yoga JSON** est sorti en M29 : sa composition explicite de quatre Specs évite
+`spec-discovery`, et les corrections `Foreign.undefined`, index de tableau,
+BigInt et dates ISO portent la suite à **52/52** avec cinq sondes.
 
 ### Suites asynchrones des ports
 
@@ -3394,3 +3398,40 @@ contient `net-suite.log`, `net-suite-probe.log` et son workspace
 
 **Conclusion : M28 validé le 19 octobre 2026. Node Net rejoint les protocoles
 validés ; trois protocoles restent rejetés : Node HTTP, Spec et Yoga JSON.**
+
+## Validation M29
+
+### Périmètre et corrections — 20 octobre 2026
+
+Yoga JSON ne pouvait pas utiliser `spec-discovery` sur JVM (import dynamique
+Node indisponible). `Test.Main` exporte maintenant une composition explicite des
+quatre Specs ; le wrapper Spec commun l'exécute et vérifie le nombre de succès.
+
+Les huit échecs restants provenaient de trois familles de représentation :
+
+- `Foreign` ne distinguait pas une propriété absente de `null`. Un sentinel
+  `Foreign.undefined` partagé est renvoyé par les lectures absentes/hors bornes ;
+  `tagOf` le nomme `Undefined` et `Foreign.Index` lit aussi les `Object[]`.
+- `Yoga.JSON` sérialisait les `BigInteger` comme nombres et les `undefined`
+  comme `null`. Les BigInt sont désormais des chaînes JSON et les propriétés
+  `undefined` sont omises des objets ; les tableaux conservent `null`.
+- `JSDate` n'implémentait pas `toISOString` et ne parsait pas le séparateur
+  `:` utilisé par le test. Formatage ISO avec millisecondes et parsing
+  `Instant`/forme historique sont ajoutés.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `../javapurs-yoga-json/bin/test` | **Code 0, 52/52 tests** et cinq sondes négatives. |
+| Vérifications croisées après changement de `Foreign` | EventEmitter **19/19**, Node Streams, Node FS, Node Net réussis ; `ffi-ports` **25 contrôles × 2 représentations × classes/JAR**. |
+| `node --test test/test-tools.mjs` | **27/27 tests**, Yoga JSON attendu et deux profils rejetés. |
+| Documentation, syntaxes et diffs | `node tools/check-docs.mjs`, `git diff --check` et inspection des changements réussis. |
+
+Preuves :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m25/`
+contient `yoga-suite.log`, `yoga-probe6.log`, `event-final.log`,
+`fs-final.log`, `net-final.log`, `streams-final.log` et `ffi-ports-m29.log`.
+
+**Conclusion : M29 validé le 20 octobre 2026. Yoga JSON rejoint les protocoles
+validés ; deux protocoles restent rejetés : Node HTTP et Spec.**

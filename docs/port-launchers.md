@@ -99,7 +99,7 @@ simulées. « Non exécuté » concerne seulement la suite réelle du port.
 | `unsafe-coerce` | `37d502528a8f21e6b9b2e27a8693f6449af23e70` | `test/Main.purs` | S | Non exécuté |
 | `uuid` | `6a254f8475eb22c8ed15cb1b6aef2c83a1f6037a` | `test/Main.purs` | A | Six tests et cinq sondes réussis |
 | `variant` | `82bb0cfdab2ecca6dc3dcc9a36909366d1fee91a` | `test/Main.purs` | S | Non exécuté |
-| `yoga-json` | `e1d20e158e262ad613ddd956a070869ff72b87e9` | `test/Main.purs` | U | Rejet 1 vérifié |
+| `yoga-json` | `e1d20e158e262ad613ddd956a070869ff72b87e9` | `test/Main.purs` | A | **52/52 depuis M29**, cinq sondes ; Specs composées sans découverte Node |
 
 ## Protocoles attendus et limites explicites
 
@@ -111,13 +111,12 @@ marqueur final unique. Un simple `runSpec' { exit = false }` aurait perdu les
 erreurs capturées dans l'arbre de résultats. Le cinquième contre-exemple vérifie
 précisément ce cas. Les deux suites passent depuis M25.
 
-Les trois profils U restent enregistrés avec leurs sources et configuration :
+Les deux profils U restent enregistrés avec leurs sources et configuration :
 
 | Port | Obstacle au protocole de fin |
 | --- | --- |
 | Node HTTP | Serveurs HTTP/HTTPS, timers et Aff détachés ; aucune jonction globale. |
 | Spec | `launchAff_`, CLI et sortie de processus `spec-node`, avec sous-processus d'intégration. |
-| Yoga JSON | `launchAff_`, découverte dynamique de modules `spec-discovery`, puis sortie `spec-node`. |
 
 Node Streams n'est plus dans cette liste : ses événements Java sont eager, mais
 un historique borné par stream est rejoué au listener ajouté plus tard. Cela
@@ -132,6 +131,11 @@ action. Les streams de fichier terminent par `end`, et la sonde de flux atteint
 Node Net expose `testNet`, attend la fermeture du socket et enregistre ses
 listeners avant l'émission eager de `listening`. `addressTcpImpl` renvoie
 désormais une valeur `Nullable` (record ou `null`), et non un `Maybe`.
+
+Yoga JSON n'utilise pas `spec-discovery` sur JVM : `Test.Main` exporte une
+composition explicite des quatre Specs, exécutée par le wrapper commun. Le
+sentinel `Foreign.undefined`, l'indexation des tableaux, la sérialisation des
+BigInt et les dates ISO sont couverts par **52 tests** et cinq sondes.
 
 Leurs commandes échouent explicitement même avec `--clean` ; `--help` reste
 consultable sans outils Java. Adapter ces suites requiert une action attendable

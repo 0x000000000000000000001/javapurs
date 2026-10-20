@@ -69,7 +69,7 @@ export const portSuites = {
   "unsafe-coerce": synchronous("javapurs-unsafe-coerce"),
   uuid: spec("javapurs-uuid", 6),
   variant: synchronous("javapurs-variant"),
-  "yoga-json": unsupported("javapurs-yoga-json", "Test.Main uses launchAff_, dynamic spec-discovery and spec-node process exit without a joined completion action"),
+  "yoga-json": spec("javapurs-yoga-json", 52),
 };
 export const completionMarker = "PORT SUITE COMPLETED";
 
