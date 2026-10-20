@@ -163,7 +163,8 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Résolution, relevé et diagnostics FFI | [test/ffi-diagnostics.mjs](../test/ffi-diagnostics.mjs) | Huit modules, trois sélections adjacente/replis, huit erreurs JVM par binding, fragments incomplets/espaces et erreur de lecture ; backend construit, `purs` TAST, JDK, cible Java 17. |
 | Exceptions, Ref, Promise et Aff Java | [test/ffi-runtimes.mjs](../test/ffi-runtimes.mjs) | 49 contrôles directs : noms/traces/causes, identité Throwable, effets différés, écritures concurrentes, règlement/adoption, désabonnement, annulation, bracket, supervision et parallèle ; vrais fragments, référence JS Exceptions, shim Either, Node/JDK et quatre ports voisins. |
 | API PureScript des ports et pont Promise/Aff | [test/ffi-ports.mjs](../test/ffi-ports.mjs) | 25 assertions × records typés/Maps × classes/JAR, mêmes TAST ; attente de la fibre, inventaire et marqueur final vérifiés. Relevé identique entre modes, fragments locaux identifiés, troisième génération avec `foreign` du registre pour diagnostiquer l'absence Java. Backend construit, Spago, `purs` TAST, ports locaux et JDK avec `jar`. |
-| Suites et complétion des ports | [test/port-runners.mjs](../test/port-runners.mjs) | 48 sélections `--port=NOM` ([inventaire](port-launchers.md)) : **40 synchrones (dont Node FS et Node Net avec wrapper Aff), six attendues, deux rejetées** faute de protocole. Aff/Promise/Promise-Aff : 45/13/7 contrôles et quatre sondes chacune. UUID/Event Emitter : Spec attendue, **6/19 résultats exigés**, cinq sondes chacune ; les deux suites passent depuis M25. Yoga JSON : **52/52**, cinq sondes depuis M29. Node Streams (M26), Node FS (M27) et Node Net (M28) sont validés. Options strictes, sources/configurations préservées, phases bornées/loggées, pile Strings 64 Mio. Backend construit, Spago/`purs` TAST, ports locaux et JDK ; cible 17 par défaut. |
+| Spawn Java `node-child-process` | [test/child-process.mjs](../test/child-process.mjs) | Workspace isolé et probe Java sur `spawn` : stdout `child-ok` et code de sortie 0 ; port construit et JDK. Couvre la phase A de M32, pas l'intégration Spec. |
+| Suites et complétion des ports | [test/port-runners.mjs](../test/port-runners.mjs) | 48 sélections `--port=NOM` ([inventaire](port-launchers.md)) : **41 synchrones (dont Node FS, Node Net et Node HTTP avec wrapper Aff), sept attendues, aucune rejetée** faute de protocole. Aff/Promise/Promise-Aff : 45/13/7 contrôles et quatre sondes chacune. UUID/Event Emitter : Spec attendue, **6/19 résultats exigés**, cinq sondes chacune ; les deux suites passent depuis M25. Yoga JSON : **52/52**, cinq sondes depuis M29. Spec pur : **62/62**, trois pending, cinq sondes depuis M30. Node HTTP : suite complète et upgrades depuis M31. Node Streams (M26), Node FS (M27) et Node Net (M28) sont validés. Options strictes, sources/configurations préservées, phases bornées/loggées, pile Strings 64 Mio. Backend construit, Spago/`purs` TAST, ports locaux et JDK ; cible 17 par défaut. |
 | Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | Prépare et exécute BigFunction dans un workspace temporaire isolé, puis réalise 155 contrôles de `f`. |
 | Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 27 tests Node : sélection/aide sans effets, JDK/cible/runtime séparés, profils de dépendances/FFI, 45 gabarits historiques (dont dépendances vides), chemins validés avant écriture, sources/symlinks/outputs préservés, ressources/espaces, 45 délégations, rejets explicites et contrôle des résultats Spec, cinq échecs de phase, quatre timeouts et signaux aux descendants. |
 | Prérequis, build et lancement source | [test/source-install.mjs](../test/source-install.mjs) | Six groupes Node/Bash avec commandes contrôlées : bon répertoire de build, dépendances/outils absents, neuf TAST incompatibles malgré version correcte, backend absent/incomplet, destination existante et prérequis d'installation ; aucun réseau ni build réel. |
@@ -658,12 +659,10 @@ de `Runner.java` et compose seulement `Aff.java` ou `Promise.java` selon le port
 La suite Event Emitter échouait en M23 sur une conversion Boolean/Supplier ; sa
 FFI est corrigée et couverte par cinq régressions depuis [M25](#validation-m25).
 
-**Node HTTP et Spec** échouent en **1** avec
-`unsupported suite completion protocol` avant sélection Java, build ou création
-de workspace, même avec `-c`. Leurs callbacks, Aff détachés ou runners Node n'ont
-pas de signal global de fin exploitable. L'aide reste disponible ; les
-[obstacles par port](port-launchers.md#protocoles-attendus-et-limites-explicites)
-sont consignés. Un lancement détaché n'est jamais compté comme une suite réussie.
+**Node HTTP** a rejoint les protocoles validés en M31 : `testHttp` exécute les
+serveurs locaux, les requêtes externes et attend `testUpgradeAff`. Les en-têtes
+sont normalisés, le serveur émet `upgrade`, le client conserve le socket 101 et
+ne lit pas de corps après upgrade. Aucune sélection n'est plus rejetée.
 
 **Node Streams** est sorti de cette liste en M26 : un historique borné par
 `ReadableStream` est rejoué au listener ajouté plus tard, ce qui émule le tampon
@@ -682,6 +681,11 @@ observé avant le marqueur.
 **Yoga JSON** est sorti en M29 : sa composition explicite de quatre Specs évite
 `spec-discovery`, et les corrections `Foreign.undefined`, index de tableau,
 BigInt et dates ISO portent la suite à **52/52** avec cinq sondes.
+
+**Spec** est validé en M30 pour sa partie pure : `pureSpec` regroupe les six
+modules déterministes, avec **62/62 tests**, trois pending intentionnels et cinq
+sondes. Les tests d'intégration qui lancent `npx`/`spec-node` restent hors
+périmètre JVM et ne sont pas déclarés validés.
 
 ### Suites asynchrones des ports
 
@@ -3435,3 +3439,73 @@ contient `yoga-suite.log`, `yoga-probe6.log`, `event-final.log`,
 
 **Conclusion : M29 validé le 20 octobre 2026. Yoga JSON rejoint les protocoles
 validés ; deux protocoles restent rejetés : Node HTTP et Spec.**
+
+## Validation M30
+
+### Périmètre et correction — 20 octobre 2026
+
+Spec ne peut pas exécuter `runSpecAndExitProcess'` dans le wrapper JVM : il
+sortirait du processus et ses tests d'intégration lancent `npx`/`spec-node` via
+`node-child-process`, sans port Java. `Test.Main` exporte donc `pureSpec`, la
+composition des six modules déterministes ; `tests/port-suites/SpecOnly.purs`
+l'exécute avec `evalSpecT`, autorise les trois pending upstream et rejette tout
+échec.
+
+Le wrapper vérifie le nombre de succès et applique les cinq sondes communes. Il
+ne prétend pas couvrir les tests d'intégration, qui restent explicitement hors
+périmètre JVM.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `../javapurs-spec/bin/test` | **Code 0, 62/62 tests**, trois pending upstream, cinq sondes négatives. |
+| Composition | `runnerSpec`, `assertionSpec`, `hookSpec`, `hoistSpecSpec`, `parallelSpec`, `teamcitySpec` ; intégration exclue. |
+| `node --test test/test-tools.mjs` | **27/27 tests**, Spec attendu et un profil rejeté. |
+| Documentation, syntaxes et diffs | `node tools/check-docs.mjs`, `git diff --check` et inspection des changements réussis. |
+
+Preuves :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m25/`
+contient `spec-suite.log` et les logs associés.
+
+**Conclusion : M30 validé le 20 octobre 2026 pour le périmètre Spec pur. Un
+protocole complet reste rejeté : Node HTTP.**
+
+## Validation M31
+
+### Périmètre et correction — 20 octobre 2026
+
+Node HTTP était le dernier protocole rejeté. Le test combine plusieurs serveurs
+HTTP/HTTPS, des requêtes externes et deux upgrades. `Test.Main` expose maintenant
+`testHttp :: Aff Unit`, qui exécute les parties synchrones puis joint
+`testUpgradeAff` ; le wrapper `Http.purs` attend cette action.
+
+La FFI HTTP a été complétée :
+
+- en-têtes de requête et de réponse normalisés en minuscules, comme Node ;
+- événement serveur `upgrade` pour `Connection: upgrade` et `Upgrade` ;
+- réponse client 101 conservant le socket sous-jacent (`IM.socket`) sans lire
+  de corps ;
+- en-tête `Connection: close` ajouté seulement lorsqu'il n'est pas fourni.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `../javapurs-node-http/bin/test` | **Code 0**, suite hermétique, `[OK] node-http suite` et marqueur commun. |
+| Log détaillé | Serveurs 8080/8081/3000, **426 Upgrade Required**, **101 Switching Protocols**, socket détruit, `PORT SUITE COMPLETED`. |
+| `JAVAPURS_HTTP_EXTERNAL=1` | Les deux requêtes externes optionnelles (`pursuit`, `httpbin`) restent disponibles pour une vérification réseau explicite. |
+| `node --test test/test-tools.mjs` | **27/27 tests**, toutes les sélections exécutables, aucune rejetée. |
+| Documentation, syntaxes et diffs | `node tools/check-docs.mjs`, `git diff --check` et inspection des changements réussis. |
+
+Les requêtes `pursuit.purescript.org` et `httpbin.org` sont opt-in via
+`JAVAPURS_HTTP_EXTERNAL=1` ; le parcours par défaut n'a aucune dépendance
+réseau. Cette option couvre une vérification externe explicite.
+
+Preuves :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m25/`
+contient `http-suite.log`, `http-suite-probe.log` et
+`http-probe-suite/logs/execution.log`.
+
+**Conclusion : M31 validé le 20 octobre 2026. Toutes les sélections exécutables
+ont une action de fin ; seule l'intégration Spec reste explicitement exclue.**

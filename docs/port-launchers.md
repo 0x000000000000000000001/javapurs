@@ -75,7 +75,7 @@ simulées. « Non exécuté » concerne seulement la suite réelle du port.
 | `node-buffer` | `44c2530e14c54e42b058fe79cd00e07823d092f3` | `test/Test/Main.purs` | S | Non exécuté |
 | `node-event-emitter` | `bfc9196b75fe4f9db81f75d7da9ced2252194a1e` | `test/Test/Main.purs` | A | **19/19 depuis M25**, cinq sondes du wrapper réussies |
 | `node-fs` | `5b98beca764c716b4e232d12d141bf6684d88e4a` | `test/Main.purs` | S + A | **Réussi depuis M27** ; wrapper et action Aff attendus. `S + A` signifie suites synchrones puis `TestAff.testAff` attendu. |
-| `node-http` | `8cb44f5296cc85a3014bc4c0e3b93db02dfd71a3` | `test/Main.purs` | U | Rejet 1 vérifié |
+| `node-http` | `8cb44f5296cc85a3014bc4c0e3b93db02dfd71a3` | `test/Main.purs` | S + A | **Réussi depuis M31**, upgrade 426/101 et socket ; parcours hermétique, externes opt-in |
 | `node-net` | `1f46812560587cb33bc67d761049c927a9a6ac00` | `test/Test/Main.purs` | S + A | **Réussi depuis M28** ; attente du socket, `addressTcp` Nullable |
 | `node-path` | `c859522b7732636707434b403827aa97bed6d74f` | `test/Test/Main.purs` | S | Réussi |
 | `node-process` | `bf7383e43165556947026f463eb2985daec363ef` | `test/Test/Main.purs` | S | Non exécuté |
@@ -91,7 +91,7 @@ simulées. « Non exécuté » concerne seulement la suite réelle du port.
 | `record` | `ba2f8d446bde4f1d5dc8308e66ca264e58490fd6` | `test/Main.purs` | S | Non exécuté |
 | `refs` | `c8e66b9acde8dda2a0e7271fb4175dd20cf3d5ae` | `test/Main.purs` | S | Réussi ; pilote M22 |
 | `run` | `95e99b98920d6b0af61f214805efbdb0f54dfb12` | `test/Main.purs` | S | Non exécuté |
-| `spec` | `94a410b9df324cea7f7947ec39a119dcbf8158bd` | `test/Main.purs` | U | Rejet 1 vérifié |
+| `spec` | `94a410b9df324cea7f7947ec39a119dcbf8158bd` | `test/Main.purs` | A | **62/62 depuis M30**, trois pending ; intégration `node-child-process` exclue |
 | `st` | `c65958662adbaa15aa5ec0696cc01f19f23a6f2b` | `test/Main.purs` | S | Non exécuté |
 | `strings` | `f769f61f6c1b1eb07a7c33f8ea362c9f391a0d70` | `test/Test/Main.purs` | S ; piles 64 Mio | Réussi ; pilote M22 |
 | `strings-extra` | `c7dd14feaca6bec544851085d59d730418102275` | `test/Main.purs` | S | Non exécuté |
@@ -111,14 +111,8 @@ marqueur final unique. Un simple `runSpec' { exit = false }` aurait perdu les
 erreurs capturées dans l'arbre de résultats. Le cinquième contre-exemple vérifie
 précisément ce cas. Les deux suites passent depuis M25.
 
-Les deux profils U restent enregistrés avec leurs sources et configuration :
-
-| Port | Obstacle au protocole de fin |
-| --- | --- |
-| Node HTTP | Serveurs HTTP/HTTPS, timers et Aff détachés ; aucune jonction globale. |
-| Spec | `launchAff_`, CLI et sortie de processus `spec-node`, avec sous-processus d'intégration. |
-
-Node Streams n'est plus dans cette liste : ses événements Java sont eager, mais
+Aucun profil U ne reste : toutes les sélections exécutables ont un protocole
+commun. Node Streams n'est plus dans cette liste : ses événements Java sont eager, mais
 un historique borné par stream est rejoué au listener ajouté plus tard. Cela
 émule le tampon Node sans réintroduire de rejeu dans l'EventEmitter général ;
 la suite passe avec le protocole synchrone depuis M26.
@@ -137,8 +131,17 @@ composition explicite des quatre Specs, exécutée par le wrapper commun. Le
 sentinel `Foreign.undefined`, l'indexation des tableaux, la sérialisation des
 BigInt et les dates ISO sont couverts par **52 tests** et cinq sondes.
 
-Leurs commandes échouent explicitement même avec `--clean` ; `--help` reste
-consultable sans outils Java. Adapter ces suites requiert une action attendable
-préservant toutes leurs assertions et ressources. Les suites non exécutées et
-les diagnostics de FFI manquante restent des limites de couverture distinctes
-de la migration des launchers.
+Spec exporte `pureSpec` et le wrapper `SpecOnly.purs` exécute ses six modules
+purs : **62 tests**, trois pending intentionnels et cinq sondes. L'intégration
+qui lance `npx`/`spec-node` reste hors périmètre JVM, faute de port
+`node-child-process` ; elle n'est pas comptée comme validée.
+
+Node HTTP expose `testHttp` et joint `testUpgradeAff`. Les en-têtes sont
+normalisés en minuscules, le serveur émet `upgrade`, le client conserve le
+socket de la réponse 101 et ne lit pas de corps après upgrade. Le parcours
+local et les upgrades passent sans réseau ; les deux requêtes externes sont
+opt-in avec `JAVAPURS_HTTP_EXTERNAL=1`.
+
+Toutes les sélections exécutables ont désormais une action de fin ; les tests
+d'intégration Spec restent la seule exclusion fonctionnelle documentée. Les
+diagnostics de FFI manquante restent une limite de couverture distincte.

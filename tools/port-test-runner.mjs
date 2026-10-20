@@ -44,7 +44,7 @@ export const portSuites = {
   "node-buffer": synchronous("javapurs-node-buffer"),
   "node-event-emitter": spec("javapurs-node-event-emitter", 19),
   "node-fs": { ...synchronous("javapurs-node-fs"), main: "Test.PortRunner", wrapper: "Fs", ffi: "Aff" },
-  "node-http": unsupported("javapurs-node-http", "Test.Main starts HTTP/HTTPS servers, timers and launchAff_ without a joined completion action"),
+  "node-http": { ...synchronous("javapurs-node-http"), main: "Test.PortRunner", wrapper: "Http", ffi: "Aff" },
   "node-net": { ...synchronous("javapurs-node-net"), main: "Test.PortRunner", wrapper: "Net", ffi: "Aff" },
   "node-path": synchronous("javapurs-node-path"),
   "node-process": synchronous("javapurs-node-process"),
@@ -61,7 +61,7 @@ export const portSuites = {
   refs: synchronous("javapurs-refs"),
   exceptions: synchronous("javapurs-exceptions"),
   run: synchronous("javapurs-run"),
-  spec: unsupported("javapurs-spec", "Test.Main uses launchAff_, spec-node CLI/process exit and integration subprocesses without a joined completion action"),
+  spec: { ...spec("javapurs-spec", 62), wrapper: "SpecOnly" },
   st: synchronous("javapurs-st"),
   strings: { ...synchronous("javapurs-strings"), javacArgs: ["-J-Xss64m"], javaArgs: ["-Xss64m"] },
   "strings-extra": synchronous("javapurs-strings-extra"),
@@ -145,11 +145,11 @@ export async function runPortSuite(port, directory, tools, processes, { root = c
     throw new Error(`${port}: generation did not produce MainRun.java; log: ${join(directory, "logs/generation.log")}`);
   }
   await run("javac", tools.javac, [...compileArgs, "-d", "output/java/classes", "-sourcepath", "output/java", "output/java/MainRun.java"]);
-  await run("execution", tools.java, [...suite.javaArgs, "-cp", "output/java/classes", "MainRun"], 45000);
+  await run("execution", tools.java, [...suite.javaArgs, "-cp", "output/java/classes", "MainRun"], suite.timeout ?? 45000);
   if (suite.completion === "awaited") {
     const output = readFileSync(join(directory, "logs/execution.log"), "utf8");
     assertCompleted(output);
-    if (suite.wrapper === "Spec") {
+    if (["Spec", "SpecOnly"].includes(suite.wrapper)) {
       assert.deepEqual(output.split(/\r?\n/).filter(line => line.startsWith("PORT SPEC PASSED: ")),
         [`PORT SPEC PASSED: ${suite.checks}`], `${port}: incomplete assertion inventory`);
     } else {
@@ -172,7 +172,7 @@ function assertCompleted(output) {
 // deliberately fail after suspension, reject, never complete, or exit early.
 export async function checkPortRunner(port, directory, tools, processes) {
   const probes = [["late-failure", "runner late assertion"], ["rejection", "runner rejection"], ["timeout", "Port suite timed out"]];
-  if (suiteFor(port).wrapper === "Spec") probes.push(["spec-failure", "Port spec failed"]);
+  if (["Spec", "SpecOnly"].includes(suiteFor(port).wrapper)) probes.push(["spec-failure", "Port spec failed"]);
   for (const [mode, diagnostic] of probes) {
     const log = join(directory, "logs", `probe-${mode}.log`);
     await assert.rejects(() => processes.run(`${port}: probe ${mode}`, tools.java,
@@ -188,5 +188,5 @@ export async function checkPortRunner(port, directory, tools, processes) {
     ["-Djavapurs.test.mode=early-exit", "-cp", "output/java/classes", "MainRun"],
     { cwd: directory, env: tools.env, timeout: 5000, log });
   assert.throws(() => assertCompleted(readFileSync(log, "utf8")), /suite-completion marker/);
-  console.log(`${port}: delayed assertion, rejection, timeout and premature exit detected${suiteFor(port).wrapper === "Spec" ? "; Spec failure detected" : ""}`);
+  console.log(`${port}: delayed assertion, rejection, timeout and premature exit detected${["Spec", "SpecOnly"].includes(suiteFor(port).wrapper) ? "; Spec failure detected" : ""}`);
 }

@@ -141,7 +141,7 @@ function portCli(port, args = [], extraEnv = {}) {
   const script = port ? resolve(root, "..", "javapurs-" + port, "bin/test") : join(root, "test/port-runners.mjs");
   return spawnSync(command, [script, ...args], { cwd: temp, encoding: "utf8", timeout: 10_000,
     env: { ...env, TMPDIR: portScratch, COMMAND_TRACE: commandTrace,
-      MOCK_CHECKS: String(portSuites[port]?.checks ?? ""), MOCK_SPEC: portSuites[port]?.wrapper === "Spec" ? "1" : "", ...extraEnv } });
+      MOCK_CHECKS: String(portSuites[port]?.checks ?? ""), MOCK_SPEC: ["Spec", "SpecOnly"].includes(portSuites[port]?.wrapper) ? "1" : "", ...extraEnv } });
 }
 const commands = () => readFileSync(commandTrace, "utf8").trim().split("\n").filter(Boolean).map(line => JSON.parse(line));
 function retained(result) {
@@ -471,7 +471,7 @@ test("all historical templates preserve dependency sets, local paths, entrypoint
     assert.equal(readFileSync(join(destination, "test/Support/Extra.java"), "utf8"), "// nested test FFI\n");
     assert.deepEqual(tree(join(destination, "src")), tree(join(source, "src")));
     for (const name of ["spago.lock", "output/keep", "output/java/keep", ".spago/keep"]) assert.ok(!existsSync(join(destination, name)));
-    if (portSuites[port].wrapper === "Spec") {
+    if (["Spec", "SpecOnly"].includes(portSuites[port].wrapper)) {
       const ffi = readFileSync(join(destination, "test/PortRunner.java"), "utf8");
       assert.match(ffi, /awaitAff/); assert.ok(!ffi.includes("Promise_Internal"));
     }
@@ -497,7 +497,7 @@ test("all migrated delegations select their pipeline or explicitly reject unsupp
         "-d", "output/java/classes", "-sourcepath", "output/java", "output/java/MainRun.java"]);
       assert.deepEqual(events[4].args, [...suite.javaArgs, "-cp", "output/java/classes", "MainRun"]);
       assert.ok(events[4].cwd.startsWith(portScratch + "/javapurs-port-" + port + "-"));
-      assert.equal(events.length, suite.wrapper === "Spec" ? 10 : 5);
+      assert.equal(events.length, ["Spec", "SpecOnly"].includes(suite.wrapper) ? 10 : 5);
       assert.ok(!existsSync(events[4].cwd));
     }
   }
