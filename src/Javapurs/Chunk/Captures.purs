@@ -75,6 +75,7 @@ freeOf boundNames expression = case expression of
   JavaLoopInvariant _ -> Left InvariantCache
   JavaString _ -> noCaptures
   JavaRaw code -> rawCaptures code
+  JavaUndefined -> noCaptures
   JavaGlobalVar _ _ -> noCaptures
   JavaCtorSingleton _ _ -> noCaptures
   JavaThrow _ -> noCaptures

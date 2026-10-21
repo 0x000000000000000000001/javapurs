@@ -150,6 +150,30 @@ applicative peut en demander : son appelant fournit les dépendances aux deux
 classpaths, `javac` et `java`. Voir la [recette d'application](../README.md#compile-and-run-an-application).
 Le résolveur de fragments ne gère ni JAR ni packaging.
 
+### Contrats communs des ports Java (M03)
+
+Les ports partagent des conventions de valeur, mais **pas une bibliothèque
+Java commune** : leurs classes internes `__M$...` sont générées dans le module
+consommateur, et un helper partagé ajouterait une dépendance de port à port.
+Les helpers restent donc locaux ; les contrats ci-dessous sont la référence
+commune.
+
+| Domaine | Contrat | Limite assumée |
+| --- | --- | --- |
+| Absence | `Foreign.undefined` est un sentinel distinct de `null` ; `Nullable` utilise `null` pour l'absence. `null` reste une valeur Unit/JSON valide. | Les options absentes de `spawn` sont représentées par `null` dans le record Java ; ne pas les confondre avec une valeur métier. |
+| Buffers | `Node.Buffer.__wrap` copie les octets ; `__window` expose la vue JDK d'un buffer existant. | Aucun `byte[]` arbitraire ne doit traverser une frontière sans passer par ces fonctions. |
+| Événements | `EmitterBase.fire` est synchrone, `once` se retire avant l'appel et les exceptions de listener propagent. | Seuls les streams et `ChildProcess` rejouent un historique borné ; l'EventEmitter général ne rejoue pas. |
+| Streams | Les données et `end`/`close` sont bufferisés dans un historique borné ; `pipe` copie vers le writable local. | Pas de backpressure OS complète ni de flush asynchrone identique à Node. |
+| FS async | Les callbacks Node `(error, value)` et les callbacks unaires (`access`) sont acceptés ; les opérations s'exécutent inline. | Une erreur de callback est convertie en erreur Node ; les timings Node ne sont pas reproduits. |
+| Net/HTTP | Le serveur et le socket possèdent leurs listeners ; une réponse 101 conserve le socket client pour l'upgrade. | Les URL externes HTTP sont opt-in (`JAVAPURS_HTTP_EXTERNAL=1`). |
+| ChildProcess | `spawn`/`spawn'` via `ProcessBuilder`, stdout/stderr, `exit`/`close`/`error`, métadonnées `spawnFile`/`spawnArgs`. stdin est fermé (`/dev/null`), le processus est borné à 60 s et une sortie vide peut être rejouée. | `exec`, `execFile`, `spawnSync`, IPC et `send` ne sont pas implémentés ; leurs stubs nomment l'API et lèvent `UnsupportedOperationException`. |
+
+**Politique de stub :** une API absente ne retourne pas silencieusement `null`.
+Le stub doit lever une `UnsupportedOperationException` contenant le port et
+l'opération, afin que le diagnostic JVM soit actionnable. Un retour `null`
+n'est autorisé que lorsqu'il représente le contrat de la valeur (absence,
+Unit, callback Node).
+
 ## Exceptions
 
 `Error` et `NamedError` sont des exceptions Java non vérifiées ; la seconde hérite

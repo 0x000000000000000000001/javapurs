@@ -1,13 +1,15 @@
 # Reprise et entretien du dépôt
 
-État documenté au **6 octobre 2026**, après clôture M23 du plan v3.
+État documenté au **21 octobre 2026**, plan v3 clôturé et [plan v4](../todo.md) ouvert.
 Cette page donne le parcours de reprise, le statut des artefacts et les points
 encore ouverts. Les [preuves par lot](testing.md#consigner-une-validation)
 conservent leurs dates, versions et périmètres d'origine.
 
 ## Parcours de reprise
 
-1. Lire le [guide du compilateur](compiler.md#suivre-une-compilation) pour suivre
+1. Lire [Démarrer et valider](start-here.md) pour les commandes minimales, puis
+   [la carte du code](code-map.md) pour situer le module et le flux, puis
+   le [guide du compilateur](compiler.md#suivre-une-compilation) pour suivre
    `Main` → `Config` → `Driver` → `Input`/PBO → `Pipeline` → `Emit` → `Output`.
 2. Choisir le contrat correspondant à la modification :
 
@@ -40,7 +42,7 @@ conservent leurs dates, versions et périmètres d'origine.
 Le vérificateur utilise Node et Bash. Il retrouve le dépôt depuis son propre
 chemin ; les liens locaux supposent le layout des dépôts voisins décrit dans
 `compiler.md`. Il contrôle les liens/ancres Markdown des guides, du README, du
-TODO et des 48 README de ports délégués, la syntaxe des exemples shell, les suites
+TODO et des 49 README de ports délégués, la syntaxe des exemples shell, les suites
 de la matrice, les options de `Config`, le score du plan actif et les preuves de
 ses lots cochés, y compris les lots complémentaires hors score. Le nombre de lots
 pondérés est lu dans le TODO. Il ne lance pas les
@@ -66,10 +68,10 @@ de `ControlFlow` ne sont pas interchangeables. Les rendus communs et les project
 de types ont leur propriétaire nommé ; les exceptions de portée restent locales.
 
 Les replis Maps/Object, appels curryfiés gardés, `TcoLoop`, refus d'extraction
-opaque et workers persistants sont des chemins d'exécution testés. Le `TODO`
-dans le rendu `null /* TODO: PrimUndefined */` est un marqueur historique du
-sentinel Undefined de PBO ; `Raw.isClosedValue` reconnaît cette forme fermée.
-Il ne signale pas un dispatcher manquant à remplacer par une spécialisation.
+opaque et workers persistants sont des chemins d'exécution testés. Le sentinel
+Undefined de PBO est porté par le nœud structurel `JavaUndefined`, rendu en
+`null` Java ; il ne dépend plus d'un commentaire `TODO` ni d'une reconnaissance
+de texte dans `Raw.isClosedValue`.
 
 ## Statut des fichiers et des sorties
 
@@ -215,13 +217,15 @@ tar -xzf "$ARCHIVE" -C "$RESTORE"
 ## Points ouverts après le plan
 
 Les scores M01–M11 et M12–M16 mesurent les livrables des deux plans terminés.
-Le [plan v3 actif](../todo.md), ouvert le **6 octobre 2026** à **0/100**,
-organise le cleanup vérifié dans la [revue préalable](testing.md#revue-préalable-au-plan-v3) :
+Le [plan v3 archivé](plan-v3.md), ouvert le **6 octobre 2026**, a organisé le
+cleanup vérifié dans la [revue préalable](testing.md#revue-préalable-au-plan-v3) :
 runtime de production dans les fixtures (M20), préparation partagée des workspaces
 (M21), runner commun et trois ports pilotes (M22), puis migration des autres
 launchers historiques (M23). Les validations sont ciblées par profil et port.
 
-**M20–M23 sont clôturés ; avancement 100/100.** Les huit suites utilisent les templates
+**M20–M32 sont clôturés ; Spec complet passe 70/70.** Le [plan v4](../todo.md)
+est clôturé : cartographie, compilateur, FFI, harnais et docs ont été consolidés
+sans changement de comportement. Les huit suites utilisent les templates
 de `Javapurs.Runtime`. Le support `test/support/optimized-module.mjs` reconstruit
 les entrées optionnelles RBTree/Records/Church/LazyEvaluation depuis leur TAST,
 dans un workspace isolé et un scope de publication PBO courant ; les `.purmeta`

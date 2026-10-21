@@ -33,7 +33,7 @@ var printGlobal = function (qualifier) {
         if (qualifier instanceof Data_Maybe.Nothing) {
             return name;
         };
-        throw new Error("Failed pattern match at Javapurs.Printer (line 117, column 30 - line 121, column 18): " + [ qualifier.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.Printer (line 118, column 30 - line 122, column 18): " + [ qualifier.constructor.name ]);
     };
 };
 var maybeQualifier = function (v) {
@@ -43,7 +43,7 @@ var maybeQualifier = function (v) {
     if (v instanceof Data_Maybe.Nothing) {
         return "";
     };
-    throw new Error("Failed pattern match at Javapurs.Printer (line 124, column 18 - line 126, column 16): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Printer (line 125, column 18 - line 127, column 16): " + [ v.constructor.name ]);
 };
 var printLetExpression = function (name) {
     return function (value) {
@@ -203,6 +203,9 @@ var printExpr = function (v) {
     if (v instanceof Javapurs_JavaAst.JavaRaw) {
         return v.value0;
     };
+    if (v instanceof Javapurs_JavaAst.JavaUndefined) {
+        return "null";
+    };
     if (v instanceof Javapurs_JavaAst.JavaBinaryOp) {
         return "(" + (printExpr(v.value1) + (" " + (v.value0 + (" " + (printExpr(v.value2) + ")")))));
     };
@@ -248,7 +251,7 @@ var printExpr = function (v) {
     if (v instanceof Javapurs_JavaAst.JavaClassDecl) {
         return Javapurs_Printer_Declarations.printClass(v.value0)(v.value1)(v.value2);
     };
-    throw new Error("Failed pattern match at Javapurs.Printer (line 22, column 13 - line 96, column 70): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Javapurs.Printer (line 22, column 13 - line 97, column 70): " + [ v.constructor.name ]);
 };
 var $lazy_printMapPuts = /* #__PURE__ */ $runtime_lazy("printMapPuts", "Javapurs.Printer", function () {
     var $132 = Data_String_Common.joinWith("");
@@ -259,7 +262,7 @@ var $lazy_printMapPuts = /* #__PURE__ */ $runtime_lazy("printMapPuts", "Javapurs
         return $132($133($134));
     };
 });
-var printMapPuts = /* #__PURE__ */ $lazy_printMapPuts(103);
+var printMapPuts = /* #__PURE__ */ $lazy_printMapPuts(104);
 var printFile = function (className) {
     return function (file) {
         return "public class " + (className + (" {\x0a" + ("    " + (Data_String_Common.joinWith("\x0a    ")(Data_Functor.map(Data_Functor.functorArray)(printExpr)(file.decls)) + ("\x0a" + "}\x0a")))));

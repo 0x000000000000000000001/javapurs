@@ -182,6 +182,9 @@ var freeOf = function (boundNames) {
         if (expression instanceof Javapurs_JavaAst.JavaRaw) {
             return rawCaptures(expression.value0);
         };
+        if (expression instanceof Javapurs_JavaAst.JavaUndefined) {
+            return noCaptures;
+        };
         if (expression instanceof Javapurs_JavaAst.JavaGlobalVar) {
             return noCaptures;
         };

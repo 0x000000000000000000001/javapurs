@@ -120,16 +120,16 @@ var renameIdentifiers = function (rename) {
                         };
                         if (Data_Boolean.otherwise) {
                             var $$char = charAt(index);
-                            var $11 = $$char === "\"" || $$char === "'";
-                            if ($11) {
+                            var $9 = $$char === "\"" || $$char === "'";
+                            if ($9) {
                                 var end = quotedEnd($$char)(index + 1 | 0);
                                 $tco_var_index = end;
                                 $tco_var_previous = $$char;
                                 $copy_parts = new Data_List_Types.Cons(slice(index)(end), parts);
                                 return;
                             };
-                            var $12 = $$char === "/" && charAt(index + 1 | 0) === "/";
-                            if ($12) {
+                            var $10 = $$char === "/" && charAt(index + 1 | 0) === "/";
+                            if ($10) {
                                 var end = advanceWhile(function (v) {
                                     return v !== "\x0a";
                                 })(index + 2 | 0);
@@ -138,23 +138,23 @@ var renameIdentifiers = function (rename) {
                                 $copy_parts = new Data_List_Types.Cons(slice(index)(end), parts);
                                 return;
                             };
-                            var $13 = $$char === "/" && charAt(index + 1 | 0) === "*";
-                            if ($13) {
+                            var $11 = $$char === "/" && charAt(index + 1 | 0) === "*";
+                            if ($11) {
                                 var end = commentEnd(index + 2 | 0);
                                 $tco_var_index = end;
                                 $tco_var_previous = previous;
                                 $copy_parts = new Data_List_Types.Cons(slice(index)(end), parts);
                                 return;
                             };
-                            var $14 = identifier($$char);
-                            if ($14) {
+                            var $12 = identifier($$char);
+                            if ($12) {
                                 var end = advanceWhile(identifier)(index + 1 | 0);
                                 var token = slice(index)(end);
                                 $tco_var_index = end;
                                 $tco_var_previous = $$char;
                                 $copy_parts = new Data_List_Types.Cons((function () {
-                                    var $15 = previous === ".";
-                                    if ($15) {
+                                    var $13 = previous === ".";
+                                    if ($13) {
                                         return token;
                                     };
                                     return rename(token);
@@ -163,8 +163,8 @@ var renameIdentifiers = function (rename) {
                             };
                             $tco_var_index = index + 1 | 0;
                             $tco_var_previous = (function () {
-                                var $16 = whitespace($$char);
-                                if ($16) {
+                                var $14 = whitespace($$char);
+                                if ($14) {
                                     return previous;
                                 };
                                 return $$char;
@@ -192,27 +192,16 @@ var isClosedValue = function (code) {
     if (numeric(code)) {
         return true;
     };
-    var v = function (v1) {
-        if (Data_String_CodePoints.take(1)(code) === "'" && (Data_String_CodePoints.take(1)(Data_String_CodePoints.drop(Data_String_CodePoints.length(code) - 1 | 0)(code)) === "'" && Data_String_CodePoints.length(code) <= 4)) {
-            return true;
-        };
-        if (Data_String_CodePoints.take(11)(code) === "new Object[" && (Data_String_CodePoints.drop(Data_String_CodePoints.length(code) - 1 | 0)(code) === "]" && numeric(Data_String_CodePoints.take(Data_String_CodePoints.length(code) - 12 | 0)(Data_String_CodePoints.drop(11)(code))))) {
-            return true;
-        };
-        if (Data_Boolean.otherwise) {
-            return false;
-        };
-        throw new Error("Failed pattern match at Javapurs.Raw (line 20, column 1 - line 20, column 35): " + [ code.constructor.name ]);
+    if (Data_String_CodePoints.take(1)(code) === "'" && (Data_String_CodePoints.take(1)(Data_String_CodePoints.drop(Data_String_CodePoints.length(code) - 1 | 0)(code)) === "'" && Data_String_CodePoints.length(code) <= 4)) {
+        return true;
     };
-    var $20 = Data_String_CodeUnits.stripPrefix("null /* TODO:")(code);
-    if ($20 instanceof Data_Maybe.Just) {
-        var $21 = Data_String_Common.split("*/")($20.value0);
-        if ($21.length === 2 && $21[1] === "") {
-            return true;
-        };
-        return v(true);
+    if (Data_String_CodePoints.take(11)(code) === "new Object[" && (Data_String_CodePoints.drop(Data_String_CodePoints.length(code) - 1 | 0)(code) === "]" && numeric(Data_String_CodePoints.take(Data_String_CodePoints.length(code) - 12 | 0)(Data_String_CodePoints.drop(11)(code))))) {
+        return true;
     };
-    return v(true);
+    if (Data_Boolean.otherwise) {
+        return false;
+    };
+    throw new Error("Failed pattern match at Javapurs.Raw (line 22, column 1 - line 22, column 35): " + [ code.constructor.name ]);
 };
 export {
     isClosedValue,

@@ -457,6 +457,13 @@ var JavaRaw = /* #__PURE__ */ (function () {
     };
     return JavaRaw;
 })();
+var JavaUndefined = /* #__PURE__ */ (function () {
+    function JavaUndefined() {
+
+    };
+    JavaUndefined.value = new JavaUndefined();
+    return JavaUndefined;
+})();
 var JavaAssign = /* #__PURE__ */ (function () {
     function JavaAssign(value0, value1) {
         this.value0 = value0;
@@ -763,6 +770,9 @@ var traverseChildren = function (dictApplicative) {
             if (expression instanceof JavaRaw) {
                 return Control_Applicative.pure(dictApplicative)(expression);
             };
+            if (expression instanceof JavaUndefined) {
+                return Control_Applicative.pure(dictApplicative)(expression);
+            };
             if (expression instanceof JavaAssign) {
                 return Data_Functor.map(Functor0)(JavaAssign.create(expression.value0))(visit(expression.value1));
             };
@@ -805,7 +815,7 @@ var traverseChildren = function (dictApplicative) {
             if (expression instanceof JavaIf) {
                 return Control_Apply.apply(Apply0)(Control_Apply.apply(Apply0)(Data_Functor.map(Functor0)(JavaIf.create)(visit(expression.value0)))(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(visit)(expression.value1)))(Data_Traversable.traverse(Data_Traversable.traversableArray)(dictApplicative)(visit)(expression.value2));
             };
-            throw new Error("Failed pattern match at Javapurs.JavaAst (line 101, column 37 - line 149, column 127): " + [ expression.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.JavaAst (line 102, column 37 - line 151, column 127): " + [ expression.constructor.name ]);
         };
     };
 };
@@ -964,6 +974,7 @@ export {
     JavaGlobalVar,
     JavaClassDecl,
     JavaRaw,
+    JavaUndefined,
     JavaAssign,
     JavaLazyAssign,
     JavaStaticMethod,

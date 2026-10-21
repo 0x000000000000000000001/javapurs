@@ -1,3 +1,6 @@
+-- | Translate PBO expressions into JavaAst. Context owns lexical/effect position;
+-- | this module owns pattern dispatch, calls, loops and the explicit Undefined node.
+-- | Representation/ownership decisions arrive already proven; do not re-infer them here.
 module Javapurs.CodeGen.Expr (translateExpression, translateValue, translateLoop) where
 
 import Prelude
@@ -87,7 +90,8 @@ translateExpression env context expression@(TcoExpr analysis syntax)
         Op1 op value -> translateOperator1 env.moduleName op (translateValue env context value)
         Op2 op left right -> translateOperator2 env.moduleName op
           (translateValue env context left) (translateValue env context right)
-      PrimUndefined -> pureExpression $ JavaRaw "null /* TODO: PrimUndefined */"
+      -- PBO Undefined is an absence sentinel, not a raw Java comment.
+      PrimUndefined -> pureExpression JavaUndefined
 
 -- An operand's statements remain at its original evaluation site. In
 -- particular, do not concatenate the statements of several call arguments.

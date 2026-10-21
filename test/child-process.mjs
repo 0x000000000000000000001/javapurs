@@ -82,6 +82,19 @@ workspace:
                 (java.util.function.Supplier<Object>) () -> { exited[0] = true; return null; };
         value.addListener("exit", listener, false);
         if (!exited[0]) throw new AssertionError("late exit listener was not replayed");
+        if (!value.spawnFile.equals("/bin/sh") || value.spawnArgs.length != 2) {
+            throw new AssertionError("spawn metadata was not preserved");
+        }
+        java.util.function.Function<Object, Object> exec =
+            (java.util.function.Function<Object, Object>) __M$Node_UnsafeChildProcess_Unsafe.execImpl;
+        try {
+            ((java.util.function.Supplier<Object>) exec.apply("x")).get();
+            throw new AssertionError("exec stub did not fail");
+        } catch (UnsupportedOperationException expected) {
+            if (!expected.getMessage().contains("exec")) {
+                throw new AssertionError("exec stub lacks its API name: " + expected.getMessage());
+            }
+        }
         System.out.println("child process OK");
     }
 }

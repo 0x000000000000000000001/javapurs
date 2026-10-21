@@ -69,6 +69,7 @@ printExpr = case _ of
     "{ " <> printLetRecBindings printExpr bindings <> "return " <> printExpr body <> "; }"
   JavaLet name value body -> printLetExpression name value body
   JavaRaw source -> source
+  JavaUndefined -> "null"
   JavaBinaryOp operator left right -> "(" <> printExpr left <> " " <> operator <> " " <> printExpr right <> ")"
   JavaUnaryOp operator value -> "(" <> operator <> "(" <> printExpr value <> "))"
   JavaArrayIndex value index -> "((Object[]) (" <> printExpr value <> "))[" <> printExpr (JavaCast "int" index) <> "]"

@@ -162,7 +162,8 @@ coûts et construction des helpers.
 1. `isClosedValue` admet un ensemble limité de formes émises par le backend :
    nombres décimaux avec fraction/exposant éventuels, booléens, `null`, constantes
    `Double` spéciales, caractères simples, allocation `new Object[taille]` avec
-   taille numérique, et `null` suivi d'un commentaire `TODO` fermé sans texte après.
+   taille numérique. `null` reste un littéral brut ; PBO `Undefined` possède son
+   nœud structurel `JavaUndefined` et n'est pas reconnu par un commentaire.
    Une expression telle que `1-e` ou un préfixe ressemblant à un getter généré
    ne prouve pas l'absence de captures. Cette décision ne prouve pas la pureté.
 2. `renameIdentifiers` assure la compatibilité des fixtures avec des lectures

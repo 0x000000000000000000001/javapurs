@@ -2,7 +2,8 @@
 
 État documenté au **5 octobre 2026**. Ce guide décrit le chemin de production
 actuel. Les références des sources et des outils figurent dans le
-[registre de validation](testing.md#validation-m18). Le
+[registre de validation](testing.md#validation-m18). La
+[carte du code](code-map.md) donne l’index des modules et des artefacts ; le
 [guide de reprise et d'entretien](maintenance.md) complète cette carte par les
 interfaces de compatibilité, le statut des artefacts et les points ouverts.
 

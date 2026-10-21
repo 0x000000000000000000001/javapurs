@@ -7,7 +7,7 @@ import Prelude
 import Data.Array as Array
 import Data.List (List(..))
 import Data.List as List
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.String as String
 import Data.String.CodeUnits as CodeUnits
 import Data.String.Regex as Regex
@@ -17,12 +17,12 @@ import Data.String.Regex.Unsafe (unsafeRegex)
 -- | A deliberately small whitelist, used by capture analysis. Unknown text is
 -- | a barrier even if a caller knows it happens to be closed. Method selectors
 -- | use JavaStaticMethodRef/JavaInstanceMethodRef, not a string-prefix heuristic.
+-- | Undefined is represented by the structural JavaUndefined node, not by a raw
+-- | text comment; `null` remains the only raw null literal.
 isClosedValue :: String -> Boolean
 isClosedValue code
   | Array.elem code [ "true", "false", "null", "Double.NaN", "Double.POSITIVE_INFINITY", "Double.NEGATIVE_INFINITY" ] = true
   | numeric code = true
-  | Just comment <- String.stripPrefix (String.Pattern "null /* TODO:") code
-  , [ _, "" ] <- String.split (String.Pattern "*/") comment = true
   | String.take 1 code == "'" && String.take 1 (String.drop (String.length code - 1) code) == "'" && String.length code <= 4 = true
   | String.take 11 code == "new Object[" && String.drop (String.length code - 1) code == "]" && numeric (String.take (String.length code - 12) (String.drop 11 code)) = true
   | otherwise = false

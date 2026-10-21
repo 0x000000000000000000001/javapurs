@@ -70,6 +70,7 @@ data JavaExpr
   | JavaGlobalVar (Maybe String) String -- Module/FFI field read, not a local.
   | JavaClassDecl String (Array (Tuple String JavaParamType)) Boolean
   | JavaRaw String -- Opaque escape hatch; see Javapurs.Raw and docs/ast.md.
+  | JavaUndefined -- PBO's Undefined sentinel, encoded as Java null.
   | JavaAssign String JavaExpr
   | JavaLazyAssign String JavaExpr
   | JavaStaticMethod String (Array (Tuple String JavaParamType)) JavaExpr
@@ -132,6 +133,7 @@ traverseChildren visit expression = case expression of
   JavaGlobalVar _ _ -> pure expression
   JavaClassDecl _ _ _ -> pure expression
   JavaRaw _ -> pure expression
+  JavaUndefined -> pure expression
   JavaAssign name value -> JavaAssign name <$> visit value
   JavaLazyAssign name value -> JavaLazyAssign name <$> visit value
   JavaStaticMethod name args body -> JavaStaticMethod name args <$> visit body

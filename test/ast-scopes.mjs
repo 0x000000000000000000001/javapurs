@@ -10,7 +10,7 @@ import { isClosedValue } from "../output/Javapurs.Raw/index.js";
 import { hasAnyContinue, hasDirectContinue, hasTargetContinue } from "../output/Javapurs.ControlFlow/index.js";
 import { translateOperator2 } from "../output/Javapurs.Operators/index.js";
 import { chunkFile } from "../output/Javapurs.Chunk/index.js";
-import { printFile } from "../output/Javapurs.Printer/index.js";
+import { printExpr, printFile } from "../output/Javapurs.Printer/index.js";
 import { runtimeSource } from "../output/Javapurs.IntFunctions/index.js";
 import { tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
 import { runCommandSync } from "../tools/test-process.mjs";
@@ -53,8 +53,9 @@ assert.equal(hasDirectContinue(new A.JavaLet("value", raw(0), jump)), true);
 assert.equal(hasDirectContinue(new A.JavaLet("value", jump, raw(0))), false);
 assert.equal(isClosedValue("__M$Any.__lazy_get_value() + capture"), false,
   "a generated-looking method prefix does not prove raw text closed");
-assert.equal(isClosedValue("null /* TODO: value */ + capture"), false,
+assert.equal(isClosedValue("null /* closed comment */ + capture"), false,
   "text after a comment still has unknown captures");
+assert.equal(printExpr(new A.JavaUndefined()), "null", "undefined is an explicit structural node");
 assert.equal(isClosedValue("1-e"), false, "a subtraction can read the local e");
 assert.equal(isClosedValue("new Object[1-e]"), false, "array dimensions can capture too");
 for (const literal of ["0", "-2147483648", "1.0e-7", "-0.0", "Double.NaN", "new Object[300]"]) {

@@ -115,6 +115,7 @@ chunkStatement statement = case statement of
   JavaIf condition yes no -> rebuildBranches condition yes no
   JavaBlock statements body -> rebuildBlock scopeCost statements body
   JavaRaw _ -> pure { expr: statement, cost: 1 }
+  JavaUndefined -> pure { expr: statement, cost: 1 }
   JavaWhileTrue _ _ _ _ -> pure { expr: statement, cost: 1 }
   JavaMemoizedLoop _ _ _ _ _ -> pure { expr: statement, cost: 1 }
   _ -> do
@@ -145,6 +146,7 @@ rebuildBlock weight statements body = withLocalTypes Map.empty do
 rebuildValue :: JavaExpr -> Chunk ChunkedValue
 rebuildValue expression = case expression of
   JavaString text -> closedValue expression (textCost text)
+  JavaUndefined -> closedValue expression 1
   JavaRaw text -> pure
     { expr: expression, cost: textCost text, captures: rawCaptures text, form: RawFragment }
   JavaLocal name -> pure (valueResult expression 1 (localCapture name))

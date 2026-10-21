@@ -1,3 +1,5 @@
+-- | Render method, supplier and loop bodies from JavaAst. ControlFlow decides
+-- | which tails can continue; this module only chooses the Java layout.
 module Javapurs.Printer.Body
   ( BodyMode(..), Loop, printBody, printIntBody, printLoopBody
   , printTcoThrow, printLetRecBindings

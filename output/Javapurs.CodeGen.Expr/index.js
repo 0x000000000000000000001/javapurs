@@ -56,7 +56,7 @@ var translateLocal = function (env) {
                     };
                     return new Javapurs_JavaAst.JavaLocal(name);
                 };
-                throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 323, column 6 - line 327, column 26): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 327, column 6 - line 331, column 26): " + [ v.constructor.name ]);
             };
         };
     };
@@ -100,7 +100,7 @@ var tailTarget = function (context) {
                 });
             });
         };
-        throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 131, column 1 - line 131, column 69): " + [ context.constructor.name, flat.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 135, column 1 - line 135, column 69): " + [ context.constructor.name, flat.constructor.name ]);
     };
 };
 var mentionsJavaLocal = function (name) {
@@ -143,7 +143,7 @@ var boxedFunctionArity = function (env) {
             if (v1 instanceof Data_Maybe.Nothing) {
                 return 0;
             };
-            throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 148, column 9 - line 150, column 23): " + [ v1.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 152, column 9 - line 154, column 23): " + [ v1.constructor.name ]);
         };
         return 0;
     };
@@ -230,9 +230,9 @@ var translateTyped = function (env) {
                     if (v1 instanceof Data_Maybe.Nothing) {
                         return translateExpression(env)(context)(expression);
                     };
-                    throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 165, column 16 - line 171, column 60): " + [ v1.constructor.name ]);
+                    throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 169, column 16 - line 175, column 60): " + [ v1.constructor.name ]);
                 };
-                throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 163, column 3 - line 171, column 60): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 167, column 3 - line 175, column 60): " + [ v.constructor.name ]);
             };
         };
     };
@@ -268,7 +268,7 @@ var translateRecursiveBindings = function (env) {
                                     result: new Javapurs_JavaAst.JavaRaw("null")
                                 };
                             };
-                            throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 201, column 7 - line 215, column 74): " + [ v.constructor.name ]);
+                            throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 205, column 7 - line 219, column 74): " + [ v.constructor.name ]);
                         };
                         return Javapurs_CodeGen_Context.pureExpression(recursiveScope(Data_Unit.unit));
                     };
@@ -292,7 +292,7 @@ var translatePrimitiveEffect = function (env) {
                     result: new Javapurs_JavaAst.JavaLocal("__value$write")
                 };
             };
-            throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 251, column 40 - line 265, column 6): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 255, column 40 - line 269, column 6): " + [ v.constructor.name ]);
         };
     };
 };
@@ -409,7 +409,7 @@ var translateLiteral = function (env) {
             if (v instanceof PureScript_Backend_Optimizer_CoreFn.LitRecord) {
                 return new Javapurs_JavaAst.JavaRecord(translateFields(env)(context)(v.value0));
             };
-            throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 342, column 32 - line 350, column 70): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 346, column 32 - line 354, column 70): " + [ v.constructor.name ]);
         };
     };
 };
@@ -443,7 +443,7 @@ var translateExpression = function (env) {
                     if (v1 instanceof Data_Maybe.Nothing) {
                         return Data_Function.apply(Javapurs_CodeGen_Context.pureExpression)(translateApplication(env)(context)(flat));
                     };
-                    throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 45, column 12 - line 47, column 76): " + [ v1.constructor.name ]);
+                    throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 48, column 12 - line 50, column 76): " + [ v1.constructor.name ]);
                 };
                 if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.UncurriedApp) {
                     return Data_Function.apply(Javapurs_CodeGen_Context.pureExpression)(translateApplication(env)(context)(Javapurs_CodeGen_Syntax.flattenApp(v)));
@@ -520,7 +520,7 @@ var translateExpression = function (env) {
                         if (v.value1.value0.value0 instanceof Data_Maybe.Nothing) {
                             return env.moduleName;
                         };
-                        throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 71, column 21 - line 73, column 38): " + [ v.value1.value0.value0.constructor.name ]);
+                        throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 74, column 21 - line 76, column 38): " + [ v.value1.value0.value0.constructor.name ]);
                     })();
                     return Data_Function.apply(Javapurs_CodeGen_Context.pureExpression)((function () {
                         var $205 = Data_Array["null"](values);
@@ -558,15 +558,15 @@ var translateExpression = function (env) {
                         if (v.value1.value0 instanceof PureScript_Backend_Optimizer_Syntax.Op2) {
                             return Javapurs_Operators.translateOperator2(env.moduleName)(v.value1.value0.value0)(translateValue(env)(context)(v.value1.value0.value1))(translateValue(env)(context)(v.value1.value0.value2));
                         };
-                        throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 86, column 43 - line 89, column 79): " + [ v.value1.value0.constructor.name ]);
+                        throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 89, column 43 - line 92, column 79): " + [ v.value1.value0.constructor.name ]);
                     })());
                 };
                 if (v.value1 instanceof PureScript_Backend_Optimizer_Syntax.PrimUndefined) {
-                    return Data_Function.apply(Javapurs_CodeGen_Context.pureExpression)(new Javapurs_JavaAst.JavaRaw("null /* TODO: PrimUndefined */"));
+                    return Javapurs_CodeGen_Context.pureExpression(Javapurs_JavaAst.JavaUndefined.value);
                 };
-                throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 41, column 17 - line 90, column 81): " + [ v.value1.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 44, column 17 - line 94, column 52): " + [ v.value1.constructor.name ]);
             };
-            throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 33, column 1 - line 33, column 82): " + [ env.constructor.name, context.constructor.name, v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 36, column 1 - line 36, column 82): " + [ env.constructor.name, context.constructor.name, v.constructor.name ]);
         };
     };
 };
@@ -656,7 +656,7 @@ var translateApplication = function (env) {
                 };
                 return Data_Foldable.foldl(Data_Foldable.foldableArray)(Javapurs_JavaAst.JavaApply.create)($$function)($$arguments);
             };
-            throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 122, column 6 - line 127, column 49): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 126, column 6 - line 131, column 49): " + [ v.constructor.name ]);
         };
     };
 };
@@ -678,7 +678,7 @@ var translateAccessor = function (env) {
                     if (v instanceof Data_Maybe.Nothing) {
                         return new Javapurs_JavaAst.JavaMapGet(receiver, accessor.value0);
                     };
-                    throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 359, column 25 - line 361, column 46): " + [ v.constructor.name ]);
+                    throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 363, column 25 - line 365, column 46): " + [ v.constructor.name ]);
                 };
                 if (accessor instanceof PureScript_Backend_Optimizer_Syntax.GetCtorField) {
                     var modPart = (function () {
@@ -688,14 +688,14 @@ var translateAccessor = function (env) {
                         if (accessor.value0.value0 instanceof Data_Maybe.Nothing) {
                             return env.moduleName;
                         };
-                        throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 363, column 21 - line 365, column 38): " + [ accessor.value0.value0.constructor.name ]);
+                        throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 367, column 21 - line 369, column 38): " + [ accessor.value0.value0.constructor.name ]);
                     })();
                     return new Javapurs_JavaAst.JavaPropertyAccess(receiver, Javapurs_Naming.constructorClassName(modPart)(accessor.value3), "value" + Data_Show.show(Data_Show.showInt)(accessor.value5));
                 };
                 if (accessor instanceof PureScript_Backend_Optimizer_Syntax.GetIndex) {
                     return new Javapurs_JavaAst.JavaArrayIndex(receiver, new Javapurs_JavaAst.JavaRaw(Data_Show.show(Data_Show.showInt)(accessor.value0)));
                 };
-                throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 358, column 6 - line 367, column 69): " + [ accessor.constructor.name ]);
+                throw new Error("Failed pattern match at Javapurs.CodeGen.Expr (line 362, column 6 - line 371, column 69): " + [ accessor.constructor.name ]);
             };
         };
     };

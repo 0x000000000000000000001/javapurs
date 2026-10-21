@@ -5,73 +5,10 @@ import { compilerRoot, prepareWorkspace } from "./fixture-runner.mjs";
 import { javaCompileArgs } from "./java-tools.mjs";
 import { ProcessFailure } from "./test-process.mjs";
 import { UsageError } from "./test-selection.mjs";
+import { portSuites } from "./port-profiles.mjs";
 
-const awaited = (directory, wrapper, checks) => ({
-  directory, wrapper, ffi: wrapper, checks, main: "Test.PortRunner", completion: "awaited",
-  profile: "port-suite", sources: [["test", "src"]], exclude: ["Bench.purs"],
-  javacArgs: [], javaArgs: ["-Xss8m"],
-});
-const synchronous = directory => ({
-  directory, main: "Test.Main", completion: "synchronous", template: "spago.java.yaml",
-  profile: "fixture", sources: [["src", "src"], ["test", "test"]], exclude: [],
-  javacArgs: [], javaArgs: ["-Xss8m"],
-});
-const spec = (directory, checks) => ({
-  ...synchronous(directory), main: "Test.PortRunner", wrapper: "Spec", ffi: "Aff", completion: "awaited", checks,
-});
-const unsupported = (directory, reason) => ({ ...synchronous(directory), completion: "unsupported", reason });
+export { portSuites };
 
-export const portSuites = {
-  aff: awaited("javapurs-aff", "Aff", 45),
-  promise: awaited("javapurs-js-promise", "Promise", 13),
-  "promise-aff": awaited("javapurs-js-promise-aff", "Aff", 7),
-  arrays: synchronous("javapurs-arrays"),
-  assert: synchronous("javapurs-assert"),
-  avar: synchronous("javapurs-avar"),
-  "catenable-lists": synchronous("javapurs-catenable-lists"),
-  console: synchronous("javapurs-console"),
-  datetime: synchronous("javapurs-datetime"),
-  effect: synchronous("javapurs-effect"),
-  enums: synchronous("javapurs-enums"),
-  "foldable-traversable": synchronous("javapurs-foldable-traversable"),
-  foreign: synchronous("javapurs-foreign"),
-  "foreign-object": synchronous("javapurs-foreign-object"),
-  free: synchronous("javapurs-free"),
-  functions: synchronous("javapurs-functions"),
-  integers: synchronous("javapurs-integers"),
-  "js-date": synchronous("javapurs-js-date"),
-  lazy: synchronous("javapurs-lazy"),
-  "node-buffer": synchronous("javapurs-node-buffer"),
-  "node-event-emitter": spec("javapurs-node-event-emitter", 19),
-  "node-fs": { ...synchronous("javapurs-node-fs"), main: "Test.PortRunner", wrapper: "Fs", ffi: "Aff" },
-  "node-http": { ...synchronous("javapurs-node-http"), main: "Test.PortRunner", wrapper: "Http", ffi: "Aff" },
-  "node-net": { ...synchronous("javapurs-node-net"), main: "Test.PortRunner", wrapper: "Net", ffi: "Aff" },
-  "node-path": synchronous("javapurs-node-path"),
-  "node-process": synchronous("javapurs-node-process"),
-  "node-streams": synchronous("javapurs-node-streams"),
-  now: synchronous("javapurs-now"),
-  nullable: synchronous("javapurs-nullable"),
-  numbers: synchronous("javapurs-numbers"),
-  "ordered-collections": synchronous("javapurs-ordered-collections"),
-  partial: synchronous("javapurs-partial"),
-  prelude: synchronous("javapurs-prelude"),
-  quickcheck: synchronous("javapurs-quickcheck"),
-  random: synchronous("javapurs-random"),
-  record: synchronous("javapurs-record"),
-  refs: synchronous("javapurs-refs"),
-  exceptions: synchronous("javapurs-exceptions"),
-  run: synchronous("javapurs-run"),
-  spec: { ...spec("javapurs-spec", 70), wrapper: "SpecFull", timeout: 600000, javaArgs: ["-Djavapurs.test.timeout=600000"],
-    sources: [["src", "src"], ["test", "test"], ["integration-tests", "integration-tests"]] },
-  st: synchronous("javapurs-st"),
-  strings: { ...synchronous("javapurs-strings"), javacArgs: ["-J-Xss64m"], javaArgs: ["-Xss64m"] },
-  "strings-extra": synchronous("javapurs-strings-extra"),
-  unfoldable: synchronous("javapurs-unfoldable"),
-  "unsafe-coerce": synchronous("javapurs-unsafe-coerce"),
-  uuid: spec("javapurs-uuid", 6),
-  variant: synchronous("javapurs-variant"),
-  "yoga-json": spec("javapurs-yoga-json", 52),
-};
 export const completionMarker = "PORT SUITE COMPLETED";
 
 function suiteFor(port) {
@@ -150,7 +87,7 @@ export async function runPortSuite(port, directory, tools, processes, { root = c
   if (suite.completion === "awaited") {
     const output = readFileSync(join(directory, "logs/execution.log"), "utf8");
     assertCompleted(output);
-    if (["Spec", "SpecOnly", "SpecFull"].includes(suite.wrapper)) {
+    if (suite.assertion === "spec") {
       assert.deepEqual(output.split(/\r?\n/).filter(line => line.startsWith("PORT SPEC PASSED: ")),
         [`PORT SPEC PASSED: ${suite.checks}`], `${port}: incomplete assertion inventory`);
     } else {
@@ -173,7 +110,7 @@ function assertCompleted(output) {
 // deliberately fail after suspension, reject, never complete, or exit early.
 export async function checkPortRunner(port, directory, tools, processes) {
   const probes = [["late-failure", "runner late assertion"], ["rejection", "runner rejection"], ["timeout", "Port suite timed out"]];
-  if (["Spec", "SpecOnly", "SpecFull"].includes(suiteFor(port).wrapper)) probes.push(["spec-failure", "Port spec failed"]);
+  if (suiteFor(port).assertion === "spec") probes.push(["spec-failure", "Port spec failed"]);
   for (const [mode, diagnostic] of probes) {
     const log = join(directory, "logs", `probe-${mode}.log`);
     await assert.rejects(() => processes.run(`${port}: probe ${mode}`, tools.java,
@@ -189,5 +126,5 @@ export async function checkPortRunner(port, directory, tools, processes) {
     ["-Djavapurs.test.mode=early-exit", "-cp", "output/java/classes", "MainRun"],
     { cwd: directory, env: tools.env, timeout: 5000, log });
   assert.throws(() => assertCompleted(readFileSync(log, "utf8")), /suite-completion marker/);
-  console.log(`${port}: delayed assertion, rejection, timeout and premature exit detected${["Spec", "SpecOnly", "SpecFull"].includes(suiteFor(port).wrapper) ? "; Spec failure detected" : ""}`);
+  console.log(`${port}: delayed assertion, rejection, timeout and premature exit detected${suiteFor(port).assertion === "spec" ? "; Spec failure detected" : ""}`);
 }

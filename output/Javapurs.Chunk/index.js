@@ -233,7 +233,7 @@ var emitArrayGroups = function (offset) {
                 });
             });
         };
-        throw new Error("Failed pattern match at Javapurs.Chunk (line 364, column 33 - line 369, column 71): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.Chunk (line 366, column 33 - line 371, column 71): " + [ v.constructor.name ]);
     };
 };
 var closedValue = function (expr) {
@@ -279,6 +279,9 @@ var analyzedValue = function (value) {
 var rebuildValue = function (expression) {
     if (expression instanceof Javapurs_JavaAst.JavaString) {
         return closedValue(expression)(Javapurs_Chunk_Extraction.textCost(expression.value0));
+    };
+    if (expression instanceof Javapurs_JavaAst.JavaUndefined) {
+        return closedValue(expression)(1);
     };
     if (expression instanceof Javapurs_JavaAst.JavaRaw) {
         return Control_Applicative.pure(applicativeStateT)({
@@ -645,6 +648,12 @@ var chunkStatement = function (statement) {
         return rebuildBlock(Javapurs_Chunk_Extraction.scopeCost)(statement.value0)(statement.value1);
     };
     if (statement instanceof Javapurs_JavaAst.JavaRaw) {
+        return Control_Applicative.pure(applicativeStateT)({
+            expr: statement,
+            cost: 1
+        });
+    };
+    if (statement instanceof Javapurs_JavaAst.JavaUndefined) {
         return Control_Applicative.pure(applicativeStateT)({
             expr: statement,
             cost: 1
