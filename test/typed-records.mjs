@@ -1,10 +1,8 @@
 import * as PursMap from "../output/Data.Map/index.js";
 import assert from "node:assert/strict";
 import { intFunctionSource, tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
-import { readFileSync, writeFileSync } from "node:fs";
-import { runCommandSync } from "../tools/test-process.mjs";
-import { resolveJavaTools } from "../tools/java-tools.mjs";
-import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
+import { readFileSync } from "node:fs";
+import { withJavaFixture } from "./support/java-fixture.mjs";
 import { join, resolve } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import * as C from "../output/PureScript.Backend.Optimizer.CoreFn/index.js";
@@ -22,7 +20,6 @@ import { renameWith } from "../output/Javapurs.Rename/index.js";
 // Run after the project backend build; --records=maps exercises the same values
 // and open/closed record operations using the retained Map representation.
 const typedRecords = !process.argv.includes("--records=maps");
-const { javac, java, javacArgs } = resolveJavaTools();
 const tuples = fields => fields.map(([key, value]) => new Tuple(key, value));
 const type = (fields, tail = Nothing.value) => new C.Record(new C.Row(tuples(fields), tail));
 const typed = (ty, value) => new S.Typed(ty, value);
@@ -394,9 +391,7 @@ public final class TypedRecordChecks {
 `, ["Test_Records", "Records_Producer", "Records_Consumer", "Records_Parameters"]));
 
 sources.set("__IntFn.java", intFunctionSource);
-await withTemporaryDirectory("javapurs-typed-records-test-", directory => {
-  for (const [name, source] of sources) writeFileSync(join(directory, name), source);
-  runCommandSync(javac, [...javacArgs, "-nowarn", ...sources.keys()], { cwd: directory, stdio: "inherit", timeout: 60000 });
-  runCommandSync(java, ["-cp", directory, "TypedRecordChecks"], { stdio: "inherit", timeout: 60000 });
-  console.log("Record shape recognition, typed translation and renaming passed");
-});
+await withJavaFixture("javapurs-typed-records-test-", {
+  sources,
+  main: "TypedRecordChecks",
+}, () => console.log("Record shape recognition, typed translation and renaming passed"));

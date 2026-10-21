@@ -22,20 +22,13 @@ import Javapurs.Chunk.Extraction
   ( ChunkedValue, LocalTypes, HelperParams, ResultForm(..), ExtractionPlan(..)
   , planExtraction, maxChunkCost, nodeCost, textCost, scopeCost, filledArrayCost, arrayGroupSize
   )
+import Javapurs.Chunk.Helpers (fillGroup, groupItems, largeClosedArray)
+import Javapurs.Chunk.Types (ArrayGroupCall, Chunk, ChunkState, ChunkedStatement)
+import Javapurs.Chunk.Value
+  ( analyzedValue, bindingValue, closedValue, loopSnapshots, opaqueValue
+  , valueResult, valueWithChild, valueWithChildren
+  )
 import Javapurs.JavaAst (JavaExpr(..), JavaFile, JavaParamType(..))
-import Javapurs.Naming (loopSnapshotName)
-
-type ChunkedStatement = { expr :: JavaExpr, cost :: Int }
-type ArrayGroupCall = { offset :: Int, count :: Int, call :: JavaExpr }
-
-type ChunkState =
-  { counter :: Int
-  , localCounter :: Int
-  , helpers :: Array JavaExpr
-  , locals :: LocalTypes
-  }
-
-type Chunk = State ChunkState
 
 chunkFile :: JavaFile -> JavaFile
 chunkFile file =
@@ -289,35 +282,6 @@ chunkField (Tuple name value) = Tuple name <$> chunkValue value
 fieldExpr :: Tuple String ChunkedValue -> Tuple String JavaExpr
 fieldExpr (Tuple name value) = Tuple name value.expr
 
-valueResult :: JavaExpr -> Int -> Captures -> ChunkedValue
-valueResult expr cost captures = { expr, cost, captures, form: ObjectResult }
-
--- Statement containers need lexical analysis of the rebuilt sequence rather
--- than the union of individual statements (which would lose their binders).
-analyzedValue :: ChunkedStatement -> ChunkedValue
-analyzedValue value = valueResult value.expr value.cost (analyzeCaptures value.expr)
-
-closedValue :: JavaExpr -> Int -> Chunk ChunkedValue
-closedValue expr cost = pure (valueResult expr cost noCaptures)
-
-opaqueValue :: CaptureBarrier -> JavaExpr -> Chunk ChunkedValue
-opaqueValue barrier expr = pure { expr, cost: 1, captures: Left barrier, form: OpaqueRoot }
-
-valueWithChild :: JavaExpr -> ChunkedValue -> Chunk ChunkedValue
-valueWithChild expr value = pure (valueResult expr (nodeCost [ value.cost ]) value.captures)
-
-valueWithChildren :: JavaExpr -> Array ChunkedValue -> Chunk ChunkedValue
-valueWithChildren expr values = pure (valueResult expr (nodeCost (map _.cost values)) (combineCaptures (map _.captures values)))
-
-bindingValue :: JavaExpr -> Array String -> ChunkedValue -> Chunk ChunkedValue
-bindingValue expr names value = pure (valueResult expr (nodeCost [ value.cost ]) (withoutBindings names value.captures))
-
--- | Only final per-iteration snapshots are available as helper parameters.
--- | The mutable loop storage and memoized IntSuppliers never enter LocalTypes.
-loopSnapshots :: Array String -> Array String -> LocalTypes
-loopSnapshots params intParams = Map.fromFoldable $ map
-  (\name -> Tuple (loopSnapshotName name) (if Array.elem name intParams then ParamInt else ParamObject)) params
-
 -- Helper construction ---------------------------------------------------------
 
 -- | Both ordinary extraction and closed-array groups use the same allocator.
@@ -339,9 +303,6 @@ extractValue params body = do
   call <- emitHelper params body
   pure (valueResult call (1 + Array.length params) (combineCaptures (map (localCapture <<< fst) params)))
 
-largeClosedArray :: Array ChunkedValue -> Boolean
-largeClosedArray values = nodeCost (map _.cost values) > maxChunkCost && Array.all (isClosed <<< _.captures) values
-
 -- | The group helpers are nullary, so every item must be closed. The array is
 -- | allocated once, then filled in original order. Closed does not mean pure.
 chunkClosedArray :: Array ChunkedValue -> Chunk ChunkedValue
@@ -355,13 +316,6 @@ chunkClosedArray values = do
     body = JavaBlock (Array.cons allocation fill) (JavaLocal name)
   pure (valueResult body (filledArrayCost size) (analyzeCaptures body))
 
-groupItems :: Array ChunkedValue -> Array (Array JavaExpr)
-groupItems values = splitGroups (arrayGroupSize (map _.cost values)) values
-  where
-  splitGroups size remaining = case Array.splitAt size remaining of
-    { before, after: _ } | Array.null before -> []
-    { before, after } -> Array.cons (map _.expr before) (splitGroups size after)
-
 emitArrayGroups :: Int -> Array (Array JavaExpr) -> Chunk (Array ArrayGroupCall)
 emitArrayGroups offset groups = case Array.uncons groups of
   Nothing -> pure []
@@ -369,17 +323,6 @@ emitArrayGroups offset groups = case Array.uncons groups of
     call <- emitHelper [] (JavaArray items)
     rest <- emitArrayGroups (offset + Array.length items) tail
     pure (Array.cons { offset, count: Array.length items, call } rest)
-
--- | Materialize each group exactly once before reading its elements. Duplicating
--- | the call would repeat all effects/allocations and destroy object sharing.
-fillGroup :: String -> ArrayGroupCall -> Array JavaExpr
-fillGroup arrayName group =
-  let groupName = arrayName <> "$group" <> show group.offset
-  in Array.cons (JavaLocalAssign groupName group.call) $ Array.mapWithIndex
-    (\index _ ->
-      JavaArraySet (JavaLocal arrayName) (JavaRaw (show (group.offset + index)))
-        (JavaArrayIndex (JavaLocal groupName) (JavaRaw (show index))))
-    (Array.range 0 (group.count - 1))
 
 freshArrayLocal :: Chunk String
 freshArrayLocal = do

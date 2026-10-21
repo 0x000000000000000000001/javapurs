@@ -38,7 +38,7 @@ application et publie du Java sous `output/java/`.
 | `CodeGen.Expr` / `CodeGen.Context` / `CodeGen.Syntax` | Traduction récursive des expressions, environnement lexical et contrats de syntaxe. | `docs/expressions.md` |
 | `Javapurs.JavaAst` | IR Java mixte : valeurs, statements, déclarations et sélecteurs. | `docs/ast.md` |
 | `Javapurs.Rename` | Unicité des liaisons avant chunking. | `docs/chunking.md` |
-| `Javapurs.Chunk` / `Chunk.Captures` / `Chunk.Extraction` | Découpage des expressions, captures et admission par coût. | `docs/chunking.md` |
+| `Javapurs.Chunk` / `Chunk.Types` / `Chunk.Value` / `Chunk.Helpers` / `Chunk.Captures` / `Chunk.Extraction` | Découpage des expressions, état/result shapes, valeurs, groupes de tableaux, captures et admission par coût. | `docs/chunking.md` |
 | `Javapurs.Ownership` / `Ownership.*` | Workers consommateurs, cellules et preuves d’usage. | `docs/specialized-passes.md` |
 | `Javapurs.Representation` / `TypeEvidence` | Choix de stockage et preuves de types après PBO. | `docs/representations.md` |
 | `Javapurs.DirectCalls` / `Reuse` / `LoopInvariants` / `IntLoops` | Passes ciblées de simplification et de spécialisation. | `docs/specialized-passes.md` |
@@ -68,6 +68,7 @@ application et publie du Java sous `output/java/`.
 | `test/*.mjs` | Suites directes Node avec fixtures Java/PureScript, organisées par capacité. |
 | `test/driver.mjs` | Compilation d’un module de test, génération, `javac` et exécution. |
 | `test/child-process.mjs` | Probe FFI `node-child-process` : spawn, stdout, exit tardif. |
+| `test/support/java-fixture.mjs` | Cycle commun des fixtures Java : sources, `javac`, lancement JVM. |
 | `test/test-tools.mjs` | Tests du runner, des profils, des launchers et de la conservation des workspaces. |
 | `tools/fixture-runner.mjs` | Préparation des workspaces de fixtures et exécution des phases. |
 | `tools/test-workspace.mjs` | Cycle de vie des répertoires temporaires et logs. |
@@ -108,7 +109,7 @@ Mesures statiques, reproductibles avec `wc`, `find` et `grep` :
 | Lignes PureScript du compilateur (`src/**/*.purs`) | 5 355 |
 | Fichiers Java FFI de ports (`javapurs-*/src/**/*.java`) | 139 |
 | Lignes Java FFI de ports | 8 643 |
-| Ports avec `src/`, `test/`, `bin/test`, `spago.java.yaml` | 49 |
+| Ports standards avec `src/`, `test/`, `bin/test`, `spago.java.yaml` | 48 (+7 auxiliaires) |
 | Suites directes listées par la matrice | 30 |
 | `docs/testing.md` | 3 556 lignes |
 | `test/test-tools.mjs` + `test/support/tool-fixtures.mjs` | 551 + 150 lignes après M44 (677 à l’ouverture) |
@@ -144,4 +145,4 @@ Les validations de départ restent celles de M32 : Spec **70/70**, cinq sondes,
    avant de modifier les passes spécialisées.
 4. Lire [le guide de test](testing.md#matrice-des-tests) et `test/child-process.mjs`
    pour reproduire une validation ciblée.
-5. Consulter [le plan v4](../todo.md) pour le lot et le critère de clôture.
+5. Consulter [le plan v5](../todo.md) pour le lot et le critère de clôture.

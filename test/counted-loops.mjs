@@ -1,9 +1,5 @@
 import assert from "node:assert/strict";
-import { writeFileSync } from "node:fs";
-import { runCommandSync } from "../tools/test-process.mjs";
-import { resolveJavaTools } from "../tools/java-tools.mjs";
-import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
-import { join } from "node:path";
+import { withJavaFixture } from "./support/java-fixture.mjs";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import { Just, Nothing } from "../output/Data.Maybe/index.js";
 import { countedLoop } from "../output/Javapurs.CountedLoops/index.js";
@@ -11,7 +7,6 @@ import { printExpr } from "../output/Javapurs.Printer/index.js";
 import { tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
 
 // Run after rebuilding the backend: node test/counted-loops.mjs
-const { javac, java, javacArgs } = resolveJavaTools();
 const raw = value => new A.JavaRaw(String(value));
 const local = name => new A.JavaLocal(name);
 const snapshot = name => local(`__final_${name}`);
@@ -205,10 +200,8 @@ public final class CountedLoopRegression {
 `;
 
 console.log(`Counted loop classification: ${selections} selection and rejection cases passed`);
-await withTemporaryDirectory("javapurs-counted-loop-test-", directory => {
-  const file = join(directory, "CountedLoopRegression.java");
-  writeFileSync(file, source);
-  writeFileSync(join(directory, "TcoLoop.java"), tcoLoopSource);
-  runCommandSync(javac, [...javacArgs, "-nowarn", file, join(directory, "TcoLoop.java")], { stdio: "inherit", timeout: 60000 });
-  runCommandSync(java, ["-cp", directory, "CountedLoopRegression"], { stdio: "inherit", timeout: 30000 });
+await withJavaFixture("javapurs-counted-loop-test-", {
+  sources: { "CountedLoopRegression.java": source, "TcoLoop.java": tcoLoopSource },
+  main: "CountedLoopRegression",
+  runTimeout: 30_000,
 });

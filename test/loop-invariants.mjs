@@ -1,11 +1,8 @@
 import * as PursMap from "../output/Data.Map/index.js";
 import assert from "node:assert/strict";
 import { intFunctionSource, tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
-import { writeFileSync } from "node:fs";
-import { runCommandSync } from "../tools/test-process.mjs";
-import { resolveJavaTools } from "../tools/java-tools.mjs";
-import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
-import { join, resolve } from "node:path";
+import { withJavaFixture } from "./support/java-fixture.mjs";
+import { resolve } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import * as C from "../output/PureScript.Backend.Optimizer.CoreFn/index.js";
 import * as S from "../output/PureScript.Backend.Optimizer.Syntax/index.js";
@@ -21,7 +18,6 @@ import { moduleClass, moduleText } from "./support/module-classes.mjs";
 import { translateOperator1, translateOperator2 } from "../output/Javapurs.Operators/index.js";
 
 // Run after the project backend build: node test/loop-invariants.mjs
-const { javac, java, javacArgs } = resolveJavaTools();
 const raw = value => new A.JavaRaw(value);
 const local = name => new A.JavaLocal(name);
 const integer = expression => new A.JavaCast("int", expression);
@@ -405,11 +401,12 @@ public final class LoopInvariantChecks {
   }
 }
 `, ["Invariant_Fixtures"]);
-await withTemporaryDirectory("javapurs-loop-invariants-test-", directory => {
-  writeFileSync(join(directory, "LoopInvariantChecks.java"), source);
-  writeFileSync(join(directory, "TcoLoop.java"), tcoLoopSource);
-  writeFileSync(join(directory, "__IntFn.java"), intFunctionSource);
-  writeFileSync(join(directory, `${moduleClass("Invariant_Fixtures")}.java`), unaryModuleSource);
-  runCommandSync(javac, [...javacArgs, "-nowarn", "LoopInvariantChecks.java", "TcoLoop.java", `${moduleClass("Invariant_Fixtures")}.java`], { cwd: directory, stdio: "inherit", timeout: 60000 });
-  runCommandSync(java, ["-cp", directory, "LoopInvariantChecks"], { stdio: "inherit", timeout: 60000 });
+await withJavaFixture("javapurs-loop-invariants-test-", {
+  sources: {
+    "LoopInvariantChecks.java": source,
+    "TcoLoop.java": tcoLoopSource,
+    "__IntFn.java": intFunctionSource,
+    [`${moduleClass("Invariant_Fixtures")}.java`]: unaryModuleSource,
+  },
+  main: "LoopInvariantChecks",
 });

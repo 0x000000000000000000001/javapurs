@@ -1,5 +1,20 @@
 # Inventaire des launchers de ports
 
+> **M51 — modèle actuel.** Les 48 ports standards ont maintenant le même
+> launcher de 5 lignes, qui déduit le nom du port depuis le dossier. Les 7
+> dossiers auxiliaires sans launcher sont `argonaut-core`, `control`,
+> `js-bigints`, `js-uri`, `node-child-process`, `spec-discovery` et
+> `unsafe-reference` ; leur rôle est documenté ci-dessous. Le contrôle
+> `node tools/check-port-configs.mjs` vérifie les profils, les noms de package,
+> le package set des ports standards et les 2 376 chemins locaux.
+
+Ports auxiliaires : ces dossiers sont des dépendances transitives, des
+bibliothèques sans suite directe, ou des outils hors du registre commun.
+`node-child-process` reste validé par `test/child-process.mjs` et n’a pas encore
+de suite de port Spago standard. `spec-discovery` ne possède qu’une
+configuration, sans launcher. Aucun de ces dossiers n’est présenté comme un port
+exécutable complet.
+
 Relevé M23 du **6 octobre 2026**. Les **45 launchers historiques**, pilotes M22
 inclus, délèguent désormais à `javapurs/test/port-runners.mjs --port=NOM`.
 Chaque nom du tableau désigne le dépôt voisin `javapurs-NOM`, son `bin/test`

@@ -5,6 +5,7 @@ import * as Data_Array from "../Data.Array/index.js";
 import * as Data_Eq from "../Data.Eq/index.js";
 import * as Data_Foldable from "../Data.Foldable/index.js";
 import * as Data_Functor from "../Data.Functor/index.js";
+import * as Data_Generic_Rep from "../Data.Generic.Rep/index.js";
 import * as Data_Maybe from "../Data.Maybe/index.js";
 import * as Data_Monoid from "../Data.Monoid/index.js";
 import * as Data_Ord from "../Data.Ord/index.js";
@@ -717,6 +718,500 @@ var newtypeIdent_ = {
         return undefined;
     }
 };
+var genericSourceBindingId_ = {
+    to: function (x) {
+        return x;
+    },
+    from: function (x) {
+        return x;
+    }
+};
+var genericReExport_ = {
+    to: function (x) {
+        return new ReExport(x.value0, x.value1);
+    },
+    from: function (x) {
+        return new Data_Generic_Rep.Product(x.value0, x.value1);
+    }
+};
+var genericQualified_ = {
+    to: function (x) {
+        return new Qualified(x.value0, x.value1);
+    },
+    from: function (x) {
+        return new Data_Generic_Rep.Product(x.value0, x.value1);
+    }
+};
+var genericProperName_ = {
+    to: function (x) {
+        return x;
+    },
+    from: function (x) {
+        return x;
+    }
+};
+var genericProp_ = {
+    to: function (x) {
+        return new Prop(x.value0, x.value1);
+    },
+    from: function (x) {
+        return new Data_Generic_Rep.Product(x.value0, x.value1);
+    }
+};
+var genericModule_ = {
+    to: function (x) {
+        return x;
+    },
+    from: function (x) {
+        return x;
+    }
+};
+var genericModuleName_ = {
+    to: function (x) {
+        return x;
+    },
+    from: function (x) {
+        return x;
+    }
+};
+var genericMeta_ = {
+    to: function (x) {
+        if (x instanceof Data_Generic_Rep.Inl) {
+            return new IsConstructor(x.value0.value0, x.value0.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && x.value0 instanceof Data_Generic_Rep.Inl) {
+            return IsNewtype.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0 instanceof Data_Generic_Rep.Inl)) {
+            return IsTypeClassConstructor.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0 instanceof Data_Generic_Rep.Inl))) {
+            return IsForeign.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl)))) {
+            return IsWhere.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr)))) {
+            return IsSyntheticApp.value;
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 652, column 1 - line 652, column 31): " + [ x.constructor.name ]);
+    },
+    from: function (x) {
+        if (x instanceof IsConstructor) {
+            return new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, x.value1));
+        };
+        if (x instanceof IsNewtype) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value));
+        };
+        if (x instanceof IsTypeClassConstructor) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value)));
+        };
+        if (x instanceof IsForeign) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value))));
+        };
+        if (x instanceof IsWhere) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value)))));
+        };
+        if (x instanceof IsSyntheticApp) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(Data_Generic_Rep.NoArguments.value)))));
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 652, column 1 - line 652, column 31): " + [ x.constructor.name ]);
+    }
+};
+var genericLiteral_ = {
+    to: function (x) {
+        if (x instanceof Data_Generic_Rep.Inl) {
+            return new LitInt(x.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && x.value0 instanceof Data_Generic_Rep.Inl) {
+            return new LitNumber(x.value0.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0 instanceof Data_Generic_Rep.Inl)) {
+            return new LitString(x.value0.value0.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0 instanceof Data_Generic_Rep.Inl))) {
+            return new LitChar(x.value0.value0.value0.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl)))) {
+            return new LitBoolean(x.value0.value0.value0.value0.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl))))) {
+            return new LitArray(x.value0.value0.value0.value0.value0.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr))))) {
+            return new LitRecord(x.value0.value0.value0.value0.value0.value0);
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 665, column 1 - line 665, column 38): " + [ x.constructor.name ]);
+    },
+    from: function (x) {
+        if (x instanceof LitInt) {
+            return new Data_Generic_Rep.Inl(x.value0);
+        };
+        if (x instanceof LitNumber) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(x.value0));
+        };
+        if (x instanceof LitString) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(x.value0)));
+        };
+        if (x instanceof LitChar) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(x.value0))));
+        };
+        if (x instanceof LitBoolean) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(x.value0)))));
+        };
+        if (x instanceof LitArray) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(x.value0))))));
+        };
+        if (x instanceof LitRecord) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(x.value0))))));
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 665, column 1 - line 665, column 38): " + [ x.constructor.name ]);
+    }
+};
+var genericImport_ = {
+    to: function (x) {
+        return new Import(x.value0, x.value1);
+    },
+    from: function (x) {
+        return new Data_Generic_Rep.Product(x.value0, x.value1);
+    }
+};
+var genericIdent_ = {
+    to: function (x) {
+        return x;
+    },
+    from: function (x) {
+        return x;
+    }
+};
+var genericGuard_ = {
+    to: function (x) {
+        return new Guard(x.value0, x.value1);
+    },
+    from: function (x) {
+        return new Data_Generic_Rep.Product(x.value0, x.value1);
+    }
+};
+var genericExpr_ = {
+    to: function (x) {
+        if (x instanceof Data_Generic_Rep.Inl) {
+            return new ExprVar(x.value0.value0, x.value0.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && x.value0 instanceof Data_Generic_Rep.Inl) {
+            return new ExprLit(x.value0.value0.value0, x.value0.value0.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0 instanceof Data_Generic_Rep.Inl)) {
+            return new ExprConstructor(x.value0.value0.value0.value0, x.value0.value0.value0.value1.value0, x.value0.value0.value0.value1.value1.value0, x.value0.value0.value0.value1.value1.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0 instanceof Data_Generic_Rep.Inl))) {
+            return new ExprAccessor(x.value0.value0.value0.value0.value0, x.value0.value0.value0.value0.value1.value0, x.value0.value0.value0.value0.value1.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl)))) {
+            return new ExprUpdate(x.value0.value0.value0.value0.value0.value0, x.value0.value0.value0.value0.value0.value1.value0, x.value0.value0.value0.value0.value0.value1.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl))))) {
+            return new ExprAbs(x.value0.value0.value0.value0.value0.value0.value0, x.value0.value0.value0.value0.value0.value0.value1.value0, x.value0.value0.value0.value0.value0.value0.value1.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl)))))) {
+            return new ExprApp(x.value0.value0.value0.value0.value0.value0.value0.value0, x.value0.value0.value0.value0.value0.value0.value0.value1.value0, x.value0.value0.value0.value0.value0.value0.value0.value1.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl))))))) {
+            return new ExprCase(x.value0.value0.value0.value0.value0.value0.value0.value0.value0, x.value0.value0.value0.value0.value0.value0.value0.value0.value1.value0, x.value0.value0.value0.value0.value0.value0.value0.value0.value1.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl)))))))) {
+            return new ExprLet(x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0, x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value1.value0, x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value1.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr)))))))) {
+            return new ExprTypeApp(x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0, x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value1.value0, x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value1.value1);
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 660, column 1 - line 660, column 35): " + [ x.constructor.name ]);
+    },
+    from: function (x) {
+        if (x instanceof ExprVar) {
+            return new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, x.value1));
+        };
+        if (x instanceof ExprLit) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, x.value1)));
+        };
+        if (x instanceof ExprConstructor) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, new Data_Generic_Rep.Product(x.value1, new Data_Generic_Rep.Product(x.value2, x.value3))))));
+        };
+        if (x instanceof ExprAccessor) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, new Data_Generic_Rep.Product(x.value1, x.value2))))));
+        };
+        if (x instanceof ExprUpdate) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, new Data_Generic_Rep.Product(x.value1, x.value2)))))));
+        };
+        if (x instanceof ExprAbs) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, new Data_Generic_Rep.Product(x.value1, x.value2))))))));
+        };
+        if (x instanceof ExprApp) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, new Data_Generic_Rep.Product(x.value1, x.value2)))))))));
+        };
+        if (x instanceof ExprCase) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, new Data_Generic_Rep.Product(x.value1, x.value2))))))))));
+        };
+        if (x instanceof ExprLet) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, new Data_Generic_Rep.Product(x.value1, x.value2)))))))))));
+        };
+        if (x instanceof ExprTypeApp) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Product(x.value0, new Data_Generic_Rep.Product(x.value1, x.value2)))))))))));
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 660, column 1 - line 660, column 35): " + [ x.constructor.name ]);
+    }
+};
+var genericExprType_ = {
+    to: function (x) {
+        if (x instanceof Data_Generic_Rep.Inl) {
+            return Int.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && x.value0 instanceof Data_Generic_Rep.Inl) {
+            return $$Number.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0 instanceof Data_Generic_Rep.Inl)) {
+            return $$String.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0 instanceof Data_Generic_Rep.Inl))) {
+            return Char.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl)))) {
+            return $$Boolean.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl))))) {
+            return Unit.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl)))))) {
+            return Any.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl))))))) {
+            return new TypeLevelString(x.value0.value0.value0.value0.value0.value0.value0.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl)))))))) {
+            return new $$Array(x.value0.value0.value0.value0.value0.value0.value0.value0.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl))))))))) {
+            return new TypeVar(x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl)))))))))) {
+            return new ADT(x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0, x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value1.value0, x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value1.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl))))))))))) {
+            return new TypeApp(x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0, x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl)))))))))))) {
+            return new Func(x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0, x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl))))))))))))) {
+            return new Row(x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0, x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl)))))))))))))) {
+            return new Record(x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inl))))))))))))))) {
+            return new ForAll(x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0, x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Data_Generic_Rep.Inr))))))))))))))) {
+            return new ConstrainedType(x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0, x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value1);
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 651, column 1 - line 651, column 35): " + [ x.constructor.name ]);
+    },
+    from: function (x) {
+        if (x instanceof Int) {
+            return new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value);
+        };
+        if (x instanceof $$Number) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value));
+        };
+        if (x instanceof $$String) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value)));
+        };
+        if (x instanceof Char) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value))));
+        };
+        if (x instanceof $$Boolean) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value)))));
+        };
+        if (x instanceof Unit) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value))))));
+        };
+        if (x instanceof Any) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value)))))));
+        };
+        if (x instanceof TypeLevelString) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(x.value0))))))));
+        };
+        if (x instanceof $$Array) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(x.value0)))))))));
+        };
+        if (x instanceof TypeVar) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(x.value0))))))))));
+        };
+        if (x instanceof ADT) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, new Data_Generic_Rep.Product(x.value1, x.value2)))))))))))));
+        };
+        if (x instanceof TypeApp) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, x.value1)))))))))))));
+        };
+        if (x instanceof Func) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, x.value1))))))))))))));
+        };
+        if (x instanceof Row) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, x.value1)))))))))))))));
+        };
+        if (x instanceof Record) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(x.value0)))))))))))))));
+        };
+        if (x instanceof ForAll) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, x.value1)))))))))))))))));
+        };
+        if (x instanceof ConstrainedType) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Product(x.value0, x.value1)))))))))))))))));
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 651, column 1 - line 651, column 35): " + [ x.constructor.name ]);
+    }
+};
+var genericConstructorType_ = {
+    to: function (x) {
+        if (x instanceof Data_Generic_Rep.Inl) {
+            return ProductType.value;
+        };
+        if (x instanceof Data_Generic_Rep.Inr) {
+            return SumType.value;
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 653, column 1 - line 653, column 42): " + [ x.constructor.name ]);
+    },
+    from: function (x) {
+        if (x instanceof ProductType) {
+            return new Data_Generic_Rep.Inl(Data_Generic_Rep.NoArguments.value);
+        };
+        if (x instanceof SumType) {
+            return new Data_Generic_Rep.Inr(Data_Generic_Rep.NoArguments.value);
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 653, column 1 - line 653, column 42): " + [ x.constructor.name ]);
+    }
+};
+var genericComment_ = {
+    to: function (x) {
+        if (x instanceof Data_Generic_Rep.Inl) {
+            return new LineComment(x.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr) {
+            return new BlockComment(x.value0);
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 654, column 1 - line 654, column 34): " + [ x.constructor.name ]);
+    },
+    from: function (x) {
+        if (x instanceof LineComment) {
+            return new Data_Generic_Rep.Inl(x.value0);
+        };
+        if (x instanceof BlockComment) {
+            return new Data_Generic_Rep.Inr(x.value0);
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 654, column 1 - line 654, column 34): " + [ x.constructor.name ]);
+    }
+};
+var genericCaseGuard_ = {
+    to: function (x) {
+        if (x instanceof Data_Generic_Rep.Inl) {
+            return new Unconditional(x.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr) {
+            return new Guarded(x.value0);
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 662, column 1 - line 662, column 40): " + [ x.constructor.name ]);
+    },
+    from: function (x) {
+        if (x instanceof Unconditional) {
+            return new Data_Generic_Rep.Inl(x.value0);
+        };
+        if (x instanceof Guarded) {
+            return new Data_Generic_Rep.Inr(x.value0);
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 662, column 1 - line 662, column 40): " + [ x.constructor.name ]);
+    }
+};
+var genericCaseAlternative_ = {
+    to: function (x) {
+        return new CaseAlternative(x.value0, x.value1);
+    },
+    from: function (x) {
+        return new Data_Generic_Rep.Product(x.value0, x.value1);
+    }
+};
+var genericBinding_ = {
+    to: function (x) {
+        return new Binding(x.value0, x.value1.value0, x.value1.value1);
+    },
+    from: function (x) {
+        return new Data_Generic_Rep.Product(x.value0, new Data_Generic_Rep.Product(x.value1, x.value2));
+    }
+};
+var genericBinder_ = {
+    to: function (x) {
+        if (x instanceof Data_Generic_Rep.Inl) {
+            return new BinderNull(x.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && x.value0 instanceof Data_Generic_Rep.Inl) {
+            return new BinderVar(x.value0.value0.value0, x.value0.value0.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0 instanceof Data_Generic_Rep.Inl)) {
+            return new BinderNamed(x.value0.value0.value0.value0, x.value0.value0.value0.value1.value0, x.value0.value0.value0.value1.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0 instanceof Data_Generic_Rep.Inl))) {
+            return new BinderLit(x.value0.value0.value0.value0.value0, x.value0.value0.value0.value0.value1);
+        };
+        if (x instanceof Data_Generic_Rep.Inr && (x.value0 instanceof Data_Generic_Rep.Inr && (x.value0.value0 instanceof Data_Generic_Rep.Inr && x.value0.value0.value0 instanceof Data_Generic_Rep.Inr))) {
+            return new BinderConstructor(x.value0.value0.value0.value0.value0, x.value0.value0.value0.value0.value1.value0, x.value0.value0.value0.value0.value1.value1.value0, x.value0.value0.value0.value0.value1.value1.value1);
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 666, column 1 - line 666, column 37): " + [ x.constructor.name ]);
+    },
+    from: function (x) {
+        if (x instanceof BinderNull) {
+            return new Data_Generic_Rep.Inl(x.value0);
+        };
+        if (x instanceof BinderVar) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, x.value1)));
+        };
+        if (x instanceof BinderNamed) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, new Data_Generic_Rep.Product(x.value1, x.value2)))));
+        };
+        if (x instanceof BinderLit) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inl(new Data_Generic_Rep.Product(x.value0, x.value1)))));
+        };
+        if (x instanceof BinderConstructor) {
+            return new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Inr(new Data_Generic_Rep.Product(x.value0, new Data_Generic_Rep.Product(x.value1, new Data_Generic_Rep.Product(x.value2, x.value3)))))));
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 666, column 1 - line 666, column 37): " + [ x.constructor.name ]);
+    }
+};
+var genericBind_ = {
+    to: function (x) {
+        if (x instanceof Data_Generic_Rep.Inl) {
+            return new NonRec(x.value0);
+        };
+        if (x instanceof Data_Generic_Rep.Inr) {
+            return new Rec(x.value0);
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 658, column 1 - line 658, column 35): " + [ x.constructor.name ]);
+    },
+    from: function (x) {
+        if (x instanceof NonRec) {
+            return new Data_Generic_Rep.Inl(x.value0);
+        };
+        if (x instanceof Rec) {
+            return new Data_Generic_Rep.Inr(x.value0);
+        };
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 658, column 1 - line 658, column 35): " + [ x.constructor.name ]);
+    }
+};
+var genericAnn_ = {
+    to: function (x) {
+        return x;
+    },
+    from: function (x) {
+        return x;
+    }
+};
 var functorQualified = {
     map: function (f) {
         return function (m) {
@@ -857,7 +1352,7 @@ var $lazy_functorBinder = /* #__PURE__ */ $runtime_lazy("functorBinder", "PureSc
         }
     };
 });
-var functorBinder = /* #__PURE__ */ $lazy_functorBinder(613);
+var functorBinder = /* #__PURE__ */ $lazy_functorBinder(614);
 var $lazy_functorBind = /* #__PURE__ */ $runtime_lazy("functorBind", "PureScript.Backend.Optimizer.CoreFn", function () {
     return {
         map: function (f) {
@@ -954,12 +1449,12 @@ var $lazy_functorGuard = /* #__PURE__ */ $runtime_lazy("functorGuard", "PureScri
         }
     };
 });
-var functorBind = /* #__PURE__ */ $lazy_functorBind(471);
-var functorBinding = /* #__PURE__ */ $lazy_functorBinding(477);
-var functorCaseAlternative = /* #__PURE__ */ $lazy_functorCaseAlternative(499);
-var functorCaseGuard = /* #__PURE__ */ $lazy_functorCaseGuard(514);
-var functorExpr = /* #__PURE__ */ $lazy_functorExpr(491);
-var functorGuard = /* #__PURE__ */ $lazy_functorGuard(521);
+var functorBind = /* #__PURE__ */ $lazy_functorBind(472);
+var functorBinding = /* #__PURE__ */ $lazy_functorBinding(478);
+var functorCaseAlternative = /* #__PURE__ */ $lazy_functorCaseAlternative(500);
+var functorCaseGuard = /* #__PURE__ */ $lazy_functorCaseGuard(515);
+var functorExpr = /* #__PURE__ */ $lazy_functorExpr(492);
+var functorGuard = /* #__PURE__ */ $lazy_functorGuard(522);
 var foldableProp = {
     foldl: function (k) {
         return function (a) {
@@ -1029,7 +1524,7 @@ var $lazy_foldableLiteral = /* #__PURE__ */ $runtime_lazy("foldableLiteral", "Pu
         }
     };
 });
-var foldableLiteral = /* #__PURE__ */ $lazy_foldableLiteral(558);
+var foldableLiteral = /* #__PURE__ */ $lazy_foldableLiteral(559);
 var $lazy_traversableLiteral = /* #__PURE__ */ $runtime_lazy("traversableLiteral", "PureScript.Backend.Optimizer.CoreFn", function () {
     return {
         traverse: function (dictApplicative) {
@@ -1057,7 +1552,7 @@ var $lazy_traversableLiteral = /* #__PURE__ */ $runtime_lazy("traversableLiteral
                     if (v instanceof LitBoolean) {
                         return Control_Applicative.pure(dictApplicative)(new LitBoolean(v.value0));
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 567, column 16 - line 574, column 40): " + [ v.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 568, column 16 - line 575, column 40): " + [ v.constructor.name ]);
                 };
             };
         },
@@ -1074,11 +1569,11 @@ var $lazy_traversableLiteral = /* #__PURE__ */ $runtime_lazy("traversableLiteral
         }
     };
 });
-var traversableLiteral = /* #__PURE__ */ $lazy_traversableLiteral(566);
+var traversableLiteral = /* #__PURE__ */ $lazy_traversableLiteral(567);
 var findProp = function (prop) {
     return Data_Array.findMap(function (v) {
-        var $484 = prop === v.value0;
-        if ($484) {
+        var $1113 = prop === v.value0;
+        if ($1113) {
             return new Data_Maybe.Just(v.value1);
         };
         return Data_Maybe.Nothing.value;
@@ -1115,7 +1610,7 @@ var exprAnn = function (v) {
     if (v instanceof ExprTypeApp) {
         return v.value0;
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 619, column 11 - line 629, column 25): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 620, column 11 - line 630, column 25): " + [ v.constructor.name ]);
 };
 var eqProperName = Data_Eq.eqString;
 var eqModuleNames = function (v) {
@@ -1132,7 +1627,7 @@ var eqModuleNames = function (v) {
         if (v instanceof Data_Maybe.Just && v1 instanceof Data_Maybe.Just) {
             return PureScript_Backend_Optimizer_FfiSupport.compareStringImpl(false)(true)(false)(v.value0)(v1.value0);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 142, column 1 - line 142, column 65): " + [ v.constructor.name, v1.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 143, column 1 - line 143, column 65): " + [ v.constructor.name, v1.constructor.name ]);
     };
 };
 var eqModuleName = Data_Eq.eqString;
@@ -1165,7 +1660,7 @@ var ordQualified = function (dictOrd) {
                         if (v2 instanceof Data_Maybe.Just && v3 instanceof Data_Maybe.Just) {
                             return Data_Ord.compare(ordModuleName)(v2.value0)(v3.value0);
                         };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 96, column 5 - line 96, column 39): " + [ v2.constructor.name, v3.constructor.name ]);
+                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 97, column 5 - line 97, column 39): " + [ v2.constructor.name, v3.constructor.name ]);
                     };
                 };
                 var v2 = compareModule(v.value0)(v1.value0);
@@ -1282,7 +1777,7 @@ var $lazy_eqExprType = /* #__PURE__ */ $runtime_lazy("eqExprType", "PureScript.B
         }
     };
 });
-var eqExprType = /* #__PURE__ */ $lazy_eqExprType(291);
+var eqExprType = /* #__PURE__ */ $lazy_eqExprType(292);
 var $lazy_ordExprType = /* #__PURE__ */ $runtime_lazy("ordExprType", "PureScript.Backend.Optimizer.CoreFn", function () {
     return {
         compare: function (x) {
@@ -1491,7 +1986,7 @@ var $lazy_ordExprType = /* #__PURE__ */ $runtime_lazy("ordExprType", "PureScript
         }
     };
 });
-var ordExprType = /* #__PURE__ */ $lazy_ordExprType(292);
+var ordExprType = /* #__PURE__ */ $lazy_ordExprType(293);
 var eqConstructorType = {
     eq: function (x) {
         return function (y) {
@@ -1636,7 +2131,7 @@ var compareModuleNames = function (v) {
         if (v instanceof Data_Maybe.Just && v1 instanceof Data_Maybe.Just) {
             return PureScript_Backend_Optimizer_FfiSupport.compareStringImpl(Data_Ordering.LT.value)(Data_Ordering.EQ.value)(Data_Ordering.GT.value)(v.value0)(v1.value0);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 133, column 1 - line 133, column 71): " + [ v.constructor.name, v1.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 134, column 1 - line 134, column 71): " + [ v.constructor.name, v1.constructor.name ]);
     };
 };
 var compareIdents = function (v) {
@@ -1674,7 +2169,7 @@ var binderAnn = function (v) {
     if (v instanceof BinderConstructor) {
         return v.value0;
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 635, column 13 - line 640, column 33): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.CoreFn (line 636, column 13 - line 641, column 33): " + [ v.constructor.name ]);
 };
 export {
     Ann,
@@ -1796,6 +2291,28 @@ export {
     functorLiteral,
     foldableLiteral,
     traversableLiteral,
-    functorBinder
+    functorBinder,
+    genericIdent_,
+    genericModuleName_,
+    genericProperName_,
+    genericQualified_,
+    genericAnn_,
+    genericSourceBindingId_,
+    genericExprType_,
+    genericMeta_,
+    genericConstructorType_,
+    genericComment_,
+    genericModule_,
+    genericImport_,
+    genericReExport_,
+    genericBind_,
+    genericBinding_,
+    genericExpr_,
+    genericCaseAlternative_,
+    genericCaseGuard_,
+    genericGuard_,
+    genericProp_,
+    genericLiteral_,
+    genericBinder_
 };
 //# sourceMappingURL=index.js.map

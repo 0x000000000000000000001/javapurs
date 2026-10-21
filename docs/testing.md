@@ -171,6 +171,7 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Prérequis, build et lancement source | [test/source-install.mjs](../test/source-install.mjs) | Six groupes Node/Bash avec commandes contrôlées : bon répertoire de build, dépendances/outils absents, neuf TAST incompatibles malgré version correcte, backend absent/incomplet, destination existante et prérequis d'installation ; aucun réseau ni build réel. |
 | Installation complète et application autonome | [tools/install-source.mjs](../tools/install-source.mjs) | Sept références fetchées, fork GHC/Stack et backend reconstruits, Hello/Refs en Java 17 et JAR exécutés depuis un dossier JAR seul ; Spago 1.0.3, Stack, Git, Node, Bash, JDK complet et dépendances réseau/cache. |
 | Compatibilité Java ciblée | [tools/check-jdk.mjs](../tools/check-jdk.mjs) | Six suites × trois configurations de compilation/exécution, avec chemins/versions, cible 17, sondes bytecode/JVM et logs ; backend construit, deux JDK, `purs` TAST, Spago et ports locaux. |
+| Configurations des ports | [tools/check-port-configs.mjs](../tools/check-port-configs.mjs) | Launchers génériques, profils standards, 7 ports auxiliaires, noms/paths locaux et package set 77.7.0. |
 | Documentation et suivi | [tools/check-docs.mjs](../tools/check-docs.mjs) | Liens/ancres locaux, syntaxe des exemples Bash, inventaire des suites, options de `Config`, score du TODO et présence des preuves des lots cochés ; Node et Bash. |
 
 Pour une modification de `JavaAst` ou de `Printer`, choisir les lignes qui
@@ -1161,3 +1162,165 @@ Les liens README, maintien, compilateur et plans ont été alignés. Aucun
 
 **Conclusion : M45 validé. Le plan v4 est clôturé à 100/100 ; le guide reste
 court et les preuves historiques restent accessibles.**
+
+## Validation M51
+
+### Launchers et configurations — 21 octobre 2026
+
+Les 48 ports standards utilisent désormais le même launcher de cinq lignes :
+le nom du port est déduit du dossier et le dispatcher commun est appelé avec
+`--port=...`. Les launchers historiques ne divergent plus par port.
+
+Les 7 ports sans launcher sont classés auxiliaires dans
+[port-launchers](port-launchers.md#contrat-commun-et-configurations) :
+`argonaut-core`, `control`, `js-bigints`, `js-uri`, `node-child-process`,
+`spec-discovery` et `unsafe-reference`. `node-child-process` reste couvert par
+`test/child-process.mjs` ; `spec-discovery` est une configuration sans suite
+exécutable.
+
+`tools/check-port-configs.mjs` vérifie sans build :
+
+- la présence des 48 profils standards et de leurs launchers ;
+- les 7 ports auxiliaires et leur configuration ;
+- les noms de package et le package set `77.7.0` des ports standards ;
+- les 2 376 chemins locaux déclarés dans les configurations Spago.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `node tools/check-port-configs.mjs` | 48 standards, 7 auxiliaires, 2 376 chemins. |
+| `node --test test/test-tools.mjs` | **27/27**. |
+| `javapurs-node-fs/bin/test` | Code 0. |
+| `javapurs-node-net/bin/test` | Code 0. |
+| `javapurs-node-http/bin/test` | Code 0. |
+| `node tools/check-docs.mjs` | Vert. |
+| `git diff --check` | Propre. |
+
+**Conclusion : M51 validé. Un seul modèle de launcher, aucune ambiguïté sur les
+ports auxiliaires, configurations contrôlées.**
+
+## Validation M52
+
+### Dette FFI résiduelle — 21 octobre 2026
+
+Les deux marqueurs `TODO: PrimUndefined` de `partial` et `strings-extra` sont
+supprimés : le contrat est désormais un commentaire explicite du sentinel PBO,
+rendu en `null` Java.
+
+`strings-extra` ne contient plus de shims Java locaux pour ses dépendances :
+`Data.Array`, `Prelude`, `Partial`, `Strings`, `Console` et `Assert` viennent
+des ports déclarés. Cela supprime **20 fichiers** dont `Data/Array.java`, qui
+contenait de nombreux `FFI_STUB` et des méthodes retournant `null`.
+
+`Node.FS.Stats` documente explicitement son fallback non-POSIX : les bits de
+permission restent nuls lorsque `getPosixFilePermissions` n’est pas disponible.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `javapurs-partial/bin/test` | Code 0. |
+| `javapurs-strings-extra/bin/test` | Code 0. |
+| `javapurs-node-fs/bin/test` | Code 0. |
+| Recherche `FFI_STUB`/`TODO` dans les ports | Aucun. |
+| `node tools/check-docs.mjs` | Vert. |
+| `git diff --check` | Propre. |
+
+**Conclusion : M52 validé. Les ports n’ont plus de stubs silencieux ni de
+marqueurs TODO ; les dépendances FFI sont résolues par les ports réels.**
+
+## Validation M53
+
+### Fixtures Java partagées — 21 octobre 2026
+
+`test/support/java-fixture.mjs` centralise le cycle commun des suites directes :
+matérialisation des sources, appel `javac`, puis lancement de la classe
+principale avec les options JVM. Les assertions, les noms de classes et les
+helpers de boucle/records restent dans leurs suites.
+
+Trois suites ont été migrées sans changement de comportement :
+
+- `counted-loops.mjs` : **51** cas de sélection/rejet ;
+- `loop-invariants.mjs` : **50** contrôles de cache ;
+- `typed-records.mjs` : **75** contrôles runtime.
+
+Aucun helper de boucle ou de record n’a été fusionné entre suites lorsque son
+contrat sémantique différait ; seule la mécanique de compilation/exécution est
+partagée.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `node test/counted-loops.mjs` | Vert, 51 cas. |
+| `node test/loop-invariants.mjs` | Vert, 50 contrôles. |
+| `node test/typed-records.mjs` | Vert, 75 contrôles. |
+| `node --test test/test-tools.mjs` | **27/27**. |
+| `../javapurs-spec/bin/test` | **70 checks**, cinq sondes. |
+| `node tools/check-docs.mjs` | Vert. |
+| `git diff --check` | Propre. |
+
+**Conclusion : M53 validé. Les fixtures Java partagent leur cycle de vie, sans
+perte d’assertions ni de couverture.**
+
+## Validation M54
+
+### Frontières de `Chunk` — 21 octobre 2026
+
+Le chunker est découpé sans modifier la décision d’admission ni le Java produit :
+
+- `Chunk/Types.purs` : état, `Chunk` et formes de résultat ;
+- `Chunk/Value.purs` : construction des valeurs, captures et snapshots ;
+- `Chunk/Helpers.purs` : groupes de tableaux fermés, remplissage et matérialisation ;
+- `Chunk.purs` : traversée récursive et orchestration, **331 lignes** contre 388.
+
+Les helpers de coût, captures et extraction restent dans leurs modules existants.
+Aucun choix d’optimisation n’a été déplacé ou modifié.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `node test/chunk.mjs` | **15 fixtures** vertes. |
+| `node test/codegen.mjs` | **48/48** contrôles JVM par mode. |
+| `node test/driver.mjs` | Vert après régénération complète des sorties PBO. |
+| `node test/typed-records.mjs` | **75** contrôles runtime. |
+| `node tools/check-docs.mjs` | Vert. |
+| `git diff --check` | Propre. |
+
+Le build complet a été nécessaire pour aligner les sorties `output/PureScript.Backend.Optimizer.*` suivies avec la source PBO locale ; le driver a ensuite
+retrouvé `toBackendModuleWithLookups`.
+
+**Conclusion : M54 validé. Les frontières de `Chunk` sont explicites et le
+comportement Java reste couvert.**
+
+## Validation M55
+
+### Reproductibilité et clôture — 21 octobre 2026
+
+Les sorties générées suivies ont été vérifiées par double build :
+
+1. hash de tous les `output/**/*.js` et `*.js.map` ;
+2. `./bin/build` ;
+3. hash après build ;
+4. comparaison sans différence.
+
+Les 48 launchers utilisent le même dispatcher, les 7 ports auxiliaires sont
+documentés et `check-port-configs` valide 2 376 chemins locaux. Le guide
+`start-here`, la carte, la maintenance, le README et la matrice sont à jour.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `node --test test/test-tools.mjs` | **27/27**. |
+| `../javapurs-spec/bin/test` | **70 checks**, cinq sondes. |
+| `node test/child-process.mjs` | Réussi. |
+| `node tools/check-port-configs.mjs` | 48 standards, 7 auxiliaires, 2 376 chemins. |
+| `node tools/check-docs.mjs` | **743 liens**, 68 documents. |
+| Hashes `output/**/*.js(.map)` avant/après build | Identiques. |
+| `git diff --check` | Propre. |
+
+**Conclusion : M55 validé. Le plan v5 est clôturé à 100/100 ; le dépôt est
+documenté, reproductible et sans dette de configuration non contrôlée.**

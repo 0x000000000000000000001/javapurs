@@ -1,170 +1,152 @@
-# Javapurs — plan v4 : consolidation et lisibilité
+# Javapurs — plan v5 : ports, fixtures et frontières
 
-Plan v4 — dernière mise à jour : **21 octobre 2026**.
+Plan v5 — dernière mise à jour : **21 octobre 2026**.
 
-Objectif : réduire la dette de compréhension du compilateur, du runtime Java,
-du harnais de tests et des ports, **sans changement de comportement**. Le code
-doit rester vérifiable par des humains : un module doit avoir une
-responsabilité identifiable, les cas spéciaux doivent être nommés, et les
-raccourcis historiques doivent être supprimés ou documentés.
+Objectif : finir le cleanup structurel après le plan v4. Le compilateur, le
+harnais et les docs sont désormais lisibles ; les points restants sont
+concentrés dans les ports, les configurations Spago, les stubs FFI résiduels et
+les fixtures de tests encore répétitives.
 
-Le [plan v3](docs/plan-v3.md) est clôturé : M20–M32 sont archivés avec leurs
-preuves, dont Spec **70/70** et le port `node-child-process`. Les plans v1 et
-v2 restent dans [plan v2](docs/plan-v2.md).
-
-Ce TODO est suivi à la racine du compilateur. Les chemins sont relatifs au
-workspace parent : `javapurs/` désigne ce dépôt, les ports sont les dossiers
-`javapurs-*` voisins.
+Le [plan v4](docs/plan-v4.md) est clôturé à **100/100**. Le plan v3 et les
+validations historiques restent dans [plan v3](docs/plan-v3.md) et
+[l’historique](docs/validation-history.md).
 
 ## Avancement
 
 **100 / 100 points validés — 100 % — 5 lots terminés sur 5.**
 
-### État de départ vérifié
+### Constats mesurés à l’ouverture
 
-- Spec complet : **70 checks** (62 purs + 8 intégrations) et cinq sondes.
-- `test/child-process.mjs` : spawn, stdout, code de sortie et rejeu d’`exit`.
-- `node --test test/test-tools.mjs` : **27/27**.
-- `node tools/check-docs.mjs` : **684 liens/ancres**, **30 suites**.
-- Tous les protocoles du runner sont traités ; aucune sélection rejetée.
-- Les changements M32 doivent être committés avant d’ouvrir M41.
+- **48** fichiers `javapurs-*/bin/test`, tous réduits à **4 lignes** et au même
+  dispatcher, avec seulement le nom du port qui varie.
+- **49** fichiers `javapurs-*/spago.java.yaml`, dont un pour
+  `javapurs-spec-discovery` sans launcher.
+- **139** fichiers Java FFI dans les ports, **8 653 lignes**.
+- **7** dossiers `javapurs-*` sans `bin/test` : `argonaut-core`, `control`,
+  `js-bigints`, `js-uri`, `node-child-process`, `spec-discovery`,
+  `unsafe-reference`.
+- `node-child-process` possède `spago.yaml` mais ni `spago.java.yaml` ni
+  `bin/test` ; sa validation vit dans `test/child-process.mjs`.
+- Deux ports conservent `null /* TODO: PrimUndefined */` dans
+  `src/Partial/Unsafe.java` : `partial` et `strings-extra`.
+- Les suites directes réutilisent les templates runtime, mais plusieurs
+  fixtures répètent encore la préparation de workspace, `javac`, l’exécution et
+  les diagnostics.
+
+Les validations de départ restent : Spec **70/70**, `test-tools` **27/27**,
+`check-docs` vert, tous les protocoles traités.
 
 ## Règles du plan
 
-- **Pas de nouvelle fonctionnalité** : un lot nettoie, nomme, documente ou
-  supprime ; il ne change pas la sémantique observable.
-- **Pas de gros refactor sans preuve** : chaque déplacement ou simplification
-  est couvert par les suites ciblées existantes, ou ajoute un test de
-  non-régression ciblé.
-- **Un lot = un sujet** : pas de mélange entre compilateur, ports et docs dans
-  un même commit lorsque cela peut être évité.
-- **Validation ciblée** : pas de `t -c`, de corpus complet ni de `modtest`
-  pendant les lots. Les commandes de clôture sont listées ci-dessous.
-- **Documentation vivante** : un changement de contrat met à jour le guide
-  concerné et `docs/testing.md` ; les preuves historiques restent datées dans
-  l’archive.
-- **Lisibilité mesurable** : module documenté, noms explicites, cas spéciaux
-  nommés, erreurs actionnables, pas de `TODO` orphelin.
+- **Pas de nouvelle fonctionnalité** : le plan supprime de la duplication,
+  explicite des contrats ou documente une exception.
+- **Pas de génération silencieuse** : un launcher, une configuration ou un stub
+  doit rester compréhensible et réparable à la main.
+- **Validation ciblée** : `test-tools`, Spec, les ports touchés et
+  `check-docs`. Pas de corpus complet pour valider un cleanup.
+- **Préserver les contrats publics** des ports : noms de modules, options CLI et
+  sorties des suites restent compatibles.
+- **Un lot = un sujet** ; les changements de ports et de compilateur ne sont pas
+  mélangés dans le même commit lorsque c’est évitable.
 
 ## Lots
 
-- [x] **M41 — 10 points — Baseline, cartographie et garde-fous.**
-  - Cartographier le pipeline compilateur → TAST → PBO → Java, les points
-    d’entrée des tests, les profils de ports et les sorties générées.
-  - Produire `docs/code-map.md` : rôle de chaque module, flux de données,
-    propriétaires des artefacts et commandes ciblées.
-  - Mesurer la dette : fichiers > 250 lignes, duplications de launchers/FFI,
-    `TODO`/`FIXME`, cas spéciaux du harnais, liens et anchors documentaires.
-  - Établir une baseline reproductible des suites ciblées et conserver les logs
-    dans le dossier de preuves du plan.
-  - **Clôture — 21 octobre 2026 :** `docs/code-map.md` couvre le pipeline, les
-    modules, le harnais, les ports et les artefacts. La baseline relève
-    5 355 lignes PureScript, 139 fichiers Java FFI (8 643 lignes), 49 ports,
-    30 suites, 3 marqueurs `TODO` et les validations M32 70/70 + 27/27. Dix
-    points de friction sont priorisés vers M42–M45. Aucun code exécutable n’a
-    été modifié. Voir [Validation M41](docs/testing.md#validation-m01).
+- [x] **M51 — 20 points — Launchers et configurations de ports.**
+  - Remplacer les 48 launchers de 4 lignes par un dispatcher générique qui
+    déduit le nom du port depuis le dossier (`javapurs-<nom>`).
+  - Auditer les 7 ports sans launcher et les 49 configurations Spago :
+    décider explicitement `standard`, `auxiliaire` ou `hors runner`.
+  - Intégrer `node-child-process` comme port standard, ou documenter pourquoi
+    son test compilateur reste séparé.
+  - Ajouter un contrôle `tools/check-port-configs.mjs` : nom de package,
+    package set, chemins locaux et présence des sources/FFI déclarés.
+  - **Clôture — 21 octobre 2026 :** les 48 launchers standards sont un unique
+    dispatcher de 5 lignes déduisant le port du dossier. Les 7 ports auxiliaires
+    sont classés dans `docs/port-launchers.md` ; `node-child-process` reste
+    couvert par `test/child-process.mjs`. `tools/check-port-configs.mjs` valide
+    48 profils, 49 configurations, 7 auxiliaires et 2 376 chemins locaux.
+    `test-tools` 27/27 ; FS, Net et HTTP verts. Voir
+    [Validation M51](docs/testing.md#validation-m51).
 
-- [x] **M42 — 25 points — Compilateur : expliciter les cas spéciaux.**
-  - Supprimer le marqueur `null /* TODO: PrimUndefined */` et le test de chaîne
-    associé dans `Javapurs.Raw` ; représenter le cas par un nœud ou un sentinel
-    Java nommé, avec sa règle de sérialisation documentée.
-  - Passer en revue `CodeGen/Expr`, `Chunk`, `Ownership/Workers` et
-    `Printer/Body` : responsabilité de module, noms locaux, helpers extraits,
-    commentaires de flux et cas limites.
-  - Supprimer les branches mortes et les helpers dupliqués identifiés en M41,
-    sans modifier les décisions d’optimisation ni le format de sortie.
-  - Ajouter ou renforcer les tests ciblés des représentations concernées
-    (`undefined`, records, tableaux, sorties Java).
-  - **Clôture — 21 octobre 2026 :** `JavaUndefined` est un nœud structurel de
-    `JavaAst` (rendu `null`), utilisé par `PrimUndefined`. `Raw` ne reconnaît
-    plus de commentaire `TODO` et n’importe plus `Maybe` inutilement. Les
-    responsabilités de `CodeGen.Expr`, `Printer.Body`, `Chunk` et
-    `Ownership.Workers` sont documentées. Plus aucun `TODO`/`FIXME` dans
-    `src`, `test` ou `tools`. Tests ciblés : `ast-scopes`, `representations`,
-    `codegen`, `driver` et `typed-records` verts. Voir
-    [Validation M42](docs/testing.md#validation-m02).
+- [x] **M52 — 20 points — Dette FFI résiduelle des ports.**
+  - Supprimer les deux marqueurs `TODO: PrimUndefined` de `partial` et
+    `strings-extra` ; utiliser une constante ou un helper nommé qui conserve
+    exactement le `null` Undefined attendu.
+  - Auditer les stubs et fallbacks silencieux (`Node.FS.Stats`, retours `null`
+    non contractuels) ; soit les documenter, soit les remplacer par une erreur
+    explicite nommant le port et l’API.
+  - Compléter les README de ports avec la surface réellement supportée et les
+    limites connues, sans dupliquer les contrats généraux.
+  - **Clôture — 21 octobre 2026 :** les deux `TODO: PrimUndefined` sont
+    remplacés par un commentaire explicite du sentinel. `strings-extra` supprime
+    **20 shims Java locaux** (dont `Data/Array.java` avec de nombreux
+    `FFI_STUB`) et utilise les ports déclarés. `Node.FS.Stats` documente son
+    fallback non-POSIX. `partial`, `strings-extra` et `node-fs` sont verts ;
+    aucun `FFI_STUB` ni `TODO` ne reste dans les ports. Voir
+    [Validation M52](docs/testing.md#validation-m52).
 
-- [x] **M43 — 20 points — Runtime et FFI : contrats communs.**
-  - Inventorier les conventions Java partagées : `undefined`/`Nullable`,
-    Buffers, événements, streams, erreurs et fermeture des ressources.
-  - Regrouper les helpers répétés ou documenter pourquoi un port doit rester
-    autonome ; supprimer les stubs silencieux au profit d’erreurs explicites
-    indiquant le port et l’API non supportée.
-  - Uniformiser les noms et la documentation des surfaces FFI réellement
-    implémentées, y compris les limites `spawn`/`stdio`/IPC.
-  - Ajouter un test de non-régression ciblé par helper partagé déplacé.
-  - **Clôture — 21 octobre 2026 :** `docs/ffi-runtime.md` documente les
-    contrats partagés (absence, Buffers, événements, streams, FS async,
-    Net/HTTP, ChildProcess) et justifie des helpers locaux aux ports lorsque
-    l’ABI `__M$...` l’impose. Les stubs `node-child-process` nomment l’API et
-    lèvent une `UnsupportedOperationException` contextualisée ; `spawnFile` et
-    `spawnArgs` sont réels. EventEmitter, Streams, FS, Net, HTTP et Child sont
-    verts. Voir [Validation M43](docs/testing.md#validation-m03).
+- [x] **M53 — 25 points — Fixtures de tests partagées.**
+  - Extraire de `test/support/` un petit module de fixtures pour workspace
+    temporaire, écriture de sources, `javac`, exécution JVM et capture de logs.
+  - Migrer au moins trois suites directes répétitives (`loop-invariants`,
+    `typed-records`, `counted-loops` ou `tco`) vers ce module.
+  - Factoriser les helpers de boucle/records uniquement lorsqu’ils ont le même
+    contrat sémantique ; conserver les assertions et les cas de refus.
+  - **Clôture — 21 octobre 2026 :** `test/support/java-fixture.mjs` centralise
+    l’écriture des sources, `javac` et le lancement JVM. `counted-loops`,
+    `loop-invariants` et `typed-records` sont migrés ; leurs 51 + 50 + 75
+    contrôles restent verts. Aucune fusion de helpers de boucle/records n’a été
+    imposée sans contrat commun. `test-tools` 27/27 et Spec 70/70. Voir
+    [Validation M53](docs/testing.md#validation-m53).
 
-- [x] **M44 — 25 points — Harnais de tests compréhensible.**
-  - Découper `test/test-tools.mjs` par responsabilité (fixtures, assertions,
-    inventaire) et rendre `tools/port-test-runner.mjs` piloté par données.
-  - Réduire les cas spéciaux `Spec`, `SpecOnly`, `SpecFull` et les branches de
-    mock à un seul registre de profils, avec un nom et une raison par variante.
-  - Isoler la préparation de l’intégration Spec (spago local, timeout, reprise
-    sur sortie vide) dans un module lisible et documenté.
-  - Rendre les logs d’échec actionnables : phase, commande, cwd, code, extrait
-    de sortie et chemin du workspace conservé.
-  - **Clôture — 21 octobre 2026 :** `tools/port-profiles.mjs` sépare les données
-    de profils du runner et introduit `assertion` (`spec`/`ok`) à la place des
-    listes de wrappers. `test/test-tools.mjs` (551 lignes) délègue la
-    construction du sandbox à `test/support/tool-fixtures.mjs` (150 lignes).
-    `SpecFull` et les profils Fs/Net/Http sont nommés dans le registre. Même
-    couverture : **27 tests**, **70 checks**, cinq sondes. Voir
-    [Validation M44](docs/testing.md#validation-m04).
+- [x] **M54 — 20 points — Frontières du compilateur.**
+  - Découper `Javapurs.Chunk` et/ou `Javapurs.CodeGen.Expr` uniquement aux
+    frontières déjà nommées par leurs commentaires : reconstruction, admission,
+    calls, loops, values.
+  - Extraire des helpers testables sans changer les décisions d’optimisation
+    ni le texte Java produit.
+  - Ajouter un test ciblé par frontière extraite ; réutiliser `chunk`,
+    `codegen`, `driver` et `typed-records`.
+  - **Clôture — 21 octobre 2026 :** `Chunk` est découpé en `Chunk.Types`
+    (état/result shapes), `Chunk.Value` (construction des valeurs) et
+    `Chunk.Helpers` (groupes de tableaux fermés) ; il passe de 388 à 331 lignes.
+    `chunk` (15 fixtures), `codegen` (48/48), `driver` et `typed-records` (75)
+    sont verts. Le build complet a aussi régénéré les sorties PBO suivies.
+    Voir [Validation M54](docs/testing.md#validation-m54).
 
-- [x] **M45 — 20 points — Documentation, hygiène et clôture.**
-  - Garder une page « démarrer et valider » courte pour les contributeurs ;
-    déplacer les récits de validation historiques hors du guide opérationnel,
-    en conservant les anchors référencés ou des redirections.
-  - Mettre à jour README, `docs/compiler.md`, `docs/maintenance.md` et les liens
-    de plans ; aucune référence à un plan actif obsolète.
-  - Vérifier les TODO/FIXME restants : chacun doit être supprimé, ou associé à
-    un lot, un propriétaire et une condition de clôture.
-  - Exécuter la clôture complète ciblée et consigner les preuves datées dans le
-    registre.
-  - **Clôture — 21 octobre 2026 :** [Démarrer et valider](docs/start-here.md)
-    est la page courte de reprise. Les récits M01–M32 sont déplacés dans
-    [l’historique](docs/validation-history.md), avec les ancres
-    `testing.md#validation-mXX` conservées ; les lots v4 sont renumérotés
-    M41–M45 pour éviter les collisions. README, maintenance, compilateur et
-    plans sont alignés. Aucun `TODO`/`FIXME` dans le code. Validation finale :
-    27 tests, Spec 70/70, child-process, `check-docs` et diffs verts. Voir
-    [Validation M45](docs/testing.md#validation-m45).
+- [x] **M55 — 15 points — Reproductibilité, documentation et clôture.**
+  - Vérifier que les sorties `output/Javapurs.*` suivies correspondent aux
+    sources après build, et documenter la commande de contrôle.
+  - Mettre à jour `start-here`, carte du code, maintenance, README et matrice
+    des tests avec les nouveaux contrôles de ports.
+  - Archiver le plan v4, consigner les preuves M51–M55 et fermer le plan sans
+    laisser de workspace temporaire ou de fichier généré non expliqué.
+  - **Clôture — 21 octobre 2026 :** un rebuild complet a été exécuté deux fois ;
+    les hashes de `output/**/*.js` et `*.js.map` sont identiques. `start-here`,
+    carte, maintenance, README et matrice sont à jour. Validation finale :
+    `test-tools` 27/27, Spec 70/70, child-process réussi, 48 ports standards
+    contrôlés et diffs propres. Voir [Validation M55](docs/testing.md#validation-m55).
 
 ## Ordre et dépendances
 
-1. **M41** fournit la carte et les métriques ; aucun lot ne commence sans lui.
-2. **M42** traite le compilateur, **M43** les contrats runtime/FFI.
-3. **M44** simplifie le harnais après stabilisation des sorties et des profils.
-4. **M45** ferme les docs et la validation ; il ne masque pas un lot incomplet.
-
-Les points mesurent des livrables validés, pas des heures passées. Un lot peut
-être découpé en commits, mais sa case ne passe à `[x]` qu’après la validation
-ciblée et la note de clôture datée.
+1. **M51** stabilise les launchers et configurations ; les autres lots peuvent
+   ensuite utiliser les mêmes commandes.
+2. **M52** traite les contrats FFI sans toucher au runner.
+3. **M53** simplifie les fixtures après stabilisation des profils de ports.
+4. **M54** découpe le compilateur avec les tests existants.
+5. **M55** clôt les docs, les sorties et la validation.
 
 ## Validation de clôture
 
-Commandes de référence, à adapter au lot :
-
 ```sh
-../javapurs-spec/bin/test
-node test/child-process.mjs
 node --test test/test-tools.mjs
+node test/child-process.mjs
+../javapurs-spec/bin/test
+node tools/check-port-configs.mjs
 node tools/check-docs.mjs
 git diff --check
 ```
 
-Pour un port ou un profil modifié, exécuter sa suite ciblée (`bin/test`) et
-conserver les logs. Ne pas lancer de corpus complet pour « vérifier » un
-cleanup.
-
-Chaque clôture ajoute une section `Validation Mxx` dans
-[docs/testing.md](docs/testing.md) avec la date, les commandes, les résultats,
-les limites et les chemins de preuve. Les validations du plan v3 restent
-accessibles via [docs/plan-v3.md](docs/plan-v3.md).
+Chaque lot ajoute une section `Validation M5x` dans
+[docs/testing.md](docs/testing.md), avec les ports réellement exécutés et les
+limites. Les récits v1–v4 restent dans [l’historique](docs/validation-history.md).

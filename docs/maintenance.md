@@ -223,9 +223,10 @@ runtime de production dans les fixtures (M20), préparation partagée des worksp
 (M21), runner commun et trois ports pilotes (M22), puis migration des autres
 launchers historiques (M23). Les validations sont ciblées par profil et port.
 
-**M20–M32 sont clôturés ; Spec complet passe 70/70.** Le [plan v4](../todo.md)
+**M20–M32 sont clôturés ; Spec complet passe 70/70.** Le [plan v4](plan-v4.md)
 est clôturé : cartographie, compilateur, FFI, harnais et docs ont été consolidés
-sans changement de comportement. Les huit suites utilisent les templates
+sans changement de comportement. Le [plan v5](../todo.md) est clôturé : launchers génériques, configurations
+contrôlées, stubs FFI supprimés et fixtures Java partagées. Les huit suites utilisent les templates
 de `Javapurs.Runtime`. Le support `test/support/optimized-module.mjs` reconstruit
 les entrées optionnelles RBTree/Records/Church/LazyEvaluation depuis leur TAST,
 dans un workspace isolé et un scope de publication PBO courant ; les `.purmeta`

@@ -226,7 +226,7 @@ export const writePurmetaSyncImpl = function(moduleName) {
       const stats = purmetaStats;
       if (stats !== null) stats.writes.attempts++;
       try {
-        const dir = '.purmeta';
+        const dir = process.env.GOPURS_PURMETA_DIRECTORY || '.purmeta';
         if (!fs.existsSync(dir)) {
           fs.mkdirSync(dir, { recursive: true });
         }
@@ -269,7 +269,7 @@ export const readPurmetaSyncImpl = function(moduleName) {
         }
         if (stats !== null) stats.reads.ramMisses++;
         
-        const filePath = path.join('.purmeta', moduleName + '.purmeta');
+        const filePath = path.join(process.env.GOPURS_PURMETA_DIRECTORY || '.purmeta', moduleName + '.purmeta');
         if (!fs.existsSync(filePath)) {
           if (stats !== null) stats.reads.diskMissing++;
           return nothing;

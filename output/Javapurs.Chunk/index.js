@@ -6,10 +6,7 @@ import * as Control_Monad_State from "../Control.Monad.State/index.js";
 import * as Control_Monad_State_Class from "../Control.Monad.State.Class/index.js";
 import * as Control_Monad_State_Trans from "../Control.Monad.State.Trans/index.js";
 import * as Data_Array from "../Data.Array/index.js";
-import * as Data_Either from "../Data.Either/index.js";
-import * as Data_Eq from "../Data.Eq/index.js";
 import * as Data_Foldable from "../Data.Foldable/index.js";
-import * as Data_Function from "../Data.Function/index.js";
 import * as Data_Functor from "../Data.Functor/index.js";
 import * as Data_Identity from "../Data.Identity/index.js";
 import * as Data_Map_Internal from "../Data.Map.Internal/index.js";
@@ -22,12 +19,12 @@ import * as Data_Traversable from "../Data.Traversable/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Javapurs_Chunk_Captures from "../Javapurs.Chunk.Captures/index.js";
 import * as Javapurs_Chunk_Extraction from "../Javapurs.Chunk.Extraction/index.js";
+import * as Javapurs_Chunk_Helpers from "../Javapurs.Chunk.Helpers/index.js";
+import * as Javapurs_Chunk_Value from "../Javapurs.Chunk.Value/index.js";
 import * as Javapurs_JavaAst from "../Javapurs.JavaAst/index.js";
-import * as Javapurs_Naming from "../Javapurs.Naming/index.js";
 var bindStateT = /* #__PURE__ */ Control_Monad_State_Trans.bindStateT(Data_Identity.monadIdentity);
 var monadStateStateT = /* #__PURE__ */ Control_Monad_State_Trans.monadStateStateT(Data_Identity.monadIdentity);
 var applicativeStateT = /* #__PURE__ */ Control_Monad_State_Trans.applicativeStateT(Data_Identity.monadIdentity);
-var fromFoldable = /* #__PURE__ */ Data_Map_Internal.fromFoldable(Data_Ord.ordString)(Data_Foldable.foldableArray);
 var monadStateStateT1 = /* #__PURE__ */ Control_Monad_State_Trans.monadStateStateT(Data_Identity.monadIdentity);
 var monadStateStateT2 = /* #__PURE__ */ Control_Monad_State_Trans.monadStateStateT(Data_Identity.monadIdentity);
 var monadStateStateT3 = /* #__PURE__ */ Control_Monad_State_Trans.monadStateStateT(Data_Identity.monadIdentity);
@@ -39,25 +36,25 @@ var withLocalTypes = function (extension) {
             return v.locals;
         }))(function (previous) {
             return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT)(function (state) {
-                var $50 = {};
-                for (var $51 in state) {
-                    if ({}.hasOwnProperty.call(state, $51)) {
-                        $50[$51] = state[$51];
+                var $42 = {};
+                for (var $43 in state) {
+                    if ({}.hasOwnProperty.call(state, $43)) {
+                        $42[$43] = state[$43];
                     };
                 };
-                $50.locals = Data_Map_Internal.union(Data_Ord.ordString)(extension)(previous);
-                return $50;
+                $42.locals = Data_Map_Internal.union(Data_Ord.ordString)(extension)(previous);
+                return $42;
             }))(function () {
                 return Control_Bind.bind(bindStateT)(action)(function (result) {
                     return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT)(function (state) {
-                        var $53 = {};
-                        for (var $54 in state) {
-                            if ({}.hasOwnProperty.call(state, $54)) {
-                                $53[$54] = state[$54];
+                        var $45 = {};
+                        for (var $46 in state) {
+                            if ({}.hasOwnProperty.call(state, $46)) {
+                                $45[$46] = state[$46];
                             };
                         };
-                        $53.locals = previous;
-                        return $53;
+                        $45.locals = previous;
+                        return $45;
                     }))(function () {
                         return Control_Applicative.pure(applicativeStateT)(result);
                     });
@@ -66,120 +63,37 @@ var withLocalTypes = function (extension) {
         });
     };
 };
-var valueResult = function (expr) {
-    return function (cost) {
-        return function (captures) {
-            return {
-                expr: expr,
-                cost: cost,
-                captures: captures,
-                form: Javapurs_Chunk_Extraction.ObjectResult.value
-            };
-        };
-    };
-};
-var valueWithChild = function (expr) {
-    return function (value) {
-        return Control_Applicative.pure(applicativeStateT)(valueResult(expr)(Javapurs_Chunk_Extraction.nodeCost([ value.cost ]))(value.captures));
-    };
-};
-var valueWithChildren = function (expr) {
-    return function (values) {
-        return Control_Applicative.pure(applicativeStateT)(valueResult(expr)(Javapurs_Chunk_Extraction.nodeCost(Data_Functor.map(Data_Functor.functorArray)(function (v) {
-            return v.cost;
-        })(values)))(Javapurs_Chunk_Captures.combineCaptures(Data_Functor.map(Data_Functor.functorArray)(function (v) {
-            return v.captures;
-        })(values))));
-    };
-};
-var opaqueValue = function (barrier) {
-    return function (expr) {
-        return Control_Applicative.pure(applicativeStateT)({
-            expr: expr,
-            cost: 1,
-            captures: new Data_Either.Left(barrier),
-            form: Javapurs_Chunk_Extraction.OpaqueRoot.value
-        });
-    };
-};
-var loopSnapshots = function (params) {
-    return function (intParams) {
-        return Data_Function.apply(fromFoldable)(Data_Functor.map(Data_Functor.functorArray)(function (name) {
-            return new Data_Tuple.Tuple(Javapurs_Naming.loopSnapshotName(name), (function () {
-                var $56 = Data_Array.elem(Data_Eq.eqString)(name)(intParams);
-                if ($56) {
-                    return Javapurs_JavaAst.ParamInt.value;
-                };
-                return Javapurs_JavaAst.ParamObject.value;
-            })());
-        })(params));
-    };
-};
-var largeClosedArray = function (values) {
-    return Javapurs_Chunk_Extraction.nodeCost(Data_Functor.map(Data_Functor.functorArray)(function (v) {
-        return v.cost;
-    })(values)) > Javapurs_Chunk_Extraction.maxChunkCost && Data_Array.all(function ($214) {
-        return Javapurs_Chunk_Captures.isClosed((function (v) {
-            return v.captures;
-        })($214));
-    })(values);
-};
 var initialState = {
     counter: 0,
     localCounter: 0,
     helpers: [  ],
     locals: Data_Map_Internal.empty
 };
-var groupItems = function (values) {
-    var splitGroups = function (size) {
-        return function (remaining) {
-            var v = Data_Array.splitAt(size)(remaining);
-            if (Data_Array["null"](v.before)) {
-                return [  ];
-            };
-            return Data_Array.cons(Data_Functor.map(Data_Functor.functorArray)(function (v1) {
-                return v1.expr;
-            })(v.before))(splitGroups(size)(v.after));
-        };
-    };
-    return splitGroups(Javapurs_Chunk_Extraction.arrayGroupSize(Data_Functor.map(Data_Functor.functorArray)(function (v) {
-        return v.cost;
-    })(values)))(values);
-};
 var genericLocals = /* #__PURE__ */ (function () {
-    var $215 = Data_Functor.map(Data_Functor.functorArray)(function (name) {
+    var $200 = Data_Map_Internal.fromFoldable(Data_Ord.ordString)(Data_Foldable.foldableArray);
+    var $201 = Data_Functor.map(Data_Functor.functorArray)(function (name) {
         return new Data_Tuple.Tuple(name, Javapurs_JavaAst.ParamObject.value);
     });
-    return function ($216) {
-        return fromFoldable($215($216));
+    return function ($202) {
+        return $200($201($202));
     };
 })();
 var freshArrayLocal = /* #__PURE__ */ Control_Bind.bind(bindStateT)(/* #__PURE__ */ Control_Monad_State_Class.gets(monadStateStateT1)(function (v) {
     return v.localCounter;
 }))(function (counter) {
     return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT1)(function (state) {
-        var $62 = {};
-        for (var $63 in state) {
-            if ({}.hasOwnProperty.call(state, $63)) {
-                $62[$63] = state[$63];
+        var $48 = {};
+        for (var $49 in state) {
+            if ({}.hasOwnProperty.call(state, $49)) {
+                $48[$49] = state[$49];
             };
         };
-        $62.localCounter = counter + 1 | 0;
-        return $62;
+        $48.localCounter = counter + 1 | 0;
+        return $48;
     }))(function () {
         return Control_Applicative.pure(applicativeStateT)("__arr$" + Data_Show.show(Data_Show.showInt)(counter));
     });
 });
-var fillGroup = function (arrayName) {
-    return function (group) {
-        var groupName = arrayName + ("$group" + Data_Show.show(Data_Show.showInt)(group.offset));
-        return Data_Function.apply(Data_Array.cons(new Javapurs_JavaAst.JavaLocalAssign(groupName, group.call)))(Data_Array.mapWithIndex(function (index) {
-            return function (v) {
-                return new Javapurs_JavaAst.JavaArraySet(new Javapurs_JavaAst.JavaLocal(arrayName), new Javapurs_JavaAst.JavaRaw(Data_Show.show(Data_Show.showInt)(group.offset + index | 0)), new Javapurs_JavaAst.JavaArrayIndex(new Javapurs_JavaAst.JavaLocal(groupName), new Javapurs_JavaAst.JavaRaw(Data_Show.show(Data_Show.showInt)(index))));
-            };
-        })(Data_Array.range(0)(group.count - 1 | 0)));
-    };
-};
 var fieldExpr = function (v) {
     return new Data_Tuple.Tuple(v.value0, v.value1.expr);
 };
@@ -190,18 +104,18 @@ var emitHelper = function (params) {
         }))(function (counter) {
             var name = "__chunk$" + Data_Show.show(Data_Show.showInt)(counter);
             return Control_Bind.discard(Control_Bind.discardUnit)(bindStateT)(Control_Monad_State_Class.modify_(monadStateStateT3)(function (state) {
-                var $68 = {};
-                for (var $69 in state) {
-                    if ({}.hasOwnProperty.call(state, $69)) {
-                        $68[$69] = state[$69];
+                var $54 = {};
+                for (var $55 in state) {
+                    if ({}.hasOwnProperty.call(state, $55)) {
+                        $54[$55] = state[$55];
                     };
                 };
-                $68.counter = counter + 1 | 0;
-                $68.helpers = Data_Semigroup.append(Data_Semigroup.semigroupArray)(state.helpers)([ new Javapurs_JavaAst.JavaStaticMethod(name, params, body) ]);
-                return $68;
+                $54.counter = counter + 1 | 0;
+                $54.helpers = Data_Semigroup.append(Data_Semigroup.semigroupArray)(state.helpers)([ new Javapurs_JavaAst.JavaStaticMethod(name, params, body) ]);
+                return $54;
             }))(function () {
-                return Control_Applicative.pure(applicativeStateT)(new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaStaticMethodRef(Data_Maybe.Nothing.value, name), Data_Functor.map(Data_Functor.functorArray)(function ($217) {
-                    return Javapurs_JavaAst.JavaLocal.create(Data_Tuple.fst($217));
+                return Control_Applicative.pure(applicativeStateT)(new Javapurs_JavaAst.JavaCall(new Javapurs_JavaAst.JavaStaticMethodRef(Data_Maybe.Nothing.value, name), Data_Functor.map(Data_Functor.functorArray)(function ($203) {
+                    return Javapurs_JavaAst.JavaLocal.create(Data_Tuple.fst($203));
                 })(params)));
             });
         });
@@ -210,8 +124,8 @@ var emitHelper = function (params) {
 var extractValue = function (params) {
     return function (body) {
         return Control_Bind.bind(bindStateT)(emitHelper(params)(body))(function (call) {
-            return Control_Applicative.pure(applicativeStateT)(valueResult(call)(1 + Data_Array.length(params) | 0)(Javapurs_Chunk_Captures.combineCaptures(Data_Functor.map(Data_Functor.functorArray)(function ($218) {
-                return Javapurs_Chunk_Captures.localCapture(Data_Tuple.fst($218));
+            return Control_Applicative.pure(applicativeStateT)(Javapurs_Chunk_Value.valueResult(call)(1 + Data_Array.length(params) | 0)(Javapurs_Chunk_Captures.combineCaptures(Data_Functor.map(Data_Functor.functorArray)(function ($204) {
+                return Javapurs_Chunk_Captures.localCapture(Data_Tuple.fst($204));
             })(params))));
         });
     };
@@ -233,55 +147,40 @@ var emitArrayGroups = function (offset) {
                 });
             });
         };
-        throw new Error("Failed pattern match at Javapurs.Chunk (line 366, column 33 - line 371, column 71): " + [ v.constructor.name ]);
-    };
-};
-var closedValue = function (expr) {
-    return function (cost) {
-        return Control_Applicative.pure(applicativeStateT)(valueResult(expr)(cost)(Javapurs_Chunk_Captures.noCaptures));
+        throw new Error("Failed pattern match at Javapurs.Chunk (line 320, column 33 - line 325, column 71): " + [ v.constructor.name ]);
     };
 };
 var chunkClosedArray = function (values) {
     return Control_Bind.bind(bindStateT)(freshArrayLocal)(function (name) {
-        return Control_Bind.bind(bindStateT)(emitArrayGroups(0)(groupItems(values)))(function (groups) {
+        return Control_Bind.bind(bindStateT)(emitArrayGroups(0)(Javapurs_Chunk_Helpers.groupItems(values)))(function (groups) {
             var size = Data_Array.length(values);
-            var fill = Data_Array.concatMap(fillGroup(name))(groups);
+            var fill = Data_Array.concatMap(Javapurs_Chunk_Helpers.fillGroup(name))(groups);
             var allocation = new Javapurs_JavaAst.JavaLocalAssign(name, new Javapurs_JavaAst.JavaRaw("new Object[" + (Data_Show.show(Data_Show.showInt)(size) + "]")));
             var body = new Javapurs_JavaAst.JavaBlock(Data_Array.cons(allocation)(fill), new Javapurs_JavaAst.JavaLocal(name));
-            return Control_Applicative.pure(applicativeStateT)(valueResult(body)(Javapurs_Chunk_Extraction.filledArrayCost(size))(Javapurs_Chunk_Captures.analyzeCaptures(body)));
+            return Control_Applicative.pure(applicativeStateT)(Javapurs_Chunk_Value.valueResult(body)(Javapurs_Chunk_Extraction.filledArrayCost(size))(Javapurs_Chunk_Captures.analyzeCaptures(body)));
         });
     });
-};
-var bindingValue = function (expr) {
-    return function (names) {
-        return function (value) {
-            return Control_Applicative.pure(applicativeStateT)(valueResult(expr)(Javapurs_Chunk_Extraction.nodeCost([ value.cost ]))(Javapurs_Chunk_Captures.withoutBindings(names)(value.captures)));
-        };
-    };
 };
 var bindLocal = function (name) {
     return function (ty) {
         return Control_Monad_State_Class.modify_(monadStateStateT)(function (state) {
-            var $75 = {};
-            for (var $76 in state) {
-                if ({}.hasOwnProperty.call(state, $76)) {
-                    $75[$76] = state[$76];
+            var $61 = {};
+            for (var $62 in state) {
+                if ({}.hasOwnProperty.call(state, $62)) {
+                    $61[$62] = state[$62];
                 };
             };
-            $75.locals = Data_Map_Internal.insert(Data_Ord.ordString)(name)(ty)(state.locals);
-            return $75;
+            $61.locals = Data_Map_Internal.insert(Data_Ord.ordString)(name)(ty)(state.locals);
+            return $61;
         });
     };
 };
-var analyzedValue = function (value) {
-    return valueResult(value.expr)(value.cost)(Javapurs_Chunk_Captures.analyzeCaptures(value.expr));
-};
 var rebuildValue = function (expression) {
     if (expression instanceof Javapurs_JavaAst.JavaString) {
-        return closedValue(expression)(Javapurs_Chunk_Extraction.textCost(expression.value0));
+        return Javapurs_Chunk_Value.closedValue(expression)(Javapurs_Chunk_Extraction.textCost(expression.value0));
     };
     if (expression instanceof Javapurs_JavaAst.JavaUndefined) {
-        return closedValue(expression)(1);
+        return Javapurs_Chunk_Value.closedValue(expression)(1);
     };
     if (expression instanceof Javapurs_JavaAst.JavaRaw) {
         return Control_Applicative.pure(applicativeStateT)({
@@ -292,13 +191,13 @@ var rebuildValue = function (expression) {
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaLocal) {
-        return Control_Applicative.pure(applicativeStateT)(valueResult(expression)(1)(Javapurs_Chunk_Captures.localCapture(expression.value0)));
+        return Control_Applicative.pure(applicativeStateT)(Javapurs_Chunk_Value.valueResult(expression)(1)(Javapurs_Chunk_Captures.localCapture(expression.value0)));
     };
     if (expression instanceof Javapurs_JavaAst.JavaLoopInvariant) {
-        return opaqueValue(Javapurs_Chunk_Captures.InvariantCache.value)(expression);
+        return Javapurs_Chunk_Value.opaqueValue(Javapurs_Chunk_Captures.InvariantCache.value)(expression);
     };
     if (expression instanceof Javapurs_JavaAst.JavaGlobalVar) {
-        return closedValue(expression)(1);
+        return Javapurs_Chunk_Value.closedValue(expression)(1);
     };
     if (expression instanceof Javapurs_JavaAst.JavaStaticMethodRef) {
         return Control_Applicative.pure(applicativeStateT)({
@@ -319,18 +218,18 @@ var rebuildValue = function (expression) {
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaCtorSingleton) {
-        return closedValue(expression)(1);
+        return Javapurs_Chunk_Value.closedValue(expression)(1);
     };
     if (expression instanceof Javapurs_JavaAst.JavaThrow) {
-        return closedValue(expression)(Javapurs_Chunk_Extraction.textCost(expression.value0));
+        return Javapurs_Chunk_Value.closedValue(expression)(Javapurs_Chunk_Extraction.textCost(expression.value0));
     };
     if (expression instanceof Javapurs_JavaAst.JavaClassDecl) {
-        return closedValue(expression)(1);
+        return Javapurs_Chunk_Value.closedValue(expression)(1);
     };
     if (expression instanceof Javapurs_JavaAst.JavaCall) {
         return Control_Bind.bind(bindStateT)(rebuildValue(expression.value0))(function (selectorInfo) {
             return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(chunkValue)(expression.value1))(function (argInfos) {
-                return valueWithChildren(new Javapurs_JavaAst.JavaCall(selectorInfo.expr, Data_Functor.map(Data_Functor.functorArray)(function (v) {
+                return Javapurs_Chunk_Value.valueWithChildren(new Javapurs_JavaAst.JavaCall(selectorInfo.expr, Data_Functor.map(Data_Functor.functorArray)(function (v) {
                     return v.expr;
                 })(argInfos)))(Data_Array.cons(selectorInfo)(argInfos));
             });
@@ -338,27 +237,27 @@ var rebuildValue = function (expression) {
     };
     if (expression instanceof Javapurs_JavaAst.JavaFunction) {
         return Control_Bind.bind(bindStateT)(chunkValue(expression.value0))(function (value) {
-            return valueWithChild(new Javapurs_JavaAst.JavaFunction(value.expr))(value);
+            return Javapurs_Chunk_Value.valueWithChild(new Javapurs_JavaAst.JavaFunction(value.expr))(value);
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaAbs) {
         return Control_Bind.bind(bindStateT)(withLocalTypes(genericLocals(expression.value0))(chunkValue(expression.value1)))(function (value) {
-            return bindingValue(new Javapurs_JavaAst.JavaAbs(expression.value0, value.expr))(expression.value0)(value);
+            return Javapurs_Chunk_Value.bindingValue(new Javapurs_JavaAst.JavaAbs(expression.value0, value.expr))(expression.value0)(value);
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaTypedAbs) {
         return Control_Bind.bind(bindStateT)(withLocalTypes(genericLocals(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst)(expression.value0)))(chunkValue(expression.value1)))(function (value) {
-            return bindingValue(new Javapurs_JavaAst.JavaTypedAbs(expression.value0, value.expr))(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst)(expression.value0))(value);
+            return Javapurs_Chunk_Value.bindingValue(new Javapurs_JavaAst.JavaTypedAbs(expression.value0, value.expr))(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst)(expression.value0))(value);
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaIntAbs) {
         return Control_Bind.bind(bindStateT)(withLocalTypes(Data_Map_Internal.singleton(expression.value0)(Javapurs_JavaAst.ParamInt.value))(chunkValue(expression.value1)))(function (value) {
-            return bindingValue(new Javapurs_JavaAst.JavaIntAbs(expression.value0, value.expr))([ expression.value0 ])(value);
+            return Javapurs_Chunk_Value.bindingValue(new Javapurs_JavaAst.JavaIntAbs(expression.value0, value.expr))([ expression.value0 ])(value);
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaNew) {
         return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(chunkValue)(expression.value1))(function (values) {
-            return valueWithChildren(new Javapurs_JavaAst.JavaNew(expression.value0, Data_Functor.map(Data_Functor.functorArray)(function (v) {
+            return Javapurs_Chunk_Value.valueWithChildren(new Javapurs_JavaAst.JavaNew(expression.value0, Data_Functor.map(Data_Functor.functorArray)(function (v) {
                 return v.expr;
             })(values)))(values);
         });
@@ -367,84 +266,84 @@ var rebuildValue = function (expression) {
         return Control_Bind.bind(bindStateT)(chunkValue(expression.value0))(function (conditionInfo) {
             return Control_Bind.bind(bindStateT)(chunkValue(expression.value1))(function (yesInfo) {
                 return Control_Bind.bind(bindStateT)(chunkValue(expression.value2))(function (noInfo) {
-                    return valueWithChildren(new Javapurs_JavaAst.JavaTernary(conditionInfo.expr, yesInfo.expr, noInfo.expr))([ conditionInfo, yesInfo, noInfo ]);
+                    return Javapurs_Chunk_Value.valueWithChildren(new Javapurs_JavaAst.JavaTernary(conditionInfo.expr, yesInfo.expr, noInfo.expr))([ conditionInfo, yesInfo, noInfo ]);
                 });
             });
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaRecord) {
         return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(chunkField)(expression.value0))(function (values) {
-            return valueWithChildren(new Javapurs_JavaAst.JavaRecord(Data_Functor.map(Data_Functor.functorArray)(fieldExpr)(values)))(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(values));
+            return Javapurs_Chunk_Value.valueWithChildren(new Javapurs_JavaAst.JavaRecord(Data_Functor.map(Data_Functor.functorArray)(fieldExpr)(values)))(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(values));
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaTypedRecord) {
         return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(chunkField)(expression.value1))(function (values) {
-            return valueWithChildren(new Javapurs_JavaAst.JavaTypedRecord(expression.value0, Data_Functor.map(Data_Functor.functorArray)(fieldExpr)(values)))(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(values));
+            return Javapurs_Chunk_Value.valueWithChildren(new Javapurs_JavaAst.JavaTypedRecord(expression.value0, Data_Functor.map(Data_Functor.functorArray)(fieldExpr)(values)))(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(values));
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaTypedRecordGet) {
         return Control_Bind.bind(bindStateT)(chunkValue(expression.value1))(function (value) {
-            return valueWithChild(new Javapurs_JavaAst.JavaTypedRecordGet(expression.value0, value.expr, expression.value2))(value);
+            return Javapurs_Chunk_Value.valueWithChild(new Javapurs_JavaAst.JavaTypedRecordGet(expression.value0, value.expr, expression.value2))(value);
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaTypedRecordUpdate) {
         return Control_Bind.bind(bindStateT)(chunkValue(expression.value1))(function (value) {
             return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(chunkField)(expression.value2))(function (fields) {
-                return valueWithChildren(new Javapurs_JavaAst.JavaTypedRecordUpdate(expression.value0, value.expr, Data_Functor.map(Data_Functor.functorArray)(fieldExpr)(fields)))(Data_Array.cons(value)(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(fields)));
+                return Javapurs_Chunk_Value.valueWithChildren(new Javapurs_JavaAst.JavaTypedRecordUpdate(expression.value0, value.expr, Data_Functor.map(Data_Functor.functorArray)(fieldExpr)(fields)))(Data_Array.cons(value)(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(fields)));
             });
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaArray) {
         return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(chunkValue)(expression.value0))(function (values) {
-            var $119 = largeClosedArray(values);
-            if ($119) {
+            var $105 = Javapurs_Chunk_Helpers.largeClosedArray(values);
+            if ($105) {
                 return chunkClosedArray(values);
             };
-            return valueWithChildren(new Javapurs_JavaAst.JavaArray(Data_Functor.map(Data_Functor.functorArray)(function (v) {
+            return Javapurs_Chunk_Value.valueWithChildren(new Javapurs_JavaAst.JavaArray(Data_Functor.map(Data_Functor.functorArray)(function (v) {
                 return v.expr;
             })(values)))(values);
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaMapGet) {
         return Control_Bind.bind(bindStateT)(chunkValue(expression.value0))(function (value) {
-            return valueWithChild(new Javapurs_JavaAst.JavaMapGet(value.expr, expression.value1))(value);
+            return Javapurs_Chunk_Value.valueWithChild(new Javapurs_JavaAst.JavaMapGet(value.expr, expression.value1))(value);
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaMapUpdate) {
         return Control_Bind.bind(bindStateT)(chunkValue(expression.value0))(function (value) {
             return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(chunkField)(expression.value1))(function (fields) {
-                return valueWithChildren(new Javapurs_JavaAst.JavaMapUpdate(value.expr, Data_Functor.map(Data_Functor.functorArray)(fieldExpr)(fields)))(Data_Array.cons(value)(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(fields)));
+                return Javapurs_Chunk_Value.valueWithChildren(new Javapurs_JavaAst.JavaMapUpdate(value.expr, Data_Functor.map(Data_Functor.functorArray)(fieldExpr)(fields)))(Data_Array.cons(value)(Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(fields)));
             });
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaInstanceOf) {
         return Control_Bind.bind(bindStateT)(chunkValue(expression.value0))(function (value) {
-            return valueWithChild(new Javapurs_JavaAst.JavaInstanceOf(value.expr, expression.value1))(value);
+            return Javapurs_Chunk_Value.valueWithChild(new Javapurs_JavaAst.JavaInstanceOf(value.expr, expression.value1))(value);
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaPropertyAccess) {
         return Control_Bind.bind(bindStateT)(chunkValue(expression.value0))(function (value) {
-            return valueWithChild(new Javapurs_JavaAst.JavaPropertyAccess(value.expr, expression.value1, expression.value2))(value);
+            return Javapurs_Chunk_Value.valueWithChild(new Javapurs_JavaAst.JavaPropertyAccess(value.expr, expression.value1, expression.value2))(value);
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaApply) {
         return Control_Bind.bind(bindStateT)(chunkValue(expression.value0))(function (fnInfo) {
             return Control_Bind.bind(bindStateT)(chunkValue(expression.value1))(function (argInfo) {
-                return valueWithChildren(new Javapurs_JavaAst.JavaApply(fnInfo.expr, argInfo.expr))([ fnInfo, argInfo ]);
+                return Javapurs_Chunk_Value.valueWithChildren(new Javapurs_JavaAst.JavaApply(fnInfo.expr, argInfo.expr))([ fnInfo, argInfo ]);
             });
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaIntApply) {
         return Control_Bind.bind(bindStateT)(chunkValue(expression.value0))(function (fnInfo) {
             return Control_Bind.bind(bindStateT)(chunkValue(expression.value1))(function (argInfo) {
-                return valueWithChildren(new Javapurs_JavaAst.JavaIntApply(fnInfo.expr, argInfo.expr))([ fnInfo, argInfo ]);
+                return Javapurs_Chunk_Value.valueWithChildren(new Javapurs_JavaAst.JavaIntApply(fnInfo.expr, argInfo.expr))([ fnInfo, argInfo ]);
             });
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaLet) {
         return Control_Bind.bind(bindStateT)(chunkValue(expression.value1))(function (value) {
             return Control_Bind.bind(bindStateT)(withLocalTypes(Data_Map_Internal.singleton(expression.value0)(Javapurs_JavaAst.ParamObject.value))(chunkValue(expression.value2)))(function (bodyInfo) {
-                return Control_Applicative.pure(applicativeStateT)(valueResult(new Javapurs_JavaAst.JavaLet(expression.value0, value.expr, bodyInfo.expr))(Javapurs_Chunk_Extraction.scopeCost(Javapurs_Chunk_Extraction.nodeCost([ value.cost, bodyInfo.cost ])))(Javapurs_Chunk_Captures.combineCaptures([ value.captures, Javapurs_Chunk_Captures.withoutBindings([ expression.value0 ])(bodyInfo.captures) ])));
+                return Control_Applicative.pure(applicativeStateT)(Javapurs_Chunk_Value.valueResult(new Javapurs_JavaAst.JavaLet(expression.value0, value.expr, bodyInfo.expr))(Javapurs_Chunk_Extraction.scopeCost(Javapurs_Chunk_Extraction.nodeCost([ value.cost, bodyInfo.cost ])))(Javapurs_Chunk_Captures.combineCaptures([ value.captures, Javapurs_Chunk_Captures.withoutBindings([ expression.value0 ])(bodyInfo.captures) ])));
             });
         });
     };
@@ -452,14 +351,14 @@ var rebuildValue = function (expression) {
         return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(chunkField)(expression.value0))(function (values) {
             var names = Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst)(values);
             return Control_Bind.bind(bindStateT)(withLocalTypes(genericLocals(names))(chunkValue(expression.value1)))(function (bodyInfo) {
-                return Control_Applicative.pure(applicativeStateT)(valueResult(new Javapurs_JavaAst.JavaLetRec(Data_Functor.map(Data_Functor.functorArray)(fieldExpr)(values), bodyInfo.expr))(Javapurs_Chunk_Extraction.scopeCost(Javapurs_Chunk_Extraction.nodeCost(Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Functor.map(Data_Functor.functorArray)(function ($219) {
+                return Control_Applicative.pure(applicativeStateT)(Javapurs_Chunk_Value.valueResult(new Javapurs_JavaAst.JavaLetRec(Data_Functor.map(Data_Functor.functorArray)(fieldExpr)(values), bodyInfo.expr))(Javapurs_Chunk_Extraction.scopeCost(Javapurs_Chunk_Extraction.nodeCost(Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Functor.map(Data_Functor.functorArray)(function ($205) {
                     return (function (v) {
                         return v.cost;
-                    })(Data_Tuple.snd($219));
-                })(values))([ bodyInfo.cost ]))))(Javapurs_Chunk_Captures.withoutBindings(names)(Javapurs_Chunk_Captures.combineCaptures(Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Functor.map(Data_Functor.functorArray)(function ($220) {
+                    })(Data_Tuple.snd($205));
+                })(values))([ bodyInfo.cost ]))))(Javapurs_Chunk_Captures.withoutBindings(names)(Javapurs_Chunk_Captures.combineCaptures(Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Functor.map(Data_Functor.functorArray)(function ($206) {
                     return (function (v) {
                         return v.captures;
-                    })(Data_Tuple.snd($220));
+                    })(Data_Tuple.snd($206));
                 })(values))([ bodyInfo.captures ])))));
             });
         });
@@ -467,19 +366,19 @@ var rebuildValue = function (expression) {
     if (expression instanceof Javapurs_JavaAst.JavaBinaryOp) {
         return Control_Bind.bind(bindStateT)(rebuildValue(expression.value1))(function (leftInfo) {
             return Control_Bind.bind(bindStateT)(rebuildValue(expression.value2))(function (rightInfo) {
-                return valueWithChildren(new Javapurs_JavaAst.JavaBinaryOp(expression.value0, leftInfo.expr, rightInfo.expr))([ leftInfo, rightInfo ]);
+                return Javapurs_Chunk_Value.valueWithChildren(new Javapurs_JavaAst.JavaBinaryOp(expression.value0, leftInfo.expr, rightInfo.expr))([ leftInfo, rightInfo ]);
             });
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaUnaryOp) {
         return Control_Bind.bind(bindStateT)(rebuildValue(expression.value1))(function (value) {
-            return valueWithChild(new Javapurs_JavaAst.JavaUnaryOp(expression.value0, value.expr))(value);
+            return Javapurs_Chunk_Value.valueWithChild(new Javapurs_JavaAst.JavaUnaryOp(expression.value0, value.expr))(value);
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaArrayIndex) {
         return Control_Bind.bind(bindStateT)(chunkValue(expression.value0))(function (arrayInfo) {
             return Control_Bind.bind(bindStateT)(chunkValue(expression.value1))(function (indexInfo) {
-                return valueWithChildren(new Javapurs_JavaAst.JavaArrayIndex(arrayInfo.expr, indexInfo.expr))([ arrayInfo, indexInfo ]);
+                return Javapurs_Chunk_Value.valueWithChildren(new Javapurs_JavaAst.JavaArrayIndex(arrayInfo.expr, indexInfo.expr))([ arrayInfo, indexInfo ]);
             });
         });
     };
@@ -494,12 +393,12 @@ var rebuildValue = function (expression) {
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaBlock) {
-        return Data_Functor.map(functorStateT)(analyzedValue)(rebuildBlock(Javapurs_Chunk_Extraction.scopeCost)(expression.value0)(expression.value1));
+        return Data_Functor.map(functorStateT)(Javapurs_Chunk_Value.analyzedValue)(rebuildBlock(Javapurs_Chunk_Extraction.scopeCost)(expression.value0)(expression.value1));
     };
     if (expression instanceof Javapurs_JavaAst.JavaIf) {
         return Control_Bind.bind(bindStateT)(rebuildBranches(expression.value0)(expression.value1)(expression.value2))(function (value) {
             return Control_Applicative.pure(applicativeStateT)((function () {
-                var v = analyzedValue(value);
+                var v = Javapurs_Chunk_Value.analyzedValue(value);
                 return {
                     captures: v.captures,
                     cost: v.cost,
@@ -510,27 +409,27 @@ var rebuildValue = function (expression) {
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaWhileTrue) {
-        return Control_Bind.bind(bindStateT)(withLocalTypes(loopSnapshots(expression.value1)(expression.value2))(chunkLoopBody(expression.value3)))(function (value) {
+        return Control_Bind.bind(bindStateT)(withLocalTypes(Javapurs_Chunk_Value.loopSnapshots(expression.value1)(expression.value2))(chunkLoopBody(expression.value3)))(function (value) {
             var rebuilt = new Javapurs_JavaAst.JavaWhileTrue(expression.value0, expression.value1, expression.value2, value.expr);
-            return Control_Applicative.pure(applicativeStateT)(valueResult(rebuilt)(Javapurs_Chunk_Extraction.nodeCost([ value.cost ]))(Javapurs_Chunk_Captures.analyzeCaptures(rebuilt)));
+            return Control_Applicative.pure(applicativeStateT)(Javapurs_Chunk_Value.valueResult(rebuilt)(Javapurs_Chunk_Extraction.nodeCost([ value.cost ]))(Javapurs_Chunk_Captures.analyzeCaptures(rebuilt)));
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaMemoizedLoop) {
         return Control_Bind.bind(bindStateT)(Data_Traversable.traverse(Data_Traversable.traversableArray)(applicativeStateT)(chunkField)(expression.value3))(function (fields) {
-            return Control_Bind.bind(bindStateT)(withLocalTypes(loopSnapshots(expression.value1)(expression.value2))(chunkLoopBody(expression.value4)))(function (value) {
+            return Control_Bind.bind(bindStateT)(withLocalTypes(Javapurs_Chunk_Value.loopSnapshots(expression.value1)(expression.value2))(chunkLoopBody(expression.value4)))(function (value) {
                 var rebuilt = new Javapurs_JavaAst.JavaMemoizedLoop(expression.value0, expression.value1, expression.value2, Data_Functor.map(Data_Functor.functorArray)(fieldExpr)(fields), value.expr);
-                return Control_Applicative.pure(applicativeStateT)(valueResult(rebuilt)(Javapurs_Chunk_Extraction.nodeCost(Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Functor.map(Data_Functor.functorArray)(function ($221) {
+                return Control_Applicative.pure(applicativeStateT)(Javapurs_Chunk_Value.valueResult(rebuilt)(Javapurs_Chunk_Extraction.nodeCost(Data_Semigroup.append(Data_Semigroup.semigroupArray)(Data_Functor.map(Data_Functor.functorArray)(function ($207) {
                     return (function (v) {
                         return v.cost;
-                    })(Data_Tuple.snd($221));
+                    })(Data_Tuple.snd($207));
                 })(fields))([ value.cost ])))(Javapurs_Chunk_Captures.analyzeCaptures(rebuilt)));
             });
         });
     };
     if (expression instanceof Javapurs_JavaAst.JavaContinue) {
-        return opaqueValue(Javapurs_Chunk_Captures.LoopJump.value)(expression);
+        return Javapurs_Chunk_Value.opaqueValue(Javapurs_Chunk_Captures.LoopJump.value)(expression);
     };
-    return opaqueValue(Javapurs_Chunk_Captures.UnsupportedExpression.value)(expression);
+    return Javapurs_Chunk_Value.opaqueValue(Javapurs_Chunk_Captures.UnsupportedExpression.value)(expression);
 };
 var rebuildBranches = function (condition) {
     return function (yes) {
@@ -586,7 +485,7 @@ var chunkValue = function (expression) {
             if (v instanceof Javapurs_Chunk_Extraction.KeepOriginal) {
                 return Control_Applicative.pure(applicativeStateT)(value);
             };
-            throw new Error("Failed pattern match at Javapurs.Chunk (line 81, column 3 - line 83, column 33): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Chunk (line 74, column 3 - line 76, column 33): " + [ v.constructor.name ]);
         });
     });
 };
@@ -680,7 +579,7 @@ var chunkStatement = function (statement) {
 };
 var chunkLoopBody = function (v) {
     if (v instanceof Javapurs_JavaAst.JavaBlock) {
-        return Data_Functor.map(functorStateT)(analyzedValue)(rebuildBlock(identity)(v.value0)(v.value1));
+        return Data_Functor.map(functorStateT)(Javapurs_Chunk_Value.analyzedValue)(rebuildBlock(identity)(v.value0)(v.value1));
     };
     return chunkValue(v);
 };
@@ -690,21 +589,21 @@ var chunkField = function (v) {
 var chunkDeclaration = function (v) {
     if (v instanceof Javapurs_JavaAst.JavaAssign) {
         return Data_Functor.map(functorStateT)((function () {
-            var $222 = Javapurs_JavaAst.JavaAssign.create(v.value0);
-            return function ($223) {
-                return $222((function (v1) {
+            var $208 = Javapurs_JavaAst.JavaAssign.create(v.value0);
+            return function ($209) {
+                return $208((function (v1) {
                     return v1.expr;
-                })($223));
+                })($209));
             };
         })())(chunkValue(v.value1));
     };
     if (v instanceof Javapurs_JavaAst.JavaLazyAssign) {
         return Data_Functor.map(functorStateT)((function () {
-            var $224 = Javapurs_JavaAst.JavaLazyAssign.create(v.value0);
-            return function ($225) {
-                return $224((function (v1) {
+            var $210 = Javapurs_JavaAst.JavaLazyAssign.create(v.value0);
+            return function ($211) {
+                return $210((function (v1) {
                     return v1.expr;
-                })($225));
+                })($211));
             };
         })())(chunkValue(v.value1));
     };

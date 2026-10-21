@@ -21,6 +21,7 @@ import * as Data_Set from "../Data.Set/index.js";
 import * as Data_Tuple from "../Data.Tuple/index.js";
 import * as Data_Unfoldable from "../Data.Unfoldable/index.js";
 import * as Data_Unit from "../Data.Unit/index.js";
+import * as Effect from "../Effect/index.js";
 import * as Effect_Class from "../Effect.Class/index.js";
 import * as Effect_Ref from "../Effect.Ref/index.js";
 import * as Effect_Unsafe from "../Effect.Unsafe/index.js";
@@ -29,6 +30,7 @@ import * as PureScript_Backend_Optimizer_Cache from "../PureScript.Backend.Optim
 import * as PureScript_Backend_Optimizer_Convert from "../PureScript.Backend.Optimizer.Convert/index.js";
 import * as PureScript_Backend_Optimizer_CoreFn from "../PureScript.Backend.Optimizer.CoreFn/index.js";
 import * as PureScript_Backend_Optimizer_NativeMaps from "../PureScript.Backend.Optimizer.NativeMaps/index.js";
+import * as PureScript_Backend_Optimizer_Observation from "../PureScript.Backend.Optimizer.Observation/index.js";
 import * as PureScript_Backend_Optimizer_Semantics from "../PureScript.Backend.Optimizer.Semantics/index.js";
 var compare = /* #__PURE__ */ Data_Ord.compare(PureScript_Backend_Optimizer_Semantics.ordEvalRef);
 var eqMaybe = /* #__PURE__ */ Data_Maybe.eqMaybe(PureScript_Backend_Optimizer_CoreFn.eqExprType);
@@ -50,7 +52,7 @@ var forcePrivateInlines = function (privateGlobals) {
                 if (!v) {
                     return PureScript_Backend_Optimizer_NativeMaps.insertEvalRefImpl(PureScript_Backend_Optimizer_NativeMaps.evalRefCompare)(compare)(new PureScript_Backend_Optimizer_Semantics.EvalExtern(qual))(Data_Map_Internal.singleton(PureScript_Backend_Optimizer_Semantics.InlineRef.value)(PureScript_Backend_Optimizer_Semantics.InlineAlways.value))(acc);
                 };
-                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 227, column 27 - line 229, column 115): " + [ v.constructor.name ]);
+                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 273, column 27 - line 275, column 115): " + [ v.constructor.name ]);
             };
         };
         return Data_Array.foldl(addDirective)(directives)(Data_Set.toUnfoldable(Data_Unfoldable.unfoldableArray)(privateGlobals));
@@ -87,7 +89,7 @@ var exprUntyped = function (v) {
     if (v instanceof PureScript_Backend_Optimizer_CoreFn.ExprUpdate) {
         return Data_Eq.eq(eqMaybe)(v.value0.type)(Data_Maybe.Nothing.value);
     };
-    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 209, column 15 - line 219, column 50): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 255, column 15 - line 265, column 50): " + [ v.constructor.name ]);
 };
 var untypedPrivateGlobals = function (v) {
     var untyped = function (v1) {
@@ -103,7 +105,7 @@ var untypedPrivateGlobals = function (v) {
         if (v1 instanceof PureScript_Backend_Optimizer_CoreFn.Rec) {
             return v1.value0;
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 199, column 15 - line 201, column 31): " + [ v1.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 245, column 15 - line 247, column 31): " + [ v1.constructor.name ]);
     };
     var exported = Data_Set.fromFoldable(Data_Foldable.foldableArray)(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v.exports);
     var decls = Data_Array.concatMap(flatten)(v.decls);
@@ -122,8 +124,8 @@ var effectiveDirectives = function (base) {
                 return Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(function (rank) {
                     return function (contrib) {
                         return function (acc) {
-                            var $127 = rank >= currentIndex;
-                            if ($127) {
+                            var $152 = rank >= currentIndex;
+                            if ($152) {
                                 return removeContribution(contrib)(acc);
                             };
                             return acc;
@@ -158,7 +160,7 @@ var createRankLookup = function (dictMonadEffect) {
                                 if (v2 instanceof Data_Maybe.Nothing) {
                                     return PureScript_Backend_Optimizer_Convert.ExternMissing.value;
                                 };
-                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 603, column 17 - line 605, column 43): " + [ v2.constructor.name ]);
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 702, column 17 - line 704, column 43): " + [ v2.constructor.name ]);
                             };
                             if (v1 instanceof Data_Maybe.Nothing) {
                                 return Effect_Unsafe.unsafePerformEffect(function __do() {
@@ -166,114 +168,187 @@ var createRankLookup = function (dictMonadEffect) {
                                     return PureScript_Backend_Optimizer_Convert.ExternPending.value;
                                 });
                             };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 601, column 26 - line 608, column 35): " + [ v1.constructor.name ]);
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 700, column 26 - line 707, column 35): " + [ v1.constructor.name ]);
                         };
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 597, column 7 - line 608, column 35): " + [ v.constructor.name ]);
+                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 696, column 7 - line 707, column 35): " + [ v.constructor.name ]);
                 };
             };
             return Data_Function.apply(liftEffect)(PureScript_Backend_Optimizer_BoundedMemo.createStringMemo(512)(Data_Function_Uncurried.mkFn2(raw)));
         };
     };
 };
-var buildModules = function (dictMonadEffect) {
+var buildModulesWithObservation = function (dictMonadEffect) {
     var Monad0 = dictMonadEffect.Monad0();
     var Applicative0 = Monad0.Applicative0();
     var Bind1 = Monad0.Bind1();
     var liftEffect = Effect_Class.liftEffect(dictMonadEffect);
+    var Apply0 = (Monad0.Bind1()).Apply0();
+    var Functor0 = Apply0.Functor0();
     var liftEffect1 = Effect_Class.liftEffect(dictMonadEffect);
     var liftEffect2 = Effect_Class.liftEffect(dictMonadEffect);
-    var $$void = Data_Functor["void"](((Monad0.Bind1()).Apply0()).Functor0());
-    return function (options) {
-        return function (coreFnModules) {
-            var moduleCount = Data_List.length(coreFnModules);
-            var go = function (v) {
-                return function (v1) {
-                    if (v1 instanceof Data_List_Types.Nil) {
-                        return Control_Applicative.pure(Applicative0)(v);
-                    };
-                    if (v1 instanceof Data_List_Types.Cons) {
-                        var buildEnv = {
-                            implementations: v.implementations,
-                            moduleCount: moduleCount,
-                            moduleIndex: v.moduleIndex
-                        };
-                        return Control_Bind.bind(Bind1)(options.onPrepareModule(buildEnv)(v1.value0))(function (v2) {
-                            return Control_Bind.bind(Bind1)(options.onSkipModule(buildEnv)(v2))(function (mbCachedMod) {
-                                var modExports = Data_Set.fromFoldable(Data_Foldable.foldableArray)(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v2.exports);
-                                var newExports = Data_Map_Internal.insert(PureScript_Backend_Optimizer_CoreFn.ordModuleName)(v2.name)(modExports)(v.exports);
-                                if (mbCachedMod instanceof Data_Maybe.Just) {
-                                    var newDirectives = Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(PureScript_Backend_Optimizer_NativeMaps.insertEvalRefImpl(PureScript_Backend_Optimizer_NativeMaps.evalRefCompare)(compare))(v.directives)(mbCachedMod.value0.directives);
-                                    return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Data_Function.apply(liftEffect)(PureScript_Backend_Optimizer_Cache.writePurmetaSync(v2.name)(mbCachedMod.value0.implementations)))(function () {
-                                        return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.trimPurmetaCache))(function () {
-                                            return go({
-                                                directives: newDirectives,
-                                                implementations: Data_Map_Internal.empty,
-                                                moduleIndex: v.moduleIndex + 1 | 0,
-                                                exports: newExports,
-                                                privateGlobals: Data_Set.union(ordQualified)(v.privateGlobals)(untypedPrivateGlobals(v2))
-                                            })(v1.value1);
-                                        });
-                                    });
+    var $$void = Data_Functor["void"](Apply0.Functor0());
+    return function (observer) {
+        return function (onReuse) {
+            return function (options) {
+                return function (coreFnModules) {
+                    var moduleCount = Data_List.length(coreFnModules);
+                    var go = function (v) {
+                        return function (v1) {
+                            if (v1 instanceof Data_List_Types.Nil) {
+                                return Control_Applicative.pure(Applicative0)(v);
+                            };
+                            if (v1 instanceof Data_List_Types.Cons) {
+                                var buildEnv = {
+                                    implementations: v.implementations,
+                                    moduleCount: moduleCount,
+                                    moduleIndex: v.moduleIndex
                                 };
-                                if (mbCachedMod instanceof Data_Maybe.Nothing) {
-                                    return Control_Bind.bind(Bind1)(Data_Function.apply(liftEffect1)(PureScript_Backend_Optimizer_BoundedMemo.createBoundedMemo(512)(Data_Function_Uncurried.mkFn2(PureScript_Backend_Optimizer_Semantics.instantiateNeutralType))))(function (instantiate) {
-                                        return Control_Bind.bind(Bind1)(Data_Function.apply(liftEffect2)(PureScript_Backend_Optimizer_BoundedMemo.createStringMemo(512)(Data_Function_Uncurried.mkFn2(PureScript_Backend_Optimizer_Convert.lookupPurmetaImplementation))))(function (lookupRaw) {
-                                            var forcedDirectives = forcePrivateInlines(Data_Set.union(ordQualified)(v.privateGlobals)(untypedPrivateGlobals(v2)))(v.directives);
-                                            var v3 = PureScript_Backend_Optimizer_Convert.toBackendModuleWithLookup(lookupRaw)(v2)({
-                                                analyzeCustom: options.analyzeCustom,
-                                                currentModule: v2.name,
-                                                instantiateNeutral: instantiate,
-                                                currentLevel: 0,
-                                                toLevel: Data_Map_Internal.empty,
-                                                implementations: v.implementations,
-                                                moduleImplementations: Data_Map_Internal.empty,
-                                                directives: forcedDirectives,
-                                                dataTypes: Data_Map_Internal.empty,
-                                                foreignSemantics: options.foreignSemantics,
-                                                rewriteLimit: options.rewriteLimit,
-                                                traceIdents: options.traceIdents,
-                                                optimizationSteps: [  ]
-                                            });
-                                            var newDirectives = Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(PureScript_Backend_Optimizer_NativeMaps.insertEvalRefImpl(PureScript_Backend_Optimizer_NativeMaps.evalRefCompare)(compare))(v.directives)(v3.value1.directives);
-                                            return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(options.onCodegenModule({
-                                                moduleCount: buildEnv.moduleCount,
-                                                moduleIndex: buildEnv.moduleIndex,
-                                                implementations: v3.value1.implementations
-                                            })(v2)(v3.value1)(v3.value0))(function () {
-                                                return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Data_Function.apply(liftEffect)(PureScript_Backend_Optimizer_Cache.writePurmetaSync(v2.name)(v3.value1.implementations)))(function () {
-                                                    return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.trimPurmetaCache))(function () {
-                                                        return go({
-                                                            directives: newDirectives,
-                                                            implementations: Data_Map_Internal.empty,
-                                                            moduleIndex: v.moduleIndex + 1 | 0,
-                                                            exports: newExports,
-                                                            privateGlobals: Data_Set.union(ordQualified)(v.privateGlobals)(untypedPrivateGlobals(v2))
-                                                        })(v1.value1);
+                                return Control_Bind.bind(Bind1)(options.onPrepareModule(buildEnv)(v1.value0))(function (v2) {
+                                    return Control_Bind.bind(Bind1)(Data_Function.apply(liftEffect)(PureScript_Backend_Optimizer_BoundedMemo.createStringMemo(512)(Data_Function_Uncurried.mkFn2(PureScript_Backend_Optimizer_Convert.lookupPurmetaImplementation))))(function (lookupRaw) {
+                                        var forcedDirectives = forcePrivateInlines(Data_Set.union(ordQualified)(v.privateGlobals)(untypedPrivateGlobals(v2)))(v.directives);
+                                        return Control_Bind.bind(Bind1)((function () {
+                                            if (observer instanceof Data_Maybe.Nothing) {
+                                                return Control_Applicative.pure(Applicative0)(Data_Maybe.Nothing.value);
+                                            };
+                                            if (observer instanceof Data_Maybe.Just) {
+                                                return Data_Functor.map(Functor0)(Data_Maybe.Just.create)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Observation.create(v2.name)(lookupRaw)(forcedDirectives)(function (v3) {
+                                                    return Control_Applicative.pure(Effect.applicativeEffect)(Data_Unit.unit);
+                                                })(Control_Applicative.pure(Effect.applicativeEffect)(false))));
+                                            };
+                                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 158, column 17 - line 160, column 120): " + [ observer.constructor.name ]);
+                                        })())(function (observed) {
+                                            return Control_Bind.bind(Bind1)((function () {
+                                                if (observer instanceof Data_Maybe.Just && observed instanceof Data_Maybe.Just) {
+                                                    return observer.value0.onSkipModule(buildEnv)(v2)(observed.value0.view);
+                                                };
+                                                return options.onSkipModule(buildEnv)(v2);
+                                            })())(function (mbCachedMod) {
+                                                var modExports = Data_Set.fromFoldable(Data_Foldable.foldableArray)(PureScript_Backend_Optimizer_CoreFn.ordIdent)(v2.exports);
+                                                var newExports = Data_Map_Internal.insert(PureScript_Backend_Optimizer_CoreFn.ordModuleName)(v2.name)(modExports)(v.exports);
+                                                if (mbCachedMod instanceof Data_Maybe.Just) {
+                                                    var newDirectives = Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(PureScript_Backend_Optimizer_NativeMaps.insertEvalRefImpl(PureScript_Backend_Optimizer_NativeMaps.evalRefCompare)(compare))(v.directives)(mbCachedMod.value0.directives);
+                                                    return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(onReuse({
+                                                        moduleCount: buildEnv.moduleCount,
+                                                        moduleIndex: buildEnv.moduleIndex,
+                                                        implementations: mbCachedMod.value0.implementations
+                                                    })(v2)(mbCachedMod.value0))(function () {
+                                                        return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Data_Function.apply(liftEffect1)(PureScript_Backend_Optimizer_Cache.writePurmetaSync(v2.name)(mbCachedMod.value0.implementations)))(function () {
+                                                            return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.trimPurmetaCache))(function () {
+                                                                return go({
+                                                                    directives: newDirectives,
+                                                                    implementations: Data_Map_Internal.empty,
+                                                                    moduleIndex: v.moduleIndex + 1 | 0,
+                                                                    exports: newExports,
+                                                                    privateGlobals: Data_Set.union(ordQualified)(v.privateGlobals)(untypedPrivateGlobals(v2))
+                                                                })(v1.value1);
+                                                            });
+                                                        });
                                                     });
-                                                });
+                                                };
+                                                if (mbCachedMod instanceof Data_Maybe.Nothing) {
+                                                    return Control_Bind.bind(Bind1)(Data_Function.apply(liftEffect2)(PureScript_Backend_Optimizer_BoundedMemo.createBoundedMemo(512)(Data_Function_Uncurried.mkFn2(PureScript_Backend_Optimizer_Semantics.instantiateNeutralType))))(function (instantiate) {
+                                                        var lookupPurmeta = (function () {
+                                                            if (observed instanceof Data_Maybe.Nothing) {
+                                                                return lookupRaw;
+                                                            };
+                                                            if (observed instanceof Data_Maybe.Just) {
+                                                                return observed.value0.implementation;
+                                                            };
+                                                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 189, column 29 - line 191, column 51): " + [ observed.constructor.name ]);
+                                                        })();
+                                                        var lookupDirective = (function () {
+                                                            if (observed instanceof Data_Maybe.Nothing) {
+                                                                return PureScript_Backend_Optimizer_Semantics.lookupDirective;
+                                                            };
+                                                            if (observed instanceof Data_Maybe.Just) {
+                                                                return observed.value0.directive;
+                                                            };
+                                                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 192, column 31 - line 194, column 46): " + [ observed.constructor.name ]);
+                                                        })();
+                                                        var v3 = PureScript_Backend_Optimizer_Convert.toBackendModuleWithLookups(lookupPurmeta)(lookupDirective)(v2)({
+                                                            analyzeCustom: options.analyzeCustom,
+                                                            currentModule: v2.name,
+                                                            instantiateNeutral: instantiate,
+                                                            currentLevel: 0,
+                                                            toLevel: Data_Map_Internal.empty,
+                                                            implementations: v.implementations,
+                                                            moduleImplementations: Data_Map_Internal.empty,
+                                                            directives: forcedDirectives,
+                                                            dataTypes: Data_Map_Internal.empty,
+                                                            foreignSemantics: options.foreignSemantics,
+                                                            rewriteLimit: options.rewriteLimit,
+                                                            traceIdents: options.traceIdents,
+                                                            optimizationSteps: [  ]
+                                                        });
+                                                        var newDirectives = Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(PureScript_Backend_Optimizer_NativeMaps.insertEvalRefImpl(PureScript_Backend_Optimizer_NativeMaps.evalRefCompare)(compare))(v.directives)(v3.value1.directives);
+                                                        return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)((function () {
+                                                            if (observer instanceof Data_Maybe.Just && observed instanceof Data_Maybe.Just) {
+                                                                return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(observed.value0.read))(function (reads) {
+                                                                    return observer.value0.onReads({
+                                                                        moduleCount: buildEnv.moduleCount,
+                                                                        moduleIndex: buildEnv.moduleIndex,
+                                                                        implementations: v3.value1.implementations
+                                                                    })(v2)(reads);
+                                                                });
+                                                            };
+                                                            return Control_Applicative.pure(Applicative0)(Data_Unit.unit);
+                                                        })())(function () {
+                                                            return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(options.onCodegenModule({
+                                                                moduleCount: buildEnv.moduleCount,
+                                                                moduleIndex: buildEnv.moduleIndex,
+                                                                implementations: v3.value1.implementations
+                                                            })(v2)(v3.value1)(v3.value0))(function () {
+                                                                return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Data_Function.apply(liftEffect1)(PureScript_Backend_Optimizer_Cache.writePurmetaSync(v2.name)(v3.value1.implementations)))(function () {
+                                                                    return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.trimPurmetaCache))(function () {
+                                                                        return go({
+                                                                            directives: newDirectives,
+                                                                            implementations: Data_Map_Internal.empty,
+                                                                            moduleIndex: v.moduleIndex + 1 | 0,
+                                                                            exports: newExports,
+                                                                            privateGlobals: Data_Set.union(ordQualified)(v.privateGlobals)(untypedPrivateGlobals(v2))
+                                                                        })(v1.value1);
+                                                                    });
+                                                                });
+                                                            });
+                                                        });
+                                                    });
+                                                };
+                                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 169, column 5 - line 233, column 27): " + [ mbCachedMod.constructor.name ]);
                                             });
                                         });
                                     });
-                                };
-                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 132, column 5 - line 187, column 27): " + [ mbCachedMod.constructor.name ]);
-                            });
-                        });
+                                });
+                            };
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 152, column 3 - line 152, column 24): " + [ v.constructor.name, v1.constructor.name ]);
+                        };
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 122, column 3 - line 122, column 24): " + [ v.constructor.name, v1.constructor.name ]);
+                    return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.beginPurmetaBuild))(function () {
+                        return Data_Function.apply($$void)(go({
+                            directives: options.directives,
+                            implementations: Data_Map_Internal.empty,
+                            moduleIndex: 0,
+                            exports: Data_Map_Internal.empty,
+                            privateGlobals: Data_Set.empty
+                        })(coreFnModules));
+                    });
                 };
             };
-            return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.beginPurmetaBuild))(function () {
-                return Data_Function.apply($$void)(go({
-                    directives: options.directives,
-                    implementations: Data_Map_Internal.empty,
-                    moduleIndex: 0,
-                    exports: Data_Map_Internal.empty,
-                    privateGlobals: Data_Set.empty
-                })(coreFnModules));
-            });
         };
     };
+};
+var buildModulesWithReuse = function (dictMonadEffect) {
+    return buildModulesWithObservation(dictMonadEffect)(Data_Maybe.Nothing.value);
+};
+var buildModules = function (dictMonadEffect) {
+    var Applicative0 = (dictMonadEffect.Monad0()).Applicative0();
+    return buildModulesWithReuse(dictMonadEffect)(function (v) {
+        return function (v1) {
+            return function (v2) {
+                return Control_Applicative.pure(Applicative0)(Data_Unit.unit);
+            };
+        };
+    });
 };
 var addQual = function (v) {
     return function (acc) {
@@ -283,7 +358,7 @@ var addQual = function (v) {
         if (v.value0 instanceof Data_Maybe.Nothing) {
             return acc;
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 628, column 38 - line 630, column 17): " + [ v.value0.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 727, column 38 - line 729, column 17): " + [ v.value0.constructor.name ]);
     };
 };
 var addBinderLit = function (lit) {
@@ -354,7 +429,7 @@ var addGuard = function (guard) {
                 };
             })(acc)(guard.value0);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 656, column 22 - line 658, column 81): " + [ guard.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 755, column 22 - line 757, column 81): " + [ guard.constructor.name ]);
     };
 };
 var addExpr = function (expr) {
@@ -405,7 +480,7 @@ var addExpr = function (expr) {
         if (expr instanceof PureScript_Backend_Optimizer_CoreFn.ExprTypeApp) {
             return addExpr(expr.value1)(acc);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 633, column 20 - line 643, column 45): " + [ expr.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 732, column 20 - line 742, column 45): " + [ expr.constructor.name ]);
     };
 };
 var addBinding = function (v) {
@@ -425,7 +500,7 @@ var addBind = function (bind) {
                 };
             })(acc)(bind.value0);
         };
-        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 620, column 20 - line 622, column 62): " + [ bind.constructor.name ]);
+        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 719, column 20 - line 721, column 62): " + [ bind.constructor.name ]);
     };
 };
 var addAlt = function (v) {
@@ -444,564 +519,687 @@ var referencedModules = function (v) {
         };
     })(Data_Set.singleton(Data_Newtype.unwrap()(v.name)))(v.decls);
 };
-var buildModulesParallel = function (dictMonadEffect) {
+var buildModulesParallelWithObservation = function (dictMonadEffect) {
     var Monad0 = dictMonadEffect.Monad0();
     var Bind1 = Monad0.Bind1();
     var Applicative0 = Monad0.Applicative0();
+    var Functor0 = ((Monad0.Bind1()).Apply0()).Functor0();
     var liftEffect = Effect_Class.liftEffect(dictMonadEffect);
     var liftEffect1 = Effect_Class.liftEffect(dictMonadEffect);
-    return function (runner) {
-        return function (options) {
-            return function (coreFnModules) {
-                var wake = function (done) {
-                    return function (waiting) {
-                        var stepW = function (acc) {
-                            return function (v) {
-                                var $233 = Data_Set.member(Data_Ord.ordInt)(done)(v.value1);
-                                if ($233) {
-                                    var remaining = Data_Set["delete"](Data_Ord.ordInt)(done)(v.value1);
-                                    var $234 = Data_Set.isEmpty(remaining);
-                                    if ($234) {
+    return function (observer) {
+        return function (onReuse) {
+            return function (runner) {
+                return function (options) {
+                    return function (coreFnModules) {
+                        var wake = function (done) {
+                            return function (waiting) {
+                                var stepW = function (acc) {
+                                    return function (v) {
+                                        var $272 = Data_Set.member(Data_Ord.ordInt)(done)(v.value1);
+                                        if ($272) {
+                                            var remaining = Data_Set["delete"](Data_Ord.ordInt)(done)(v.value1);
+                                            var $273 = Data_Set.isEmpty(remaining);
+                                            if ($273) {
+                                                return {
+                                                    waiting: acc.waiting,
+                                                    ready: Data_Set.insert(Data_Ord.ordInt)(v.value0)(acc.ready)
+                                                };
+                                            };
+                                            return {
+                                                ready: acc.ready,
+                                                waiting: Data_Map_Internal.insert(Data_Ord.ordInt)(v.value0)(remaining)(acc.waiting)
+                                            };
+                                        };
                                         return {
-                                            waiting: acc.waiting,
-                                            ready: Data_Set.insert(Data_Ord.ordInt)(v.value0)(acc.ready)
+                                            ready: acc.ready,
+                                            waiting: Data_Map_Internal.insert(Data_Ord.ordInt)(v.value0)(v.value1)(acc.waiting)
                                         };
                                     };
-                                    return {
-                                        ready: acc.ready,
-                                        waiting: Data_Map_Internal.insert(Data_Ord.ordInt)(v.value0)(remaining)(acc.waiting)
-                                    };
                                 };
-                                return {
-                                    ready: acc.ready,
-                                    waiting: Data_Map_Internal.insert(Data_Ord.ordInt)(v.value0)(v.value1)(acc.waiting)
+                                return Data_Foldable.foldl(Data_Foldable.foldableArray)(stepW)({
+                                    ready: Data_Set.empty,
+                                    waiting: Data_Map_Internal.empty
+                                })(Data_Map_Internal.toUnfoldable(Data_Unfoldable.unfoldableArray)(waiting));
+                            };
+                        };
+                        var modules = Data_Array.fromFoldable(Data_List_Types.foldableList)(coreFnModules);
+                        var moduleCount = Data_Array.length(modules);
+                        var keepIndex = function (i) {
+                            return function (j) {
+                                if (j === i) {
+                                    return Data_Maybe.Nothing.value;
+                                };
+                                if (Data_Boolean.otherwise) {
+                                    return new Data_Maybe.Just(j);
+                                };
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 339, column 3 - line 339, column 39): " + [ i.constructor.name, j.constructor.name ]);
+                            };
+                        };
+                        var indexByName = Data_Function.apply(fromFoldable)(Data_Array.mapWithIndex(function (i) {
+                            return function (v) {
+                                return new Data_Tuple.Tuple(Data_Newtype.unwrap()(v.name), i);
+                            };
+                        })(modules));
+                        var mkJob = function (st) {
+                            return function (i) {
+                                return function (coreFnModule) {
+                                    return function (v) {
+                                        return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (attemptStarted) {
+                                            return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref["new"](Data_Set.empty)))(function (pendingRef) {
+                                                return Control_Bind.bind(Bind1)(createRankLookup(dictMonadEffect)({
+                                                    indexByName: indexByName,
+                                                    currentIndex: i,
+                                                    finalized: st.finalized
+                                                })(pendingRef))(function (lookupRaw) {
+                                                    var directives = effectiveDirectives(options.directives)(st.accumulated)(st.contributions)(i);
+                                                    var buildEnv = {
+                                                        implementations: Data_Map_Internal.empty,
+                                                        moduleCount: moduleCount,
+                                                        moduleIndex: i
+                                                    };
+                                                    return Control_Bind.bind(Bind1)(options.onPrepareModule(buildEnv)(coreFnModule))(function (v1) {
+                                                        var privateGlobals = Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(function (rank) {
+                                                            return function (globals) {
+                                                                return function (acc) {
+                                                                    var $280 = rank < i;
+                                                                    if ($280) {
+                                                                        return Data_Set.union(ordQualified)(globals)(acc);
+                                                                    };
+                                                                    return acc;
+                                                                };
+                                                            };
+                                                        })(untypedPrivateGlobals(v1))(st.privateGlobals);
+                                                        var forcedDirectives = forcePrivateInlines(privateGlobals)(directives);
+                                                        var awaitModule = function (v2) {
+                                                            var v3 = Data_Map_Internal.lookup(Data_Ord.ordString)(v2)(indexByName);
+                                                            if (v3 instanceof Data_Maybe.Just && (v3.value0 < i && !Data_Map_Internal.member(Data_Ord.ordInt)(v3.value0)(st.finalized))) {
+                                                                return Effect_Ref.modify_(Data_Set.insert(Data_Ord.ordInt)(v3.value0))(pendingRef);
+                                                            };
+                                                            return Control_Applicative.pure(Effect.applicativeEffect)(Data_Unit.unit);
+                                                        };
+                                                        return Control_Bind.bind(Bind1)((function () {
+                                                            if (observer instanceof Data_Maybe.Nothing) {
+                                                                return Control_Applicative.pure(Applicative0)(Data_Maybe.Nothing.value);
+                                                            };
+                                                            if (observer instanceof Data_Maybe.Just) {
+                                                                return Data_Functor.map(Functor0)(Data_Maybe.Just.create)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Observation.create(v1.name)(lookupRaw)(forcedDirectives)(awaitModule)(Data_Functor.map(Effect.functorEffect)(function ($344) {
+                                                                    return !Data_Set.isEmpty($344);
+                                                                })(Effect_Ref.read(pendingRef)))));
+                                                            };
+                                                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 537, column 17 - line 539, column 149): " + [ observer.constructor.name ]);
+                                                        })())(function (observed) {
+                                                            return Control_Bind.bind(Bind1)((function () {
+                                                                if (observer instanceof Data_Maybe.Just && observed instanceof Data_Maybe.Just) {
+                                                                    return observer.value0.onSkipModule(buildEnv)(v1)(observed.value0.view);
+                                                                };
+                                                                return options.onSkipModule(buildEnv)(v1);
+                                                            })())(function (mbCached) {
+                                                                if (mbCached instanceof Data_Maybe.Just) {
+                                                                    return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref.read(pendingRef)))(function (pending) {
+                                                                        return Control_Applicative.pure(Applicative0)({
+                                                                            index: i,
+                                                                            coreFnModule: v1,
+                                                                            backendMod: mbCached.value0,
+                                                                            steps: [  ],
+                                                                            cached: true,
+                                                                            pendingDeps: pending,
+                                                                            attemptMillis: 0.0
+                                                                        });
+                                                                    });
+                                                                };
+                                                                if (mbCached instanceof Data_Maybe.Nothing) {
+                                                                    return Control_Bind.bind(Bind1)(Data_Function.apply(liftEffect)(PureScript_Backend_Optimizer_BoundedMemo.createBoundedMemo(512)(Data_Function_Uncurried.mkFn2(PureScript_Backend_Optimizer_Semantics.instantiateNeutralType))))(function (instantiate) {
+                                                                        var lookupPurmeta = (function () {
+                                                                            if (observed instanceof Data_Maybe.Nothing) {
+                                                                                return lookupRaw;
+                                                                            };
+                                                                            if (observed instanceof Data_Maybe.Just) {
+                                                                                return observed.value0.implementation;
+                                                                            };
+                                                                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 557, column 29 - line 559, column 51): " + [ observed.constructor.name ]);
+                                                                        })();
+                                                                        var lookupDirective = (function () {
+                                                                            if (observed instanceof Data_Maybe.Nothing) {
+                                                                                return PureScript_Backend_Optimizer_Semantics.lookupDirective;
+                                                                            };
+                                                                            if (observed instanceof Data_Maybe.Just) {
+                                                                                return observed.value0.directive;
+                                                                            };
+                                                                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 560, column 31 - line 562, column 46): " + [ observed.constructor.name ]);
+                                                                        })();
+                                                                        var v2 = PureScript_Backend_Optimizer_Convert.toBackendModuleWithLookups(lookupPurmeta)(lookupDirective)(v1)({
+                                                                            analyzeCustom: options.analyzeCustom,
+                                                                            currentModule: v1.name,
+                                                                            instantiateNeutral: instantiate,
+                                                                            currentLevel: 0,
+                                                                            toLevel: Data_Map_Internal.empty,
+                                                                            implementations: Data_Map_Internal.empty,
+                                                                            moduleImplementations: Data_Map_Internal.empty,
+                                                                            directives: forcedDirectives,
+                                                                            dataTypes: Data_Map_Internal.empty,
+                                                                            foreignSemantics: options.foreignSemantics,
+                                                                            rewriteLimit: options.rewriteLimit,
+                                                                            traceIdents: options.traceIdents,
+                                                                            optimizationSteps: [  ]
+                                                                        });
+                                                                        return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref.read(pendingRef)))(function (pending) {
+                                                                            return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Data_Function.apply(Control_Applicative.when(Applicative0)(Data_Set.isEmpty(pending)))((function () {
+                                                                                if (observed instanceof Data_Maybe.Just) {
+                                                                                    return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(observed.value0.read))(function (reads) {
+                                                                                        return Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref.modify_(Data_Map_Internal.insert(Data_Ord.ordInt)(i)(reads))(st.observations));
+                                                                                    });
+                                                                                };
+                                                                                if (observed instanceof Data_Maybe.Nothing) {
+                                                                                    return Control_Applicative.pure(Applicative0)(Data_Unit.unit);
+                                                                                };
+                                                                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 580, column 38 - line 584, column 31): " + [ observed.constructor.name ]);
+                                                                            })()))(function () {
+                                                                                return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (attemptEnded) {
+                                                                                    return Control_Applicative.pure(Applicative0)({
+                                                                                        index: i,
+                                                                                        coreFnModule: v1,
+                                                                                        backendMod: v2.value1,
+                                                                                        steps: v2.value0,
+                                                                                        cached: false,
+                                                                                        pendingDeps: pending,
+                                                                                        attemptMillis: attemptEnded - attemptStarted
+                                                                                    });
+                                                                                });
+                                                                            });
+                                                                        });
+                                                                    });
+                                                                };
+                                                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 543, column 5 - line 594, column 12): " + [ mbCached.constructor.name ]);
+                                                            });
+                                                        });
+                                                    });
+                                                });
+                                            });
+                                        });
+                                    };
                                 };
                             };
                         };
-                        return Data_Foldable.foldl(Data_Foldable.foldableArray)(stepW)({
-                            ready: Data_Set.empty,
-                            waiting: Data_Map_Internal.empty
-                        })(Data_Map_Internal.toUnfoldable(Data_Unfoldable.unfoldableArray)(waiting));
-                    };
-                };
-                var modules = Data_Array.fromFoldable(Data_List_Types.foldableList)(coreFnModules);
-                var moduleCount = Data_Array.length(modules);
-                var keepIndex = function (i) {
-                    return function (j) {
-                        if (j === i) {
-                            return Data_Maybe.Nothing.value;
+                        var refIndices = function (i) {
+                            var v = Data_Array.index(modules)(i);
+                            if (v instanceof Data_Maybe.Nothing) {
+                                return [  ];
+                            };
+                            if (v instanceof Data_Maybe.Just) {
+                                return Data_Array.mapMaybe(function (mn) {
+                                    return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(Data_Ord.ordString)(mn)(indexByName))(keepIndex(i));
+                                })(Data_Set.toUnfoldable(Data_Unfoldable.unfoldableArray)(referencedModules(v.value0)));
+                            };
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 331, column 18 - line 335, column 49): " + [ v.constructor.name ]);
                         };
-                        if (Data_Boolean.otherwise) {
-                            return new Data_Maybe.Just(j);
+                        var pairWaits = (function () {
+                            var stepPair = function (acc) {
+                                return function (i) {
+                                    return Data_Foldable.foldl(Data_Foldable.foldableArray)(function (a) {
+                                        return function (m) {
+                                            return Data_Map_Internal.insertWith(Data_Ord.ordInt)(append)((function () {
+                                                var $303 = m > i;
+                                                if ($303) {
+                                                    return m;
+                                                };
+                                                return i;
+                                            })())([ (function () {
+                                                var $304 = m > i;
+                                                if ($304) {
+                                                    return i;
+                                                };
+                                                return m;
+                                            })() ])(a);
+                                        };
+                                    })(acc)(refIndices(i));
+                                };
+                            };
+                            return Data_Foldable.foldl(Data_Foldable.foldableArray)(stepPair)(Data_Map_Internal.fromFoldable(Data_Ord.ordInt)(Data_Foldable.foldableArray)(Data_Functor.map(Data_Functor.functorArray)(function (i) {
+                                return new Data_Tuple.Tuple(i, [  ]);
+                            })(Data_Array.range(0)(moduleCount - 1 | 0))))(Data_Array.range(0)(moduleCount - 1 | 0));
+                        })();
+                        var pickModule = function (st) {
+                            if (Data_Set.size(st.inFlight) >= runner.jobs) {
+                                return Data_Maybe.Nothing.value;
+                            };
+                            if (Data_Boolean.otherwise) {
+                                var referencesReady = function (i) {
+                                    return Data_Array.all(function (d) {
+                                        return Data_Map_Internal.member(Data_Ord.ordInt)(d)(st.finalized);
+                                    })(Data_Maybe.fromMaybe([  ])(Data_Map_Internal.lookup(Data_Ord.ordInt)(i)(pairWaits)));
+                                };
+                                var firstFree = function (indices) {
+                                    return Data_Array.find(function (i) {
+                                        return !Data_Set.member(Data_Ord.ordInt)(i)(st.inFlight);
+                                    })(Data_Set.toUnfoldable(Data_Unfoldable.unfoldableArray)(indices));
+                                };
+                                var v = firstFree(st.ready);
+                                if (v instanceof Data_Maybe.Just) {
+                                    return new Data_Maybe.Just(new Data_Tuple.Tuple(v.value0, false));
+                                };
+                                if (v instanceof Data_Maybe.Nothing) {
+                                    var pendingIndices = Data_Set.toUnfoldable(Data_Unfoldable.unfoldableArray)(Data_Map.keys(st.pending));
+                                    var readyToTry = Data_Array.filter(function (i) {
+                                        return !Data_Map_Internal.member(Data_Ord.ordInt)(i)(st.waiting) && !Data_Set.member(Data_Ord.ordInt)(i)(st.inFlight);
+                                    })(pendingIndices);
+                                    var v1 = Data_Array.find(referencesReady)(readyToTry);
+                                    if (v1 instanceof Data_Maybe.Just) {
+                                        return new Data_Maybe.Just(new Data_Tuple.Tuple(v1.value0, true));
+                                    };
+                                    if (v1 instanceof Data_Maybe.Nothing) {
+                                        var $310 = Data_Set.isEmpty(st.inFlight);
+                                        if ($310) {
+                                            return Data_Functor.map(Data_Maybe.functorMaybe)(function (i) {
+                                                return new Data_Tuple.Tuple(i, true);
+                                            })(firstFree(Data_Map.keys(st.pending)));
+                                        };
+                                        return Data_Maybe.Nothing.value;
+                                    };
+                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 463, column 13 - line 472, column 29): " + [ v1.constructor.name ]);
+                                };
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 454, column 19 - line 472, column 29): " + [ v.constructor.name ]);
+                            };
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 452, column 3 - line 477, column 96): " + [ st.constructor.name ]);
                         };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 277, column 3 - line 277, column 39): " + [ i.constructor.name, j.constructor.name ]);
-                    };
-                };
-                var indexByName = Data_Function.apply(fromFoldable)(Data_Array.mapWithIndex(function (i) {
-                    return function (v) {
-                        return new Data_Tuple.Tuple(Data_Newtype.unwrap()(v.name), i);
-                    };
-                })(modules));
-                var mkJob = function (st) {
-                    return function (i) {
-                        return function (coreFnModule) {
-                            return function (v) {
-                                return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (attemptStarted) {
-                                    return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref["new"](Data_Set.empty)))(function (pendingRef) {
-                                        return Control_Bind.bind(Bind1)(createRankLookup(dictMonadEffect)({
-                                            indexByName: indexByName,
-                                            currentIndex: i,
-                                            finalized: st.finalized
-                                        })(pendingRef))(function (lookupRaw) {
-                                            var directives = effectiveDirectives(options.directives)(st.accumulated)(st.contributions)(i);
-                                            var buildEnv = {
-                                                implementations: Data_Map_Internal.empty,
+                        var importIndices = function (i) {
+                            var v = Data_Array.index(modules)(i);
+                            if (v instanceof Data_Maybe.Nothing) {
+                                return [  ];
+                            };
+                            if (v instanceof Data_Maybe.Just) {
+                                return Data_Array.mapMaybe(function (v1) {
+                                    return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(Data_Ord.ordString)(Data_Newtype.unwrap()(v1.value1))(indexByName))(keepIndex(i));
+                                })(v.value0.imports);
+                            };
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 324, column 21 - line 328, column 16): " + [ v.constructor.name ]);
+                        };
+                        var flushCodegen = function (st) {
+                            var v = Data_Map_Internal.lookup(Data_Ord.ordInt)(st.nextCodegen)(st.waitingCodegen);
+                            if (v instanceof Data_Maybe.Nothing) {
+                                return Control_Applicative.pure(Applicative0)(st);
+                            };
+                            if (v instanceof Data_Maybe.Just) {
+                                return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (started) {
+                                    return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)((function () {
+                                        if (v.value0.cached) {
+                                            return onReuse({
+                                                implementations: v.value0.backendMod.implementations,
                                                 moduleCount: moduleCount,
-                                                moduleIndex: i
-                                            };
-                                            return Control_Bind.bind(Bind1)(options.onPrepareModule(buildEnv)(coreFnModule))(function (v1) {
-                                                return Control_Bind.bind(Bind1)(options.onSkipModule(buildEnv)(v1))(function (mbCached) {
-                                                    var privateGlobals = Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(function (rank) {
-                                                        return function (globals) {
-                                                            return function (acc) {
-                                                                var $241 = rank < i;
-                                                                if ($241) {
-                                                                    return Data_Set.union(ordQualified)(globals)(acc);
-                                                                };
-                                                                return acc;
-                                                            };
+                                                moduleIndex: v.value0.index
+                                            })(v.value0.coreFnModule)(v.value0.backendMod);
+                                        };
+                                        return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)((function () {
+                                            if (observer instanceof Data_Maybe.Just) {
+                                                return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref.read(st.observations)))(function (completed) {
+                                                    return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)((function () {
+                                                        var v1 = Data_Map_Internal.lookup(Data_Ord.ordInt)(v.value0.index)(completed);
+                                                        if (v1 instanceof Data_Maybe.Just) {
+                                                            return observer.value0.onReads({
+                                                                implementations: v.value0.backendMod.implementations,
+                                                                moduleCount: moduleCount,
+                                                                moduleIndex: v.value0.index
+                                                            })(v.value0.coreFnModule)(v1.value0);
                                                         };
-                                                    })(untypedPrivateGlobals(v1))(st.privateGlobals);
-                                                    var forcedDirectives = forcePrivateInlines(privateGlobals)(directives);
-                                                    if (mbCached instanceof Data_Maybe.Just) {
-                                                        return Control_Applicative.pure(Applicative0)({
-                                                            index: i,
-                                                            coreFnModule: v1,
-                                                            backendMod: mbCached.value0,
-                                                            steps: [  ],
-                                                            cached: true,
-                                                            pendingDeps: Data_Set.empty,
-                                                            attemptMillis: 0.0
-                                                        });
-                                                    };
-                                                    if (mbCached instanceof Data_Maybe.Nothing) {
-                                                        return Control_Bind.bind(Bind1)(Data_Function.apply(liftEffect)(PureScript_Backend_Optimizer_BoundedMemo.createBoundedMemo(512)(Data_Function_Uncurried.mkFn2(PureScript_Backend_Optimizer_Semantics.instantiateNeutralType))))(function (instantiate) {
-                                                            var v2 = PureScript_Backend_Optimizer_Convert.toBackendModuleWithLookup(lookupRaw)(v1)({
-                                                                analyzeCustom: options.analyzeCustom,
-                                                                currentModule: v1.name,
-                                                                instantiateNeutral: instantiate,
-                                                                currentLevel: 0,
-                                                                toLevel: Data_Map_Internal.empty,
-                                                                implementations: Data_Map_Internal.empty,
-                                                                moduleImplementations: Data_Map_Internal.empty,
-                                                                directives: forcedDirectives,
-                                                                dataTypes: Data_Map_Internal.empty,
-                                                                foreignSemantics: options.foreignSemantics,
-                                                                rewriteLimit: options.rewriteLimit,
-                                                                traceIdents: options.traceIdents,
-                                                                optimizationSteps: [  ]
-                                                            });
-                                                            return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref.read(pendingRef)))(function (pending) {
-                                                                return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (attemptEnded) {
-                                                                    return Control_Applicative.pure(Applicative0)({
-                                                                        index: i,
-                                                                        coreFnModule: v1,
-                                                                        backendMod: v2.value1,
-                                                                        steps: v2.value0,
-                                                                        cached: false,
-                                                                        pendingDeps: pending,
-                                                                        attemptMillis: attemptEnded - attemptStarted
-                                                                    });
-                                                                });
-                                                            });
-                                                        });
-                                                    };
-                                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 457, column 5 - line 496, column 12): " + [ mbCached.constructor.name ]);
+                                                        if (v1 instanceof Data_Maybe.Nothing) {
+                                                            return Control_Applicative.pure(Applicative0)(Data_Unit.unit);
+                                                        };
+                                                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 430, column 13 - line 434, column 35): " + [ v1.constructor.name ]);
+                                                    })())(function () {
+                                                        return Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref.modify_(Data_Map_Internal["delete"](Data_Ord.ordInt)(v.value0.index))(st.observations));
+                                                    });
                                                 });
+                                            };
+                                            if (observer instanceof Data_Maybe.Nothing) {
+                                                return Control_Applicative.pure(Applicative0)(Data_Unit.unit);
+                                            };
+                                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 427, column 9 - line 436, column 31): " + [ observer.constructor.name ]);
+                                        })())(function () {
+                                            return options.onCodegenModule({
+                                                implementations: v.value0.backendMod.implementations,
+                                                moduleCount: moduleCount,
+                                                moduleIndex: v.value0.index
+                                            })(v.value0.coreFnModule)(v.value0.backendMod)(v.value0.steps);
+                                        });
+                                    })())(function () {
+                                        return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (ended) {
+                                            return flushCodegen({
+                                                observations: st.observations,
+                                                pending: st.pending,
+                                                depsLeft: st.depsLeft,
+                                                ready: st.ready,
+                                                finalized: st.finalized,
+                                                contributions: st.contributions,
+                                                privateGlobals: st.privateGlobals,
+                                                accumulated: st.accumulated,
+                                                waiting: st.waiting,
+                                                inFlight: st.inFlight,
+                                                waitingCodegen: Data_Map_Internal["delete"](Data_Ord.ordInt)(v.value0.index)(st.waitingCodegen),
+                                                nextCodegen: st.nextCodegen + 1 | 0,
+                                                stats: {
+                                                    attemptMaxMillis: st.stats.attemptMaxMillis,
+                                                    attemptMillis: st.stats.attemptMillis,
+                                                    deferredAttempts: st.stats.deferredAttempts,
+                                                    waitingPeak: st.stats.waitingPeak,
+                                                    wakeups: st.stats.wakeups,
+                                                    awaitMillis: st.stats.awaitMillis,
+                                                    coordinatorMillis: st.stats.coordinatorMillis,
+                                                    dispatched: st.stats.dispatched,
+                                                    fallbackDispatched: st.stats.fallbackDispatched,
+                                                    maxReady: st.stats.maxReady,
+                                                    emitMillis: st.stats.emitMillis + (ended - started)
+                                                }
                                             });
                                         });
                                     });
                                 });
                             };
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 417, column 21 - line 447, column 10): " + [ v.constructor.name ]);
                         };
-                    };
-                };
-                var refIndices = function (i) {
-                    var v = Data_Array.index(modules)(i);
-                    if (v instanceof Data_Maybe.Nothing) {
-                        return [  ];
-                    };
-                    if (v instanceof Data_Maybe.Just) {
-                        return Data_Array.mapMaybe(function (mn) {
-                            return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(Data_Ord.ordString)(mn)(indexByName))(keepIndex(i));
-                        })(Data_Set.toUnfoldable(Data_Unfoldable.unfoldableArray)(referencedModules(v.value0)));
-                    };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 269, column 18 - line 273, column 49): " + [ v.constructor.name ]);
-                };
-                var pairWaits = (function () {
-                    var stepPair = function (acc) {
-                        return function (i) {
-                            return Data_Foldable.foldl(Data_Foldable.foldableArray)(function (a) {
-                                return function (m) {
-                                    return Data_Map_Internal.insertWith(Data_Ord.ordInt)(append)((function () {
-                                        var $249 = m > i;
-                                        if ($249) {
-                                            return m;
-                                        };
-                                        return i;
-                                    })())([ (function () {
-                                        var $250 = m > i;
-                                        if ($250) {
-                                            return i;
-                                        };
-                                        return m;
-                                    })() ])(a);
-                                };
-                            })(acc)(refIndices(i));
-                        };
-                    };
-                    return Data_Foldable.foldl(Data_Foldable.foldableArray)(stepPair)(Data_Map_Internal.fromFoldable(Data_Ord.ordInt)(Data_Foldable.foldableArray)(Data_Functor.map(Data_Functor.functorArray)(function (i) {
-                        return new Data_Tuple.Tuple(i, [  ]);
-                    })(Data_Array.range(0)(moduleCount - 1 | 0))))(Data_Array.range(0)(moduleCount - 1 | 0));
-                })();
-                var pickModule = function (st) {
-                    if (Data_Set.size(st.inFlight) >= runner.jobs) {
-                        return Data_Maybe.Nothing.value;
-                    };
-                    if (Data_Boolean.otherwise) {
-                        var referencesReady = function (i) {
-                            return Data_Array.all(function (d) {
-                                return Data_Map_Internal.member(Data_Ord.ordInt)(d)(st.finalized);
-                            })(Data_Maybe.fromMaybe([  ])(Data_Map_Internal.lookup(Data_Ord.ordInt)(i)(pairWaits)));
-                        };
-                        var firstFree = function (indices) {
-                            return Data_Array.find(function (i) {
-                                return !Data_Set.member(Data_Ord.ordInt)(i)(st.inFlight);
-                            })(Data_Set.toUnfoldable(Data_Unfoldable.unfoldableArray)(indices));
-                        };
-                        var v = firstFree(st.ready);
-                        if (v instanceof Data_Maybe.Just) {
-                            return new Data_Maybe.Just(new Data_Tuple.Tuple(v.value0, false));
-                        };
-                        if (v instanceof Data_Maybe.Nothing) {
-                            var pendingIndices = Data_Set.toUnfoldable(Data_Unfoldable.unfoldableArray)(Data_Map.keys(st.pending));
-                            var readyToTry = Data_Array.filter(function (i) {
-                                return !Data_Map_Internal.member(Data_Ord.ordInt)(i)(st.waiting) && !Data_Set.member(Data_Ord.ordInt)(i)(st.inFlight);
-                            })(pendingIndices);
-                            var v1 = Data_Array.find(referencesReady)(readyToTry);
-                            if (v1 instanceof Data_Maybe.Just) {
-                                return new Data_Maybe.Just(new Data_Tuple.Tuple(v1.value0, true));
+                        var deps = Data_Function.apply(fromFoldable1)(Data_Array.mapWithIndex(function (i) {
+                            return function (v) {
+                                return new Data_Tuple.Tuple(i, Data_Array.nub(Data_Ord.ordInt)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(importIndices(i))(Data_Maybe.fromMaybe([  ])(Data_Map_Internal.lookup(Data_Ord.ordInt)(i)(pairWaits)))));
                             };
-                            if (v1 instanceof Data_Maybe.Nothing) {
-                                var $256 = Data_Set.isEmpty(st.inFlight);
-                                if ($256) {
-                                    return Data_Functor.map(Data_Maybe.functorMaybe)(function (i) {
-                                        return new Data_Tuple.Tuple(i, true);
-                                    })(firstFree(Data_Map.keys(st.pending)));
-                                };
-                                return Data_Maybe.Nothing.value;
-                            };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 385, column 13 - line 394, column 29): " + [ v1.constructor.name ]);
-                        };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 376, column 19 - line 394, column 29): " + [ v.constructor.name ]);
-                    };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 374, column 3 - line 399, column 96): " + [ st.constructor.name ]);
-                };
-                var importIndices = function (i) {
-                    var v = Data_Array.index(modules)(i);
-                    if (v instanceof Data_Maybe.Nothing) {
-                        return [  ];
-                    };
-                    if (v instanceof Data_Maybe.Just) {
-                        return Data_Array.mapMaybe(function (v1) {
-                            return Control_Bind.bind(Data_Maybe.bindMaybe)(Data_Map_Internal.lookup(Data_Ord.ordString)(Data_Newtype.unwrap()(v1.value1))(indexByName))(keepIndex(i));
-                        })(v.value0.imports);
-                    };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 262, column 21 - line 266, column 16): " + [ v.constructor.name ]);
-                };
-                var flushCodegen = function (st) {
-                    var v = Data_Map_Internal.lookup(Data_Ord.ordInt)(st.nextCodegen)(st.waitingCodegen);
-                    if (v instanceof Data_Maybe.Nothing) {
-                        return Control_Applicative.pure(Applicative0)(st);
-                    };
-                    if (v instanceof Data_Maybe.Just) {
-                        return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (started) {
-                            return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Data_Function.apply(Control_Applicative.when(Applicative0)(!v.value0.cached))(options.onCodegenModule({
-                                implementations: v.value0.backendMod.implementations,
-                                moduleCount: moduleCount,
-                                moduleIndex: v.value0.index
-                            })(v.value0.coreFnModule)(v.value0.backendMod)(v.value0.steps)))(function () {
-                                return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (ended) {
-                                    return flushCodegen({
-                                        pending: st.pending,
-                                        depsLeft: st.depsLeft,
-                                        ready: st.ready,
-                                        finalized: st.finalized,
-                                        contributions: st.contributions,
-                                        privateGlobals: st.privateGlobals,
-                                        accumulated: st.accumulated,
-                                        waiting: st.waiting,
-                                        inFlight: st.inFlight,
-                                        waitingCodegen: Data_Map_Internal["delete"](Data_Ord.ordInt)(v.value0.index)(st.waitingCodegen),
-                                        nextCodegen: st.nextCodegen + 1 | 0,
-                                        stats: {
-                                            attemptMaxMillis: st.stats.attemptMaxMillis,
-                                            attemptMillis: st.stats.attemptMillis,
-                                            deferredAttempts: st.stats.deferredAttempts,
-                                            waitingPeak: st.stats.waitingPeak,
-                                            wakeups: st.stats.wakeups,
-                                            awaitMillis: st.stats.awaitMillis,
-                                            coordinatorMillis: st.stats.coordinatorMillis,
-                                            dispatched: st.stats.dispatched,
-                                            fallbackDispatched: st.stats.fallbackDispatched,
-                                            maxReady: st.stats.maxReady,
-                                            emitMillis: st.stats.emitMillis + (ended - started)
-                                        }
-                                    });
-                                });
-                            });
-                        });
-                    };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 354, column 21 - line 369, column 10): " + [ v.constructor.name ]);
-                };
-                var deps = Data_Function.apply(fromFoldable1)(Data_Array.mapWithIndex(function (i) {
-                    return function (v) {
-                        return new Data_Tuple.Tuple(i, Data_Array.nub(Data_Ord.ordInt)(Data_Semigroup.append(Data_Semigroup.semigroupArray)(importIndices(i))(Data_Maybe.fromMaybe([  ])(Data_Map_Internal.lookup(Data_Ord.ordInt)(i)(pairWaits)))));
-                    };
-                })(modules));
-                var initialState = (function () {
-                    var depsLeft0 = Data_Functor.map(Data_Map_Internal.functorMap)(Data_Array.length)(deps);
-                    return {
-                        pending: Data_Map_Internal.fromFoldable(Data_Ord.ordInt)(Data_Foldable.foldableArray)(Data_Array.mapWithIndex(function (i) {
-                            return function (m) {
-                                return new Data_Tuple.Tuple(i, m);
-                            };
-                        })(modules)),
-                        depsLeft: depsLeft0,
-                        ready: Data_Function.apply(fromFoldable2)(Data_Array.mapMaybe(function (v) {
-                            var $265 = v.value1 === 0;
-                            if ($265) {
-                                return new Data_Maybe.Just(v.value0);
-                            };
-                            return Data_Maybe.Nothing.value;
-                        })(Data_Map_Internal.toUnfoldable(Data_Unfoldable.unfoldableArray)(depsLeft0))),
-                        finalized: Data_Map_Internal.empty,
-                        contributions: Data_Map_Internal.empty,
-                        privateGlobals: Data_Map_Internal.empty,
-                        accumulated: options.directives,
-                        waiting: Data_Map_Internal.empty,
-                        nextCodegen: 0,
-                        waitingCodegen: Data_Map_Internal.empty,
-                        inFlight: Data_Set.empty,
-                        stats: {
-                            dispatched: 0,
-                            maxReady: 0,
-                            fallbackDispatched: 0,
-                            deferredAttempts: 0,
-                            wakeups: 0,
-                            waitingPeak: 0,
-                            attemptMillis: 0.0,
-                            attemptMaxMillis: 0.0,
-                            coordinatorMillis: 0.0,
-                            awaitMillis: 0.0,
-                            emitMillis: 0.0
-                        }
-                    };
-                })();
-                var children = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (acc) {
-                    return function (v) {
-                        return Data_Foldable.foldl(Data_Foldable.foldableArray)(function (a) {
-                            return function (d) {
-                                return Data_Map_Internal.insertWith(Data_Ord.ordInt)(append)(d)([ v.value0 ])(a);
-                            };
-                        })(acc)(v.value1);
-                    };
-                })(Data_Function.apply(fromFoldable1)(Data_Array.mapWithIndex(function (i) {
-                    return function (v) {
-                        return new Data_Tuple.Tuple(i, [  ]);
-                    };
-                })(modules)))(Data_Map_Internal.toUnfoldable(Data_Unfoldable.unfoldableArray)(deps));
-                var step = function (st) {
-                    return function (result) {
-                        var $272 = !Data_Set.isEmpty(result.pendingDeps);
-                        if ($272) {
-                            var stats$prime = {
-                                emitMillis: st.stats.emitMillis,
-                                wakeups: st.stats.wakeups,
-                                awaitMillis: st.stats.awaitMillis,
-                                coordinatorMillis: st.stats.coordinatorMillis,
-                                dispatched: st.stats.dispatched,
-                                fallbackDispatched: st.stats.fallbackDispatched,
-                                maxReady: st.stats.maxReady,
-                                deferredAttempts: st.stats.deferredAttempts + 1 | 0,
-                                waitingPeak: Data_Ord.max(Data_Ord.ordInt)(st.stats.waitingPeak)(Data_Map_Internal.size(st.waiting) + 1 | 0),
-                                attemptMillis: st.stats.attemptMillis + result.attemptMillis,
-                                attemptMaxMillis: Data_Ord.max(Data_Ord.ordNumber)(st.stats.attemptMaxMillis)(result.attemptMillis)
-                            };
-                            var fresh = Data_Set.filter(Data_Ord.ordInt)(function (d) {
-                                return !Data_Map_Internal.member(Data_Ord.ordInt)(d)(st.finalized);
-                            })(result.pendingDeps);
-                            var $273 = Data_Set.isEmpty(fresh);
-                            if ($273) {
-                                return Control_Applicative.pure(Applicative0)({
-                                    finalized: st.finalized,
-                                    depsLeft: st.depsLeft,
-                                    pending: st.pending,
-                                    contributions: st.contributions,
-                                    privateGlobals: st.privateGlobals,
-                                    accumulated: st.accumulated,
-                                    nextCodegen: st.nextCodegen,
-                                    waitingCodegen: st.waitingCodegen,
-                                    inFlight: st.inFlight,
-                                    ready: Data_Set.insert(Data_Ord.ordInt)(result.index)(st.ready),
-                                    waiting: Data_Map_Internal["delete"](Data_Ord.ordInt)(result.index)(st.waiting),
-                                    stats: stats$prime
-                                });
-                            };
-                            return Control_Applicative.pure(Applicative0)({
-                                finalized: st.finalized,
-                                depsLeft: st.depsLeft,
-                                pending: st.pending,
-                                contributions: st.contributions,
-                                privateGlobals: st.privateGlobals,
-                                accumulated: st.accumulated,
-                                nextCodegen: st.nextCodegen,
-                                waitingCodegen: st.waitingCodegen,
-                                inFlight: st.inFlight,
-                                ready: Data_Set["delete"](Data_Ord.ordInt)(result.index)(st.ready),
-                                waiting: Data_Map_Internal.insert(Data_Ord.ordInt)(result.index)(fresh)(st.waiting),
-                                stats: stats$prime
-                            });
-                        };
-                        return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Data_Function.apply(liftEffect1)(PureScript_Backend_Optimizer_Cache.writePurmetaSync(result.coreFnModule.name)(result.backendMod.implementations)))(function () {
-                            return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.trimPurmetaCache))(function () {
-                                var woken = wake(result.index)(st.waiting);
-                                var depsLeft$prime = Data_Map_Internal["delete"](Data_Ord.ordInt)(result.index)(st.depsLeft);
-                                var childIndices = Data_Maybe.fromMaybe([  ])(Data_Map_Internal.lookup(Data_Ord.ordInt)(result.index)(children));
-                                var depsLeft$prime$prime = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (acc) {
-                                    return function (c) {
-                                        return Data_Map_Internal.update(Data_Ord.ordInt)(function (n) {
-                                            return new Data_Maybe.Just(n - 1 | 0);
-                                        })(c)(acc);
+                        })(modules));
+                        var initialState = function (observations) {
+                            var depsLeft0 = Data_Functor.map(Data_Map_Internal.functorMap)(Data_Array.length)(deps);
+                            return {
+                                observations: observations,
+                                pending: Data_Map_Internal.fromFoldable(Data_Ord.ordInt)(Data_Foldable.foldableArray)(Data_Array.mapWithIndex(function (i) {
+                                    return function (m) {
+                                        return new Data_Tuple.Tuple(i, m);
                                     };
-                                })(depsLeft$prime)(childIndices);
-                                var newlyReady = Data_Array.filter(function (c) {
-                                    return Data_Eq.eq(eqMaybe1)(Data_Map_Internal.lookup(Data_Ord.ordInt)(c)(depsLeft$prime$prime))(new Data_Maybe.Just(0)) && !Data_Map_Internal.member(Data_Ord.ordInt)(c)(woken.waiting);
-                                })(childIndices);
-                                return flushCodegen({
-                                    pending: Data_Map_Internal["delete"](Data_Ord.ordInt)(result.index)(st.pending),
-                                    depsLeft: depsLeft$prime$prime,
-                                    ready: Data_Foldable.foldl(Data_Foldable.foldableArray)(Data_Function.flip(insert))(Data_Set.union(Data_Ord.ordInt)(Data_Set["delete"](Data_Ord.ordInt)(result.index)(st.ready))(woken.ready))(newlyReady),
-                                    finalized: Data_Map_Internal.insert(Data_Ord.ordInt)(result.index)(result.backendMod.implementations)(st.finalized),
-                                    contributions: Data_Map_Internal.insert(Data_Ord.ordInt)(result.index)(result.backendMod.directives)(st.contributions),
-                                    privateGlobals: Data_Map_Internal.insert(Data_Ord.ordInt)(result.index)(untypedPrivateGlobals(result.coreFnModule))(st.privateGlobals),
-                                    accumulated: Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(PureScript_Backend_Optimizer_NativeMaps.insertEvalRefImpl(PureScript_Backend_Optimizer_NativeMaps.evalRefCompare)(compare))(st.accumulated)(result.backendMod.directives),
-                                    waiting: woken.waiting,
-                                    nextCodegen: st.nextCodegen,
-                                    waitingCodegen: Data_Map_Internal.insert(Data_Ord.ordInt)(result.index)(result)(st.waitingCodegen),
-                                    inFlight: st.inFlight,
-                                    stats: {
+                                })(modules)),
+                                depsLeft: depsLeft0,
+                                ready: Data_Function.apply(fromFoldable2)(Data_Array.mapMaybe(function (v) {
+                                    var $324 = v.value1 === 0;
+                                    if ($324) {
+                                        return new Data_Maybe.Just(v.value0);
+                                    };
+                                    return Data_Maybe.Nothing.value;
+                                })(Data_Map_Internal.toUnfoldable(Data_Unfoldable.unfoldableArray)(depsLeft0))),
+                                finalized: Data_Map_Internal.empty,
+                                contributions: Data_Map_Internal.empty,
+                                privateGlobals: Data_Map_Internal.empty,
+                                accumulated: options.directives,
+                                waiting: Data_Map_Internal.empty,
+                                nextCodegen: 0,
+                                waitingCodegen: Data_Map_Internal.empty,
+                                inFlight: Data_Set.empty,
+                                stats: {
+                                    dispatched: 0,
+                                    maxReady: 0,
+                                    fallbackDispatched: 0,
+                                    deferredAttempts: 0,
+                                    wakeups: 0,
+                                    waitingPeak: 0,
+                                    attemptMillis: 0.0,
+                                    attemptMaxMillis: 0.0,
+                                    coordinatorMillis: 0.0,
+                                    awaitMillis: 0.0,
+                                    emitMillis: 0.0
+                                }
+                            };
+                        };
+                        var children = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (acc) {
+                            return function (v) {
+                                return Data_Foldable.foldl(Data_Foldable.foldableArray)(function (a) {
+                                    return function (d) {
+                                        return Data_Map_Internal.insertWith(Data_Ord.ordInt)(append)(d)([ v.value0 ])(a);
+                                    };
+                                })(acc)(v.value1);
+                            };
+                        })(Data_Function.apply(fromFoldable1)(Data_Array.mapWithIndex(function (i) {
+                            return function (v) {
+                                return new Data_Tuple.Tuple(i, [  ]);
+                            };
+                        })(modules)))(Data_Map_Internal.toUnfoldable(Data_Unfoldable.unfoldableArray)(deps));
+                        var step = function (st) {
+                            return function (result) {
+                                var $331 = !Data_Set.isEmpty(result.pendingDeps);
+                                if ($331) {
+                                    var stats$prime = {
                                         emitMillis: st.stats.emitMillis,
-                                        deferredAttempts: st.stats.deferredAttempts,
-                                        waitingPeak: st.stats.waitingPeak,
+                                        wakeups: st.stats.wakeups,
                                         awaitMillis: st.stats.awaitMillis,
                                         coordinatorMillis: st.stats.coordinatorMillis,
                                         dispatched: st.stats.dispatched,
                                         fallbackDispatched: st.stats.fallbackDispatched,
                                         maxReady: st.stats.maxReady,
-                                        wakeups: st.stats.wakeups + Data_Set.size(woken.ready) | 0,
+                                        deferredAttempts: st.stats.deferredAttempts + 1 | 0,
+                                        waitingPeak: Data_Ord.max(Data_Ord.ordInt)(st.stats.waitingPeak)(Data_Map_Internal.size(st.waiting) + 1 | 0),
                                         attemptMillis: st.stats.attemptMillis + result.attemptMillis,
                                         attemptMaxMillis: Data_Ord.max(Data_Ord.ordNumber)(st.stats.attemptMaxMillis)(result.attemptMillis)
-                                    }
-                                });
-                            });
-                        });
-                    };
-                };
-                var go = function (st) {
-                    var v = pickModule(st);
-                    if (v instanceof Data_Maybe.Just) {
-                        var v1 = Data_Map_Internal.lookup(Data_Ord.ordInt)(v.value0.value0)(st.pending);
-                        if (v1 instanceof Data_Maybe.Nothing) {
-                            return go(st);
-                        };
-                        if (v1 instanceof Data_Maybe.Just) {
-                            return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(runner.scheduler.fork(mkJob(st)(v.value0.value0)(v1.value0)))(function () {
-                                var stats$prime = {
-                                    attemptMaxMillis: st.stats.attemptMaxMillis,
-                                    attemptMillis: st.stats.attemptMillis,
-                                    awaitMillis: st.stats.awaitMillis,
-                                    coordinatorMillis: st.stats.coordinatorMillis,
-                                    deferredAttempts: st.stats.deferredAttempts,
-                                    emitMillis: st.stats.emitMillis,
-                                    waitingPeak: st.stats.waitingPeak,
-                                    wakeups: st.stats.wakeups,
-                                    dispatched: st.stats.dispatched + (function () {
-                                        if (v.value0.value1) {
-                                            return 0;
-                                        };
-                                        return 1;
-                                    })() | 0,
-                                    fallbackDispatched: st.stats.fallbackDispatched + (function () {
-                                        if (v.value0.value1) {
-                                            return 1;
-                                        };
-                                        return 0;
-                                    })() | 0,
-                                    maxReady: Data_Ord.max(Data_Ord.ordInt)(Data_Set.size(st.ready))(st.stats.maxReady)
+                                    };
+                                    var fresh = Data_Set.filter(Data_Ord.ordInt)(function (d) {
+                                        return !Data_Map_Internal.member(Data_Ord.ordInt)(d)(st.finalized);
+                                    })(result.pendingDeps);
+                                    var $332 = Data_Set.isEmpty(fresh);
+                                    if ($332) {
+                                        return Control_Applicative.pure(Applicative0)({
+                                            finalized: st.finalized,
+                                            depsLeft: st.depsLeft,
+                                            observations: st.observations,
+                                            pending: st.pending,
+                                            contributions: st.contributions,
+                                            privateGlobals: st.privateGlobals,
+                                            accumulated: st.accumulated,
+                                            nextCodegen: st.nextCodegen,
+                                            waitingCodegen: st.waitingCodegen,
+                                            inFlight: st.inFlight,
+                                            ready: Data_Set.insert(Data_Ord.ordInt)(result.index)(st.ready),
+                                            waiting: Data_Map_Internal["delete"](Data_Ord.ordInt)(result.index)(st.waiting),
+                                            stats: stats$prime
+                                        });
+                                    };
+                                    return Control_Applicative.pure(Applicative0)({
+                                        finalized: st.finalized,
+                                        depsLeft: st.depsLeft,
+                                        observations: st.observations,
+                                        pending: st.pending,
+                                        contributions: st.contributions,
+                                        privateGlobals: st.privateGlobals,
+                                        accumulated: st.accumulated,
+                                        nextCodegen: st.nextCodegen,
+                                        waitingCodegen: st.waitingCodegen,
+                                        inFlight: st.inFlight,
+                                        ready: Data_Set["delete"](Data_Ord.ordInt)(result.index)(st.ready),
+                                        waiting: Data_Map_Internal.insert(Data_Ord.ordInt)(result.index)(fresh)(st.waiting),
+                                        stats: stats$prime
+                                    });
                                 };
-                                return go({
-                                    finalized: st.finalized,
-                                    ready: st.ready,
-                                    pending: st.pending,
-                                    waiting: st.waiting,
-                                    accumulated: st.accumulated,
-                                    contributions: st.contributions,
-                                    privateGlobals: st.privateGlobals,
-                                    depsLeft: st.depsLeft,
-                                    nextCodegen: st.nextCodegen,
-                                    waitingCodegen: st.waitingCodegen,
-                                    inFlight: Data_Set.insert(Data_Ord.ordInt)(v.value0.value0)(st.inFlight),
-                                    stats: stats$prime
-                                });
-                            });
-                        };
-                        throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 402, column 34 - line 412, column 72): " + [ v1.constructor.name ]);
-                    };
-                    if (v instanceof Data_Maybe.Nothing) {
-                        var $282 = Data_Set.isEmpty(st.inFlight);
-                        if ($282) {
-                            if (runner.onStats instanceof Data_Maybe.Just) {
-                                return runner.onStats.value0({
-                                    dispatched: st.stats.dispatched,
-                                    fallbackDispatched: st.stats.fallbackDispatched,
-                                    deferredAttempts: st.stats.deferredAttempts,
-                                    wakeups: st.stats.wakeups,
-                                    waitingPeak: st.stats.waitingPeak,
-                                    attemptMillis: st.stats.attemptMillis,
-                                    attemptMaxMillis: st.stats.attemptMaxMillis,
-                                    coordinatorMillis: st.stats.coordinatorMillis,
-                                    awaitMillis: st.stats.awaitMillis,
-                                    emitMillis: st.stats.emitMillis,
-                                    maxReady: Data_Ord.max(Data_Ord.ordInt)(Data_Set.size(st.ready))(st.stats.maxReady)
+                                return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Data_Function.apply(liftEffect1)(PureScript_Backend_Optimizer_Cache.writePurmetaSync(result.coreFnModule.name)(result.backendMod.implementations)))(function () {
+                                    return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.trimPurmetaCache))(function () {
+                                        var woken = wake(result.index)(st.waiting);
+                                        var depsLeft$prime = Data_Map_Internal["delete"](Data_Ord.ordInt)(result.index)(st.depsLeft);
+                                        var childIndices = Data_Maybe.fromMaybe([  ])(Data_Map_Internal.lookup(Data_Ord.ordInt)(result.index)(children));
+                                        var depsLeft$prime$prime = Data_Foldable.foldl(Data_Foldable.foldableArray)(function (acc) {
+                                            return function (c) {
+                                                return Data_Map_Internal.update(Data_Ord.ordInt)(function (n) {
+                                                    return new Data_Maybe.Just(n - 1 | 0);
+                                                })(c)(acc);
+                                            };
+                                        })(depsLeft$prime)(childIndices);
+                                        var newlyReady = Data_Array.filter(function (c) {
+                                            return Data_Eq.eq(eqMaybe1)(Data_Map_Internal.lookup(Data_Ord.ordInt)(c)(depsLeft$prime$prime))(new Data_Maybe.Just(0)) && !Data_Map_Internal.member(Data_Ord.ordInt)(c)(woken.waiting);
+                                        })(childIndices);
+                                        return flushCodegen({
+                                            observations: st.observations,
+                                            pending: Data_Map_Internal["delete"](Data_Ord.ordInt)(result.index)(st.pending),
+                                            depsLeft: depsLeft$prime$prime,
+                                            ready: Data_Foldable.foldl(Data_Foldable.foldableArray)(Data_Function.flip(insert))(Data_Set.union(Data_Ord.ordInt)(Data_Set["delete"](Data_Ord.ordInt)(result.index)(st.ready))(woken.ready))(newlyReady),
+                                            finalized: Data_Map_Internal.insert(Data_Ord.ordInt)(result.index)(result.backendMod.implementations)(st.finalized),
+                                            contributions: Data_Map_Internal.insert(Data_Ord.ordInt)(result.index)(result.backendMod.directives)(st.contributions),
+                                            privateGlobals: Data_Map_Internal.insert(Data_Ord.ordInt)(result.index)(untypedPrivateGlobals(result.coreFnModule))(st.privateGlobals),
+                                            accumulated: Data_FoldableWithIndex.foldrWithIndex(Data_Map_Internal.foldableWithIndexMap)(PureScript_Backend_Optimizer_NativeMaps.insertEvalRefImpl(PureScript_Backend_Optimizer_NativeMaps.evalRefCompare)(compare))(st.accumulated)(result.backendMod.directives),
+                                            waiting: woken.waiting,
+                                            nextCodegen: st.nextCodegen,
+                                            waitingCodegen: Data_Map_Internal.insert(Data_Ord.ordInt)(result.index)(result)(st.waitingCodegen),
+                                            inFlight: st.inFlight,
+                                            stats: {
+                                                emitMillis: st.stats.emitMillis,
+                                                deferredAttempts: st.stats.deferredAttempts,
+                                                waitingPeak: st.stats.waitingPeak,
+                                                awaitMillis: st.stats.awaitMillis,
+                                                coordinatorMillis: st.stats.coordinatorMillis,
+                                                dispatched: st.stats.dispatched,
+                                                fallbackDispatched: st.stats.fallbackDispatched,
+                                                maxReady: st.stats.maxReady,
+                                                wakeups: st.stats.wakeups + Data_Set.size(woken.ready) | 0,
+                                                attemptMillis: st.stats.attemptMillis + result.attemptMillis,
+                                                attemptMaxMillis: Data_Ord.max(Data_Ord.ordNumber)(st.stats.attemptMaxMillis)(result.attemptMillis)
+                                            }
+                                        });
+                                    });
                                 });
                             };
-                            if (runner.onStats instanceof Data_Maybe.Nothing) {
-                                return Control_Applicative.pure(Applicative0)(Data_Unit.unit);
-                            };
-                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 415, column 9 - line 417, column 31): " + [ runner.onStats.constructor.name ]);
                         };
-                        return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (awaitStarted) {
-                            return Control_Bind.bind(Bind1)(runner["scheduler"]["await"])(function (result) {
-                                return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (awaitEnded) {
-                                    return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (coordStarted) {
-                                        return Control_Bind.bind(Bind1)(step(st)(result))(function (st$prime) {
-                                            return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (coordEnded) {
-                                                return go({
-                                                    finalized: st$prime.finalized,
-                                                    ready: st$prime.ready,
-                                                    pending: st$prime.pending,
-                                                    waiting: st$prime.waiting,
-                                                    accumulated: st$prime.accumulated,
-                                                    contributions: st$prime.contributions,
-                                                    privateGlobals: st$prime.privateGlobals,
-                                                    depsLeft: st$prime.depsLeft,
-                                                    nextCodegen: st$prime.nextCodegen,
-                                                    waitingCodegen: st$prime.waitingCodegen,
-                                                    inFlight: Data_Set["delete"](Data_Ord.ordInt)(result.index)(st$prime.inFlight),
-                                                    stats: {
-                                                        dispatched: st$prime.stats.dispatched,
-                                                        fallbackDispatched: st$prime.stats.fallbackDispatched,
-                                                        attemptMaxMillis: st$prime.stats.attemptMaxMillis,
-                                                        attemptMillis: st$prime.stats.attemptMillis,
-                                                        deferredAttempts: st$prime.stats.deferredAttempts,
-                                                        emitMillis: st$prime.stats.emitMillis,
-                                                        waitingPeak: st$prime.stats.waitingPeak,
-                                                        wakeups: st$prime.stats.wakeups,
-                                                        awaitMillis: st$prime.stats.awaitMillis + (awaitEnded - awaitStarted),
-                                                        coordinatorMillis: st$prime.stats.coordinatorMillis + (coordEnded - coordStarted),
-                                                        maxReady: Data_Ord.max(Data_Ord.ordInt)(Data_Set.size(st.ready))(st$prime.stats.maxReady)
-                                                    }
+                        var go = function (st) {
+                            var v = pickModule(st);
+                            if (v instanceof Data_Maybe.Just) {
+                                var v1 = Data_Map_Internal.lookup(Data_Ord.ordInt)(v.value0.value0)(st.pending);
+                                if (v1 instanceof Data_Maybe.Nothing) {
+                                    return go(st);
+                                };
+                                if (v1 instanceof Data_Maybe.Just) {
+                                    return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(runner.scheduler.fork(mkJob(st)(v.value0.value0)(v1.value0)))(function () {
+                                        var stats$prime = {
+                                            attemptMaxMillis: st.stats.attemptMaxMillis,
+                                            attemptMillis: st.stats.attemptMillis,
+                                            awaitMillis: st.stats.awaitMillis,
+                                            coordinatorMillis: st.stats.coordinatorMillis,
+                                            deferredAttempts: st.stats.deferredAttempts,
+                                            emitMillis: st.stats.emitMillis,
+                                            waitingPeak: st.stats.waitingPeak,
+                                            wakeups: st.stats.wakeups,
+                                            dispatched: st.stats.dispatched + (function () {
+                                                if (v.value0.value1) {
+                                                    return 0;
+                                                };
+                                                return 1;
+                                            })() | 0,
+                                            fallbackDispatched: st.stats.fallbackDispatched + (function () {
+                                                if (v.value0.value1) {
+                                                    return 1;
+                                                };
+                                                return 0;
+                                            })() | 0,
+                                            maxReady: Data_Ord.max(Data_Ord.ordInt)(Data_Set.size(st.ready))(st.stats.maxReady)
+                                        };
+                                        return go({
+                                            finalized: st.finalized,
+                                            ready: st.ready,
+                                            pending: st.pending,
+                                            waiting: st.waiting,
+                                            accumulated: st.accumulated,
+                                            contributions: st.contributions,
+                                            observations: st.observations,
+                                            privateGlobals: st.privateGlobals,
+                                            depsLeft: st.depsLeft,
+                                            nextCodegen: st.nextCodegen,
+                                            waitingCodegen: st.waitingCodegen,
+                                            inFlight: Data_Set.insert(Data_Ord.ordInt)(v.value0.value0)(st.inFlight),
+                                            stats: stats$prime
+                                        });
+                                    });
+                                };
+                                throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 480, column 34 - line 490, column 72): " + [ v1.constructor.name ]);
+                            };
+                            if (v instanceof Data_Maybe.Nothing) {
+                                var $341 = Data_Set.isEmpty(st.inFlight);
+                                if ($341) {
+                                    if (runner.onStats instanceof Data_Maybe.Just) {
+                                        return runner.onStats.value0({
+                                            dispatched: st.stats.dispatched,
+                                            fallbackDispatched: st.stats.fallbackDispatched,
+                                            deferredAttempts: st.stats.deferredAttempts,
+                                            wakeups: st.stats.wakeups,
+                                            waitingPeak: st.stats.waitingPeak,
+                                            attemptMillis: st.stats.attemptMillis,
+                                            attemptMaxMillis: st.stats.attemptMaxMillis,
+                                            coordinatorMillis: st.stats.coordinatorMillis,
+                                            awaitMillis: st.stats.awaitMillis,
+                                            emitMillis: st.stats.emitMillis,
+                                            maxReady: Data_Ord.max(Data_Ord.ordInt)(Data_Set.size(st.ready))(st.stats.maxReady)
+                                        });
+                                    };
+                                    if (runner.onStats instanceof Data_Maybe.Nothing) {
+                                        return Control_Applicative.pure(Applicative0)(Data_Unit.unit);
+                                    };
+                                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 493, column 9 - line 495, column 31): " + [ runner.onStats.constructor.name ]);
+                                };
+                                return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (awaitStarted) {
+                                    return Control_Bind.bind(Bind1)(runner["scheduler"]["await"])(function (result) {
+                                        return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (awaitEnded) {
+                                            return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (coordStarted) {
+                                                return Control_Bind.bind(Bind1)(step(st)(result))(function (st$prime) {
+                                                    return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.nowMillis))(function (coordEnded) {
+                                                        return go({
+                                                            finalized: st$prime.finalized,
+                                                            ready: st$prime.ready,
+                                                            pending: st$prime.pending,
+                                                            waiting: st$prime.waiting,
+                                                            accumulated: st$prime.accumulated,
+                                                            contributions: st$prime.contributions,
+                                                            observations: st$prime.observations,
+                                                            privateGlobals: st$prime.privateGlobals,
+                                                            depsLeft: st$prime.depsLeft,
+                                                            nextCodegen: st$prime.nextCodegen,
+                                                            waitingCodegen: st$prime.waitingCodegen,
+                                                            inFlight: Data_Set["delete"](Data_Ord.ordInt)(result.index)(st$prime.inFlight),
+                                                            stats: {
+                                                                dispatched: st$prime.stats.dispatched,
+                                                                fallbackDispatched: st$prime.stats.fallbackDispatched,
+                                                                attemptMaxMillis: st$prime.stats.attemptMaxMillis,
+                                                                attemptMillis: st$prime.stats.attemptMillis,
+                                                                deferredAttempts: st$prime.stats.deferredAttempts,
+                                                                emitMillis: st$prime.stats.emitMillis,
+                                                                waitingPeak: st$prime.stats.waitingPeak,
+                                                                wakeups: st$prime.stats.wakeups,
+                                                                awaitMillis: st$prime.stats.awaitMillis + (awaitEnded - awaitStarted),
+                                                                coordinatorMillis: st$prime.stats.coordinatorMillis + (coordEnded - coordStarted),
+                                                                maxReady: Data_Ord.max(Data_Ord.ordInt)(Data_Set.size(st.ready))(st$prime.stats.maxReady)
+                                                            }
+                                                        });
+                                                    });
                                                 });
                                             });
                                         });
                                     });
                                 });
+                            };
+                            throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 479, column 11 - line 512, column 12): " + [ v.constructor.name ]);
+                        };
+                        return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.beginPurmetaBuild))(function () {
+                            return Control_Bind.bind(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(Effect_Ref["new"](Data_Map_Internal.empty)))(function (observations) {
+                                return go(initialState(observations));
                             });
                         });
                     };
-                    throw new Error("Failed pattern match at PureScript.Backend.Optimizer.Builder (line 401, column 11 - line 434, column 12): " + [ v.constructor.name ]);
                 };
-                return Control_Bind.discard(Control_Bind.discardUnit)(Bind1)(Effect_Class.liftEffect(dictMonadEffect)(PureScript_Backend_Optimizer_Cache.beginPurmetaBuild))(function () {
-                    return go(initialState);
-                });
             };
         };
     };
 };
+var buildModulesParallelWithReuse = function (dictMonadEffect) {
+    return buildModulesParallelWithObservation(dictMonadEffect)(Data_Maybe.Nothing.value);
+};
+var buildModulesParallel = function (dictMonadEffect) {
+    var Applicative0 = (dictMonadEffect.Monad0()).Applicative0();
+    return buildModulesParallelWithReuse(dictMonadEffect)(function (v) {
+        return function (v1) {
+            return function (v2) {
+                return Control_Applicative.pure(Applicative0)(Data_Unit.unit);
+            };
+        };
+    });
+};
 export {
     buildModules,
+    buildModulesWithReuse,
+    buildModulesWithObservation,
     buildModulesParallel,
+    buildModulesParallelWithReuse,
+    buildModulesParallelWithObservation,
     createRankLookup,
     effectiveDirectives
 };
