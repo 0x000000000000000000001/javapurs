@@ -61,7 +61,8 @@ export const portSuites = {
   refs: synchronous("javapurs-refs"),
   exceptions: synchronous("javapurs-exceptions"),
   run: synchronous("javapurs-run"),
-  spec: { ...spec("javapurs-spec", 62), wrapper: "SpecOnly" },
+  spec: { ...spec("javapurs-spec", 70), wrapper: "SpecFull", timeout: 600000, javaArgs: ["-Djavapurs.test.timeout=600000"],
+    sources: [["src", "src"], ["test", "test"], ["integration-tests", "integration-tests"]] },
   st: synchronous("javapurs-st"),
   strings: { ...synchronous("javapurs-strings"), javacArgs: ["-J-Xss64m"], javaArgs: ["-Xss64m"] },
   "strings-extra": synchronous("javapurs-strings-extra"),
@@ -149,7 +150,7 @@ export async function runPortSuite(port, directory, tools, processes, { root = c
   if (suite.completion === "awaited") {
     const output = readFileSync(join(directory, "logs/execution.log"), "utf8");
     assertCompleted(output);
-    if (["Spec", "SpecOnly"].includes(suite.wrapper)) {
+    if (["Spec", "SpecOnly", "SpecFull"].includes(suite.wrapper)) {
       assert.deepEqual(output.split(/\r?\n/).filter(line => line.startsWith("PORT SPEC PASSED: ")),
         [`PORT SPEC PASSED: ${suite.checks}`], `${port}: incomplete assertion inventory`);
     } else {
@@ -172,7 +173,7 @@ function assertCompleted(output) {
 // deliberately fail after suspension, reject, never complete, or exit early.
 export async function checkPortRunner(port, directory, tools, processes) {
   const probes = [["late-failure", "runner late assertion"], ["rejection", "runner rejection"], ["timeout", "Port suite timed out"]];
-  if (["Spec", "SpecOnly"].includes(suiteFor(port).wrapper)) probes.push(["spec-failure", "Port spec failed"]);
+  if (["Spec", "SpecOnly", "SpecFull"].includes(suiteFor(port).wrapper)) probes.push(["spec-failure", "Port spec failed"]);
   for (const [mode, diagnostic] of probes) {
     const log = join(directory, "logs", `probe-${mode}.log`);
     await assert.rejects(() => processes.run(`${port}: probe ${mode}`, tools.java,
@@ -188,5 +189,5 @@ export async function checkPortRunner(port, directory, tools, processes) {
     ["-Djavapurs.test.mode=early-exit", "-cp", "output/java/classes", "MainRun"],
     { cwd: directory, env: tools.env, timeout: 5000, log });
   assert.throws(() => assertCompleted(readFileSync(log, "utf8")), /suite-completion marker/);
-  console.log(`${port}: delayed assertion, rejection, timeout and premature exit detected${["Spec", "SpecOnly"].includes(suiteFor(port).wrapper) ? "; Spec failure detected" : ""}`);
+  console.log(`${port}: delayed assertion, rejection, timeout and premature exit detected${["Spec", "SpecOnly", "SpecFull"].includes(suiteFor(port).wrapper) ? "; Spec failure detected" : ""}`);
 }

@@ -46,10 +46,13 @@ action Aff et termine sur le marqueur commun.**
 dates corrigés.**
 
 **Complément M30 clôturé : Spec pur passe 62/62, trois pending ; l'intégration
-`node-child-process` reste explicitement hors JVM.**
+`node-child-process` est couverte ensuite par M32.**
 
 **Complément M31 clôturé : Node HTTP passe, y compris les upgrades 426/101 et
 le socket client.** Tous les protocoles du runner sont désormais traités.
+
+**Complément M32 clôturé : l'intégration Spec passe 70/70 (62 purs + 8 cas
+d'intégration) avec le port `node-child-process` et le harnais `spago` local.**
 
 ## Constats initiaux vérifiés
 
@@ -350,7 +353,7 @@ compilateur reste un artefact actif du launcher ; son statut est décrit dans le
     défaut est hermétique. **Aucun protocole rejeté** ; les 48 sélections sont
     traitées. Voir les [preuves M31](docs/testing.md#validation-m31).
 
-- [ ] **M32 — Spec : intégration réelle via `node-child-process`**
+- [x] **M32 — Spec : intégration réelle via `node-child-process`**
   - **Constat :** Spec pur est validé (M30), mais les huit cas d'intégration
     lancent `npx spago`/`spec-node` via `node-child-process`, absent du backend
     JVM. Une tentative exploratoire a ajouté des ports locaux
@@ -368,11 +371,15 @@ compilateur reste un artefact actif du launcher ; son statut est décrit dans le
   - **Validation ciblée :** les huit cas d'intégration Spec, leurs ressources et
     le wrapper de fin, sans modifier les assertions upstream ; comparer les
     sorties golden et documenter toute dépendance réseau/outillage.
-  - **État — 20 octobre 2026 :** phase A validée par `test/child-process.mjs`
-    (`spawn /bin/sh`, stdout `child-ok`, code 0) dans
-    `javapurs-node-child-process` ; le port reste hors des sélections de ports.
-    La préparation `npm/npx` et l'intégration Spec complète restent à traiter.
-    Aucun résultat d'intégration Spec n'est déclaré validé.
+  - **Clôture — 20 octobre 2026 :** phase A validée par
+    `test/child-process.mjs` (`spawn /bin/sh`, stdout `child-ok`, code 0) dans
+    `javapurs-node-child-process`. La phase B utilise le `spago` local, corrige
+    les callbacks unaires de `Node.FS.Async`, borne les sous-processus (stdin
+    `/dev/null`, timeout 60 s, une reprise si la sortie est vide) et rejoue les
+    événements `exit`/`close` aux listeners tardifs. `../javapurs-spec/bin/test`
+    termine **code 0, 70/70 checks** (62 Spec purs + 8 intégrations) et les cinq
+    sondes ; aucune assertion upstream modifiée. Voir les
+    [preuves M32](docs/testing.md#validation-m32).
 
 ## Points d'appui
 

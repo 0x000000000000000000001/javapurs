@@ -76,6 +76,12 @@ workspace:
         if (code != 0 || !output.equals("child-ok")) {
             throw new AssertionError("code=" + code + " output=" + output);
         }
+        final boolean[] exited = { false };
+        Object listener = (java.util.function.Function<Object, Object>) exitCode ->
+            (java.util.function.Function<Object, Object>) signal ->
+                (java.util.function.Supplier<Object>) () -> { exited[0] = true; return null; };
+        value.addListener("exit", listener, false);
+        if (!exited[0]) throw new AssertionError("late exit listener was not replayed");
         System.out.println("child process OK");
     }
 }

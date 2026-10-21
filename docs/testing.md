@@ -163,7 +163,7 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Résolution, relevé et diagnostics FFI | [test/ffi-diagnostics.mjs](../test/ffi-diagnostics.mjs) | Huit modules, trois sélections adjacente/replis, huit erreurs JVM par binding, fragments incomplets/espaces et erreur de lecture ; backend construit, `purs` TAST, JDK, cible Java 17. |
 | Exceptions, Ref, Promise et Aff Java | [test/ffi-runtimes.mjs](../test/ffi-runtimes.mjs) | 49 contrôles directs : noms/traces/causes, identité Throwable, effets différés, écritures concurrentes, règlement/adoption, désabonnement, annulation, bracket, supervision et parallèle ; vrais fragments, référence JS Exceptions, shim Either, Node/JDK et quatre ports voisins. |
 | API PureScript des ports et pont Promise/Aff | [test/ffi-ports.mjs](../test/ffi-ports.mjs) | 25 assertions × records typés/Maps × classes/JAR, mêmes TAST ; attente de la fibre, inventaire et marqueur final vérifiés. Relevé identique entre modes, fragments locaux identifiés, troisième génération avec `foreign` du registre pour diagnostiquer l'absence Java. Backend construit, Spago, `purs` TAST, ports locaux et JDK avec `jar`. |
-| Spawn Java `node-child-process` | [test/child-process.mjs](../test/child-process.mjs) | Workspace isolé et probe Java sur `spawn` : stdout `child-ok` et code de sortie 0 ; port construit et JDK. Couvre la phase A de M32, pas l'intégration Spec. |
+| Spawn Java `node-child-process` | [test/child-process.mjs](../test/child-process.mjs) | Workspace isolé et probe Java sur `spawn` : stdout `child-ok`, code 0 et rejeu d'un `exit` tardif ; port construit et JDK. Complète la validation M32. |
 | Suites et complétion des ports | [test/port-runners.mjs](../test/port-runners.mjs) | 48 sélections `--port=NOM` ([inventaire](port-launchers.md)) : **41 synchrones (dont Node FS, Node Net et Node HTTP avec wrapper Aff), sept attendues, aucune rejetée** faute de protocole. Aff/Promise/Promise-Aff : 45/13/7 contrôles et quatre sondes chacune. UUID/Event Emitter : Spec attendue, **6/19 résultats exigés**, cinq sondes chacune ; les deux suites passent depuis M25. Yoga JSON : **52/52**, cinq sondes depuis M29. Spec pur : **62/62**, trois pending, cinq sondes depuis M30. Node HTTP : suite complète et upgrades depuis M31. Node Streams (M26), Node FS (M27) et Node Net (M28) sont validés. Options strictes, sources/configurations préservées, phases bornées/loggées, pile Strings 64 Mio. Backend construit, Spago/`purs` TAST, ports locaux et JDK ; cible 17 par défaut. |
 | Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | Prépare et exécute BigFunction dans un workspace temporaire isolé, puis réalise 155 contrôles de `f`. |
 | Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 27 tests Node : sélection/aide sans effets, JDK/cible/runtime séparés, profils de dépendances/FFI, 45 gabarits historiques (dont dépendances vides), chemins validés avant écriture, sources/symlinks/outputs préservés, ressources/espaces, 45 délégations, rejets explicites et contrôle des résultats Spec, cinq échecs de phase, quatre timeouts et signaux aux descendants. |
@@ -3508,4 +3508,49 @@ contient `http-suite.log`, `http-suite-probe.log` et
 `http-probe-suite/logs/execution.log`.
 
 **Conclusion : M31 validé le 20 octobre 2026. Toutes les sélections exécutables
-ont une action de fin ; seule l'intégration Spec reste explicitement exclue.**
+ont une action de fin ; l'intégration Spec est couverte par M32.**
+
+## Validation M32
+
+### Intégration Spec via `node-child-process` — 20 octobre 2026
+
+Le wrapper `SpecFull` compose `pureSpec` et les huit cas de
+`integration-tests/cases`, puis exécute le tout avec `evalSpecT`. Le harnais
+utilise le `spago` local au lieu de `npm install`/`npx` ; il ne dépend donc plus
+d'un environnement npm temporaire.
+
+Le port Java `javapurs-node-child-process` fournit `spawn`/`spawn'`, stdout,
+stderr, `exit`, `close` et `error`. Trois corrections ont été nécessaires :
+
+- rejouer les événements `exit`/`close` aux listeners attachés après la sortie,
+  avec un historique borné ;
+- rediriger stdin vers `/dev/null` pour les enfants Node qui terminent via la
+  boucle d'événements ;
+- borner chaque sous-processus à 60 s, avec une reprise du cas si la sortie
+  nettoyée est vide.
+
+`Node.FS.Async` accepte désormais les callbacks Node `(error, value)` et les
+callbacks unaires (`access`), sans modifier les assertions upstream.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `../javapurs-spec/bin/test` | **Code 0**, `spec: 70 checks completed` : **62 Spec purs + 8 intégrations**. |
+| Cas d'intégration | `01-all-passing`, `02-all-failing`, `03-some-passing`, `04-fail-fast-with-timeout`, `05-fail-fast-due-to-test-failure`, `issue-144`, `issue-149`, `issue-157` ; golden outputs comparés. |
+| Sondes | Cinq sondes négatives du wrapper réussies (`late-failure`, `rejection`, `timeout`, `spec-failure`, `early-exit`). |
+| `node test/child-process.mjs` | Réussi : spawn, stdout `child-ok`, code 0 et rejeu du listener `exit` tardif. |
+| `node --test test/test-tools.mjs` | **27/27 tests**. |
+| Documentation, syntaxes et diffs | `node tools/check-docs.mjs`, `git diff --check` et inspection des changements réussis. |
+
+Le garde Java de la suite est porté à `-Djavapurs.test.timeout=600000` pour
+laisser les huit cas et leurs reprises s'exécuter. La sortie de chaque cas reste
+comparée telle quelle aux fichiers `output.txt`.
+
+Preuves :
+`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m25/`
+contient `spec-final-clean.log`, `spec-full-retry3.log` et
+`spec-case04.log`.
+
+**Conclusion : M32 validé le 20 octobre 2026. Spec complet passe 70/70 ; aucun
+protocole du runner n'est rejeté.**
