@@ -1,6 +1,4 @@
 import assert from "node:assert/strict";
-import { writeFileSync } from "node:fs";
-import { join } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import * as S from "../output/PureScript.Backend.Optimizer.Syntax/index.js";
 import { Just, Nothing } from "../output/Data.Maybe/index.js";
@@ -13,9 +11,7 @@ import { chunkFile } from "../output/Javapurs.Chunk/index.js";
 import { printExpr, printFile } from "../output/Javapurs.Printer/index.js";
 import { runtimeSource } from "../output/Javapurs.IntFunctions/index.js";
 import { tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
-import { runCommandSync } from "../tools/test-process.mjs";
-import { resolveJavaTools } from "../tools/java-tools.mjs";
-import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
+import { withJavaFixture } from "./support/java-fixture.mjs";
 
 // The mixed IR's boundaries: lexical declarations, selectors, raw text and
 // control identities. Exercise Rename -> optional Chunk -> javac -> JVM.
@@ -218,15 +214,14 @@ const harness = `public class AstScopeRegression {
   }
 }`;
 
-const { javac, java, javacArgs } = resolveJavaTools();
 for (const [mode, file] of [["renamed", renamed], ["chunked", chunked]]) {
-  await withTemporaryDirectory("javapurs-ast-scopes-", directory => {
-    const sources = { "ScopeFixtures.java": printFile("ScopeFixtures")(file), "AstScopeRegression.java": harness,
-      "__IntFn.java": runtimeSource, "TcoLoop.java": tcoLoopSource };
-    for (const [name, source] of Object.entries(sources)) writeFileSync(join(directory, name), source);
-    runCommandSync(javac, [...javacArgs, "-d", directory, ...Object.keys(sources).map(name => join(directory, name))],
-      { stdio: "pipe", timeout: 60_000 });
-    const output = runCommandSync(java, ["-cp", directory, "AstScopeRegression"], { encoding: "utf8", timeout: 30_000 });
-    console.log(`${mode}: ${output.trim()}`);
-  });
+  await withJavaFixture("javapurs-ast-scopes-", {
+    sources: { "ScopeFixtures.java": printFile("ScopeFixtures")(file), "AstScopeRegression.java": harness,
+      "__IntFn.java": runtimeSource, "TcoLoop.java": tcoLoopSource },
+    main: "AstScopeRegression",
+    outputDirectory: undefined,
+    stdio: "pipe",
+    encoding: "utf8",
+    runTimeout: 30_000,
+  }, ({ output }) => console.log(`${mode}: ${output.trim()}`));
 }

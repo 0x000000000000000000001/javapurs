@@ -81,7 +81,7 @@ de texte dans `Raw.isClosedValue`.
 | `tools/source-lock.json`, `tools/install-source.mjs`, `examples/` | Références Git compatibles, export/reconstruction source isolée et exemples Hello/Refs. `installation.json`, logs, builds et JAR sont créés dans le workspace explicitement choisi. |
 | `test/`, `tests/ffi-ports/`, `tests/port-suites/`, `tests/ffi/`, `tests/passing/` | Sources des régressions et surcharges. Les fixtures FFI/ports restent hors de `test/**/*.purs`, glob du build du backend. |
 | `tests/runner/spago.yaml`, `spago.lock` | Configuration persistante du runner ; le YAML sert aussi aux workspaces isolés. |
-| `output/` du compilateur | Modules JavaScript, FFI, source maps et `package.json` **suivis dans Git** ; `bin/javapurs.js` charge `output/Main/index.js`. Les métadonnées `corefn.json`, `docs.json`, `externs.cbor` et `cache-db.json` sont régénérables, retirées du checkout et ignorées. `./bin/build` reconstruit le tout après changement des sources. |
+| `output/` du compilateur | Modules JavaScript, FFI, source maps et `package.json` **suivis dans Git** ; `bin/javapurs.js` charge `output/Main/index.js`. Les métadonnées `corefn.json`, `docs.json`, `externs.cbor` et `cache-db.json` sont régénérables, retirées du checkout et ignorées. `./bin/build` reconstruit le tout après changement des sources ; `tools/check-generated.mjs` vérifie la stabilité SHA-256 des sorties JS/source maps. |
 | `.spago/` | Dépendances et état Spago régénérables, désormais ignorés. Les copies locales, y compris les anciennes copies suivies du compilateur, ont été retirées lors du nettoyage après M18. |
 | `.purs-repl` | Configuration persistante du REPL (`import Prelude`). |
 | `.psci_modules/` | Ancien build REPL retiré lors du nettoyage demandé pendant M13 ; régénérable par le REPL et désormais ignoré. Le launcher du compilateur charge `output/`. |
@@ -225,8 +225,11 @@ launchers historiques (M23). Les validations sont ciblées par profil et port.
 
 **M20–M32 sont clôturés ; Spec complet passe 70/70.** Le [plan v4](plan-v4.md)
 est clôturé : cartographie, compilateur, FFI, harnais et docs ont été consolidés
-sans changement de comportement. Le [plan v5](../todo.md) est clôturé : launchers génériques, configurations
-contrôlées, stubs FFI supprimés et fixtures Java partagées. Les huit suites utilisent les templates
+sans changement de comportement. Le [plan v5](plan-v5.md) est clôturé : launchers génériques, configurations
+contrôlées, stubs FFI supprimés et fixtures Java partagées. Le
+[plan v6](../todo.md) traite les dernières frontières de `CodeGen.Expr`, la
+source unique des configurations Spago, les fixtures restantes et le contrôle
+des sorties générées. Les huit suites utilisent les templates
 de `Javapurs.Runtime`. Le support `test/support/optimized-module.mjs` reconstruit
 les entrées optionnelles RBTree/Records/Church/LazyEvaluation depuis leur TAST,
 dans un workspace isolé et un scope de publication PBO courant ; les `.purmeta`

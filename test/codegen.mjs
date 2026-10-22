@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import * as C from "../output/PureScript.Backend.Optimizer.CoreFn/index.js";
 import * as S from "../output/PureScript.Backend.Optimizer.Syntax/index.js";
@@ -10,14 +9,11 @@ import { lowerModule } from "../output/Javapurs.Pipeline/index.js";
 import { printExpr } from "../output/Javapurs.Printer/index.js";
 import { intFunctionSource, tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
 import { moduleClass } from "./support/module-classes.mjs";
-import { runCommandSync } from "../tools/test-process.mjs";
-import { resolveJavaTools } from "../tools/java-tools.mjs";
-import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
+import { withJavaFixture } from "./support/java-fixture.mjs";
 
 // Exercise BackendSyntax -> CodeGen -> Rename -> optional Chunk -> JVM.
 // The event trace observes evaluation order, laziness and multiplicity, rather
 // than the implementation's choice of temporary names or Java node shapes.
-const { javac, java, javacArgs } = resolveJavaTools();
 const moduleName = "Codegen.Fixtures";
 const className = moduleClass(moduleName);
 const runtimeName = moduleClass("Codegen.Runtime");
@@ -186,11 +182,12 @@ for (const chunkEnabled of [false, true]) {
     [`${runtimeName}.java`, runtime], ["CodegenChecks.java", checks],
     ["__IntFn.java", intFunctionSource], ["TcoLoop.java", tcoLoopSource],
   ]);
-  await withTemporaryDirectory(`javapurs-codegen-${chunkEnabled ? "chunk" : "plain"}-`, directory => {
-    for (const [name, source] of sources) writeFileSync(join(directory, name), source);
-    runCommandSync(javac, [...javacArgs, "-nowarn", ...sources.keys()], { cwd: directory, stdio: "pipe" });
-    const result = runCommandSync(java, ["-Xss256k", "-cp", directory, "CodegenChecks"],
-      { cwd: directory, encoding: "utf8", stdio: "pipe", timeout: 30000 });
-    console.log(`${chunkEnabled ? "chunk" : "plain"}: ${result.trim()}`);
-  });
+  await withJavaFixture(`javapurs-codegen-${chunkEnabled ? "chunk" : "plain"}-`, {
+    sources,
+    main: "CodegenChecks",
+    javaArgs: ["-Xss256k"],
+    stdio: "pipe",
+    encoding: "utf8",
+    runTimeout: 30_000,
+  }, ({ output }) => console.log(`${chunkEnabled ? "chunk" : "plain"}: ${output.trim()}`));
 }

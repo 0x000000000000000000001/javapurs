@@ -19,6 +19,8 @@ node test/entrypoint.mjs
 node test/child-process.mjs
 node --test test/test-tools.mjs
 node tools/check-port-configs.mjs
+node tools/port-configs.mjs --check
+node tools/check-generated.mjs
 node tools/check-docs.mjs
 ```
 
@@ -30,7 +32,7 @@ Pour un port précis, lancer sa suite ciblée :
 ```
 
 Ne pas lancer `t -c`, le corpus complet ou `modtest` pour un cleanup : les
-validations ciblées sont la règle du [plan v5](../todo.md).
+validations ciblées sont la règle du [plan v6](../todo.md).
 
 ## Lire le dépôt
 

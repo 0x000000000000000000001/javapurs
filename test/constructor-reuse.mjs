@@ -1,9 +1,5 @@
 import assert from "node:assert/strict";
-import { writeFileSync } from "node:fs";
-import { runCommandSync } from "../tools/test-process.mjs";
-import { resolveJavaTools } from "../tools/java-tools.mjs";
-import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
-import { join } from "node:path";
+import { withJavaFixture } from "./support/java-fixture.mjs";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import { Tuple } from "../output/Data.Tuple/index.js";
 import { Just, Nothing } from "../output/Data.Maybe/index.js";
@@ -11,7 +7,6 @@ import { reuseConstructors } from "../output/Javapurs.Reuse/index.js";
 import { printFile } from "../output/Javapurs.Printer/index.js";
 
 // Run after building the backend: node test/constructor-reuse.mjs
-const { javac, java, javacArgs } = resolveJavaTools();
 const moduleName = "Reuse_Fixtures";
 const tuple = (a, b) => new Tuple(a, b);
 const objectField = name => tuple(name, A.ParamObject.value);
@@ -121,9 +116,10 @@ let checked = 0;
 // replacement constant already matches every other field.
 {
   const rewritten = reuseConstructors(moduleName)(file([...data, new A.JavaAssign("makeBlack", new A.JavaAbs(["v"], singleton("v"))), rebuild("copy")]));
-  await withTemporaryDirectory("javapurs-reuse-test-", directory => {
-    writeFileSync(join(directory, `${moduleName}.java`), printFile(moduleName)(rewritten));
-    writeFileSync(join(directory, "ReuseRun.java"), `public class ReuseRun {
+  await withJavaFixture("javapurs-reuse-test-", {
+    sources: {
+      [`${moduleName}.java`]: printFile(moduleName)(rewritten),
+      "ReuseRun.java": `public class ReuseRun {
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
         java.util.function.Function<Object, Object> makeBlack = (java.util.function.Function<Object, Object>) Reuse_Fixtures.makeBlack;
@@ -140,10 +136,14 @@ let checked = 0;
         System.out.println(copy.apply(red) == red);
         System.out.println(((Reuse_Fixtures.T) copy.apply(black)).value0 == Reuse_Fixtures.__singleton$B.value);
     }
-}`);
-    runCommandSync(javac, [...javacArgs, "-d", directory, join(directory, `${moduleName}.java`), join(directory, "ReuseRun.java")], { stdio: "pipe" });
-    const output = runCommandSync(java, ["-cp", directory, "ReuseRun"], { encoding: "utf8" }).trim().split("\n");
-    assert.deepEqual(output, ["true", "true", "true", "7", "true", "true"], "the rewritten program must keep its behavior");
+}`,
+    },
+    main: "ReuseRun",
+    stdio: "pipe",
+    encoding: "utf8",
+  }, ({ output }) => {
+    const lines = output.trim().split("\n");
+    assert.deepEqual(lines, ["true", "true", "true", "7", "true", "true"], "the rewritten program must keep its behavior");
     checked += 1;
   });
 }

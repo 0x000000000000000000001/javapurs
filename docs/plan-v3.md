@@ -1,4 +1,4 @@
-> Archive du TODO à l'ouverture du [plan v5](../todo.md), le 21 octobre 2026.
+> Archive du TODO à l'ouverture du [plan v4](../todo.md), le 21 octobre 2026.
 > Les scores et clôtures ci-dessous restent historiques.
 
 # Javapurs — cleanup des fixtures et des runners de ports

@@ -7,6 +7,8 @@
 > `unsafe-reference` ; leur rôle est documenté ci-dessous. Le contrôle
 > `node tools/check-port-configs.mjs` vérifie les profils, les noms de package,
 > le package set des ports standards et les 2 376 chemins locaux.
+> `node tools/port-configs.mjs --check` vérifie l’ordre canonique des blocs
+> `extraPackages` ; `--write` les régénère depuis la table commune.
 
 Ports auxiliaires : ces dossiers sont des dépendances transitives, des
 bibliothèques sans suite directe, ou des outils hors du registre commun.
@@ -14,6 +16,12 @@ bibliothèques sans suite directe, ou des outils hors du registre commun.
 de suite de port Spago standard. `spec-discovery` ne possède qu’une
 configuration, sans launcher. Aucun de ces dossiers n’est présenté comme un port
 exécutable complet.
+
+| Port auxiliaire | Configuration | Validation |
+| --- | --- | --- |
+| `argonaut-core`, `control`, `js-bigints`, `js-uri`, `unsafe-reference` | `spago.yaml` de dépendance | Pas de suite directe ; couverts transitivement. |
+| `node-child-process` | `spago.yaml` seulement | `test/child-process.mjs` dans le compilateur ; pas de `spago.java.yaml`. |
+| `spec-discovery` | `spago.java.yaml` | Configuration consommée par les suites Spec ; pas de launcher dédié. |
 
 Relevé M23 du **6 octobre 2026**. Les **45 launchers historiques**, pilotes M22
 inclus, délèguent désormais à `javapurs/test/port-runners.mjs --port=NOM`.

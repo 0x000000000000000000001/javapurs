@@ -1,9 +1,5 @@
 import assert from "node:assert/strict";
-import { writeFileSync } from "node:fs";
-import { runCommandSync } from "../tools/test-process.mjs";
-import { resolveJavaTools } from "../tools/java-tools.mjs";
-import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
-import { join } from "node:path";
+import { withJavaFixture } from "./support/java-fixture.mjs";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import { Nothing } from "../output/Data.Maybe/index.js";
 import { Tuple } from "../output/Data.Tuple/index.js";
@@ -15,7 +11,6 @@ import { intFunctionSource, tcoLoopSource } from "../output/Javapurs.Runtime/ind
 // Build the backend first, then run: node test/chunk.mjs
 // These fixtures force extraction and execute the resulting Java, including
 // nested captures, typed call sites, evaluation order and recursive closures.
-const { javac, java, javacArgs } = resolveJavaTools();
 const raw = value => new A.JavaRaw(String(value));
 const local = name => new A.JavaLocal(name);
 const int = expr => new A.JavaCast("int", expr);
@@ -147,13 +142,11 @@ const fixtures = { ClosedBlock: closedBlock, Nested: nested, Scoped: scoped, Typ
   RawCapture: rawCapture, Recursive: recursive, Mutation: mutation, Effects: effects, ShortCircuit: shortCircuit,
   Scopes: scopes, Loops: loops, AtBudget: atBudget, OverBudget: overBudget,
   AtParameterLimit: atParameterLimit, OverParameterLimit: overParameterLimit };
-await withTemporaryDirectory("javapurs-chunk-", directory => {
-  for (const [name, file] of Object.entries(fixtures)) {
-    writeFileSync(join(directory, `${name}.java`), printFile(name)(file));
-  }
-  writeFileSync(join(directory, "__IntFn.java"), intFunctionSource);
-  writeFileSync(join(directory, "TcoLoop.java"), tcoLoopSource);
-  writeFileSync(join(directory, "ChunkRuntime.java"), `
+const sources = {
+  ...Object.fromEntries(Object.entries(fixtures).map(([name, file]) => [`${name}.java`, printFile(name)(file)])),
+  "__IntFn.java": intFunctionSource,
+  "TcoLoop.java": tcoLoopSource,
+  "ChunkRuntime.java": `
 import java.util.*;
 import java.util.function.*;
 public final class ChunkRuntime {
@@ -218,10 +211,17 @@ public final class ChunkRuntime {
     System.out.println("Chunk: 15 fixtures passed");
   }
 }
-`);
-  runCommandSync(javac, [...javacArgs, "-d", directory, ...Object.keys(fixtures).map(name => join(directory, `${name}.java`)),
-    ...["__IntFn.java", "TcoLoop.java", "ChunkRuntime.java"].map(name => join(directory, name))], { stdio: "pipe", timeout: 120_000 });
-  const output = runCommandSync(java, ["-cp", directory, "ChunkRuntime"], { encoding: "utf8", timeout: 30_000 });
+`,
+};
+await withJavaFixture("javapurs-chunk-", {
+  sources,
+  main: "ChunkRuntime",
+  outputDirectory: undefined,
+  stdio: "pipe",
+  encoding: "utf8",
+  compileTimeout: 120_000,
+  runTimeout: 30_000,
+}, ({ output }) => {
   assert.equal(output.trim(), "Chunk: 15 fixtures passed");
   process.stdout.write(output);
 });

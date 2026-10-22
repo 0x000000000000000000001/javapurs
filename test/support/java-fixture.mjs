@@ -22,6 +22,7 @@ export function compileJava(directory, sources, options = {}) {
   runCommandSync(tools.javac, [
     ...(options.javacArgs ?? tools.javacArgs),
     ...(options.nowarn === false ? [] : ["-nowarn"]),
+    ...(options.outputDirectory ? ["-d", options.outputDirectory] : []),
     ...paths,
   ], {
     cwd: directory,
@@ -35,7 +36,7 @@ export function runJava(directory, main, options = {}) {
   const tools = resolveJavaTools();
   return runCommandSync(tools.java, [
     ...(options.javaArgs ?? []),
-    "-cp", directory, main,
+    "-cp", options.classPath ?? directory, main,
   ], {
     cwd: directory,
     stdio: options.stdio ?? "inherit",

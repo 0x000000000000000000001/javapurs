@@ -13,6 +13,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
 import Javapurs.CodeGen.Context (CodegenEnv, EffectContext(..), LoopContext, Position(..), Translation, TranslationContext, asExpression, captureLoops, closureContext, initialContext, prependStatement, pureExpression, tailContext, valueContext)
+import Javapurs.CodeGen.Helpers (GuardedTranslation, boxedFunctionArity, executeEffect, guardedExpression, mentionsJavaLocal, tailTarget, translateAccessor, translateFields, translateGlobal, translateLiteral, translateLocal)
 import Javapurs.CodeGen.Syntax (Application, extractUncurriedAbs, flattenApp, isEffectNode, stripEffectAbs, stripEffectDefer, unwrapTcoExpr)
 import Javapurs.ControlFlow (hasAnyContinue, hasDirectContinue, hasTargetContinue)
 import Javapurs.IntFunctions (abstractFunction, applyFunction)
@@ -42,7 +43,7 @@ translateExpression env context expression@(TcoExpr analysis syntax)
       pureExpression $ JavaAbs [] $ asExpression $ translateExpression env
         (context { effect = ExecutingEffect, position = ValuePosition }) expression
   | otherwise = case syntax of
-      Lit literal -> pureExpression $ translateLiteral env context literal
+      Lit literal -> pureExpression $ translateLiteral (translateValue env context) literal
       App _ _ ->
         let flat = flattenApp expression
         in case ownedCall env context flat of
@@ -83,9 +84,9 @@ translateExpression env context expression@(TcoExpr analysis syntax)
         in pureExpression $
           if Array.null args then JavaCtorSingleton env.moduleName (safeCtorName name)
           else JavaAbs args (JavaNew (constructorClassName env.moduleName name) (map JavaLocal args))
-      Accessor value accessor -> pureExpression $ translateAccessor env context value accessor
+      Accessor value accessor -> pureExpression $ translateAccessor (translateValue env context) env value accessor
       Update value updates -> pureExpression $
-        JavaMapUpdate (translateValue env context value) (translateFields env context updates)
+        JavaMapUpdate (translateValue env context value) (translateFields (translateValue env context) updates)
       PrimOp operator -> pureExpression $ case operator of
         Op1 op value -> translateOperator1 env.moduleName op (translateValue env context value)
         Op2 op left right -> translateOperator2 env.moduleName op
@@ -130,30 +131,6 @@ translateApplication env context flat =
       in if env.intFunctions then applyFunction (boxedFunctionArity env flat.fn) flat.fn function arguments
          else foldl JavaApply function arguments
 
--- Position, liveness and exact saturation are independent requirements. A
--- closure retains its loops for snapshot reads but loses their jump capability.
-tailTarget :: TranslationContext -> Application -> Maybe LoopContext
-tailTarget context flat
-  | context.position /= TailPosition = Nothing
-  | otherwise = do
-      name <- case unwrapTcoExpr flat.fn of
-        Local ident@(Just _) level -> Just (localId ident level)
-        Var (Qualified _ (Ident ident)) -> Just (sanitizeName ident)
-        _ -> Nothing
-      target <- Array.find (\loop -> loop.canContinue && loop.ident == name) context.loops
-      if Array.length target.params == Array.length flat.args then Just target else Nothing
-
--- Recursive definitions retain the generic loop ABI for their saturated
--- prefix; a returned closure can still select the primitive representation.
-boxedFunctionArity :: CodegenEnv -> TcoExpr -> Int
-boxedFunctionArity env expression = case unwrapTcoExpr expression of
-  Var (Qualified qualifier (Ident name))
-    | qualifier == Nothing || qualifier == Just env.sourceModule ->
-        case Array.find (\(Tuple ident _) -> ident == sanitizeName name) env.boxedFunctions of
-          Just (Tuple _ arity) -> arity
-          Nothing -> 0
-  _ -> 0
-
 -- Functions, type evidence and bindings --------------------------------------
 
 translateUncurriedFunction :: CodegenEnv -> TranslationContext -> Array (Tuple (Maybe Ident) Level) -> TcoExpr -> Translation
@@ -168,9 +145,9 @@ translateTyped env context ty expression =
     Just result -> result
     Nothing -> case if env.typedRecords then recordShape ty else Nothing of
       Just shape -> case unwrapTcoExpr expression of
-        Lit (LitRecord fields) -> pureExpression $ JavaTypedRecord shape (translateFields env context fields)
+        Lit (LitRecord fields) -> pureExpression $ JavaTypedRecord shape (translateFields (translateValue env context) fields)
         Update target updates | recordShapeOf target == Just shape -> pureExpression $
-          JavaTypedRecordUpdate shape (translateValue env context target) (translateFields env context updates)
+          JavaTypedRecordUpdate shape (translateValue env context target) (translateFields (translateValue env context) updates)
         _ -> translateExpression env context expression
       Nothing -> translateExpression env context expression
 
@@ -226,11 +203,6 @@ translateRecursiveBindings env context role level bindings body =
     (map (\(Tuple ident value) -> Tuple (localId (Just ident) level) (translateValue env context value)) bindings)
     (asExpression continuation)
 
-mentionsJavaLocal :: String -> JavaExpr -> Boolean
-mentionsJavaLocal name = case _ of
-  JavaLocal local -> local == name
-  expression -> any (mentionsJavaLocal name) (children expression)
-
 -- Effects -------------------------------------------------------------------
 
 translateEffectBind :: CodegenEnv -> TranslationContext -> Maybe Ident -> Level -> TcoExpr -> TcoExpr -> Translation
@@ -243,13 +215,6 @@ translateEffectBind env context ident level action rest =
     continuation = translateExpression env executing sourceRest
     assignment = JavaLocalAssign (localId ident level) (executeEffect sourceAction (asExpression actionResult))
   in prependStatement assignment (continuation { result = executeEffect sourceRest continuation.result })
-
--- Explicit effect nodes already yield their executed result here. A foreign
--- call, branch or other ordinary value still yields a Supplier to force once.
-executeEffect :: TcoExpr -> JavaExpr -> JavaExpr
-executeEffect source value =
-  if isEffectNode source then value
-  else JavaCall (JavaInstanceMethodRef value "java.util.function.Supplier" "get") []
 
 translatePrimitiveEffect :: CodegenEnv -> TranslationContext -> BackendEffect TcoExpr -> Translation
 translatePrimitiveEffect env context = case _ of
@@ -270,8 +235,6 @@ translatePrimitiveEffect env context = case _ of
 
 -- Branches ------------------------------------------------------------------
 
-type GuardedTranslation = { condition :: Translation, value :: Translation }
-
 translateBranches :: CodegenEnv -> TranslationContext -> Array (Pair TcoExpr) -> TcoExpr -> Translation
 translateBranches env context cases fallback =
   let
@@ -284,12 +247,6 @@ translateBranches env context cases fallback =
       }
   in pureExpression $ foldr guardedExpression
     (asExpression (translateExpression env armContext fallback)) (map translateCase cases)
-
-guardedExpression :: GuardedTranslation -> JavaExpr -> JavaExpr
-guardedExpression { condition, value } rest =
-  let branch = JavaTernary condition.result (asExpression value) rest
-  in if Array.null condition.statements && Array.null value.statements then branch
-     else JavaBlock condition.statements branch
 
 -- Loops and captured values --------------------------------------------------
 
@@ -320,52 +277,3 @@ translateLoop env parent ref joins name args body =
        translateValue loopEnv captured plan.body
      else if Array.null invariants then JavaWhileTrue name args intParams expression
      else JavaMemoizedLoop name args intParams invariants expression
-
-translateLocal :: CodegenEnv -> TranslationContext -> Maybe Ident -> Level -> JavaExpr
-translateLocal env context ident level =
-  let name = localId ident level
-  in case Array.find (\(Tuple local _) -> local == Tuple ident level) env.invariantLocals of
-    Just (Tuple _ cache) -> JavaLoopInvariant cache
-    Nothing ->
-      if any (\loop -> Array.elem name loop.params) context.loops then JavaLocal (loopSnapshotName name)
-      else JavaLocal name
-
-translateGlobal :: CodegenEnv -> Qualified Ident -> JavaExpr
-translateGlobal env (Qualified qualifier (Ident name)) =
-  let
-    moduleName = map modulePrefix qualifier
-    javaName = sanitizeName name
-    isCurrentModule = moduleName == Nothing || moduleName == Just env.moduleName
-  in if isCurrentModule && Array.elem javaName env.lazyBindings then
-       JavaCall (JavaStaticMethodRef (Just env.moduleName) (lazyGetterName javaName)) []
-     else JavaGlobalVar moduleName javaName
-
--- Literal values and accessors -----------------------------------------------
-
-translateLiteral :: CodegenEnv -> TranslationContext -> Literal TcoExpr -> JavaExpr
-translateLiteral env context = case _ of
-  LitInt n -> JavaRaw (show n)
-  LitNumber n -> JavaRaw (numberLiteral n)
-  LitString s -> JavaString s
-  -- Char shares the one-character String representation used by Java FFI.
-  LitChar c -> charLiteral c
-  LitBoolean b -> JavaRaw (if b then "true" else "false")
-  LitArray elements -> JavaArray (map (translateValue env context) elements)
-  LitRecord fields -> JavaRecord (translateFields env context fields)
-
-translateFields :: CodegenEnv -> TranslationContext -> Array (Prop TcoExpr) -> Array (Tuple String JavaExpr)
-translateFields env context = map (\(Prop name value) -> Tuple name (translateValue env context value))
-
-translateAccessor :: CodegenEnv -> TranslationContext -> TcoExpr -> BackendAccessor -> JavaExpr
-translateAccessor env context value accessor =
-  let receiver = translateValue env context value
-  in case accessor of
-    GetProp property -> case if env.typedRecords then recordShapeOf value else Nothing of
-      Just shape -> JavaTypedRecordGet shape receiver property
-      Nothing -> JavaMapGet receiver property
-    GetCtorField (Qualified qualifier _) _ _ (Ident name) _ index ->
-      let modPart = case qualifier of
-            Just mod -> modulePrefix mod
-            Nothing -> env.moduleName
-      in JavaPropertyAccess receiver (constructorClassName modPart name) ("value" <> show index)
-    GetIndex index -> JavaArrayIndex receiver (JavaRaw (show index))
