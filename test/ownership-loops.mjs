@@ -1,6 +1,4 @@
 import assert from "node:assert/strict";
-import { writeFileSync } from "node:fs";
-import { join } from "node:path";
 import * as C from "../output/PureScript.Backend.Optimizer.CoreFn/index.js";
 import * as S from "../output/PureScript.Backend.Optimizer.Syntax/index.js";
 import { Just } from "../output/Data.Maybe/index.js";
@@ -10,14 +8,11 @@ import { prepare } from "../output/Javapurs.Ownership/index.js";
 import { lowerModule } from "../output/Javapurs.Pipeline/index.js";
 import { printFile } from "../output/Javapurs.Printer/index.js";
 import { intFunctionSource, tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
-import { resolveJavaTools } from "../tools/java-tools.mjs";
-import { runCommandSync } from "../tools/test-process.mjs";
-import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
+import { withJavaFixture } from "./support/java-fixture.mjs";
 import { moduleClass } from "./support/module-classes.mjs";
 
 // A self-tail-call target is a syntactic fact. A let-bound argument need not be
 // recognized until worker validation; it must not hide the need for a loop.
-const { javac, java, javacArgs } = resolveJavaTools();
 const name = "Ownership.Loops";
 const className = moduleClass("Ownership_Loops");
 const tree = new C.ADT(`${name}.Tree`, ["Ownership", "Loops", "Tree"], []);
@@ -80,14 +75,16 @@ public final class OwnershipLoopChecks {
     System.out.println("Ownership loops " + args[0] + ": " + checks + " JVM checks passed");
   }
 }`;
-  await withTemporaryDirectory("javapurs-ownership-loops-", directory => {
-    const sources = new Map([
+  await withJavaFixture("javapurs-ownership-loops-", {
+    sources: new Map([
       [`${className}.java`, printFile(className)(file)], ["OwnershipLoopChecks.java", harness],
       ["__IntFn.java", intFunctionSource], ["TcoLoop.java", tcoLoopSource],
-    ]);
-    for (const [filename, source] of sources) writeFileSync(join(directory, filename), source);
-    runCommandSync(javac, [...javacArgs, "-nowarn", ...sources.keys()], { cwd: directory, stdio: "pipe" });
-    console.log(runCommandSync(java, ["-Xss256k", "-cp", directory, "OwnershipLoopChecks", String(ownership)],
-      { cwd: directory, encoding: "utf8", stdio: "pipe", timeout: 30000 }).trim());
-  });
+    ]),
+    main: "OwnershipLoopChecks",
+    programArgs: [String(ownership)],
+    javaArgs: ["-Xss256k"],
+    stdio: "pipe",
+    encoding: "utf8",
+    runTimeout: 30_000,
+  }, ({ output }) => console.log(output.trim()));
 }

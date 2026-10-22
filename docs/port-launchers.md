@@ -51,13 +51,12 @@ Voir les [commandes et prérequis](testing.md#port-particulier) et les
 - Node FS référence `test/Test.purs`, `test/fixtures/readable.txt`, et crée
   `tmp/` et des dossiers temporaires sous `test/`. Cinq anciens
   `test/node-fs-tests*/readable.txt` sont présents dans le checkout initial :
-  leur présence est enregistrée et préservée. Son protocole est rejeté avant
-  préparation ; aucune opération de fichiers de cette suite n'est lancée.
+  leur présence est enregistrée et préservée. Depuis M27, le wrapper Fs attend
+  `TestAff.testAff` et la suite réelle termine sur `all good`.
 - Spec dépend aussi de **`integration-tests/cases/`** (`Main.purs`, `output.txt`)
-  et **`integration-tests/env-template/`**. `test/Integration.purs` copie ce
-  gabarit, rebase `SPEC_REPO_PATH`, appelle `npm`/`npx spago` et gère des caches
-  `node_modules`/`output` dans cet arbre externe à `test/`. Le rejet préalable
-  préserve l'ensemble ; un futur adaptateur devra isoler aussi ces ressources.
+  et **`integration-tests/env-template/`**. Depuis M32, le harnais copie ce
+  gabarit, rebase `SPEC_REPO_PATH` et utilise le `spago` local ; le wrapper
+  `SpecFull` exécute les huit cas et compare leurs golden outputs.
 - Les dossiers de benchmarks séparés (`arrays/bench`, `catenable-lists/benchmarks`,
   `free/benchmark`, etc.) ne sont pas des entrées de `Test.Main`. Les fichiers
   de test historiques, y compris `Bench.purs` lorsqu'il existe sous `test/`,
@@ -114,7 +113,7 @@ simulées. « Non exécuté » concerne seulement la suite réelle du port.
 | `record` | `ba2f8d446bde4f1d5dc8308e66ca264e58490fd6` | `test/Main.purs` | S | Non exécuté |
 | `refs` | `c8e66b9acde8dda2a0e7271fb4175dd20cf3d5ae` | `test/Main.purs` | S | Réussi ; pilote M22 |
 | `run` | `95e99b98920d6b0af61f214805efbdb0f54dfb12` | `test/Main.purs` | S | Non exécuté |
-| `spec` | `94a410b9df324cea7f7947ec39a119dcbf8158bd` | `test/Main.purs` | A | **62/62 depuis M30**, trois pending ; intégration `node-child-process` exclue |
+| `spec` | `94a410b9df324cea7f7947ec39a119dcbf8158bd` | `test/Main.purs` | A | **70/70 depuis M32** (62 purs + 8 intégrations), cinq sondes |
 | `st` | `c65958662adbaa15aa5ec0696cc01f19f23a6f2b` | `test/Main.purs` | S | Non exécuté |
 | `strings` | `f769f61f6c1b1eb07a7c33f8ea362c9f391a0d70` | `test/Test/Main.purs` | S ; piles 64 Mio | Réussi ; pilote M22 |
 | `strings-extra` | `c7dd14feaca6bec544851085d59d730418102275` | `test/Main.purs` | S | Non exécuté |
@@ -154,10 +153,9 @@ composition explicite des quatre Specs, exécutée par le wrapper commun. Le
 sentinel `Foreign.undefined`, l'indexation des tableaux, la sérialisation des
 BigInt et les dates ISO sont couverts par **52 tests** et cinq sondes.
 
-Spec exporte `pureSpec` et le wrapper `SpecOnly.purs` exécute ses six modules
-purs : **62 tests**, trois pending intentionnels et cinq sondes. L'intégration
-qui lance `npx`/`spec-node` reste hors périmètre JVM, faute de port
-`node-child-process` ; elle n'est pas comptée comme validée.
+Spec exporte `pureSpec` et `SpecFull` exécute les six modules purs plus les huit
+cas d'intégration avec `spago` local : **70/70 checks** et cinq sondes, sans
+`npm`/`npx`.
 
 Node HTTP expose `testHttp` et joint `testUpgradeAff`. Les en-têtes sont
 normalisés en minuscules, le serveur émet `upgrade`, le client conserve le
@@ -165,6 +163,6 @@ socket de la réponse 101 et ne lit pas de corps après upgrade. Le parcours
 local et les upgrades passent sans réseau ; les deux requêtes externes sont
 opt-in avec `JAVAPURS_HTTP_EXTERNAL=1`.
 
-Toutes les sélections exécutables ont désormais une action de fin ; les tests
-d'intégration Spec restent la seule exclusion fonctionnelle documentée. Les
-diagnostics de FFI manquante restent une limite de couverture distincte.
+Toutes les sélections exécutables ont désormais une action de fin ; Spec complet
+est validé **70/70**. Les diagnostics de FFI manquante restent une limite de
+couverture distincte.

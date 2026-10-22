@@ -68,7 +68,7 @@ application et publie du Java sous `output/java/`.
 | `test/*.mjs` | Suites directes Node avec fixtures Java/PureScript, organisées par capacité. |
 | `test/driver.mjs` | Compilation d’un module de test, génération, `javac` et exécution. |
 | `test/child-process.mjs` | Probe FFI `node-child-process` : spawn, stdout, exit tardif. |
-| `test/support/java-fixture.mjs` | Cycle commun des fixtures Java : sources, `javac`, classes de sortie, lancement JVM. |
+| `test/support/java-fixture.mjs` | Cycle commun des fixtures Java : sources, `javac`, classes de sortie, arguments et lancement JVM. |
 | `test/test-tools.mjs` | Tests du runner, des profils, des launchers et de la conservation des workspaces. |
 | `tools/fixture-runner.mjs` | Préparation des workspaces de fixtures et exécution des phases. |
 | `tools/test-workspace.mjs` | Cycle de vie des répertoires temporaires et logs. |
@@ -76,6 +76,8 @@ application et publie du Java sous `output/java/`.
 | `tools/port-profiles.mjs` | Données des profils de ports et protocole d’assertion (`spec`/`ok`). |
 | `tools/port-configs.mjs` | Source des 48 packages locaux communs ; `--check`/`--write` des blocs `extraPackages`. |
 | `tools/check-generated.mjs` | Double build et stabilité SHA-256 des sorties JS/source maps suivies. |
+| `tools/check-all.mjs` | Validation agrégée `--quick`/`--full`, logs par phase. |
+| `tools/check-port-ffi.mjs` | Vérifie la matrice `docs/port-ffi.md` contre les fichiers Java réels. |
 | `tools/port-test-runner.mjs` | Phases de génération, `javac`, exécution et probes ; consomme le registre de profils. |
 | `test/support/tool-fixtures.mjs` | Construction du sandbox de `test-tools` : faux compilateur, ports et commandes. |
 | `tests/port-suites/*.purs` | Wrappers `Test.PortRunner` pour les suites qui attendent une action Aff. |
@@ -147,4 +149,4 @@ Les validations de départ restent celles de M32 : Spec **70/70**, cinq sondes,
    avant de modifier les passes spécialisées.
 4. Lire [le guide de test](testing.md#matrice-des-tests) et `test/child-process.mjs`
    pour reproduire une validation ciblée.
-5. Consulter [le plan v6](../todo.md) pour le lot et le critère de clôture.
+5. Consulter [le plan v7](../todo.md) pour le lot et le critère de clôture.

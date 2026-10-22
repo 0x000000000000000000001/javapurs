@@ -36,7 +36,7 @@ export function runJava(directory, main, options = {}) {
   const tools = resolveJavaTools();
   return runCommandSync(tools.java, [
     ...(options.javaArgs ?? []),
-    "-cp", options.classPath ?? directory, main,
+    "-cp", options.classPath ?? directory, main, ...(options.programArgs ?? []),
   ], {
     cwd: directory,
     stdio: options.stdio ?? "inherit",

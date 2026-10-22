@@ -1,6 +1,4 @@
 import assert from "node:assert/strict";
-import { writeFileSync } from "node:fs";
-import { join } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import { Just, Nothing } from "../output/Data.Maybe/index.js";
 import { Tuple } from "../output/Data.Tuple/index.js";
@@ -8,13 +6,10 @@ import { printExpr, printFile } from "../output/Javapurs.Printer/index.js";
 import { printRecordShape } from "../output/Javapurs.RecordPrinter/index.js";
 import { recordClassName } from "../output/Javapurs.RecordShapes/index.js";
 import { intFunctionSource, tcoLoopSource } from "../output/Javapurs.Runtime/index.js";
-import { resolveJavaTools } from "../tools/java-tools.mjs";
-import { runCommandSync } from "../tools/test-process.mjs";
-import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
+import { withJavaFixture } from "./support/java-fixture.mjs";
 
 // Direct printer contracts; run after ./bin/build. Expected text is constructed
 // from UTF-16 code units in Java, independently of the printer's escaping rules.
-const { javac, java, javacArgs } = resolveJavaTools();
 const raw = value => new A.JavaRaw(String(value));
 const local = name => new A.JavaLocal(name);
 const call = (name, ...args) => new A.JavaCall(new A.JavaStaticMethodRef(Nothing.value, name), args);
@@ -128,11 +123,11 @@ for (const [name, contents, extras] of [
   ["PrinterValues", source, [[`${recordClassName(shape)}.java`, printRecordShape(shape)]]],
   ["PrinterMessages", messageSource, []],
 ]) {
-  await withTemporaryDirectory("javapurs-printer-", directory => {
-    const files = new Map([[`${name}.java`, contents], ["__IntFn.java", intFunctionSource], ["TcoLoop.java", tcoLoopSource], ...extras]);
-    for (const [file, text] of files) writeFileSync(join(directory, file), text);
-    runCommandSync(javac, [...javacArgs, "-nowarn", ...files.keys()], { cwd: directory, stdio: "pipe" });
-    const output = runCommandSync(java, ["-Xss256k", "-cp", directory, name], { cwd: directory, encoding: "utf8", stdio: "pipe" });
-    console.log(output.trim());
-  });
+  await withJavaFixture("javapurs-printer-", {
+    sources: new Map([[`${name}.java`, contents], ["__IntFn.java", intFunctionSource], ["TcoLoop.java", tcoLoopSource], ...extras]),
+    main: name,
+    javaArgs: ["-Xss256k"],
+    stdio: "pipe",
+    encoding: "utf8",
+  }, ({ output }) => console.log(output.trim()));
 }

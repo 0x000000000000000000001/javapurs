@@ -17,7 +17,8 @@ Pour une première reprise, voir [Démarrer et valider](start-here.md).
 | Installation source | `test/source-install.mjs` vérifie les frontières de build/installateur ; `tools/install-source.mjs` reconstruit le fork et le backend puis exécute Hello/Refs en classes et JAR dans un workspace neuf. |
 | Fixture PureScript nommée | `bin/test NOM` réalise Spago → Javapurs → `javac` → `MainRun` dans `tests/runner`. |
 | Protocoles des ports Java | `test/ffi-runtimes.mjs` compile les vrais fragments ; `test/ffi-ports.mjs` attend l'intégration PureScript réelle dans deux modes de records, en classes/JAR. Les cinq ports proposent `bin/test-runtime`. |
-| Suite d'un port | Les 48 `bin/test` délèguent à `test/port-runners.mjs` : profils explicites et workspaces isolés, suites synchrones ou attendues avec sondes d'échec. Six protocoles non pris en charge sont rejetés explicitement. [Inventaire et limites](port-launchers.md). |
+| Suite d'un port | Les 48 `bin/test` délèguent à `test/port-runners.mjs` : profils explicites et workspaces isolés, suites synchrones ou attendues avec sondes d'échec. Aucune sélection exécutable n'est rejetée ; 7 ports auxiliaires sont documentés. [Inventaire et limites](port-launchers.md). |
+| Validation agrégée | [tools/check-all.mjs](../tools/check-all.mjs) : `--quick` pour docs/ports/sorties, `--full` pour Spec, test-tools, child-process et Node FS ; logs dans `logs/check-all/`. |
 | Documentation/outillage | `tools/check-docs.mjs` contrôle liens/ancres, exemples shell, matrice/options et score ; les suites d'outillage vérifient les contrats des processus modifiés. |
 
 La règle du [plan de travail actif](../todo.md) est une **validation
@@ -171,6 +172,7 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Prérequis, build et lancement source | [test/source-install.mjs](../test/source-install.mjs) | Six groupes Node/Bash avec commandes contrôlées : bon répertoire de build, dépendances/outils absents, neuf TAST incompatibles malgré version correcte, backend absent/incomplet, destination existante et prérequis d'installation ; aucun réseau ni build réel. |
 | Installation complète et application autonome | [tools/install-source.mjs](../tools/install-source.mjs) | Sept références fetchées, fork GHC/Stack et backend reconstruits, Hello/Refs en Java 17 et JAR exécutés depuis un dossier JAR seul ; Spago 1.0.3, Stack, Git, Node, Bash, JDK complet et dépendances réseau/cache. |
 | Compatibilité Java ciblée | [tools/check-jdk.mjs](../tools/check-jdk.mjs) | Six suites × trois configurations de compilation/exécution, avec chemins/versions, cible 17, sondes bytecode/JVM et logs ; backend construit, deux JDK, `purs` TAST, Spago et ports locaux. |
+| Matrice FFI des ports | [tools/check-port-ffi.mjs](../tools/check-port-ffi.mjs) et [matrice](port-ffi.md) | 48 ports standards, 7 auxiliaires et 118 fichiers Java reliés à leurs profils. |
 | Sorties générées | [tools/check-generated.mjs](../tools/check-generated.mjs) | Double build et comparaison SHA-256 des 1 028 fichiers JS/source maps suivis. |
 | Configurations des ports | [tools/check-port-configs.mjs](../tools/check-port-configs.mjs) | Launchers génériques, profils standards, 7 ports auxiliaires, noms/paths locaux et package set 77.7.0. |
 | Documentation et suivi | [tools/check-docs.mjs](../tools/check-docs.mjs) | Liens/ancres locaux, syntaxe des exemples Bash, inventaire des suites, options de `Config`, score du TODO et présence des preuves des lots cochés ; Node et Bash. |
@@ -685,10 +687,9 @@ observé avant le marqueur.
 `spec-discovery`, et les corrections `Foreign.undefined`, index de tableau,
 BigInt et dates ISO portent la suite à **52/52** avec cinq sondes.
 
-**Spec** est validé en M30 pour sa partie pure : `pureSpec` regroupe les six
-modules déterministes, avec **62/62 tests**, trois pending intentionnels et cinq
-sondes. Les tests d'intégration qui lancent `npx`/`spec-node` restent hors
-périmètre JVM et ne sont pas déclarés validés.
+**Spec** est validé en M30 pour sa partie pure et en M32 pour l'intégration :
+`pureSpec` couvre six modules déterministes et `SpecFull` exécute les huit cas
+d'intégration avec le `spago` local, soit **70/70 checks** et cinq sondes.
 
 ### Suites asynchrones des ports
 
@@ -1465,3 +1466,135 @@ fermé sans workspace temporaire ni sortie générée non expliquée.
 
 **Conclusion : M65 validé. Le plan v6 est clôturé à 100/100 ; le dépôt est
 canonique, testé et documenté.**
+
+## Validation M71
+
+### Vérité documentaire — 22 octobre 2026
+
+Les statuts actifs ont été réalignés sur les validations v6 :
+
+- README pointe vers les archives `plan-v4`, `plan-v5` et `plan-v6`, et vers
+  le plan v7 actif ;
+- Spec est décrit comme **70/70** (62 purs + 8 intégrations), sans exclusion
+  `npx`/`spec-node` ;
+- `testing.md` ne parle plus de « six protocoles non pris en charge » ;
+- `port-launchers.md` distingue l’inventaire historique M23 des 48 profils
+  actuels et des 7 ports auxiliaires ;
+- Node FS et Spec ne sont plus décrits avec leurs anciens statuts rejetés.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `node tools/check-docs.mjs` | **767 liens/ancres**, 70 documents. |
+| Recherche des statuts obsolètes | Aucun statut actif contredit les validations. |
+| `git diff --check` | Propre. |
+
+**Conclusion : M71 validé. La documentation décrit l’état v6 et le plan v7,
+sans réintroduire les exclusions historiques.**
+
+## Validation M72
+
+### Fixtures Java restantes — 22 octobre 2026
+
+`java-fixture` accepte désormais les arguments passés au programme Java. Quatre
+suites supplémentaires utilisent le cycle commun :
+
+- `direct-calls.mjs` : **40** contrôles par mode ;
+- `printer.mjs` : **75 + 11** contrôles ;
+- `ownership-loops.mjs` : **9** contrôles par mode ;
+- `representations.mjs` : **43** contrôles dans chacun des huit modes.
+
+Onze suites au total partagent maintenant la préparation Java. Les helpers de
+construction d’AST, de boucles et de records restent dans leurs suites.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `node test/direct-calls.mjs` | 40 + 40 contrôles. |
+| `node test/printer.mjs` | 75 + 11 contrôles. |
+| `node test/ownership-loops.mjs` | 9 + 9 contrôles. |
+| `node test/representations.mjs` | 8 modes × 43 contrôles. |
+| `node --test test/test-tools.mjs` | **27/27**. |
+| `../javapurs-spec/bin/test` | **70 checks**, cinq sondes. |
+| `node tools/check-docs.mjs` | Vert. |
+| `git diff --check` | Propre. |
+
+**Conclusion : M72 validé. Onze suites utilisent le même cycle Java, sans perte
+d’assertions ni de couverture.**
+
+## Validation M73
+
+### Validation unifiée — 22 octobre 2026
+
+`tools/check-all.mjs` agrège les contrôles avec logs par phase :
+
+- `--quick` : `check-docs`, `check-port-configs`, canonicalisation des
+  configurations et `check-generated` ;
+- `--full` : ajoute `test-tools`, `child-process`, Spec et Node FS.
+
+Les options sont strictes ; aucun `|| true` ne masque un échec. Les logs sont
+écrits sous `logs/check-all/` (ignoré par Git).
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `node tools/check-all.mjs --quick` | Vert ; 4 phases. |
+| `node tools/check-all.mjs --full` | Vert ; 8 phases. |
+| Logs | `logs/check-all/{docs,port-configs,port-configs-canonical,generated,test-tools,child-process,spec,node-fs}.log`. |
+| `node tools/check-docs.mjs` | Vert. |
+| `git diff --check` | Propre. |
+
+**Conclusion : M73 validé. La clôture ciblée tient dans une commande unique,
+avec logs reproductibles et sans masquage d’échec.**
+
+## Validation M74
+
+### Matrice FFI des ports — 22 octobre 2026
+
+[docs/port-ffi.md](port-ffi.md) relie chaque port à son profil, ses fichiers
+Java FFI et ses limites. Les ports auxiliaires sont inclus séparément, avec
+`node-child-process` et `spec-discovery` documentés hors suite Spago standard.
+
+`tools/check-port-ffi.mjs` compare la matrice aux fichiers Java réellement
+présents : lignes manquantes, doublons, chemins absents et fichiers non listés
+échouent. `check-all --quick` exécute ce contrôle après la canonicalisation des
+configurations.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `node tools/check-port-ffi.mjs` | 48 standards, 7 auxiliaires, **118 fichiers Java** cohérents. |
+| `node tools/check-all.mjs --quick` | 5 phases vertes. |
+| `node tools/check-docs.mjs` | **774 liens/ancres**, 71 documents. |
+| `git diff --check` | Propre. |
+
+**Conclusion : M74 validé. La surface FFI de chaque port est inventoriée et
+vérifiée automatiquement.**
+
+## Validation M75
+
+### Clôture du plan v7 — 22 octobre 2026
+
+La documentation, la matrice FFI, les configurations et les sorties générées
+sont alignées. Le profil complet `check-all --full` exécute les 9 phases et
+conserve un log par phase sous `logs/check-all/`.
+
+### Résultats ciblés
+
+| Vérification | Résultat |
+| --- | --- |
+| `node tools/check-all.mjs --full` | **9 phases vertes**. |
+| `docs` | 776 liens/ancres, 71 documents. |
+| `port-ffi` | 48 standards, 7 auxiliaires, 118 fichiers Java. |
+| `generated` | 1 028 fichiers JS/source maps stables. |
+| `test-tools` | **27/27**. |
+| Spec | **70 checks**, cinq sondes. |
+| `child-process` / Node FS | Réussis. |
+| `todo.md` | Aucune case ouverte. |
+
+**Conclusion : M75 validé. Le plan v7 est clôturé à 100/100 ; le dépôt est
+documenté, vérifié et reproductible.**

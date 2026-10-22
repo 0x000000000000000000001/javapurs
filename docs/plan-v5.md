@@ -1,4 +1,4 @@
-> Archive du TODO à l'ouverture du [plan v6](../todo.md), le 21 octobre 2026.
+> Archive du TODO à l'ouverture du [plan v6](plan-v6.md), le 21 octobre 2026.
 > Le plan v5 est clôturé à 100/100.
 
 # Javapurs — plan v5 : ports, fixtures et frontières

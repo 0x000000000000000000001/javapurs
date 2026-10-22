@@ -1,6 +1,4 @@
 import assert from "node:assert/strict";
-import { writeFileSync } from "node:fs";
-import { join } from "node:path";
 import * as PursMap from "../output/Data.Map/index.js";
 import { Just, Nothing } from "../output/Data.Maybe/index.js";
 import { Tuple } from "../output/Data.Tuple/index.js";
@@ -11,14 +9,11 @@ import { printExpr } from "../output/Javapurs.Printer/index.js";
 import { printRecordShape } from "../output/Javapurs.RecordPrinter/index.js";
 import { recordClassName } from "../output/Javapurs.RecordShapes/index.js";
 import { intFunctionSource } from "../output/Javapurs.Runtime/index.js";
-import { resolveJavaTools } from "../tools/java-tools.mjs";
-import { runCommandSync } from "../tools/test-process.mjs";
-import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
+import { withJavaFixture } from "./support/java-fixture.mjs";
 import { moduleClass, moduleText } from "./support/module-classes.mjs";
 
 // The same BackendModule/FFI crosses all eight combinations. Assertions concern
 // observable JVM values, layouts and public ABIs, not the shared type helpers.
-const { javac, java, javacArgs } = resolveJavaTools();
 const moduleName = "Representation.Contracts";
 const className = moduleClass(moduleName.replaceAll(".", "_"));
 const int = C.Int.value;
@@ -172,13 +167,17 @@ for (const intFunctions of [false, true]) for (const typedRecords of [false, tru
     ["RepresentationChecks.java", checks],
   ]);
   for (const shape of file.recordShapes) sources.set(`${recordClassName(shape)}.java`, printRecordShape(shape));
-  await withTemporaryDirectory("javapurs-representations-", directory => {
-    for (const [name, source] of sources) writeFileSync(join(directory, name), source);
-    runCommandSync(javac, [...javacArgs, "-nowarn", ...sources.keys()], { cwd: directory, stdio: "pipe" });
-    const output = runCommandSync(java, ["-cp", directory, "RepresentationChecks", String(intFunctions), String(typedRecords)],
-      { cwd: directory, encoding: "utf8", stdio: "pipe", timeout: 30000 }).trim();
-    outputs.push(output);
-    console.log(`${mode}: ${output}`);
+  await withJavaFixture("javapurs-representations-", {
+    sources,
+    main: "RepresentationChecks",
+    programArgs: [String(intFunctions), String(typedRecords)],
+    stdio: "pipe",
+    encoding: "utf8",
+    runTimeout: 30_000,
+  }, ({ output }) => {
+    const result = output.trim();
+    outputs.push(result);
+    console.log(`${mode}: ${result}`);
   });
 }
 assert.equal(new Set(outputs).size, 1, "all eight modes must pass the same JVM checks");

@@ -1,9 +1,7 @@
 import * as PursMap from "../output/Data.Map/index.js";
 import assert from "node:assert/strict";
-import { readFileSync, writeFileSync } from "node:fs";
-import { runCommandSync } from "../tools/test-process.mjs";
-import { resolveJavaTools } from "../tools/java-tools.mjs";
-import { withTemporaryDirectory } from "../tools/test-workspace.mjs";
+import { readFileSync } from "node:fs";
+import { withJavaFixture } from "./support/java-fixture.mjs";
 import { join, resolve } from "node:path";
 import * as A from "../output/Javapurs.JavaAst/index.js";
 import * as C from "../output/PureScript.Backend.Optimizer.CoreFn/index.js";
@@ -21,7 +19,6 @@ import { moduleClass, moduleText } from "./support/module-classes.mjs";
 
 // Build the backend first. Optional real TAST input, optimized in isolation:
 // node test/direct-calls.mjs --rbtree-project ../../altbak.pub-javapurs
-const { javac, java, javacArgs } = resolveJavaTools();
 const moduleName = "Direct_Fixtures";
 const raw = value => new A.JavaRaw(String(value));
 const local = name => new A.JavaLocal(name);
@@ -364,12 +361,15 @@ for (const enabled of [false, true]) {
   const fixtureModules = [moduleName, "Direct_Typed", "Test_RBTree"];
   files.set("DirectRuntime.java", moduleText(runtimeSource, fixtureModules));
   files.set("DirectChecks.java", moduleText(checksSource, fixtureModules));
-  await withTemporaryDirectory(`javapurs-direct-${enabled ? "on" : "off"}-`, directory => {
-    for (const [name, source] of files) writeFileSync(join(directory, name), source);
-    runCommandSync(javac, [...javacArgs, "-nowarn", ...files.keys()], { cwd: directory, encoding: "utf8", stdio: "pipe" });
-    const output = runCommandSync(java, ["-cp", directory, "DirectChecks"], { cwd: directory, encoding: "utf8", stdio: "pipe" }).trim();
-    outputs.push(output);
-    console.log(`${enabled ? "enabled" : "disabled"}: ${output}`);
+  await withJavaFixture(`javapurs-direct-${enabled ? "on" : "off"}-`, {
+    sources: files,
+    main: "DirectChecks",
+    stdio: "pipe",
+    encoding: "utf8",
+  }, ({ output }) => {
+    const result = output.trim();
+    outputs.push(result);
+    console.log(`${enabled ? "enabled" : "disabled"}: ${result}`);
   });
 }
 assert.equal(outputs[0], outputs[1], "enabled and disabled variants must complete the same behavioral checks");
