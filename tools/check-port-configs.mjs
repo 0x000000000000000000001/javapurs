@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { portSuites } from "./port-test-runner.mjs";
+import { parsePortOptions, portSuites } from "./port-test-runner.mjs";
 
 // Read-only consistency check for the sibling port checkouts. It deliberately
 // parses only the small, stable subset of Spago YAML used by these ports.
@@ -30,6 +30,8 @@ let localPaths = 0;
 
 for (const name of ports) {
   const directory = resolve(root, "..", name);
+  assert.ok(statSync(resolve(directory, "README.md"), { throwIfNoEntry: false })?.isFile(),
+    `${name}: missing README with port status and maintenance entry point`);
   const launcher = resolve(directory, "bin/test");
   const javaConfig = resolve(directory, "spago.java.yaml");
   const config = existsSync(javaConfig) ? javaConfig : resolve(directory, "spago.yaml");
@@ -42,6 +44,8 @@ for (const name of ports) {
     assert.ok(existsSync(javaConfig), `${name}: standard port has no spago.java.yaml`);
     assert.ok(suiteByDirectory.has(name), `${name}: no portSuites profile`);
     assert.match(readFileSync(launcher, "utf8"), expectedLauncher, `${name}: launcher is not the shared dispatcher`);
+    assert.deepEqual(parsePortOptions(["--port", name.slice("javapurs-".length)]).selected,
+      [suiteByDirectory.get(name)], `${name}: launcher argument does not select its profile`);
     standard.push(name);
   }
   if (!existsSync(config)) continue;

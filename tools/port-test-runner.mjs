@@ -11,6 +11,11 @@ export { portSuites };
 
 export const completionMarker = "PORT SUITE COMPLETED";
 
+// Launchers derive their argument from the checkout name. Keep historical
+// selection names (promise, promise-aff) while accepting their package names.
+const portByPackageName = new Map(Object.entries(portSuites)
+  .map(([port, suite]) => [suite.directory.replace(/^javapurs-/, ""), port]));
+
 function suiteFor(port) {
   if (!Object.hasOwn(portSuites, port)) throw new UsageError(`Unknown port: ${port}`);
   return portSuites[port];
@@ -30,8 +35,9 @@ export function parsePortOptions(args) {
     if (arg === "-c" || arg === "--clean") options.clean = true;
     else if (arg === "-h" || arg === "--help") options.help = true;
     else if (arg === "--port" || arg.startsWith("--port=")) {
-      const port = arg === "--port" ? args[++index] : arg.slice(7);
-      if (!port || explicit) throw new UsageError("Select exactly one named --port.");
+      const requested = arg === "--port" ? args[++index] : arg.slice(7);
+      if (!requested || explicit) throw new UsageError("Select exactly one named --port.");
+      const port = portByPackageName.get(requested) ?? requested;
       suiteFor(port);
       options.selected = [port]; explicit = true;
     } else throw new UsageError(`Unknown option: ${arg}`);

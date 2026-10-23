@@ -24,8 +24,6 @@ const specFull = directory => ({
   javaArgs: ["-Djavapurs.test.timeout=600000"],
   sources: [["src", "src"], ["test", "test"], ["integration-tests", "integration-tests"]],
 });
-const unsupported = (directory, reason) => ({ ...synchronous(directory), completion: "unsupported", reason });
-
 export const portSuites = {
   aff: awaited("javapurs-aff", "Aff", 45),
   promise: awaited("javapurs-js-promise", "Promise", 13),

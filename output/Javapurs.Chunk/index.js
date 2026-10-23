@@ -147,7 +147,7 @@ var emitArrayGroups = function (offset) {
                 });
             });
         };
-        throw new Error("Failed pattern match at Javapurs.Chunk (line 320, column 33 - line 325, column 71): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at Javapurs.Chunk (line 319, column 33 - line 324, column 71): " + [ v.constructor.name ]);
     };
 };
 var chunkClosedArray = function (values) {
@@ -485,7 +485,7 @@ var chunkValue = function (expression) {
             if (v instanceof Javapurs_Chunk_Extraction.KeepOriginal) {
                 return Control_Applicative.pure(applicativeStateT)(value);
             };
-            throw new Error("Failed pattern match at Javapurs.Chunk (line 74, column 3 - line 76, column 33): " + [ v.constructor.name ]);
+            throw new Error("Failed pattern match at Javapurs.Chunk (line 73, column 3 - line 75, column 33): " + [ v.constructor.name ]);
         });
     });
 };

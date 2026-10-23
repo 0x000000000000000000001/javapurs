@@ -6,21 +6,20 @@ module Javapurs.Chunk (chunkFile) where
 
 import Prelude
 
-import Control.Monad.State (State, gets, modify_, runState)
+import Control.Monad.State (gets, modify_, runState)
 import Data.Array as Array
-import Data.Either (Either(..))
 import Data.Foldable (sum)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst, snd)
 import Javapurs.Chunk.Captures
-  ( Captures, CaptureBarrier(..), analyzeCaptures, noCaptures, localCapture
-  , rawCaptures, combineCaptures, withoutBindings, isClosed
+  ( CaptureBarrier(..), analyzeCaptures, noCaptures, localCapture
+  , rawCaptures, combineCaptures, withoutBindings
   )
 import Javapurs.Chunk.Extraction
   ( ChunkedValue, LocalTypes, HelperParams, ResultForm(..), ExtractionPlan(..)
-  , planExtraction, maxChunkCost, nodeCost, textCost, scopeCost, filledArrayCost, arrayGroupSize
+  , planExtraction, nodeCost, textCost, scopeCost, filledArrayCost
   )
 import Javapurs.Chunk.Helpers (fillGroup, groupItems, largeClosedArray)
 import Javapurs.Chunk.Types (ArrayGroupCall, Chunk, ChunkState, ChunkedStatement)

@@ -1,4 +1,4 @@
-> Archive du TODO à l'ouverture du [plan v5](../todo.md), le 21 octobre 2026.
+> Archive du TODO à l'ouverture du [plan v5](plan-v5.md), le 21 octobre 2026.
 > Le plan v4 est clôturé à 100/100.
 
 # Javapurs — plan v4 : consolidation et lisibilité
@@ -171,3 +171,39 @@ Chaque clôture ajoute une section `Validation Mxx` dans
 [docs/testing.md](testing.md) avec la date, les commandes, les résultats,
 les limites et les chemins de preuve. Les validations du plan v3 restent
 accessibles via [docs/plan-v3.md](plan-v3.md).
+
+## Baseline M41 — 21 octobre 2026
+
+Mesures statiques, reproductibles avec `wc`, `find` et `grep` :
+
+| Mesure | Valeur |
+| --- | ---: |
+| Lignes PureScript du compilateur (`src/**/*.purs`) | 5 355 |
+| Fichiers Java FFI de ports (`javapurs-*/src/**/*.java`) | 139 |
+| Lignes Java FFI de ports | 8 643 |
+| Ports standards avec `src/`, `test/`, `bin/test`, `spago.java.yaml` | 48 (+7 auxiliaires) |
+| Suites directes listées par la matrice | 30 |
+| `docs/testing.md` | 3 556 lignes |
+| `test/test-tools.mjs` + `test/support/tool-fixtures.mjs` | 551 + 150 lignes après M44 (677 à l’ouverture) |
+| `TODO`/`FIXME`/`HACK`/`XXX` dans `src`, `test`, `tools` | 0 après M42 (3 à l’ouverture) |
+
+Les validations de départ restent celles de M32 : Spec **70/70**, cinq sondes,
+`test/child-process.mjs` réussi, `test-tools` **27/27**, Node FS vert et
+`check-docs` **684 liens** au moment de l’ouverture. Les logs de référence sont
+`spec-final-clean.log`, `test-tools-m32-final.log`, `child-final.log` et
+`fs-m32-final.log` dans le dossier de preuves M32.
+
+## Dette priorisée pour le plan v4
+
+| Priorité | Point de friction | Preuve | Lot |
+| ---: | --- | --- | --- |
+| 1 | **Résolu M42** : `PrimUndefined` est un nœud `JavaUndefined` ; `Raw` ne reconnaît plus de commentaire. | `JavaAst`, `Printer`, `CodeGen/Expr`, `Raw`, `test/ast-scopes.mjs` | M42 |
+| 2 | Les deux plus gros modules ont été revus et documentés en M42 ; leur découpage n’est pas nécessaire sans preuve de duplication. | `Chunk.purs` 386 lignes, `CodeGen/Expr.purs` 367 | M42 |
+| 3 | **Séparé M44** : fixtures dans `test/support/tool-fixtures.mjs`, assertions et inventaire dans `test/test-tools.mjs`. | 551 + 150 lignes | M44 |
+| 4 | **Centralisé M44** : profils et `assertion` sont des données dans `tools/port-profiles.mjs` ; le runner ne liste plus les wrappers. | `tools/port-profiles.mjs` | M44 |
+| 5 | Les 49 launchers de ports répètent la même séquence de build et de publication. | 49 `bin/test` | M44 |
+| 6 | Les 49 `spago.java.yaml` répètent les dépendances et chemins locaux. | 49 fichiers de configuration | M43 |
+| 7 | **Contracts documentés M43** : les helpers restent locaux aux ports, car leur ABI `__M$...` est générée par module ; les conventions Nullable, Buffer, événements, streams et erreurs sont centralisées dans `docs/ffi-runtime.md`. | 139 fichiers, 8 643 lignes | M43 |
+| 8 | **Corrigé M43** : les stubs `node-child-process` nomment l’API et lèvent `UnsupportedOperationException("node-child-process: …")` ; `spawnFile`/`spawnArgs` sont réels. | `node-child-process` | M43 |
+| 9 | `docs/testing.md` mélange guide opérationnel et récits de validation historiques. | 3 556 lignes | M45 |
+| 10 | Les fixtures de capacités dupliquent encore des boucles et des helpers de test. | `test/*.mjs`, `test/support/` | M44 |

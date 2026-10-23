@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { after, test } from "node:test";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -304,9 +304,16 @@ test("source templates and symlinked port configurations cannot be overwritten b
   assert.equal(readFileSync(portConfig, "utf8"), "# original javapurs-aff configuration\n");
 });
 
-test("port options and all 45 historical delegations reject mistakes before side effects; help is read-only", () => {
+test("all port names and 45 historical delegations reject mistakes before side effects; help is read-only", () => {
   assert.deepEqual(parsePortOptions([]).selected, ["aff", "promise", "promise-aff"]);
   assert.deepEqual(parsePortOptions(["--port", "strings", "-c"]).selected, ["strings"]);
+  for (const [port, suite] of Object.entries(portSuites)) {
+    const packageName = suite.directory.replace(/^javapurs-/, "");
+    assert.deepEqual(parsePortOptions(["--port", packageName]).selected, [port]);
+    const help = portCli(null, [`--port=${packageName}`, "--help"], { JAVAC: "/missing/javac" });
+    assert.equal(help.status, 0, `${packageName}: ${help.stderr}`);
+    assert.equal(readFileSync(trace, "utf8"), "");
+  }
   assert.equal(historical.length, 45);
   for (const port of historical) {
     const help = portCli(port, ["--help", "--clean"], { JAVAC: "/missing/javac" });
@@ -514,6 +521,67 @@ test("process helpers report launch errors, exit status, output and timeout", as
     assert.throws(() => runCommandSync(process.execPath, ["-e", "process.exit(8)"], { stdio: "pipe" }),
       error => error instanceof ProcessFailure && error.code === 8);
   } finally { processes.dispose(); }
+});
+
+test("port canonicalization preserves adjacent YAML and rejects unsupported entries before writing", () => {
+  const directory = join(temp, "port config checks/javapurs");
+  const tool = join(directory, "tools/port-configs.mjs");
+  write(tool, readFileSync(join(compilerRoot, "tools/port-configs.mjs")));
+  const path = resolve(directory, "../javapurs-refs/spago.java.yaml");
+  const original = readFileSync(resolve(compilerRoot, "../javapurs-refs/spago.java.yaml"), "utf8");
+  const suffix = "  buildOpts:\n    strict: true\nsettings:\n  note: preserved\n";
+  const canonical = original + suffix;
+  const unordered = canonical.replace(/(    aff:\n      path: .+\n)(    arrays:\n      path: .+\n)/, "$2$1");
+  assert.notEqual(unordered, canonical);
+  write(path, unordered);
+  const run = args => spawnSync(process.execPath, [tool, ...args], { encoding: "utf8" });
+  assert.equal(run(["--check"]).status, 1);
+  assert.equal(readFileSync(path, "utf8"), unordered);
+  const rewritten = run(["--write"]);
+  assert.equal(rewritten.status, 0, rewritten.stderr);
+  assert.equal(readFileSync(path, "utf8"), canonical);
+  assert.equal(run(["--check"]).status, 0);
+  assert.match(run(["--write"]).stdout, /0 file\(s\) rewritten/);
+  for (const entry of ['    unsupported:\n      git: "repository"\n', '    aff:\n      path: "../javapurs-aff"\n']) {
+    const invalid = canonical.replace("  extraPackages:\n", "  extraPackages:\n" + entry);
+    write(path, invalid);
+    const result = run(["--write"]);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /unsupported extraPackages entry|duplicate extraPackages entry/);
+    assert.equal(readFileSync(path, "utf8"), invalid);
+  }
+  write(path, unordered);
+  for (const args of [["--unknown"], ["--check", "--write"]]) {
+    assert.equal(run(args).status, 1);
+    assert.equal(readFileSync(path, "utf8"), unordered);
+  }
+});
+
+test("aggregate checks retain both output streams and report a failed phase concisely", () => {
+  const directory = join(temp, "aggregate checks/javapurs");
+  for (const name of ["check-all.mjs", "test-process.mjs"]) {
+    write(join(directory, "tools", name), readFileSync(join(compilerRoot, "tools", name)));
+  }
+  const run = args => spawnSync(process.execPath, [join(directory, "tools/check-all.mjs"), ...args], { encoding: "utf8" });
+  for (const args of [["--unknown"], ["--quick", "--full"]]) assert.equal(run(args).status, 1);
+  assert.equal(run(["--help"]).status, 0);
+  assert.ok(!existsSync(join(directory, "logs")));
+  write(join(directory, "tools/check-docs.mjs"), 'console.log("phase stdout"); console.error("phase stderr"); process.exit(7);\n');
+  const failed = run(["--quick"]);
+  assert.equal(failed.status, 1);
+  assert.match(failed.stderr, /^\[check-all\] docs: .*exit 7.*log: .*docs\.log\n$/);
+  assert.doesNotMatch(failed.stderr, /\[cause\]|\n\s+at /);
+  const logs = join(directory, "logs/check-all");
+  assert.equal(readFileSync(join(logs, "docs.log"), "utf8"), "phase stdout\nphase stderr\n");
+  assert.deepEqual(readdirSync(logs), ["docs.log"]);
+  for (const name of ["check-docs", "check-port-configs", "port-configs", "check-port-ffi", "check-generated"]) {
+    write(join(directory, "tools", `${name}.mjs`), `console.log(${JSON.stringify(name)}); console.error("phase warning");\n`);
+  }
+  const passed = run(["--quick"]);
+  assert.equal(passed.status, 0, passed.stderr);
+  assert.equal(readdirSync(logs).length, 5);
+  assert.equal(readFileSync(join(logs, "docs.log"), "utf8"), "check-docs\nphase warning\n");
+  assert.match(passed.stdout, /quick checks passed/);
 });
 
 for (const signal of ["SIGINT", "SIGTERM"]) {

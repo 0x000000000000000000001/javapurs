@@ -26,11 +26,29 @@ const configs = () => readdirSync(resolve(root, ".."), { withFileTypes: true })
   .filter(existsSync)
   .sort();
 
-function parseExtraPackages(text) {
-  const block = text.match(/^  extraPackages:\n([\s\S]*)$/m);
-  if (!block) throw new Error("missing extraPackages block");
-  return [...block[1].matchAll(/^    ([^:\n]+):\n      path: "([^"]+)"$/gm)]
-    .map(([, name, path]) => [name, path]);
+function parseExtraPackages(text, path) {
+  const header = text.match(/^  extraPackages:\r?\n/m);
+  if (!header) throw new Error(`${path}: missing extraPackages block`);
+  const start = header.index + header[0].length;
+  const rest = text.slice(start);
+  // A sibling workspace field (or a new top-level section) ends this block.
+  // Keep that suffix verbatim when canonicalizing the local package entries.
+  const boundary = rest.search(/^(?:\S| {2}\S)/m);
+  const end = boundary < 0 ? text.length : start + boundary;
+  const lines = text.slice(start, end).split(/\r?\n/).filter(line => line.trim());
+  const packages = [];
+  const names = new Set();
+  for (let index = 0; index < lines.length; index += 2) {
+    const name = lines[index].match(/^    ([a-z][a-z0-9-]*):$/)?.[1];
+    const quoted = lines[index + 1]?.match(/^      path: ("(?:\\.|[^"\\])*")$/)?.[1];
+    assert.ok(name && quoted, `${path}: unsupported extraPackages entry near ${lines[index]}`);
+    assert.ok(!names.has(name), `${path}: duplicate extraPackages entry ${name}`);
+    const local = JSON.parse(quoted);
+    assert.ok(local && !local.includes("\0"), `${path}: invalid local package path for ${name}`);
+    names.add(name);
+    packages.push([name, local]);
+  }
+  return { packages, prefix: text.slice(0, header.index), suffix: text.slice(end) };
 }
 
 function expectedPackages(actual, self) {
@@ -40,15 +58,12 @@ function expectedPackages(actual, self) {
 
 function render(packages) {
   return "  extraPackages:\n" + packages
-    .map(([name, path]) => `    ${name}:\n      path: "${path}"`)
+    .map(([name, path]) => `    ${name}:\n      path: ${JSON.stringify(path)}`)
     .join("\n") + "\n";
 }
 
-function rewrite(path, packages) {
-  const text = readFileSync(path, "utf8");
-  const block = text.match(/^  extraPackages:\n[\s\S]*$/m);
-  if (!block) throw new Error(`${path}: missing extraPackages block`);
-  const next = text.slice(0, block.index) + render(packages);
+function rewrite(path, text, block, packages) {
+  const next = block.prefix + render(packages) + block.suffix;
   if (next !== text) writeFileSync(path, next);
   return next !== text;
 }
@@ -61,7 +76,8 @@ assert.ok(args.every(arg => arg === "--write" || arg === "--check") && !(write &
 let changed = 0;
 for (const path of configs()) {
   const text = readFileSync(path, "utf8");
-  const actual = parseExtraPackages(text);
+  const block = parseExtraPackages(text, path);
+  const actual = block.packages;
   const self = path.split("/").at(-2).replace(/^javapurs-/, "");
   const expected = expectedPackages(actual, self);
   const missing = expected.filter(([name]) => !actual.some(([actualName]) => actualName === name));
@@ -70,7 +86,7 @@ for (const path of configs()) {
   assert.ok(extra.every(([name, local]) => statSync(resolve(path, "..", local), { throwIfNoEntry: false })),
     `${path}: missing local extra package`);
   if (write) {
-    if (rewrite(path, expected)) changed++;
+    if (rewrite(path, text, block, expected)) changed++;
   } else {
     assert.equal(render(actual), render(expected), `${path}: extraPackages order/path drift`);
   }

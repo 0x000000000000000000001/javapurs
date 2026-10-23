@@ -7,30 +7,29 @@ import Prelude
 
 import Data.Array as Array
 import Data.Array.NonEmpty as NEA
-import Data.Foldable (any, foldl, foldr)
+import Data.Foldable (foldl, foldr)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
-import Javapurs.CodeGen.Context (CodegenEnv, EffectContext(..), LoopContext, Position(..), Translation, TranslationContext, asExpression, captureLoops, closureContext, initialContext, prependStatement, pureExpression, tailContext, valueContext)
-import Javapurs.CodeGen.Helpers (GuardedTranslation, boxedFunctionArity, executeEffect, guardedExpression, mentionsJavaLocal, tailTarget, translateAccessor, translateFields, translateGlobal, translateLiteral, translateLocal)
+import Javapurs.CodeGen.Context (CodegenEnv, EffectContext(..), Position(..), Translation, TranslationContext, asExpression, captureLoops, closureContext, initialContext, prependStatement, pureExpression, tailContext, valueContext)
+import Javapurs.CodeGen.Helpers (boxedFunctionArity, executeEffect, guardedExpression, mentionsJavaLocal, tailTarget, translateAccessor, translateFields, translateGlobal, translateLiteral, translateLocal)
 import Javapurs.CodeGen.Syntax (Application, extractUncurriedAbs, flattenApp, isEffectNode, stripEffectAbs, stripEffectDefer, unwrapTcoExpr)
 import Javapurs.ControlFlow (hasAnyContinue, hasDirectContinue, hasTargetContinue)
 import Javapurs.IntFunctions (abstractFunction, applyFunction)
 import Javapurs.IntLoops (intLoopParams)
-import Javapurs.JavaAst (JavaExpr(..), children)
-import Javapurs.Literals (charLiteral, numberLiteral)
+import Javapurs.JavaAst (JavaExpr(..))
 import Javapurs.LoopInvariants (prepareLoop)
-import Javapurs.Naming (constructorClassName, lazyGetterName, loopSnapshotName, modulePrefix, safeCtorName, sanitizeName)
+import Javapurs.Naming (constructorClassName, modulePrefix, safeCtorName)
 import Javapurs.Operators (translateOperator1, translateOperator2)
 import Javapurs.RecordShapes (recordShape, recordShapeOf)
 import Javapurs.Representation (coerceArgument)
 import PureScript.Backend.Optimizer.Codegen.Tco (TcoExpr(..))
 import PureScript.Backend.Optimizer.Codegen.Tco as Tco
-import PureScript.Backend.Optimizer.CoreFn (Ident(..), Literal(..), Prop(..), Qualified(..))
+import PureScript.Backend.Optimizer.CoreFn (Ident(..), Literal(..), Qualified(..))
 import PureScript.Backend.Optimizer.CoreFn as CoreFn
 import PureScript.Backend.Optimizer.FreeVars (localId)
-import PureScript.Backend.Optimizer.Syntax (BackendAccessor(..), BackendEffect(..), BackendOperator(..), BackendSyntax(..), Level, Pair(..))
+import PureScript.Backend.Optimizer.Syntax (BackendEffect(..), BackendOperator(..), BackendSyntax(..), Level, Pair(..))
 
 -- This is the only recursive dispatcher. Workers below own their evaluation
 -- boundaries; the exhaustive cases keep new BackendSyntax constructors visible.

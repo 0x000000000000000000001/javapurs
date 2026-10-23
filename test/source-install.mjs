@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { after, test } from "node:test";
@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 // Negative installation/build boundaries only. The real source -> JAR check is
 // tools/install-source.mjs, recorded separately with actual tool/source versions.
 const source = fileURLToPath(new URL("../", import.meta.url));
-const temp = mkdtempSync(join(tmpdir(), "javapurs-source-tests-"));
+const temp = realpathSync(mkdtempSync(join(tmpdir(), "javapurs-source-tests-")));
 after(() => rmSync(temp, { recursive: true, force: true }));
 const write = (path, text) => { mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, text); };
 const script = (path, text) => { mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, `#!${process.execPath}\n${text}\n`, { mode: 0o755 }); };

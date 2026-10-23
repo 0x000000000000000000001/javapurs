@@ -34,7 +34,13 @@ function walk(directory) {
 let files = 0;
 for (const name of expected) {
   const directory = resolve(root, "..", portSuites[name]?.directory ?? `javapurs-${name}`);
-  const actual = new Set(walk(join(directory, "src")).map(path => relative(directory, path)));
+  const javaFiles = walk(join(directory, "src"));
+  for (const path of javaFiles) {
+    const module = path.slice(0, -".java".length) + ".purs";
+    assert.ok(statSync(module, { throwIfNoEntry: false })?.isFile(),
+      `${name}: Java fragment has no adjacent PureScript module: ${relative(directory, path)}`);
+  }
+  const actual = new Set(javaFiles.map(path => relative(directory, path)));
   const documented = rows.get(name);
   assert.deepEqual([...documented].sort(), [...actual].sort(), `${name}: FFI matrix is stale`);
   files += actual.size;

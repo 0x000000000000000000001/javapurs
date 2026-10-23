@@ -163,12 +163,15 @@ export const reportWritten = directory => () => {
   console.error(`[javapurs] FFI report: ${path.join(directory, manifestName)} (ffi; binding coverage not checked)`);
 };
 
-export const commit = session => () => {
-  if (session.closed) throw new Error("Java output is closed");
+function prepareManifest(session) {
   const files = Object.fromEntries([...session.files].sort(([a], [b]) => a.localeCompare(b)));
   // The report and Java inventory share one publication/rollback boundary.
   const ffi = { version: 1, modules: [...session.foreign.values()].sort((a, b) => a.moduleName.localeCompare(b.moduleName)) };
   const manifest = Buffer.from(json({ version: 1, files, ffi }));
+  return { files, manifest };
+}
+
+function backupChangedFiles(session, files) {
   const changes = [];
   const names = new Set([...Object.keys(session.previous.files), ...Object.keys(files)]);
   // MainRun is reserved: a successful library build must not leave an old,
@@ -185,6 +188,10 @@ export const commit = session => () => {
     if (bytes !== null) fs.writeFileSync(path.join(session.work, "backup", name), bytes);
     changes.push({ name, before, after });
   }
+  return changes;
+}
+
+function backupManifest(session) {
   // Detect a concurrently edited manifest as well as edited Java files.
   const oldManifest = fileBytes(path.join(session.directory, manifestName));
   if (!((oldManifest === null && session.previous.bytes === null) ||
@@ -192,9 +199,17 @@ export const commit = session => () => {
     throw new Error(`Java output manifest changed during generation: ${session.directory}`);
   }
   if (oldManifest !== null) fs.writeFileSync(path.join(session.work, "backup", manifestName), oldManifest);
+  return oldManifest;
+}
+
+function writePublicationJournal(session, changes, oldManifest, manifest) {
   const journal = { state: "publishing", changes,
     manifestBefore: oldManifest === null ? null : hash(oldManifest), manifestAfter: hash(manifest) };
   atomicWrite(path.join(session.work, "journal.json"), json(journal), path.join(session.work, "journal.tmp"));
+  return journal;
+}
+
+function publishGeneration(session, changes, manifest, journal) {
   // Remove the old launcher first and publish the new one last. The manifest is
   // the commit record; a leftover journal makes interruption explicit/recoverable.
   const launcher = changes.find(change => change.name === "MainRun.java");
@@ -207,6 +222,15 @@ export const commit = session => () => {
   atomicWrite(path.join(session.directory, manifestName), manifest, path.join(session.work, "manifest.tmp"));
   journal.state = "committed";
   atomicWrite(path.join(session.work, "journal.json"), json(journal), path.join(session.work, "journal.tmp"));
+}
+
+export const commit = session => () => {
+  if (session.closed) throw new Error("Java output is closed");
+  const { files, manifest } = prepareManifest(session);
+  const changes = backupChangedFiles(session, files);
+  const oldManifest = backupManifest(session);
+  const journal = writePublicationJournal(session, changes, oldManifest, manifest);
+  publishGeneration(session, changes, manifest, journal);
 };
 
 export const close = session => () => {

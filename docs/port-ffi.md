@@ -2,8 +2,10 @@
 
 Cette matrice relie chaque port à ses fichiers Java FFI, son profil de validation
 et ses limites connues. Les chemins sont relatifs au checkout `javapurs-<port>`.
-Le contrôle `node tools/check-port-ffi.mjs` vérifie la présence des lignes et
-l’existence de chaque fichier listé.
+Le contrôle `node tools/check-port-ffi.mjs` vérifie la présence des lignes,
+l’existence de chaque fichier listé et de son module PureScript adjacent.
+Le [guide de maintenance des ports](port-maintenance.md) explique le layout,
+la sélection des dépendances locales et le choix des validations.
 
 ## Ports standards
 
@@ -28,7 +30,7 @@ l’existence de chaque fichier listé.
 | `integers` | synchronous | `src/Data/Int/Bits.java`<br>`src/Data/Int.java` | — |
 | `js-date` | synchronous | `src/Data/JSDate.java` | Parsing/format ISO. |
 | `lazy` | synchronous | `src/Data/Lazy.java` | — |
-| `node-buffer` | synchronous | `src/Node/Buffer/Constants.java`<br>`src/Node/Buffer/Encoding.java`<br>`src/Node/Buffer/Immutable.java`<br>`src/Node/Buffer.java`<br>`src/Node/Encoding.java` | Fenêtres/copies byte[] explicites. |
+| `node-buffer` | synchronous | `src/Node/Buffer/Constants.java`<br>`src/Node/Buffer/Immutable.java`<br>`src/Node/Buffer.java`<br>`src/Node/Encoding.java` | Fenêtres/copies byte[] explicites. |
 | `node-event-emitter` | awaited (Spec) | `src/Node/EventEmitter.java`<br>`src/Node/Symbol.java` | `once`, rejeu borné des streams, exceptions. |
 | `node-fs` | synchronous | `src/Node/FS/Async.java`<br>`src/Node/FS/Constants.java`<br>`src/Node/FS/Stats.java`<br>`src/Node/FS/Stream.java`<br>`src/Node/FS/Sync.java` | Stats non-POSIX en repli; streams de fichiers. |
 | `node-http` | synchronous | `src/Node/HTTP/ClientRequest.java`<br>`src/Node/HTTP/IncomingMessage.java`<br>`src/Node/HTTP/OutgoingMessage.java`<br>`src/Node/HTTP/Server.java`<br>`src/Node/HTTP/ServerResponse.java`<br>`src/Node/HTTP.java`<br>`src/Node/HTTPS.java` | Upgrade 101; URL externes opt-in. |
@@ -50,7 +52,7 @@ l’existence de chaque fichier listé.
 | `run` | synchronous | — | — |
 | `spec` | awaited (SpecFull) | `src/Test/Spec/Assertions/String.java`<br>`src/Test/Spec/Assertions.java`<br>`src/Test/Spec/Console.java`<br>`src/Test/Spec/Runner.java` | — |
 | `st` | synchronous | `src/Control/Monad/ST/Internal.java`<br>`src/Control/Monad/ST/Uncurried.java` | — |
-| `strings` | synchronous | `src/Data/Bounded.java`<br>`src/Data/Enum.java`<br>`src/Data/Int.java`<br>`src/Data/Show.java`<br>`src/Data/String/CodePoints.java`<br>`src/Data/String/CodeUnits.java`<br>`src/Data/String/Common.java`<br>`src/Data/String/Regex.java`<br>`src/Data/String/Unsafe.java` | — |
+| `strings` | synchronous | `src/Data/String/CodePoints.java`<br>`src/Data/String/CodeUnits.java`<br>`src/Data/String/Common.java`<br>`src/Data/String/Regex.java`<br>`src/Data/String/Unsafe.java` | FFI des dépendances fournie par prelude, enums et integers. |
 | `strings-extra` | synchronous | `src/Data/String/Extra.java` | FFI propre; dépendances via ports. |
 | `unfoldable` | synchronous | `src/Data/Unfoldable.java`<br>`src/Data/Unfoldable1.java` | — |
 | `unsafe-coerce` | synchronous | `src/Unsafe/Coerce.java` | — |

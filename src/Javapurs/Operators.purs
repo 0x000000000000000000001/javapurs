@@ -1,11 +1,8 @@
 module Javapurs.Operators (translateOperator1, translateOperator2) where
 
-import Prelude
-
 import Data.Maybe (Maybe(..))
-import Javapurs.Naming (modulePrefix)
-import Data.String as String
 import Javapurs.JavaAst (JavaExpr(..))
+import Javapurs.Naming (constructorClassName, modulePrefix)
 import PureScript.Backend.Optimizer.CoreFn (Ident(..), Qualified(..))
 import PureScript.Backend.Optimizer.Syntax (BackendOperator1(..), BackendOperator2(..), BackendOperatorNum(..), BackendOperatorOrd(..))
 
@@ -18,13 +15,11 @@ translateOperator1 modName op e = case op of
   OpArrayLength -> JavaPropertyAccess e "Object[]" "length"
   OpIsTag (Qualified mbMod (Ident tag)) ->
     let
-      safeTag = String.replaceAll (String.Pattern "'") (String.Replacement "_prime_") tag
       modPart = case mbMod of
         Just mn -> modulePrefix mn
         Nothing -> modName
-      javaClass = modPart <> "." <> safeTag
     in
-      JavaInstanceOf e javaClass
+      JavaInstanceOf e (constructorClassName modPart tag)
 
 translateOperator2 :: String -> BackendOperator2 -> JavaExpr -> JavaExpr -> JavaExpr
 translateOperator2 _ op e1 e2 = case op of

@@ -1,6 +1,6 @@
 # Tests ciblés et registre de validation
 
-État documenté au **21 octobre 2026**. Les commandes de cette page s'exécutent
+Guide opérationnel, actualisé le **23 octobre 2026**. Les commandes de cette page s'exécutent
 depuis le dépôt du compilateur `htdocs/javapurs/javapurs`, sauf indication contraire.
 Pour une première reprise, voir [Démarrer et valider](start-here.md).
 
@@ -18,12 +18,12 @@ Pour une première reprise, voir [Démarrer et valider](start-here.md).
 | Fixture PureScript nommée | `bin/test NOM` réalise Spago → Javapurs → `javac` → `MainRun` dans `tests/runner`. |
 | Protocoles des ports Java | `test/ffi-runtimes.mjs` compile les vrais fragments ; `test/ffi-ports.mjs` attend l'intégration PureScript réelle dans deux modes de records, en classes/JAR. Les cinq ports proposent `bin/test-runtime`. |
 | Suite d'un port | Les 48 `bin/test` délèguent à `test/port-runners.mjs` : profils explicites et workspaces isolés, suites synchrones ou attendues avec sondes d'échec. Aucune sélection exécutable n'est rejetée ; 7 ports auxiliaires sont documentés. [Inventaire et limites](port-launchers.md). |
-| Validation agrégée | [tools/check-all.mjs](../tools/check-all.mjs) : `--quick` pour docs/ports/sorties, `--full` pour Spec, test-tools, child-process et Node FS ; logs dans `logs/check-all/`. |
+| Validation agrégée | [tools/check-all.mjs](../tools/check-all.mjs) : `--quick` pour docs/ports/sorties, avec reconstruction du backend ; `--full` ajoute Spec, test-tools, child-process et Node FS ; logs dans `logs/check-all/`. |
 | Documentation/outillage | `tools/check-docs.mjs` contrôle liens/ancres, exemples shell, matrice/options et score ; les suites d'outillage vérifient les contrats des processus modifiés. |
 
-La règle du [plan de travail actif](../todo.md) est une **validation
-ciblée sur les changements** : build du composant modifié et contrôles de ses
-responsabilités. `t -c`, le corpus entier et `modtest` sont hors de ce protocole.
+Choisir une **validation ciblée sur les changements** : reconstruire le composant
+modifié et vérifier ses responsabilités. Le corpus entier et `modtest` sont des
+campagnes distinctes ; ils ne sont pas requis pour chaque correction.
 
 Les suites directes n'entrent pas toutes par `Main` : plusieurs appellent une
 passe ou `CodeGen` directement. Consulter leur entrée avant de les utiliser
@@ -166,9 +166,9 @@ Chaque chemin de script s'utilise avec `node`, depuis la racine du dépôt.
 | Exceptions, Ref, Promise et Aff Java | [test/ffi-runtimes.mjs](../test/ffi-runtimes.mjs) | 49 contrôles directs : noms/traces/causes, identité Throwable, effets différés, écritures concurrentes, règlement/adoption, désabonnement, annulation, bracket, supervision et parallèle ; vrais fragments, référence JS Exceptions, shim Either, Node/JDK et quatre ports voisins. |
 | API PureScript des ports et pont Promise/Aff | [test/ffi-ports.mjs](../test/ffi-ports.mjs) | 25 assertions × records typés/Maps × classes/JAR, mêmes TAST ; attente de la fibre, inventaire et marqueur final vérifiés. Relevé identique entre modes, fragments locaux identifiés, troisième génération avec `foreign` du registre pour diagnostiquer l'absence Java. Backend construit, Spago, `purs` TAST, ports locaux et JDK avec `jar`. |
 | Spawn Java `node-child-process` | [test/child-process.mjs](../test/child-process.mjs) | Workspace isolé et probe Java sur `spawn` : stdout `child-ok`, code 0 et rejeu d'un `exit` tardif ; port construit et JDK. Complète la validation M32. |
-| Suites et complétion des ports | [test/port-runners.mjs](../test/port-runners.mjs) | 48 sélections `--port=NOM` ([inventaire](port-launchers.md)) : **41 synchrones (dont Node FS, Node Net et Node HTTP avec wrapper Aff), sept attendues, aucune rejetée** faute de protocole. Aff/Promise/Promise-Aff : 45/13/7 contrôles et quatre sondes chacune. UUID/Event Emitter : Spec attendue, **6/19 résultats exigés**, cinq sondes chacune ; les deux suites passent depuis M25. Yoga JSON : **52/52**, cinq sondes depuis M29. Spec pur : **62/62**, trois pending, cinq sondes depuis M30. Node HTTP : suite complète et upgrades depuis M31. Node Streams (M26), Node FS (M27) et Node Net (M28) sont validés. Options strictes, sources/configurations préservées, phases bornées/loggées, pile Strings 64 Mio. Backend construit, Spago/`purs` TAST, ports locaux et JDK ; cible 17 par défaut. |
+| Suites et complétion des ports | [test/port-runners.mjs](../test/port-runners.mjs) | 48 sélections `--port=NOM` ([inventaire](port-launchers.md)) : **41 synchrones (dont Node FS, Node Net et Node HTTP avec wrapper Aff), sept attendues, aucune rejetée** faute de protocole. Aff/Promise/Promise-Aff : 45/13/7 contrôles et quatre sondes chacune. UUID/Event Emitter : Spec attendue, **6/19 résultats exigés**, cinq sondes chacune ; les deux suites passent depuis M25. Yoga JSON : **52/52**, cinq sondes depuis M29. Spec complet : **70/70** (62 purs et 8 intégrations), trois pending et cinq sondes depuis M32. Node HTTP : suite complète et upgrades depuis M31. Node Streams (M26), Node FS (M27) et Node Net (M28) sont validés. Options strictes, sources/configurations préservées, phases bornées/loggées, pile Strings 64 Mio. Backend construit, Spago/`purs` TAST, ports locaux et JDK ; cible 17 par défaut. |
 | Grand arbre de branches | [test/big-function.mjs](../test/big-function.mjs) | Prépare et exécute BigFunction dans un workspace temporaire isolé, puis réalise 155 contrôles de `f`. |
-| Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 27 tests Node : sélection/aide sans effets, JDK/cible/runtime séparés, profils de dépendances/FFI, 45 gabarits historiques (dont dépendances vides), chemins validés avant écriture, sources/symlinks/outputs préservés, ressources/espaces, 45 délégations, rejets explicites et contrôle des résultats Spec, cinq échecs de phase, quatre timeouts et signaux aux descendants. |
+| Sélection, JDK, workspaces, processus | [test/test-tools.mjs](../test/test-tools.mjs) | 29 tests Node : sections YAML et champs commentés, logs complets stdout/stderr, sélection/aide sans effets, JDK/cible/runtime séparés, profils de dépendances/FFI, 45 gabarits historiques (dont dépendances vides), chemins validés avant écriture, sources/symlinks/outputs préservés, ressources/espaces, 45 délégations, rejets explicites et contrôle des résultats Spec, cinq échecs de phase, quatre timeouts et signaux aux descendants. |
 | Prérequis, build et lancement source | [test/source-install.mjs](../test/source-install.mjs) | Six groupes Node/Bash avec commandes contrôlées : bon répertoire de build, dépendances/outils absents, neuf TAST incompatibles malgré version correcte, backend absent/incomplet, destination existante et prérequis d'installation ; aucun réseau ni build réel. |
 | Installation complète et application autonome | [tools/install-source.mjs](../tools/install-source.mjs) | Sept références fetchées, fork GHC/Stack et backend reconstruits, Hello/Refs en Java 17 et JAR exécutés depuis un dossier JAR seul ; Spago 1.0.3, Stack, Git, Node, Bash, JDK complet et dépendances réseau/cache. |
 | Compatibilité Java ciblée | [tools/check-jdk.mjs](../tools/check-jdk.mjs) | Six suites × trois configurations de compilation/exécution, avec chemins/versions, cible 17, sondes bytecode/JVM et logs ; backend construit, deux JDK, `purs` TAST, Spago et ports locaux. |
@@ -835,8 +835,8 @@ son chemin, ou depuis ce dépôt :
 node tools/check-docs.mjs
 ```
 
-Ce contrôle lit les guides du compilateur, le plan v2 archivé, le TODO parent et
-les README des 48 ports délégués. Il suppose le layout local documenté ; les liens
+Ce contrôle lit les guides du compilateur, les plans archivés, `todo.md` et
+les README des ports sélectionnés par le vérificateur. Il suppose le layout local documenté ; les liens
 distants ne sont pas interrogés. Les exemples shell passent par `bash -n` sans être
 exécutés.
 
@@ -849,7 +849,7 @@ Pour le lot traité, conserver :
   l'inventaire Java pertinents ;
 - pour une mesure, phase chronométrée et paramètres JVM, séparément des contrôles
   fonctionnels ; les durées de `Metrics` excluent `purs`, `javac` et l'application ;
-- emplacement des preuves utiles, conclusion et état du lot dans le plan.
+- emplacement des preuves utiles, conclusion et limites de la validation.
 
 ## Références acquises avant M01
 
@@ -866,7 +866,7 @@ Ces résultats proviennent de la mise au point précédente de la chaîne Java :
 
 ## Validations historiques
 
-Les récits détaillés M01–M32 sont conservés dans
+Les récits détaillés des plans v1–v7 sont conservés dans
 [l’historique des validations](validation-history.md). Cette page garde les
 ancres utilisées par le README, les plans et les guides.
 
@@ -956,39 +956,6 @@ ancres utilisées par le README, les plans et les guides.
 <a id="validation-m32"></a>
 <a id="intégration-spec-via-node-child-process--20-octobre-2026"></a>
 
-<a id="validation-m01"></a>
-<a id="validation-m02"></a>
-<a id="validation-m03"></a>
-<a id="validation-m04"></a>
-<a id="validation-m05"></a>
-<a id="validation-m06"></a>
-<a id="validation-m07"></a>
-<a id="validation-m08"></a>
-<a id="validation-m09"></a>
-<a id="validation-m10"></a>
-<a id="validation-m11"></a>
-<a id="validation-m12"></a>
-<a id="validation-m13"></a>
-<a id="validation-m14"></a>
-<a id="validation-m15"></a>
-<a id="validation-m16"></a>
-<a id="validation-m17"></a>
-<a id="validation-m18"></a>
-<a id="validation-m19"></a>
-<a id="validation-m20"></a>
-<a id="validation-m21"></a>
-<a id="validation-m22"></a>
-<a id="validation-m23"></a>
-<a id="validation-m24"></a>
-<a id="validation-m25"></a>
-<a id="validation-m26"></a>
-<a id="validation-m27"></a>
-<a id="validation-m28"></a>
-<a id="validation-m29"></a>
-<a id="validation-m30"></a>
-<a id="validation-m31"></a>
-<a id="validation-m32"></a>
-
 | Lots | Historique |
 | --- | --- |
 | M01–M11 | Plans v1 et maintenabilité initiale |
@@ -997,604 +964,122 @@ ancres utilisées par le README, les plans et les guides.
 
 ## Validation M41
 
-### Baseline et cartographie — 21 octobre 2026
-
-`M41` ouvre le plan v4 par une cartographie et une mesure de dette, sans modifier
-de code exécutable. La [carte du code](code-map.md) décrit le flux
-`Main` → `Config` → `Driver` → `Input`/PBO → `Pipeline` → `Emit`, les modules du
-backend, le harnais de tests, les ports et les artefacts.
-
-### Mesures de départ
-
-| Mesure | Valeur |
-| --- | ---: |
-| Lignes PureScript du compilateur (`src/**/*.purs`) | 5 355 |
-| Fichiers Java FFI de ports (`javapurs-*/src/**/*.java`) | 139 |
-| Lignes Java FFI de ports | 8 643 |
-| Ports avec `src/`, `test/`, `bin/test`, `spago.java.yaml` | 49 |
-| Suites directes listées par la matrice | 30 |
-| `docs/testing.md` | 3 556 lignes |
-| `test/test-tools.mjs` | 677 lignes |
-| `TODO`/`FIXME`/`HACK`/`XXX` dans `src`, `test`, `tools` | 3 |
-
-Les dix points de friction priorisés sont dans la
-[section « Dette priorisée »](code-map.md#dette-priorisée-pour-le-plan-v4).
-Ils alimentent M42 (compilateur), M43 (FFI/runtime), M44 (harnais) et M45
-(docs/clôture).
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `docs/code-map.md` | Créé ; pipeline, modules, harnais, ports, artefacts et dix priorités. |
-| Baseline M32 | Spec **70/70**, cinq sondes, `test/child-process.mjs` réussi, `test-tools` **27/27**, Node FS vert. |
-| `node tools/check-docs.mjs` | Vert après ajout de la carte et du plan v4. |
-| Code exécutable | Aucune modification dans `src`, `test`, `tools` ou les ports. |
-| `git diff --check` | Propre. |
-
-Preuves : les logs M32 `spec-final-clean.log`, `test-tools-m32-final.log`,
-`child-final.log` et `fs-m32-final.log` dans
-`/private/var/folders/w9/l8bnb22d6c75c401f71djbt00000gn/T/opencode/javapurs-m25/`,
-et le log `check-docs` du 21 octobre 2026.
-
-**Conclusion : M41 validé. La cartographie et la baseline sont établies ; aucun
-changement de comportement.**
+[Compte rendu archivé](validation-history.md#validation-m41).
 
 ## Validation M42
 
-### Cas spéciaux et lisibilité du compilateur — 21 octobre 2026
-
-PBO `Undefined` n’est plus encodé par un commentaire textuel. `JavaAst` possède
-un nœud `JavaUndefined`, rendu `null` par le printer et traité sans captures par
-le chunker. `CodeGen.Expr` l’utilise pour `PrimUndefined`; `Raw.isClosedValue`
-ne reconnaît plus de préfixe `null /* TODO:`. Le test de portées vérifie le
-rendu structurel et conserve un cas de commentaire fermé suivi d’une capture.
-
-Les responsabilités de `CodeGen.Expr`, `Printer.Body`, `Chunk` et
-`Ownership.Workers` ont été documentées aux frontières concernées. Aucun
-découpage de module n’a été imposé sans duplication ou test à l’appui.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `spago build -q` | Vert. |
-| `node test/ast-scopes.mjs` | Vert ; `JavaUndefined` rendu `null`, commentaire brut toujours opaque. |
-| `node test/representations.mjs` | Vert. |
-| `node test/codegen.mjs` | Vert. |
-| `node test/driver.mjs` | Vert ; compilation, génération, `javac` et JVM. |
-| `node test/typed-records.mjs` | Vert. |
-| `rg 'TODO|FIXME|HACK|XXX' src test tools` | Aucun marqueur dans le code. |
-| `node tools/check-docs.mjs` | Vert. |
-
-**Conclusion : M42 validé. Le sentinel Undefined est structurel et le backend
-reste sans marqueur TODO dans son code.**
+[Compte rendu archivé](validation-history.md#validation-m42).
 
 ## Validation M43
 
-### Contrats runtime et FFI — 21 octobre 2026
-
-Les conventions partagées par les ports Java sont maintenant regroupées dans
-[les contrats FFI](ffi-runtime.md#contrats-communs-des-ports-java-m03) :
-absence `undefined`/`null`, Buffers, événements, streams, callbacks FS async,
-cycle de vie Net/HTTP et limites `ChildProcess`.
-
-Le choix de conserver des helpers locaux est explicite : les classes internes
-`__M$...` sont générées dans le module consommateur et une bibliothèque Java
-commune ajouterait une dépendance entre ports. La duplication restante est donc
-documentée plutôt que masquée.
-
-`node-child-process` ne retourne plus de stub silencieux pour les API absentes :
-chaque opération non implémentée (`exec`, `execFile`, `spawnSync`, IPC, `send`,
-`channel`) lève une `UnsupportedOperationException` nommant le port et l’API.
-Les propriétés `spawnFile`, `spawnArgs` et `stdio` sont renseignées à partir du
-processus réel.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node test/child-process.mjs` | Réussi : spawn, stdout, exit tardif, métadonnées et erreur explicite `exec`. |
-| `javapurs-node-event-emitter/bin/test` | Code 0, cinq sondes. |
-| `javapurs-node-streams/bin/test` | Code 0, protocole synchrone et marqueur commun. |
-| `javapurs-node-fs/bin/test` | Code 0, `all good` et marqueur commun. |
-| `javapurs-node-net/bin/test` | Code 0, marqueur commun. |
-| `javapurs-node-http/bin/test` | Code 0, marqueur commun. |
-| `node tools/check-docs.mjs` | Vert après ajout des contrats. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M43 validé. Les contrats FFI sont lisibles, les stubs restants
-sont explicites et les six suites concernées passent.**
+[Compte rendu archivé](validation-history.md#validation-m43).
 
 ## Validation M44
 
-### Harnais de tests lisible — 21 octobre 2026
-
-Le registre des ports est désormais séparé du moteur d’exécution. Les profils
-`awaited`, `synchronous`, `spec`, `wrappedSynchronous` et `specFull` vivent dans
-`tools/port-profiles.mjs`. Le champ `assertion` (`spec` ou `ok`) remplace les
-listes de wrappers dans les assertions de fin et les sondes.
-
-La construction du sandbox de `test/test-tools.mjs` est déplacée dans
-`test/support/tool-fixtures.mjs` : faux compilateur, ports historiques, commandes
-et traces. Le fichier d’assertions conserve uniquement les scénarios et les
-vérifications.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node --test test/test-tools.mjs` | **27/27 tests**. |
-| `../javapurs-spec/bin/test` | **70 checks**, cinq sondes. |
-| `javapurs-node-fs/bin/test` | Code 0. |
-| `javapurs-node-net/bin/test` | Code 0. |
-| `javapurs-node-http/bin/test` | Code 0. |
-| `node tools/check-docs.mjs` | Vert. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M44 validé. Le harnais est découpé par responsabilité et les
-profils sont des données nommées, sans perte de couverture.**
+[Compte rendu archivé](validation-history.md#validation-m44).
 
 ## Validation M45
 
-### Documentation, hygiène et clôture — 21 octobre 2026
-
-Le guide opérationnel a été séparé de l’historique :
-
-- [Démarrer et valider](start-here.md) donne les prérequis, le build, les
-  commandes ciblées et les liens de lecture ;
-- les récits M01–M32 sont dans [l’historique des validations](validation-history.md) ;
-- `testing.md` conserve les ancres `#validation-mXX` sous
-  [Validations historiques](testing.md#validations-historiques) ;
-- les lots du plan v4 sont renumérotés M41–M45 pour éviter la collision avec
-  les validations historiques M01–M11.
-
-Les liens README, maintien, compilateur et plans ont été alignés. Aucun
-`TODO`/`FIXME` ne reste dans `src`, `test` ou `tools`.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node --test test/test-tools.mjs` | **27/27**. |
-| `../javapurs-spec/bin/test` | **70 checks**, cinq sondes. |
-| `node test/child-process.mjs` | Réussi. |
-| `node tools/check-docs.mjs` | Vert après réorganisation. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M45 validé. Le plan v4 est clôturé à 100/100 ; le guide reste
-court et les preuves historiques restent accessibles.**
+[Compte rendu archivé](validation-history.md#validation-m45).
 
 ## Validation M51
 
-### Launchers et configurations — 21 octobre 2026
-
-Les 48 ports standards utilisent désormais le même launcher de cinq lignes :
-le nom du port est déduit du dossier et le dispatcher commun est appelé avec
-`--port=...`. Les launchers historiques ne divergent plus par port.
-
-Les 7 ports sans launcher sont classés auxiliaires dans
-[port-launchers](port-launchers.md#contrat-commun-et-configurations) :
-`argonaut-core`, `control`, `js-bigints`, `js-uri`, `node-child-process`,
-`spec-discovery` et `unsafe-reference`. `node-child-process` reste couvert par
-`test/child-process.mjs` ; `spec-discovery` est une configuration sans suite
-exécutable.
-
-`tools/check-port-configs.mjs` vérifie sans build :
-
-- la présence des 48 profils standards et de leurs launchers ;
-- les 7 ports auxiliaires et leur configuration ;
-- les noms de package et le package set `77.7.0` des ports standards ;
-- les 2 376 chemins locaux déclarés dans les configurations Spago.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node tools/check-port-configs.mjs` | 48 standards, 7 auxiliaires, 2 376 chemins. |
-| `node --test test/test-tools.mjs` | **27/27**. |
-| `javapurs-node-fs/bin/test` | Code 0. |
-| `javapurs-node-net/bin/test` | Code 0. |
-| `javapurs-node-http/bin/test` | Code 0. |
-| `node tools/check-docs.mjs` | Vert. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M51 validé. Un seul modèle de launcher, aucune ambiguïté sur les
-ports auxiliaires, configurations contrôlées.**
+[Compte rendu archivé](validation-history.md#validation-m51).
 
 ## Validation M52
 
-### Dette FFI résiduelle — 21 octobre 2026
-
-Les deux marqueurs `TODO: PrimUndefined` de `partial` et `strings-extra` sont
-supprimés : le contrat est désormais un commentaire explicite du sentinel PBO,
-rendu en `null` Java.
-
-`strings-extra` ne contient plus de shims Java locaux pour ses dépendances :
-`Data.Array`, `Prelude`, `Partial`, `Strings`, `Console` et `Assert` viennent
-des ports déclarés. Cela supprime **20 fichiers** dont `Data/Array.java`, qui
-contenait de nombreux `FFI_STUB` et des méthodes retournant `null`.
-
-`Node.FS.Stats` documente explicitement son fallback non-POSIX : les bits de
-permission restent nuls lorsque `getPosixFilePermissions` n’est pas disponible.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `javapurs-partial/bin/test` | Code 0. |
-| `javapurs-strings-extra/bin/test` | Code 0. |
-| `javapurs-node-fs/bin/test` | Code 0. |
-| Recherche `FFI_STUB`/`TODO` dans les ports | Aucun. |
-| `node tools/check-docs.mjs` | Vert. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M52 validé. Les ports n’ont plus de stubs silencieux ni de
-marqueurs TODO ; les dépendances FFI sont résolues par les ports réels.**
+[Compte rendu archivé](validation-history.md#validation-m52).
 
 ## Validation M53
 
-### Fixtures Java partagées — 21 octobre 2026
-
-`test/support/java-fixture.mjs` centralise le cycle commun des suites directes :
-matérialisation des sources, appel `javac`, puis lancement de la classe
-principale avec les options JVM. Les assertions, les noms de classes et les
-helpers de boucle/records restent dans leurs suites.
-
-Trois suites ont été migrées sans changement de comportement :
-
-- `counted-loops.mjs` : **51** cas de sélection/rejet ;
-- `loop-invariants.mjs` : **50** contrôles de cache ;
-- `typed-records.mjs` : **75** contrôles runtime.
-
-Aucun helper de boucle ou de record n’a été fusionné entre suites lorsque son
-contrat sémantique différait ; seule la mécanique de compilation/exécution est
-partagée.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node test/counted-loops.mjs` | Vert, 51 cas. |
-| `node test/loop-invariants.mjs` | Vert, 50 contrôles. |
-| `node test/typed-records.mjs` | Vert, 75 contrôles. |
-| `node --test test/test-tools.mjs` | **27/27**. |
-| `../javapurs-spec/bin/test` | **70 checks**, cinq sondes. |
-| `node tools/check-docs.mjs` | Vert. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M53 validé. Les fixtures Java partagent leur cycle de vie, sans
-perte d’assertions ni de couverture.**
+[Compte rendu archivé](validation-history.md#validation-m53).
 
 ## Validation M54
 
-### Frontières de `Chunk` — 21 octobre 2026
-
-Le chunker est découpé sans modifier la décision d’admission ni le Java produit :
-
-- `Chunk/Types.purs` : état, `Chunk` et formes de résultat ;
-- `Chunk/Value.purs` : construction des valeurs, captures et snapshots ;
-- `Chunk/Helpers.purs` : groupes de tableaux fermés, remplissage et matérialisation ;
-- `Chunk.purs` : traversée récursive et orchestration, **331 lignes** contre 388.
-
-Les helpers de coût, captures et extraction restent dans leurs modules existants.
-Aucun choix d’optimisation n’a été déplacé ou modifié.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node test/chunk.mjs` | **15 fixtures** vertes. |
-| `node test/codegen.mjs` | **48/48** contrôles JVM par mode. |
-| `node test/driver.mjs` | Vert après régénération complète des sorties PBO. |
-| `node test/typed-records.mjs` | **75** contrôles runtime. |
-| `node tools/check-docs.mjs` | Vert. |
-| `git diff --check` | Propre. |
-
-Le build complet a été nécessaire pour aligner les sorties `output/PureScript.Backend.Optimizer.*` suivies avec la source PBO locale ; le driver a ensuite
-retrouvé `toBackendModuleWithLookups`.
-
-**Conclusion : M54 validé. Les frontières de `Chunk` sont explicites et le
-comportement Java reste couvert.**
+[Compte rendu archivé](validation-history.md#validation-m54).
 
 ## Validation M55
 
-### Reproductibilité et clôture — 21 octobre 2026
-
-Les sorties générées suivies ont été vérifiées par double build :
-
-1. hash de tous les `output/**/*.js` et `*.js.map` ;
-2. `./bin/build` ;
-3. hash après build ;
-4. comparaison sans différence.
-
-Les 48 launchers utilisent le même dispatcher, les 7 ports auxiliaires sont
-documentés et `check-port-configs` valide 2 376 chemins locaux. Le guide
-`start-here`, la carte, la maintenance, le README et la matrice sont à jour.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node --test test/test-tools.mjs` | **27/27**. |
-| `../javapurs-spec/bin/test` | **70 checks**, cinq sondes. |
-| `node test/child-process.mjs` | Réussi. |
-| `node tools/check-port-configs.mjs` | 48 standards, 7 auxiliaires, 2 376 chemins. |
-| `node tools/check-docs.mjs` | **743 liens**, 68 documents. |
-| Hashes `output/**/*.js(.map)` avant/après build | Identiques. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M55 validé. Le plan v5 est clôturé à 100/100 ; le dépôt est
-documenté, reproductible et sans dette de configuration non contrôlée.**
+[Compte rendu archivé](validation-history.md#validation-m55).
 
 ## Validation M61
 
-### Frontières de `CodeGen.Expr` — 21 octobre 2026
-
-`CodeGen.Helpers` isole les décisions pures qui ne participent pas au
-dispatcher récursif : cible de queue, arité boxed, locaux/globaux, littéraux,
-champs, accesseurs et assemblage des branches. `CodeGen.Expr` conserve la
-traduction récursive, les appels, les effets et les boucles.
-
-`CodeGen.Expr` passe de **371 à 279 lignes** ; `CodeGen.Helpers` en fait 118.
-Aucune décision de représentation, d’effet ou d’optimisation n’a été déplacée.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node test/chunk.mjs` | **15 fixtures**. |
-| `node test/codegen.mjs` | **48/48** contrôles JVM par mode. |
-| `node test/driver.mjs` | Vert. |
-| `node test/typed-records.mjs` | **75** contrôles. |
-| `node tools/check-docs.mjs` | Vert. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M61 validé. La frontière des helpers est explicite et les sorties
-Java restent couvertes.**
+[Compte rendu archivé](validation-history.md#validation-m61).
 
 ## Validation M62
 
-### Source unique des configurations Spago — 21 octobre 2026
-
-`tools/port-configs.mjs` porte la liste des 48 packages locaux communs et les
-extras `js-bigints`/`node-child-process`. Il peut vérifier les blocs
-`extraPackages` (`--check`) ou les canonicaliser (`--write`) sans toucher aux
-dépendances, au package set ni aux options propres à chaque port.
-
-La canonicalisation n’a modifié que **Spec** et **Yoga**, qui avaient un ordre
-d’extras différent. Les 48 autres configurations étaient déjà canoniques.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node tools/port-configs.mjs --check` | 49 configurations canoniques. |
-| `node tools/port-configs.mjs --write` | 2 fichiers réordonnés, puis idempotent. |
-| `node tools/check-port-configs.mjs` | 48 standards, 7 auxiliaires, 2 376 chemins. |
-| `javapurs-spec/bin/test` | **70 checks**, cinq sondes. |
-| `javapurs-yoga-json/bin/test` | **52/52**, cinq sondes. |
-| `node tools/check-docs.mjs` | Vert. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M62 validé. Les configurations partagent une source de vérité
-contrôlée et restent valides sur les ports réels.**
+[Compte rendu archivé](validation-history.md#validation-m62).
 
 ## Validation M63
 
-### Fixtures Java restantes — 21 octobre 2026
-
-`test/support/java-fixture.mjs` accepte maintenant un répertoire de classes et
-un classpath distincts, en plus des options `javac`/JVM déjà partagées.
-
-Quatre suites supplémentaires sont migrées sans changement d’assertions :
-
-- `ast-scopes.mjs` : **110** contrôles runtime dans les modes renamed/chunked ;
-- `chunk.mjs` : **15** fixtures ;
-- `codegen.mjs` : **48/48** contrôles par mode ;
-- `constructor-reuse.mjs` : **7** groupes de fixtures.
-
-Les helpers métier restent dans chaque suite ; seule la mécanique de
-compilation/exécution est centralisée.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node test/ast-scopes.mjs` | 110 + 110 contrôles. |
-| `node test/chunk.mjs` | 15 fixtures. |
-| `node test/codegen.mjs` | 48/48 par mode. |
-| `node test/constructor-reuse.mjs` | 7 groupes. |
-| `node --test test/test-tools.mjs` | **27/27**. |
-| `../javapurs-spec/bin/test` | **70 checks**. |
-| `node tools/check-docs.mjs` | Vert. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M63 validé. Sept suites utilisent désormais le même cycle de
-fixture Java, sans perte de couverture.**
+[Compte rendu archivé](validation-history.md#validation-m63).
 
 ## Validation M64
 
-### Ports auxiliaires et sorties — 22 octobre 2026
-
-Le statut des 7 ports sans launcher est désormais explicite :
-
-- cinq dépendances transitives (`argonaut-core`, `control`, `js-bigints`,
-  `js-uri`, `unsafe-reference`) n’ont pas de suite directe ;
-- `node-child-process` garde `spago.yaml`, mais sa validation est
-  `test/child-process.mjs` ; il n’a pas de `spago.java.yaml` ni de suite Spago ;
-- `spec-discovery` est une configuration consommée par les suites Spec, sans
-  launcher.
-
-`tools/check-generated.mjs` exécute un build complet, puis compare les hashes
-SHA-256 des sorties JavaScript/source maps suivies avant et après.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node tools/check-generated.mjs` | **1 028 fichiers stables**. |
-| `node tools/check-port-configs.mjs` | 48 standards, 7 auxiliaires, 2 376 chemins. |
-| `node --test test/test-tools.mjs` | **27/27** (M63). |
-| `../javapurs-spec/bin/test` | **70 checks** (M63). |
-| `node tools/check-docs.mjs` | Vert. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M64 validé. Les auxiliaires ont un statut sans ambiguïté et les
-sorties générées sont contrôlées automatiquement.**
+[Compte rendu archivé](validation-history.md#validation-m64).
 
 ## Validation M65
 
-### Documentation et clôture — 22 octobre 2026
-
-Le plan v5 est archivé, la carte et le guide `start-here` sont à jour, et les
-commandes de contrôle des ports et des sorties sont documentées. Le plan v6 est
-fermé sans workspace temporaire ni sortie générée non expliquée.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node --test test/test-tools.mjs` | **27/27**. |
-| `../javapurs-spec/bin/test` | **70 checks**, cinq sondes. |
-| `node test/child-process.mjs` | Réussi. |
-| `node tools/check-port-configs.mjs` | 48 standards, 7 auxiliaires, 2 376 chemins. |
-| `node tools/port-configs.mjs --check` | 49 configurations canoniques. |
-| `node tools/check-generated.mjs` | **1 028 fichiers stables**. |
-| `node tools/check-docs.mjs` | Vert. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M65 validé. Le plan v6 est clôturé à 100/100 ; le dépôt est
-canonique, testé et documenté.**
+[Compte rendu archivé](validation-history.md#validation-m65).
 
 ## Validation M71
 
-### Vérité documentaire — 22 octobre 2026
-
-Les statuts actifs ont été réalignés sur les validations v6 :
-
-- README pointe vers les archives `plan-v4`, `plan-v5` et `plan-v6`, et vers
-  le plan v7 actif ;
-- Spec est décrit comme **70/70** (62 purs + 8 intégrations), sans exclusion
-  `npx`/`spec-node` ;
-- `testing.md` ne parle plus de « six protocoles non pris en charge » ;
-- `port-launchers.md` distingue l’inventaire historique M23 des 48 profils
-  actuels et des 7 ports auxiliaires ;
-- Node FS et Spec ne sont plus décrits avec leurs anciens statuts rejetés.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node tools/check-docs.mjs` | **767 liens/ancres**, 70 documents. |
-| Recherche des statuts obsolètes | Aucun statut actif contredit les validations. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M71 validé. La documentation décrit l’état v6 et le plan v7,
-sans réintroduire les exclusions historiques.**
+[Compte rendu archivé](validation-history.md#validation-m71).
 
 ## Validation M72
 
-### Fixtures Java restantes — 22 octobre 2026
-
-`java-fixture` accepte désormais les arguments passés au programme Java. Quatre
-suites supplémentaires utilisent le cycle commun :
-
-- `direct-calls.mjs` : **40** contrôles par mode ;
-- `printer.mjs` : **75 + 11** contrôles ;
-- `ownership-loops.mjs` : **9** contrôles par mode ;
-- `representations.mjs` : **43** contrôles dans chacun des huit modes.
-
-Onze suites au total partagent maintenant la préparation Java. Les helpers de
-construction d’AST, de boucles et de records restent dans leurs suites.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node test/direct-calls.mjs` | 40 + 40 contrôles. |
-| `node test/printer.mjs` | 75 + 11 contrôles. |
-| `node test/ownership-loops.mjs` | 9 + 9 contrôles. |
-| `node test/representations.mjs` | 8 modes × 43 contrôles. |
-| `node --test test/test-tools.mjs` | **27/27**. |
-| `../javapurs-spec/bin/test` | **70 checks**, cinq sondes. |
-| `node tools/check-docs.mjs` | Vert. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M72 validé. Onze suites utilisent le même cycle Java, sans perte
-d’assertions ni de couverture.**
+[Compte rendu archivé](validation-history.md#validation-m72).
 
 ## Validation M73
 
-### Validation unifiée — 22 octobre 2026
-
-`tools/check-all.mjs` agrège les contrôles avec logs par phase :
-
-- `--quick` : `check-docs`, `check-port-configs`, canonicalisation des
-  configurations et `check-generated` ;
-- `--full` : ajoute `test-tools`, `child-process`, Spec et Node FS.
-
-Les options sont strictes ; aucun `|| true` ne masque un échec. Les logs sont
-écrits sous `logs/check-all/` (ignoré par Git).
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node tools/check-all.mjs --quick` | Vert ; 4 phases. |
-| `node tools/check-all.mjs --full` | Vert ; 8 phases. |
-| Logs | `logs/check-all/{docs,port-configs,port-configs-canonical,generated,test-tools,child-process,spec,node-fs}.log`. |
-| `node tools/check-docs.mjs` | Vert. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M73 validé. La clôture ciblée tient dans une commande unique,
-avec logs reproductibles et sans masquage d’échec.**
+[Compte rendu archivé](validation-history.md#validation-m73).
 
 ## Validation M74
 
-### Matrice FFI des ports — 22 octobre 2026
-
-[docs/port-ffi.md](port-ffi.md) relie chaque port à son profil, ses fichiers
-Java FFI et ses limites. Les ports auxiliaires sont inclus séparément, avec
-`node-child-process` et `spec-discovery` documentés hors suite Spago standard.
-
-`tools/check-port-ffi.mjs` compare la matrice aux fichiers Java réellement
-présents : lignes manquantes, doublons, chemins absents et fichiers non listés
-échouent. `check-all --quick` exécute ce contrôle après la canonicalisation des
-configurations.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node tools/check-port-ffi.mjs` | 48 standards, 7 auxiliaires, **118 fichiers Java** cohérents. |
-| `node tools/check-all.mjs --quick` | 5 phases vertes. |
-| `node tools/check-docs.mjs` | **774 liens/ancres**, 71 documents. |
-| `git diff --check` | Propre. |
-
-**Conclusion : M74 validé. La surface FFI de chaque port est inventoriée et
-vérifiée automatiquement.**
+[Compte rendu archivé](validation-history.md#validation-m74).
 
 ## Validation M75
 
-### Clôture du plan v7 — 22 octobre 2026
+[Compte rendu archivé](validation-history.md#validation-m75).
 
-La documentation, la matrice FFI, les configurations et les sorties générées
-sont alignées. Le profil complet `check-all --full` exécute les 9 phases et
-conserve un log par phase sous `logs/check-all/`.
-
-### Résultats ciblés
-
-| Vérification | Résultat |
-| --- | --- |
-| `node tools/check-all.mjs --full` | **9 phases vertes**. |
-| `docs` | 776 liens/ancres, 71 documents. |
-| `port-ffi` | 48 standards, 7 auxiliaires, 118 fichiers Java. |
-| `generated` | 1 028 fichiers JS/source maps stables. |
-| `test-tools` | **27/27**. |
-| Spec | **70 checks**, cinq sondes. |
-| `child-process` / Node FS | Réussis. |
-| `todo.md` | Aucune case ouverte. |
-
-**Conclusion : M75 validé. Le plan v7 est clôturé à 100/100 ; le dépôt est
-documenté, vérifié et reproductible.**
+<!-- Ancres historiques conservées pour les liens externes. -->
+<a id="baseline-et-cartographie--21-octobre-2026"></a>
+<a id="mesures-de-départ"></a>
+<a id="cas-spéciaux-et-lisibilité-du-compilateur--21-octobre-2026"></a>
+<a id="résultats-ciblés-1"></a>
+<a id="contrats-runtime-et-ffi--21-octobre-2026"></a>
+<a id="résultats-ciblés-2"></a>
+<a id="harnais-de-tests-lisible--21-octobre-2026"></a>
+<a id="résultats-ciblés-3"></a>
+<a id="documentation-hygiène-et-clôture--21-octobre-2026"></a>
+<a id="résultats-ciblés-4"></a>
+<a id="launchers-et-configurations--21-octobre-2026"></a>
+<a id="résultats-ciblés-5"></a>
+<a id="dette-ffi-résiduelle--21-octobre-2026"></a>
+<a id="résultats-ciblés-6"></a>
+<a id="fixtures-java-partagées--21-octobre-2026"></a>
+<a id="résultats-ciblés-7"></a>
+<a id="frontières-de-chunk--21-octobre-2026"></a>
+<a id="résultats-ciblés-8"></a>
+<a id="reproductibilité-et-clôture--21-octobre-2026"></a>
+<a id="résultats-ciblés-9"></a>
+<a id="frontières-de-codegenexpr--21-octobre-2026"></a>
+<a id="résultats-ciblés-10"></a>
+<a id="source-unique-des-configurations-spago--21-octobre-2026"></a>
+<a id="résultats-ciblés-11"></a>
+<a id="fixtures-java-restantes--21-octobre-2026"></a>
+<a id="résultats-ciblés-12"></a>
+<a id="ports-auxiliaires-et-sorties--22-octobre-2026"></a>
+<a id="résultats-ciblés-13"></a>
+<a id="documentation-et-clôture--22-octobre-2026"></a>
+<a id="résultats-ciblés-14"></a>
+<a id="vérité-documentaire--22-octobre-2026"></a>
+<a id="résultats-ciblés-15"></a>
+<a id="fixtures-java-restantes--22-octobre-2026"></a>
+<a id="résultats-ciblés-16"></a>
+<a id="validation-unifiée--22-octobre-2026"></a>
+<a id="résultats-ciblés-17"></a>
+<a id="matrice-ffi-des-ports--22-octobre-2026"></a>
+<a id="résultats-ciblés-18"></a>
+<a id="clôture-du-plan-v7--22-octobre-2026"></a>
+<a id="résultats-ciblés-19"></a>
